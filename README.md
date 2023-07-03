@@ -4,7 +4,7 @@
 ###### Releases will only be available up through Beta state of the game prior to actual release on Steam, but code changes will stay updated on here and remain available for those who wish to compile their own modded version. After release of the game, the game will need to be purchased on Steam to acquire media files for the Content folder (e.g. music, sounds, and textures).
 # 
 ### Features currently in the game:
-- Numerous character stats for sim/survival mechanics
+- Numerous character stats for sim/survival mechanics (5 physical stats and 5 mental stats)
 - Random generation of small town, 80s based time period
 - Time progression based on player movement/action (timescales down to the millisecond for realistic timeframes)
 - Tank-style movement using mouse for direction/turning and W/A/S/D for moving (keys can be bound in options)
