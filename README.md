@@ -5,7 +5,7 @@
 # 
 ### Features currently in the game:
 - Tank-style movement using mouse for direction/turning and W/A/S/D for moving (keys can be bound in options)
-- Default 'interact' key for convenience ('E' key by default), otherwise right-click for menu-driven interacting
+- Default 'interact' key for convenience ('E' key by default), or right-click for menu-driven interacting
 - Numerous character stats for sim/survival mechanics
 - Random generation of small town, 80s based time period
 - Time progression based on player movement/action (timescales down to the millisecond for realistic timeframes)
