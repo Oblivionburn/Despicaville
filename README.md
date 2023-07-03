@@ -13,7 +13,7 @@
 - Verbose event/dialogue logging with timestamps (uses in-game time)
 - Intentionally very few animations or visible gore effects to leave the details to player imagination
 - Combat/attacking with body-part targeting, hit chance calculations, and different actions taking different amounts of time to execute (e.g. stabs are quick while swinging a sledgehammer takes longer)
-- Character 'health' driven by wounds (e.g. bruises, cuts, stabs, gunshots) per body part, overall percentage of Blood remaining in body, and total Pain from Wounds (e.g. too high of Pain percentage will cause a character to pass out until the wounds contributing to their Pain recover)
+- Character 'health' driven by wounds (e.g. bruises, cuts, stabs, gunshots) per body part, overall percentage of blood remaining in body, and total pain from wounds (e.g. too much pain will cause a character to pass out until enough of the wounds contributing to their pain have recovered... not recovering quickly enough can result in laying there bleeding out to death)
 - Blood trails/pooling from bleeding
 - Somewhat realistic wound recovery timescales
 - Consumable item usage (right-click to use)
