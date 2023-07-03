@@ -32,7 +32,7 @@
 - Vehicles/driving
 - NPC job/ai schedules
 - Key-word based NPC dialogue
-- Implenting memory system for NPCs (tracking of in-game events per NPC)
+- Implenting memory system for NPCs (tracking of in-game events per NPC that they experience/witness)
 - Dialogue between NPCs that the player can overhear, and a means for NPCs to share/spread event knowledge from their memory
 - News on newspapers/TV covering in-game events from the prior day
 - Purchasing items from stores and restocking of stores with items
