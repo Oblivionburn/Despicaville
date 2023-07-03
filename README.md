@@ -4,7 +4,7 @@
 ### Features not yet implemented:
 - Wound Management (menu to view wounds and apply items for recovery)
 - More dynamic and personality-based reactions for NPCs being attacked
-- Citizens reporting crimes
+- NPCs calling for help from other nearby NPCs and/or reporting crimes on telephone
 - Police investigation of crimes
 - Graphic effect to display sound distances in-world
 - Vehicles/driving
