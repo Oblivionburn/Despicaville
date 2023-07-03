@@ -12,7 +12,7 @@
 - Key-word based NPC dialogue
 - Dialogue between NPCs that the player can overhear (and a means for NPCs to share/spread event knowledge)
 - Implenting memory system for NPCs (tracking of in-game events per NPC)
-- News on newspapers/TV covering games events the prior day
+- News on newspapers/TV covering in-game events from the prior day
 - Purchasing items from stores and restocking of stores with items
 - Daytime job for player (number of tasks that can be completed to earn money), handful of job options
 - Usability of most items (e.g. using Duct Tape or Rope on NPCs)
