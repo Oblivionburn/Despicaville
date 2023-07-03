@@ -40,7 +40,7 @@
 - Usability of most items (e.g. using Duct Tape or Rope on NPCs)
 - Inflicting cut wounds on feet when walking barefoot on broken glass
 - Textures for more clothing items so they can be renderered on characters
-- Status effects on weapons (e.g. knocking someone out with a hammer for a period of time)
+- Status effects inflicted from weapons (e.g. knocking someone out with a hammer for a period of time)
 - Display of status effects on player in the UI
 - Tying more stats into more gameplay mechanics
 - Skills for player progression (skills increase by doing whatever the skill governs)
