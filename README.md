@@ -1,6 +1,8 @@
 # Despicaville
 ### This is the source code for a serial-killer/life sim game being built using OP Game Engine in VS 2022. It's still in a very early alpha state (not all core features are implemented).
 # 
+###### Releases will only be available up through Beta state of the game prior to actual release on Steam, but code changes will stay updated on here and remain available for those who wish to mod/compile their own version. After release of the game, the game will need to be purchased to acquire media files for the Content folder (e.g. music, sounds, and textures).
+# 
 ### Features not yet implemented:
 - Wound Management (menu to view wounds and apply items for recovery)
 - More dynamic and personality-based reactions for NPCs being attacked
