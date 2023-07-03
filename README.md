@@ -29,7 +29,7 @@
 - NPCs under attack calling for help from other nearby NPCs and/or calling the police
 - NPCs witnessing crimes calling the police and/or attempting citizens arrest
 - Police investigation of crimes
-- Graphic effect to display sound distances in-world
+- Graphic effect to display sound distances in-world (ripple shader maybe?)
 - Vehicles/driving
 - NPC job/ai schedules
 - Key-word based NPC dialogue
