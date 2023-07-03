@@ -23,6 +23,7 @@
   
 ### Planned features not yet implemented:
 - Wound Management (menu to view wounds and apply items to decrease recovery time or stop bleeding)
+- Stats menu to view current base stats and status effects
 - Grappling/grabbing/dragging actions and mechanics based on stats
 - More dynamic and personality-based reactions for NPCs being attacked
 - NPCs under attack calling for help from other nearby NPCs and/or calling the police
