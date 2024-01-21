@@ -1,8 +1,0 @@
-D:\Development\Game Dev\MonoGame\Projects\Despicaville\Despicaville\bin\x64\Debug\Despicaville.exe.config
-D:\Development\Game Dev\MonoGame\Projects\Despicaville\Despicaville\bin\x64\Debug\Despicaville.exe
-D:\Development\Game Dev\MonoGame\Projects\Despicaville\Despicaville\bin\x64\Debug\Despicaville.pdb
-D:\Development\Game Dev\MonoGame\Projects\Despicaville\Despicaville\obj\x64\Debug\Despicaville.csproj.AssemblyReference.cache
-D:\Development\Game Dev\MonoGame\Projects\Despicaville\Despicaville\obj\x64\Debug\Despicaville.csproj.SuggestedBindingRedirects.cache
-D:\Development\Game Dev\MonoGame\Projects\Despicaville\Despicaville\obj\x64\Debug\Despicaville.csproj.CoreCompileInputs.cache
-D:\Development\Game Dev\MonoGame\Projects\Despicaville\Despicaville\obj\x64\Debug\Despicaville.exe
-D:\Development\Game Dev\MonoGame\Projects\Despicaville\Despicaville\obj\x64\Debug\Despicaville.pdb

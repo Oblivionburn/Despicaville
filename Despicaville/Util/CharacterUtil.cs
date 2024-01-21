@@ -1254,29 +1254,29 @@ namespace Despicaville.Util
 
                         if (blood != null)
                         {
-                            if (blood.Value > 0.001)
-                            {
-                                if (blood.Value < 0.005f)
+                            if (blood.Value > 0.05f)
+                            {             
+                                if (blood.Value < 0.1f)
                                 {
                                     blood.Name = "Small Blood";
                                     blood.Texture = AssetManager.Textures["Blood_Small"];
                                 }
-                                else if (blood.Value < 0.02)
+                                else if (blood.Value < 1)
                                 {
                                     blood.Name = "Medium Blood";
                                     blood.Texture = AssetManager.Textures["Blood_Medium"];
                                 }
-                                else if (blood.Value < 0.1)
+                                else if (blood.Value < 10)
                                 {
                                     blood.Name = "Large Blood";
                                     blood.Texture = AssetManager.Textures["Blood_Large"];
                                 }
-                                else if (blood.Value < 1)
+                                else if (blood.Value < 100)
                                 {
                                     blood.Name = "Pool Blood";
                                     blood.Texture = AssetManager.Textures["Blood_Pool"];
                                 }
-                                else
+                                else if (blood.Value >= 1000)
                                 {
                                     blood.Name = "Puddle Blood";
                                     blood.Texture = AssetManager.Textures["Blood_Puddle"];
@@ -1295,7 +1295,7 @@ namespace Despicaville.Util
                         }
 
                         if (character.Travelling &&
-                            total >= 0.0001f)
+                            total >= 0.001f)
                         {
                             if (character.Direction == Direction.Up &&
                                 !trail_north_found)

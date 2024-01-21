@@ -1031,13 +1031,16 @@ namespace Despicaville.Menus
                     }
                 }
 
-                Something thirst = item.GetProperty("Thirst");
-                if (thirst != null)
+                if (!okay)
                 {
-                    if (player.GetStat("Thirst").Value < 100)
+                    Something thirst = item.GetProperty("Thirst");
+                    if (thirst != null)
                     {
-                        okay = true;
-                        Tasker.AddTask(player, "UseItem_" + item.ID, false, true, TimeSpan.FromSeconds(thirst.Value * -1), default, 0);
+                        if (player.GetStat("Thirst").Value < 100)
+                        {
+                            okay = true;
+                            Tasker.AddTask(player, "UseItem_" + item.ID, false, true, TimeSpan.FromSeconds(thirst.Value * -1), default, 0);
+                        }
                     }
                 }
             }
