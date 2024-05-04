@@ -6,7 +6,7 @@
 ### Features currently in the game:
 - Numerous character base stats for sim/survival mechanics (5 physical stats and 5 mental stats)
 - Random generation of small town, 80s based time period
-- Time progression based on player movement/action (timescales down to the millisecond for realistic timeframes)
+- Time progression based on player movement/action
 - Tank-style movement using mouse for direction/turning and W/A/S/D for moving (keys can be bound in options)
 - Default 'interact' key for convenience ('E' key by default), or right-click for menu-driven interacting
 - Crouching to sneak, perform actions slower/quietly, and interact with furniture underneath sinks/phones
@@ -33,7 +33,7 @@
 - Vehicles/driving
 - NPC job/ai schedules
 - Key-word based NPC dialogue
-- Implenting memory system for NPCs (tracking of in-game events per NPC that they experience/witness)
+- Implementing memory system for NPCs (tracking of in-game events per NPC that they experience/witness)
 - Dialogue between NPCs that the player can overhear, and a means for NPCs to share/spread event knowledge from their memory
 - News on newspapers/TV covering in-game events from the prior day
 - Purchasing items from stores and restocking of stores with items
