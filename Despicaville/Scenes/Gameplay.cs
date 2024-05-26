@@ -75,7 +75,7 @@ namespace Despicaville.Scenes
 
                         if (!player.Dead)
                         {
-                            if (!player.Travelling)
+                            if (!player.Moving)
                             {
                                 if (!player.Unconscious)
                                 {
@@ -291,7 +291,7 @@ namespace Despicaville.Scenes
                                         }
                                     }
                                     else if (WorldUtil.InRange(character.Location, player.Location, Handler.HearingDistance) &&
-                                             character.Travelling)
+                                             character.Moving)
                                     {
                                         Rectangle region = character.Region.ToRectangle;
                                         spriteBatch.Draw(character.Texture, region, character.Image, Color.Black * 0.25f);
@@ -755,12 +755,12 @@ namespace Despicaville.Scenes
                     Tasker.Character_StartAction(World, player);
                     Tasker.Character_EndAction(World, player);
 
-                    player.Travel_TotalDistance = Main.Game.TileSize.X;
+                    player.Move_TotalDistance = Main.Game.TileSize.X;
                     player.Update();
 
                     CharacterUtil.UpdateGear(player);
 
-                    if (!player.Travelling)
+                    if (!player.Moving)
                     {
                         Task task = player.Job.CurrentTask;
                         if (task != null)

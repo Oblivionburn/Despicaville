@@ -22,7 +22,7 @@ namespace Despicaville.Util
             character.Type = "Citizen";
             character.Animator.Frames = 4;
             character.Speed = 1;
-            character.Travel_TotalDistance = Main.Game.TileSize.X;
+            character.Move_TotalDistance = Main.Game.TileSize.X;
             character.Direction = Direction.Down;
             character.Visible = true;
             character.Job.OwnerIDs.Add(character.ID);
@@ -201,9 +201,9 @@ namespace Despicaville.Util
             shoes.Icon_DrawColor = GameUtil.ColorFromName(Handler.Colors[shoes_color]);
             shoes.Name = Handler.Colors[shoes_color] + " Shoes";
 
-            character.HeardSomething += AI.ReactToNoise;
-            character.SawSomething += AI.ReactToMovement;
-            character.SmelledSomething += AI.ReactToSmell;
+            character.OnHearSomething += AI.ReactToNoise;
+            character.OnSeeSomething += AI.ReactToMovement;
+            character.OnSmellSomething += AI.ReactToSmell;
 
             return character;
         }
@@ -1294,7 +1294,7 @@ namespace Despicaville.Util
                             WorldUtil.AddEffect(bottom_tiles, new Vector2(character.Location.X, character.Location.Y), "Tiny Blood", null);
                         }
 
-                        if (character.Travelling &&
+                        if (character.Moving &&
                             total >= 0.001f)
                         {
                             if (character.Direction == Direction.Up &&

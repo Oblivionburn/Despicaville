@@ -122,7 +122,7 @@ namespace Despicaville.Util
             if (player != null)
             {
                 player.Speed = (Main.Game.TileSize.X / 32);
-                player.Travel_TotalDistance = Main.Game.TileSize.X;
+                player.Move_TotalDistance = Main.Game.TileSize.X;
 
                 player.Region.X = (Main.Game.ScreenWidth / 2) - (Main.Game.TileSize.X / 2);
                 player.Region.Y = (Main.Game.ScreenHeight / 2) - (Main.Game.TileSize.Y / 2) - (Main.Game.TileSize.Y * 2);
@@ -329,30 +329,30 @@ namespace Despicaville.Util
                                                     character.Location.Y == tile.Location.Y)
                                                 {
                                                     character.Speed = 1;
-                                                    character.Travel_TotalDistance = Main.Game.TileSize.X;
+                                                    character.Move_TotalDistance = Main.Game.TileSize.X;
 
                                                     character.Region.X = tile.Region.X;
                                                     character.Region.Y = tile.Region.Y;
                                                     character.Region.Width = Main.Game.TileSize.X;
                                                     character.Region.Height = Main.Game.TileSize.Y;
 
-                                                    if (character.Travelling)
+                                                    if (character.Moving)
                                                     {
                                                         if (character.Destination.Y < character.Location.Y)
                                                         {
-                                                            character.Region.Y -= (int)character.Travelled;
+                                                            character.Region.Y -= (int)character.Moved;
                                                         }
                                                         else if (character.Destination.X > character.Location.X)
                                                         {
-                                                            character.Region.X += (int)character.Travelled;
+                                                            character.Region.X += (int)character.Moved;
                                                         }
                                                         else if (character.Destination.Y > character.Location.Y)
                                                         {
-                                                            character.Region.Y += (int)character.Travelled;
+                                                            character.Region.Y += (int)character.Moved;
                                                         }
                                                         else if (character.Destination.X < character.Location.X)
                                                         {
-                                                            character.Region.X -= (int)character.Travelled;
+                                                            character.Region.X -= (int)character.Moved;
                                                         }
                                                     }
 

@@ -66,9 +66,9 @@ namespace Despicaville
 
                             if (action)
                             {
-                                if (character.Travelling)
+                                if (character.Moving)
                                 {
-                                    character.Travel_TotalDistance = Main.Game.TileSize.X;
+                                    character.Move_TotalDistance = Main.Game.TileSize.X;
                                     character.Update();
                                 }
                                 else
@@ -77,7 +77,7 @@ namespace Despicaville
                                 }
                             }
 
-                            if (!character.Travelling)
+                            if (!character.Moving)
                             {
                                 if (task != null)
                                 {
@@ -177,7 +177,7 @@ namespace Despicaville
             {
                 if (action)
                 {
-                    if (!player.Travelling)
+                    if (!player.Moving)
                     {
                         Tasker.Character_DoAction(scene.World, player);
                     }
@@ -351,17 +351,17 @@ namespace Despicaville
             TimeManager.Init(1984, 6, 1, 6, 0, 0, 0);
             RenderingManager.Lighting.Reset();
 
-            TimeManager.Now.MillisecondsChanged -= MillisecondsChanged;
-            TimeManager.Now.MillisecondsChanged += MillisecondsChanged;
+            TimeManager.Now.OnMillisecondsChange -= MillisecondsChanged;
+            TimeManager.Now.OnMillisecondsChange += MillisecondsChanged;
 
-            TimeManager.Now.SecondsChanged -= SecondsChanged;
-            TimeManager.Now.SecondsChanged += SecondsChanged;
+            TimeManager.Now.OnSecondsChange -= SecondsChanged;
+            TimeManager.Now.OnSecondsChange += SecondsChanged;
 
-            TimeManager.Now.MinutesChanged -= MinutesChanged;
-            TimeManager.Now.MinutesChanged += MinutesChanged;
+            TimeManager.Now.OnMinutesChange -= MinutesChanged;
+            TimeManager.Now.OnMinutesChange += MinutesChanged;
 
-            TimeManager.Now.HoursChanged -= HoursChanged;
-            TimeManager.Now.HoursChanged += HoursChanged;
+            TimeManager.Now.OnHoursChange -= HoursChanged;
+            TimeManager.Now.OnHoursChange += HoursChanged;
         }
     }
 }

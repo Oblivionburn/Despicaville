@@ -89,7 +89,7 @@ namespace Despicaville
                 if (task != null)
                 {
                     if (task.Started &&
-                        !character.Travelling)
+                        !character.Moving)
                     {
                         if (task.Name == "Sneak" || 
                             task.Name == "Walk" || 
@@ -681,7 +681,7 @@ namespace Despicaville
                     }
                 }
 
-                character.Travelling = true;
+                character.Moving = true;
 
                 Layer effect_tiles = map.GetLayer("EffectTiles");
                 Layer middle_tiles = map.GetLayer("MiddleTiles");

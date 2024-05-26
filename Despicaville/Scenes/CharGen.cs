@@ -852,7 +852,7 @@ namespace Despicaville.Scenes
             player.Type = "Player";
             player.Animator.Frames = 4;
             player.Speed = 1;
-            player.Travel_TotalDistance = Main.Game.TileSize.X;
+            player.Move_TotalDistance = Main.Game.TileSize.X;
             player.Direction = Direction.Down;
             player.Visible = true;
             player.Region.X = (Main.Game.ScreenWidth / 2) - (Main.Game.TileSize.X / 2);

@@ -24,7 +24,7 @@ namespace Despicaville
     {
         #region Variables
 
-        public static OP_Engine.Rendering.OP_Game Game;
+        public static OP_Game Game;
 
         public static BlendState AmbientBlendState = new BlendState();
         public static LightingRenderer LightingRenderer;

@@ -242,7 +242,7 @@ namespace Despicaville.Util
             for (int i = 0; i < characters.Count; i++)
             {
                 Character existing = characters[i];
-                if (existing.Travelling)
+                if (existing.Moving)
                 {
                     if (existing.Destination.X == destination.X &&
                         existing.Destination.Y == destination.Y)
@@ -285,7 +285,7 @@ namespace Despicaville.Util
             Army army = CharacterManager.GetArmy("Characters");
 
             Character player = Handler.GetPlayer();
-            if (player.Travelling)
+            if (player.Moving)
             {
                 if (player.Destination.X == destination.X &&
                     player.Destination.Y == destination.Y)
@@ -307,7 +307,7 @@ namespace Despicaville.Util
             for (int i = 0; i < count; i++)
             {
                 Character existing = citizens.Characters[i];
-                if (existing.Travelling)
+                if (existing.Moving)
                 {
                     if (existing.Destination.X == destination.X &&
                         existing.Destination.Y == destination.Y)
@@ -333,7 +333,7 @@ namespace Despicaville.Util
             Character player = Handler.GetPlayer();
             if (ID == player.ID)
             {
-                if (player.Travelling)
+                if (player.Moving)
                 {
                     if (player.Destination.X == location.X &&
                         player.Destination.Y == location.Y)
@@ -357,7 +357,7 @@ namespace Despicaville.Util
                 Character existing = citizens.GetCharacter(ID);
                 if (existing != null)
                 {
-                    if (existing.Travelling)
+                    if (existing.Moving)
                     {
                         if (existing.Destination.X == location.X &&
                             existing.Destination.Y == location.Y)
