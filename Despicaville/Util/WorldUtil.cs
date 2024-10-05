@@ -173,6 +173,30 @@ namespace Despicaville.Util
             return false;
         }
 
+        public static Tile GetNearestExit_ToFurniture(Character character, Layer bottom_tiles, Layer middle_tiles, Layer room_tiles, Tile furniture)
+        {
+            List<Tile> exits = GetExits(bottom_tiles, middle_tiles, room_tiles, character.Location);
+            if (exits.Count > 0)
+            {
+                Tile nearest_exit = exits[0];
+                int distance = GetDistance(nearest_exit.Location, furniture.Location);
+
+                foreach (Tile exit in exits)
+                {
+                    int new_distance = GetDistance(exit.Location, furniture.Location);
+                    if (new_distance < distance)
+                    {
+                        nearest_exit = exit;
+                        distance = new_distance;
+                    }
+                }
+
+                return nearest_exit;
+            }
+
+            return null;
+        }
+
         public static Tile GetClosestTile(List<Tile> tiles, Character character)
         {
             if (tiles.Count > 0)
@@ -560,6 +584,24 @@ namespace Despicaville.Util
             }
 
             return Direction.Nowhere;
+        }
+
+        public static bool Furniture_InRoom(Layer room_tiles, Tile furniture, Character character)
+        {
+            Layer room = GetRoom(room_tiles, character.Location);
+            if (room != null)
+            {
+                foreach (Tile tile in room.Tiles)
+                {
+                    if (tile.Location.X == furniture.Location.X &&
+                        tile.Location.Y == furniture.Location.Y)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         public static string GetTile_Name(Tile tile)
@@ -1041,6 +1083,196 @@ namespace Despicaville.Util
             GameUtil.AddMessage(description);
         }
 
+        public static Layer GetRoom(Layer room_tiles, Vector3 location)
+        {
+            Tile room_tile = room_tiles.GetTile(new Vector2(location.X, location.Y));
+            if (room_tile != null &&
+                room_tile.Texture != null)
+            {
+                Layer room = new Layer();
+
+                GetRoomTiles(room_tiles, room, room_tile);
+
+                if (room.Tiles.Count > 0)
+                {
+                    return room;
+                }
+            }
+
+            return null;
+        }
+
+        public static void GetRoomTiles(Layer room_tiles, Layer room, Tile room_tile)
+        {
+            room.Tiles.Add(room_tile);
+
+            Tile north = room_tiles.GetTile(new Vector2(room_tile.Location.X, room_tile.Location.Y - 1));
+            if (north != null &&
+                north.Texture != null &&
+                north.Name == room_tile.Name &&
+                !room.Tiles.Contains(north))
+            {
+                GetRoomTiles(room_tiles, room, north);
+            }
+
+            Tile east = room_tiles.GetTile(new Vector2(room_tile.Location.X + 1, room_tile.Location.Y));
+            if (east != null &&
+                east.Texture != null &&
+                east.Name == room_tile.Name &&
+                !room.Tiles.Contains(east))
+            {
+                GetRoomTiles(room_tiles, room, east);
+            }
+
+            Tile south = room_tiles.GetTile(new Vector2(room_tile.Location.X, room_tile.Location.Y + 1));
+            if (south != null &&
+                south.Texture != null &&
+                south.Name == room_tile.Name &&
+                !room.Tiles.Contains(south))
+            {
+                GetRoomTiles(room_tiles, room, south);
+            }
+
+            Tile west = room_tiles.GetTile(new Vector2(room_tile.Location.X - 1, room_tile.Location.Y));
+            if (west != null &&
+                west.Texture != null &&
+                west.Name == room_tile.Name &&
+                !room.Tiles.Contains(west))
+            {
+                GetRoomTiles(room_tiles, room, west);
+            }
+        }
+
+        public static List<Tile> GetExits(Layer bottom_tiles, Layer middle_tiles, Layer room_tiles, Vector3 location)
+        {
+            List<Tile> exits = new List<Tile>();
+
+            Layer room = GetRoom(room_tiles, location);
+            if (room != null)
+            {
+                foreach (Tile tile in room.Tiles)
+                {
+                    Vector2 north = new Vector2(tile.Location.X, tile.Location.Y - 1);
+
+                    Tile north_bottom = bottom_tiles.GetTile(north);
+                    if (north_bottom != null &&
+                        !north_bottom.Name.Contains("Wall"))
+                    {
+                        Tile north_middle = middle_tiles.GetTile(north);
+                        if (north_middle.Name.Contains("Door"))
+                        {
+                            if (!exits.Contains(north_middle))
+                            {
+                                exits.Add(north_middle);
+                            }
+                        }
+                        else
+                        {
+                            Tile north_room = room_tiles.GetTile(north);
+                            if (north_room != null &&
+                                north_room.Texture != null &&
+                                north_room.Name != tile.Name)
+                            {
+                                if (!exits.Contains(north_room))
+                                {
+                                    exits.Add(north_room);
+                                }
+                            }
+                        }
+                    }
+
+                    Vector2 east = new Vector2(tile.Location.X + 1, tile.Location.Y);
+
+                    Tile east_bottom = bottom_tiles.GetTile(east);
+                    if (east_bottom != null &&
+                        !east_bottom.Name.Contains("Wall"))
+                    {
+                        Tile east_middle = middle_tiles.GetTile(east);
+                        if (east_middle.Name.Contains("Door"))
+                        {
+                            if (!exits.Contains(east_middle))
+                            {
+                                exits.Add(east_middle);
+                            }
+                        }
+                        else
+                        {
+                            Tile east_room = room_tiles.GetTile(east);
+                            if (east_room != null &&
+                                east_room.Texture != null &&
+                                east_room.Name != tile.Name)
+                            {
+                                if (!exits.Contains(east_room))
+                                {
+                                    exits.Add(east_room);
+                                }
+                            }
+                        }
+                    }
+
+                    Vector2 south = new Vector2(tile.Location.X, tile.Location.Y + 1);
+
+                    Tile south_bottom = bottom_tiles.GetTile(south);
+                    if (south_bottom != null &&
+                        !south_bottom.Name.Contains("Wall"))
+                    {
+                        Tile south_middle = middle_tiles.GetTile(south);
+                        if (south_middle.Name.Contains("Door"))
+                        {
+                            if (!exits.Contains(south_middle))
+                            {
+                                exits.Add(south_middle);
+                            }
+                        }
+                        else
+                        {
+                            Tile south_room = room_tiles.GetTile(south);
+                            if (south_room != null &&
+                                south_room.Texture != null &&
+                                south_room.Name != tile.Name)
+                            {
+                                if (!exits.Contains(south_room))
+                                {
+                                    exits.Add(south_room);
+                                }
+                            }
+                        }
+                    }
+
+                    Vector2 west = new Vector2(tile.Location.X - 1, tile.Location.Y);
+
+                    Tile west_bottom = bottom_tiles.GetTile(west);
+                    if (west_bottom != null &&
+                        !west_bottom.Name.Contains("Wall"))
+                    {
+                        Tile west_middle = middle_tiles.GetTile(west);
+                        if (west_middle.Name.Contains("Door"))
+                        {
+                            if (!exits.Contains(west_middle))
+                            {
+                                exits.Add(west_middle);
+                            }
+                        }
+                        else
+                        {
+                            Tile west_room = room_tiles.GetTile(west);
+                            if (west_room != null &&
+                                west_room.Texture != null &&
+                                west_room.Name != tile.Name)
+                            {
+                                if (!exits.Contains(west_room))
+                                {
+                                    exits.Add(west_room);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return exits;
+        }
+
         public static List<Tile> GetAllFurniture(Layer layer, Point map_coords)
         {
             List<Tile> furniture = new List<Tile>();
@@ -1074,10 +1306,7 @@ namespace Despicaville.Util
             {
                 if (tile.Name.Contains(name))
                 {
-                    if (!DPathing.SkipAttemptedTile(character, tile))
-                    {
-                        tiles.Add(tile);
-                    }
+                    tiles.Add(tile);
                 }
             }
 

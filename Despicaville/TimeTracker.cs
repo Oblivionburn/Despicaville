@@ -244,7 +244,7 @@ namespace Despicaville
                         Something pain = character.GetStat("Pain");
                         if (pain.Value >= 100)
                         {
-                            character.GetStat("Consciousness").DecreaseValue(1);
+                            character.GetStat("Consciousness").DecreaseValue(5);
                         }
                     }
                 }

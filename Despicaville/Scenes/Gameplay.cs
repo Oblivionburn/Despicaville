@@ -477,11 +477,6 @@ namespace Despicaville.Scenes
                 {
                     task.Direction = Direction.Left;
                 }
-                else if (InputManager.Mouse_LB_Held &&
-                         mouse_in_view)
-                {
-                    task.Direction = player.Direction;
-                }
 
                 if (task.Direction != Direction.Nowhere)
                 {
@@ -492,7 +487,8 @@ namespace Despicaville.Scenes
             }
 
             if (player.Job.Tasks.Count == 0 &&
-                mouse_in_view)
+                mouse_in_view &&
+                InputManager.Mouse.LB_Held)
             {
                 #region Turn
 

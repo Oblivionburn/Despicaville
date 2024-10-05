@@ -294,7 +294,7 @@ namespace Despicaville.Util
 
             stat = new Something();
             stat.Name = "Pain";
-            stat.Description = "How much pain you are feeling.\nConsciousness -1 every second at 100%.";
+            stat.Description = "How much pain you are feeling.\nConsciousness -5 every second at 100%.";
             stat.Max_Value = 100;
             stat.Value = 0;
             stats.Add(stat);
@@ -1051,11 +1051,11 @@ namespace Despicaville.Util
                     {
                         if (part.Name == "Head")
                         {
-                            pain.IncreaseValue(25);
+                            pain.IncreaseValue(50);
                         }
                         else
                         {
-                            pain.IncreaseValue(10);
+                            pain.IncreaseValue(20);
                         }
                     }
                     else if (wound.Name == "Stitched")
@@ -1084,6 +1084,11 @@ namespace Despicaville.Util
                 }
 
                 hp.Value = 100 - pain.Value;
+                if (part.Name == "Head" &&
+                    hp.Value <= 0)
+                {
+                    character.GetStat("Consciousness").Value = 0;
+                }
 
                 total += pain.Value;
             }

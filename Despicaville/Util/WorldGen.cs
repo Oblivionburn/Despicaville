@@ -27,6 +27,8 @@ namespace Despicaville.Util
         public static List<Map> Parks = new List<Map>();
         public static List<Map> Roads = new List<Map>();
 
+        public static Dictionary<int, List<Layer>> Rooms = new Dictionary<int, List<Layer>>();
+
         private static int column;
         private static int row;
 
@@ -2292,14 +2294,7 @@ namespace Despicaville.Util
 
                                 if (!found)
                                 {
-                                    Tile middle_tile = new Tile();
-                                    middle_tile.ID = Handler.GetID();
-                                    middle_tile.MapID = map.ID;
-                                    middle_tile.LayerID = middle_tiles.ID;
-                                    middle_tile.Name = "";
-                                    middle_tile.Location = new Vector3(x, y, 0);
-                                    middle_tile.Region = new Region((int)middle_tile.Location.X * Main.Game.TileSize.X, (int)middle_tile.Location.Y * Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
-                                    middle_tiles.Tiles.Add(middle_tile);
+                                    AddEmptyTile(map, middle_tiles, worldTile, new Vector3(x, y, 0));
 
                                     current++;
                                     Handler.Loading_Percent = (current * 100) / total;
@@ -2335,14 +2330,7 @@ namespace Despicaville.Util
 
                                 if (!found)
                                 {
-                                    Tile top_tile = new Tile();
-                                    top_tile.ID = Handler.GetID();
-                                    top_tile.MapID = map.ID;
-                                    top_tile.LayerID = top_tiles.ID;
-                                    top_tile.Name = "";
-                                    top_tile.Location = new Vector3(x, y, 0);
-                                    top_tile.Region = new Region((int)top_tile.Location.X * Main.Game.TileSize.X, (int)top_tile.Location.Y * Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
-                                    top_tiles.Tiles.Add(top_tile);
+                                    AddEmptyTile(map, top_tiles, worldTile, new Vector3(x, y, 0));
 
                                     current++;
                                     Handler.Loading_Percent = (current * 100) / total;
@@ -2378,14 +2366,7 @@ namespace Despicaville.Util
 
                                 if (!found)
                                 {
-                                    Tile room_tile = new Tile();
-                                    room_tile.ID = Handler.GetID();
-                                    room_tile.MapID = map.ID;
-                                    room_tile.LayerID = room_tiles.ID;
-                                    room_tile.Name = "";
-                                    room_tile.Location = new Vector3(x, y, 0);
-                                    room_tile.Region = new Region((int)room_tile.Location.X * Main.Game.TileSize.X, (int)room_tile.Location.Y * Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
-                                    room_tiles.Tiles.Add(room_tile);
+                                    AddEmptyTile(map, room_tiles, worldTile, new Vector3(x, y, 0));
 
                                     current++;
                                     Handler.Loading_Percent = (current * 100) / total;
@@ -2413,7 +2394,7 @@ namespace Despicaville.Util
                         Tile existing = middle_tiles.Tiles[index];
                         if (existing != null)
                         {
-                            //Swamp tree with tile at X+1/Y+1
+                            //Swap tree with tile at X+1/Y+1
                             middle_tiles.Tiles[index] = middle_tile;
                             middle_tiles.Tiles[i] = existing;
 
@@ -2722,6 +2703,86 @@ namespace Despicaville.Util
             }
         }
 
+        public static void AddEmptyTile(Map map, Layer layer, Tile worldTile, Vector3 location)
+        {
+            Tile new_tile = new Tile();
+            new_tile.ID = Handler.GetID();
+            new_tile.MapID = map.ID;
+            new_tile.LayerID = layer.ID;
+            new_tile.Name = "";
+            new_tile.Location = location;
+            new_tile.Region = new Region((int)new_tile.Location.X * Main.Game.TileSize.X, (int)new_tile.Location.Y * Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
+
+            //Add to world
+            layer.Tiles.Add(new_tile);
+
+            //Add to block list
+            if (worldTile.Type.Contains("Residential"))
+            {
+                foreach (Map residential in Residential)
+                {
+                    if (residential.ID == worldTile.ID)
+                    {
+                        Layer map_layer = residential.GetLayer(layer.Name);
+                        if (map_layer != null)
+                        {
+                            map_layer.Tiles.Add(new_tile);
+                        }
+
+                        break;
+                    }
+                }
+            }
+            else if (worldTile.Type.Contains("Commercial"))
+            {
+                foreach (Map commercial in Commercial)
+                {
+                    if (commercial.ID == worldTile.ID)
+                    {
+                        Layer map_layer = commercial.GetLayer(layer.Name);
+                        if (map_layer != null)
+                        {
+                            map_layer.Tiles.Add(new_tile);
+                        }
+
+                        break;
+                    }
+                }
+            }
+            else if (worldTile.Type.Contains("Park"))
+            {
+                foreach (Map park in Parks)
+                {
+                    if (park.ID == worldTile.ID)
+                    {
+                        Layer map_layer = park.GetLayer(layer.Name);
+                        if (map_layer != null)
+                        {
+                            map_layer.Tiles.Add(new_tile);
+                        }
+
+                        break;
+                    }
+                }
+            }
+            else if (worldTile.Type.Contains("Road"))
+            {
+                foreach (Map road in Roads)
+                {
+                    if (road.ID == worldTile.ID)
+                    {
+                        Layer map_layer = road.GetLayer(layer.Name);
+                        if (map_layer != null)
+                        {
+                            map_layer.Tiles.Add(new_tile);
+                        }
+
+                        break;
+                    }
+                }
+            }
+        }
+
         #endregion
 
         private static void AssignOwners(Layer tiles)
@@ -2734,19 +2795,22 @@ namespace Despicaville.Util
             {
                 Character character = squad.Characters[i];
 
-                int block_x = ((int)character.Location.X / 20) * 20;
-                int block_y = ((int)character.Location.Y / 20) * 20;
-
-                if (!Handler.OwnedFurniture.ContainsKey(character.ID))
-                {
-                    Handler.OwnedFurniture.Add(character.ID, new List<Tile>());
-                }
+                int block_x = (int)character.Location.X / 20;
+                int block_y = (int)character.Location.Y / 20;
 
                 List<Tile> furniture = WorldUtil.GetAllFurniture(tiles, new Point(block_x, block_y));
                 foreach (Tile tile in furniture)
                 {
+                    if (!Handler.OwnedFurniture.ContainsKey(character.ID))
+                    {
+                        Handler.OwnedFurniture.Add(character.ID, new List<Tile>() { tile });
+                    }
+                    else
+                    {
+                        Handler.OwnedFurniture[character.ID].Add(tile);
+                    }
+
                     tile.OwnerIDs.Add(character.ID);
-                    Handler.OwnedFurniture[character.ID].Add(tile);
                 }
             }
         }

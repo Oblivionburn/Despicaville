@@ -263,6 +263,7 @@ namespace Despicaville
                 Map map = world.Maps[0];
                 Layer bottom_tiles = map.GetLayer("BottomTiles");
                 Layer middle_tiles = map.GetLayer("MiddleTiles");
+                Layer room_tiles = map.GetLayer("RoomTiles");
 
                 List<Tile> fridges = WorldUtil.GetOwned_Furniture(character, "Fridge");
                 if (fridges.Count > 0)
@@ -306,31 +307,7 @@ namespace Despicaville
                             }
                             else
                             {
-                                character.Path = new List<ALocation>();
-
-                                int distance = WorldUtil.GetDistance(fridge.Location, character.Location) * 2;
-                                List<ALocation> path = DPathing.GetPath(bottom_tiles, middle_tiles, character, fridge, distance, true);
-                                if (path != null)
-                                {
-                                    character.Path.AddRange(path);
-
-                                    if (character.Path.Count > 0)
-                                    {
-                                        if (desperate)
-                                        {
-                                            AddTask(character, "GoTo_Run", true, false, null, default, 0);
-                                        }
-                                        else
-                                        {
-                                            AddTask(character, "GoTo_Walk", true, false, null, default, 0);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        found = false;
-                                        DPathing.AddAttemptedTile(character, fridge);
-                                    }
-                                }
+                                PathTo(bottom_tiles, middle_tiles, room_tiles, fridge, character, desperate);
                             }
                         }
                     }
@@ -343,6 +320,7 @@ namespace Despicaville
                 Map map = world.Maps[0];
                 Layer bottom_tiles = map.GetLayer("BottomTiles");
                 Layer middle_tiles = map.GetLayer("MiddleTiles");
+                Layer room_tiles = map.GetLayer("RoomTiles");
 
                 List<Tile> sinks = WorldUtil.GetOwned_Furniture(character, "Sink");
                 if (sinks.Count > 0)
@@ -364,31 +342,7 @@ namespace Despicaville
                         }
                         else
                         {
-                            character.Path = new List<ALocation>();
-
-                            int distance = WorldUtil.GetDistance(sink.Location, character.Location) * 2;
-                            List<ALocation> path = DPathing.GetPath(bottom_tiles, middle_tiles, character, sink, distance, true);
-                            if (path != null)
-                            {
-                                character.Path.AddRange(path);
-
-                                if (character.Path.Count > 0)
-                                {
-                                    if (desperate)
-                                    {
-                                        AddTask(character, "GoTo_Run", true, false, null, default, 0);
-                                    }
-                                    else
-                                    {
-                                        AddTask(character, "GoTo_Walk", true, false, null, default, 0);
-                                    }
-                                }
-                                else
-                                {
-                                    found = false;
-                                    DPathing.AddAttemptedTile(character, sink);
-                                }
-                            }
+                            PathTo(bottom_tiles, middle_tiles, room_tiles, sink, character, desperate);
                         }
                     }
                 }
@@ -424,6 +378,7 @@ namespace Despicaville
                 Map map = world.Maps[0];
                 Layer bottom_tiles = map.GetLayer("BottomTiles");
                 Layer middle_tiles = map.GetLayer("MiddleTiles");
+                Layer room_tiles = map.GetLayer("RoomTiles");
 
                 List<Tile> fridges = WorldUtil.GetOwned_Furniture(character, "Fridge");
                 if (fridges.Count > 0)
@@ -467,31 +422,7 @@ namespace Despicaville
                             }
                             else
                             {
-                                character.Path = new List<ALocation>();
-
-                                int distance = WorldUtil.GetDistance(fridge.Location, character.Location) * 2;
-                                List<ALocation> path = DPathing.GetPath(bottom_tiles, middle_tiles, character, fridge, distance, true);
-                                if (path != null)
-                                {
-                                    character.Path.AddRange(path);
-
-                                    if (character.Path.Count > 0)
-                                    {
-                                        if (desperate)
-                                        {
-                                            AddTask(character, "GoTo_Run", true, false, null, default, 0);
-                                        }
-                                        else
-                                        {
-                                            AddTask(character, "GoTo_Walk", true, false, null, default, 0);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        found = false;
-                                        DPathing.AddAttemptedTile(character, fridge);
-                                    }
-                                }
+                                PathTo(bottom_tiles, middle_tiles, room_tiles, fridge, character, desperate);
                             }
                         }
                     }
@@ -658,26 +589,23 @@ namespace Despicaville
             Map map = world.Maps[0];
             if (AI.CanMove(character, map, character.Destination))
             {
-                if (character.Type != "Player")
+                if (task.Direction != character.Direction)
                 {
-                    if (task.Direction != character.Direction)
+                    if (task.Direction == Direction.Up)
                     {
-                        if (task.Direction == Direction.Up)
-                        {
-                            character.Animator.FaceNorth(character);
-                        }
-                        else if (task.Direction == Direction.Right)
-                        {
-                            character.Animator.FaceEast(character);
-                        }
-                        else if (task.Direction == Direction.Down)
-                        {
-                            character.Animator.FaceSouth(character);
-                        }
-                        else if (task.Direction == Direction.Left)
-                        {
-                            character.Animator.FaceWest(character);
-                        }
+                        character.Animator.FaceNorth(character);
+                    }
+                    else if (task.Direction == Direction.Right)
+                    {
+                        character.Animator.FaceEast(character);
+                    }
+                    else if (task.Direction == Direction.Down)
+                    {
+                        character.Animator.FaceSouth(character);
+                    }
+                    else if (task.Direction == Direction.Left)
+                    {
+                        character.Animator.FaceWest(character);
                     }
                 }
 
@@ -1816,18 +1744,7 @@ namespace Despicaville
                         {
                             GameUtil.AddMessage("You injected a " + item.Name + ".");
                         }
-                        else if (drink >= eat)
-                        {
-                            if (GameUtil.NameStartsWithVowel(item.Name))
-                            {
-                                GameUtil.AddMessage("You drank an " + item.Name + ".");
-                            }
-                            else
-                            {
-                                GameUtil.AddMessage("You drank a " + item.Name + ".");
-                            }
-                        }
-                        else if (eat > drink)
+                        else if (eat >= drink)
                         {
                             if (GameUtil.NameStartsWithVowel(item.Name))
                             {
@@ -1836,6 +1753,17 @@ namespace Despicaville
                             else
                             {
                                 GameUtil.AddMessage("You ate a " + item.Name + ".");
+                            }
+                        }
+                        else if (drink > eat)
+                        {
+                            if (GameUtil.NameStartsWithVowel(item.Name))
+                            {
+                                GameUtil.AddMessage("You drank an " + item.Name + ".");
+                            }
+                            else
+                            {
+                                GameUtil.AddMessage("You drank a " + item.Name + ".");
                             }
                         }
                     }
@@ -1890,6 +1818,9 @@ namespace Despicaville
             {
                 Something thirst = character.GetStat("Thirst");
                 thirst.DecreaseValue(30);
+
+                Something bladder = character.GetStat("Bladder");
+                bladder.IncreaseValue(30);
             }
 
             SoundManager.StopSound("WaterRunning");
@@ -2298,6 +2229,93 @@ namespace Despicaville
             else
             {
                 task.Dispose();
+            }
+        }
+
+        private static void PathTo(Layer bottom_tiles, Layer middle_tiles, Layer room_tiles, Tile furniture, Character character, bool desperate)
+        {
+            bool in_room = false;
+
+            Tile room_tile = room_tiles.GetTile(new Vector2(character.Location.X, character.Location.Y));
+            if (room_tile != null &&
+                room_tile.Texture != null)
+            {
+                in_room = true;
+            }
+
+            if (in_room)
+            {
+                List<ALocation> path = new List<ALocation>();
+                character.Path = new List<ALocation>();
+
+                if (WorldUtil.Furniture_InRoom(room_tiles, furniture, character))
+                {
+                    int distance = WorldUtil.GetDistance(furniture.Location, character.Location) * 4;
+                    path = DPathing.GetPath(bottom_tiles, middle_tiles, character, furniture, distance, true);
+                }
+                else
+                {
+                    Tile door = WorldUtil.GetNearestExit_ToFurniture(character, bottom_tiles, middle_tiles, room_tiles, furniture);
+                    if (door != null)
+                    {
+                        int distance = WorldUtil.GetDistance(door.Location, character.Location) * 4;
+                        Tile tile = null;
+
+                        if (door.Name.Contains("NorthSouth"))
+                        {
+                            if (door.Location.X < character.Location.X)
+                            {
+                                tile = bottom_tiles.GetTile(new Vector2(door.Location.X - 1, door.Location.Y));
+                            }
+                            else if (door.Location.X > character.Location.X)
+                            {
+                                tile = bottom_tiles.GetTile(new Vector2(door.Location.X + 1, door.Location.Y));
+                            }
+                        }
+                        else if (door.Name.Contains("WestEast"))
+                        {
+                            if (door.Location.Y < character.Location.Y)
+                            {
+                                tile = bottom_tiles.GetTile(new Vector2(door.Location.X, door.Location.Y - 1));
+                            }
+                            else if (door.Location.Y > character.Location.Y)
+                            {
+                                tile = bottom_tiles.GetTile(new Vector2(door.Location.X, door.Location.Y + 1));
+                            }
+                        }
+
+                        if (tile != null)
+                        {
+                            path = DPathing.GetPath(bottom_tiles, middle_tiles, character, tile, distance, false);
+                        }
+                    }
+                }
+
+                if (path != null &&
+                    path.Count > 0)
+                {
+                    character.Path.AddRange(path);
+
+                    if (desperate)
+                    {
+                        AddTask(character, "GoTo_Run", true, false, null, default, 0);
+                    }
+                    else
+                    {
+                        AddTask(character, "GoTo_Walk", true, false, null, default, 0);
+                    }
+                }
+            }
+            else
+            {
+                if (desperate)
+                {
+                    AddTask(character, "Run", true, false, null, default, character.Direction);
+                }
+                else
+                {
+                    AddTask(character, "Walk", true, false, null, default, character.Direction);
+                }
             }
         }
 

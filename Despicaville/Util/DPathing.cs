@@ -252,119 +252,20 @@ namespace Despicaville.Util
         {
             ALocation current = locations[0];
 
-            int current_near = current.Distance_ToDestination;
-            int current_far = current.Distance_ToStart;
+            float current_near = current.Distance_ToDestination;
+            float current_far = current.Distance_ToStart;
 
-            int count = locations.Count;
-            for (int i = 0; i < count; i++)
+            foreach (ALocation location in locations)
             {
-                ALocation location = locations[i];
+                float pref_near = location.Distance_ToDestination;
+                float pref_far = location.Distance_ToStart;
 
-                int pref_near = location.Distance_ToDestination;
-                int pref_far = location.Distance_ToStart;
-
-                bool equal = false;
-                if (pref_near == current_near &&
-                    pref_far == current_far)
+                if ((pref_near <= current_near && pref_far > current_far) ||
+                    pref_near < current_near)
                 {
-                    equal = true;
-
-                    bool preferred = false;
-                    if (target.X < previous.X)
-                    {
-                        if (target.Y < previous.Y)
-                        {
-                            //NorthWest
-                            if (location.X <= current.X ||
-                                location.Y <= current.Y)
-                            {
-                                preferred = true;
-                            }
-                        }
-                        else if (target.Y > previous.Y)
-                        {
-                            //SouthWest
-                            if (location.X <= current.X ||
-                                location.Y >= current.Y)
-                            {
-                                preferred = true;
-                            }
-                        }
-                        else if (target.Y == previous.Y)
-                        {
-                            //West
-                            if (location.X <= current.X)
-                            {
-                                preferred = true;
-                            }
-                        }
-                    }
-                    else if (target.X > previous.X)
-                    {
-                        if (target.Y < previous.Y)
-                        {
-                            //NorthEast
-                            if (location.X >= current.X ||
-                                location.Y <= current.Y)
-                            {
-                                preferred = true;
-                            }
-                        }
-                        else if (target.Y > previous.Y)
-                        {
-                            //SouthEast
-                            if (location.X >= current.X ||
-                                location.Y >= current.Y)
-                            {
-                                preferred = true;
-                            }
-                        }
-                        else if (target.Y == previous.Y)
-                        {
-                            //East
-                            if (location.X >= current.X)
-                            {
-                                preferred = true;
-                            }
-                        }
-                    }
-                    else if (target.X == previous.X)
-                    {
-                        if (target.Y < previous.Y)
-                        {
-                            //North
-                            if (location.Y <= current.Y)
-                            {
-                                preferred = true;
-                            }
-                        }
-                        else if (target.Y > previous.Y)
-                        {
-                            //South
-                            if (location.Y >= current.Y)
-                            {
-                                preferred = true;
-                            }
-                        }
-                    }
-
-                    if (preferred)
-                    {
-                        current = location;
-                        current_near = pref_near;
-                        current_far = pref_far;
-                    }
-                }
-
-                if (!equal)
-                {
-                    if ((pref_near <= current_near && pref_far > current_far) ||
-                         pref_near < current_near)
-                    {
-                        current = location;
-                        current_near = pref_near;
-                        current_far = pref_far;
-                    }
+                    current = location;
+                    current_near = pref_near;
+                    current_far = pref_far;
                 }
             }
 
@@ -472,44 +373,6 @@ namespace Despicaville.Util
             }
 
             return true;
-        }
-
-        public static void AddAttemptedTile(Character character, Tile tile)
-        {
-            if (attempted_pathing.ContainsKey(character.ID))
-            {
-                if (!attempted_pathing[character.ID].Contains(tile))
-                {
-                    tile.Value = 1000;
-                    attempted_pathing[character.ID].Add(tile);
-                }
-            }
-            else
-            {
-                tile.Value = 1000;
-                attempted_pathing.Add(character.ID, new List<Tile> { tile });
-            }
-        }
-
-        public static bool SkipAttemptedTile(Character character, Tile tile)
-        {
-            if (attempted_pathing.ContainsKey(character.ID))
-            {
-                if (attempted_pathing[character.ID].Contains(tile))
-                {
-                    tile.DecreaseValue(1);
-                    if (tile.Value == 0)
-                    {
-                        attempted_pathing[character.ID].Remove(tile);
-                    }
-                    else
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
     }
 }
