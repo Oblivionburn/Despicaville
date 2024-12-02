@@ -8,7 +8,6 @@
 - Numerous character base stats for sim/survival mechanics (5 physical stats and 5 mental stats)
 - Random generation of small town, 80s based time period
 - Time progression based on player movement/action
-- Tank-style movement using mouse for direction/turning and W/A/S/D for moving (keys can be bound in options)
 - Default 'interact' key for convenience ('E' key by default), or right-click for menu-driven interacting
 - Crouching to sneak, perform actions slower/quietly, and interact with furniture underneath sinks/phones
 - Running to move more quickly and perform actions quickly/loudly
