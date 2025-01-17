@@ -279,7 +279,7 @@ namespace Despicaville.Menus
             Character player = Handler.GetPlayer();
             if (player != null)
             {
-                string[] stats = { "Hunger", "Thirst", "Bladder", "Grime", "Pain", "Paranoia", "Blood", "Consciousness", "Stamina" };
+                string[] stats = { "Hunger", "Thirst", "Bladder", "Grime", "Pain", "Paranoia", "Blood", "Consciousness", "Stamina", "Comfort" };
                 foreach (string stat_name in stats)
                 {
                     Something stat = player.GetStat(stat_name);
@@ -395,6 +395,10 @@ namespace Despicaville.Menus
                 new Region(0, 0, 0, 0), new Color(0, 64, 128), true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Stamina", "Stamina: 100%", Color.White, new Region(0, 0, 0, 0), true);
 
+            AddProgressBar(Handler.GetID(), "Comfort", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+                new Region(0, 0, 0, 0), new Color(64, 128, 0), true);
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Comfort", "Comfort: 100%", Color.White, new Region(0, 0, 0, 0), true);
+
             AddButton(Handler.GetID(), "Main", AssetManager.Textures["Button_Menu"], AssetManager.Textures["Button_Menu_Hover"], null,
                 new Region(0, 0, 0, 0), Color.White, true);
             GetButton("Main").HoverText = "System";
@@ -509,6 +513,9 @@ namespace Despicaville.Menus
 
             GetProgressBar("Stamina").Base_Region = new Region(x, y + (height * 10), panel_width, height);
             GetLabel("Stamina").Region = new Region(x, y + (height * 10), panel_width, height);
+
+            GetProgressBar("Comfort").Base_Region = new Region(x, y + (height * 11), panel_width, height);
+            GetLabel("Comfort").Region = new Region(x, y + (height * 11), panel_width, height);
 
             //Lower Right
             GetButton("Main").Region = new Region(Main.Game.ScreenWidth - Main.Game.MenuSize_X, Main.Game.ScreenHeight - Main.Game.MenuSize_Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);

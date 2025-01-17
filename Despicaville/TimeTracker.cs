@@ -348,7 +348,7 @@ namespace Despicaville
 
         public static void Reset()
         {
-            TimeManager.Init(1984, 6, 1, 6, 0, 0, 0);
+            TimeManager.Init(1984, 6, 1, 6);
             RenderingManager.Lighting.Reset();
 
             TimeManager.Now.OnMillisecondsChange -= MillisecondsChanged;

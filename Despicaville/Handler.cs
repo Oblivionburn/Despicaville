@@ -28,7 +28,7 @@ namespace Despicaville
         public static int SightDistance = 10;
         public static int HearingDistance = 5;
         public static int SmellDistance = 3;
-        public static int ActionRate = 32;
+        public static int ActionRate = 320;
         public static int MapSize_X = 10;
         public static int MapSize_Y = 10;
         public static bool WorldMap_Visible;

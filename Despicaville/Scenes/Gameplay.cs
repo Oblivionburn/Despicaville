@@ -551,21 +551,19 @@ namespace Despicaville.Scenes
 
                 if (InputManager.KeyDown("Wait"))
                 {
+                    long time = Handler.ActionRate;
+
                     if (InputManager.KeyDown("Run"))
                     {
-                        Tasker.AddTask(player, "Wait", true, false, TimeSpan.FromMilliseconds(Handler.ActionRate * 60), default, 0);
-                        TimeTracker.Tick(Handler.ActionRate * 60);
+                        time = Handler.ActionRate * 10;
                     }
                     else if (InputManager.KeyDown("Crouch"))
                     {
-                        Tasker.AddTask(player, "Wait", true, false, TimeSpan.FromMilliseconds(1), default, 0);
-                        TimeTracker.Tick(1);
+                        time = Handler.ActionRate / 10;
                     }
-                    else
-                    {
-                        Tasker.AddTask(player, "Wait", true, false, TimeSpan.FromMilliseconds(Handler.ActionRate), default, 0);
-                        TimeTracker.Tick(Handler.ActionRate);
-                    }
+
+                    Tasker.AddTask(player, "Wait", true, false, TimeSpan.FromMilliseconds(time), default, 0);
+                    TimeTracker.Tick(time);
                 }
 
                 #endregion
@@ -603,8 +601,8 @@ namespace Despicaville.Scenes
                 Layer effect_tiles = map.GetLayer("EffectTiles");
 
                 Tile bottom_tile = bottom_tiles.GetTile(location);
-                Tile middle_tile = WorldUtil.GetFurniture(middle_tiles, new Vector3(location.X, location.Y, 0));
-                Tile top_tile = WorldUtil.GetFurniture(top_tiles, new Vector3(location.X, location.Y, 0));
+                Tile middle_tile = WorldUtil.GetFurniture(middle_tiles, new Location(location.X, location.Y, 0));
+                Tile top_tile = WorldUtil.GetFurniture(top_tiles, new Location(location.X, location.Y, 0));
                 Tile effect_tile = effect_tiles.GetTile(location);
 
                 Tile interaction_tile = null;

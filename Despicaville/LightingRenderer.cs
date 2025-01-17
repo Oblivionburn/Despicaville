@@ -159,7 +159,7 @@ namespace Despicaville
 
                                                             Something current = new Something();
                                                             current.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
-                                                            current.Location = new Vector3(current_location.X - min_x, current_location.Y - min_y, 0);
+                                                            current.Location = new Location(current_location.X - min_x, current_location.Y - min_y, 0);
                                                             current.DrawColor = drawColor;
 
                                                             if (current.Region.X >= 0 - size_width - 1)

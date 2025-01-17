@@ -364,7 +364,7 @@ namespace Despicaville.Scenes
                 Layer bottom_tiles = map.GetLayer("BottomTiles");
 
                 Tile center = bottom_tiles.GetTile(new Vector2(bottom_tiles.Columns / 2, bottom_tiles.Rows / 2));
-                player.Location = new Vector3(center.Location.X, center.Location.Y, 0);
+                player.Location = new Location(center.Location.X, center.Location.Y, 0);
             }
 
             WorldUtil.SetCurrentMap(player);

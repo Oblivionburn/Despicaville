@@ -252,7 +252,7 @@ namespace Despicaville
                 if (thirst != null)
                 {
                     found = true;
-                    AddTask(character, "UseItem_" + existing.ID, false, true, TimeSpan.FromSeconds(thirst.Value * -1), default, 0);
+                    AddTask(character, "UseItem_" + existing.ID, false, true, TimeSpan.FromSeconds(thirst.Value * -10), default, 0);
                     break;
                 }
             }
@@ -297,11 +297,11 @@ namespace Despicaville
                                     if (fridge.Texture.Name.Contains("Used"))
                                     {
                                         InventoryUtil.TransferItem(fridge.Inventory, character.Inventory, item);
-                                        AddTask(character, "CloseFridge", false, true, TimeSpan.FromMilliseconds(200), fridge.Location, direction);
+                                        AddTask(character, "CloseFridge", false, true, TimeSpan.FromMilliseconds(2000), fridge.Location, direction);
                                     }
                                     else
                                     {
-                                        AddTask(character, "OpenFridge", false, true, TimeSpan.FromMilliseconds(200), fridge.Location, direction);
+                                        AddTask(character, "OpenFridge", false, true, TimeSpan.FromMilliseconds(2000), fridge.Location, direction);
                                     }
                                 }
                             }
@@ -367,7 +367,7 @@ namespace Despicaville
                 if (hunger != null)
                 {
                     found = true;
-                    AddTask(character, "UseItem_" + existing.ID, false, true, TimeSpan.FromSeconds(hunger.Value * -1), default, 0);
+                    AddTask(character, "UseItem_" + existing.ID, false, true, TimeSpan.FromSeconds(hunger.Value * -10), default, 0);
                     break;
                 }
             }
@@ -412,11 +412,11 @@ namespace Despicaville
                                     if (fridge.Texture.Name.Contains("Used"))
                                     {
                                         InventoryUtil.TransferItem(fridge.Inventory, character.Inventory, item);
-                                        AddTask(character, "CloseFridge", false, true, TimeSpan.FromMilliseconds(200), fridge.Location, direction);
+                                        AddTask(character, "CloseFridge", false, true, TimeSpan.FromMilliseconds(2000), fridge.Location, direction);
                                     }
                                     else
                                     {
-                                        AddTask(character, "OpenFridge", false, true, TimeSpan.FromMilliseconds(200), fridge.Location, direction);
+                                        AddTask(character, "OpenFridge", false, true, TimeSpan.FromMilliseconds(2000), fridge.Location, direction);
                                     }
                                 }
                             }
@@ -453,59 +453,59 @@ namespace Despicaville
         public static void CloseDoor_Behind(Character character)
         {
             Direction direction = Direction.Nowhere;
-            Vector3 location = default;
+            Location location = null;
 
             if (character.Direction == Direction.Up)
             {
                 direction = Direction.Down;
-                location = new Vector3(character.Location.X, character.Location.Y + 1, 0);
+                location = new Location(character.Location.X, character.Location.Y + 1, 0);
             }
             else if (character.Direction == Direction.Right)
             {
                 direction = Direction.Left;
-                location = new Vector3(character.Location.X - 1, character.Location.Y, 0);
+                location = new Location(character.Location.X - 1, character.Location.Y, 0);
             }
             else if (character.Direction == Direction.Down)
             {
                 direction = Direction.Up;
-                location = new Vector3(character.Location.X, character.Location.Y - 1, 0);
+                location = new Location(character.Location.X, character.Location.Y - 1, 0);
             }
             else if (character.Direction == Direction.Left)
             {
                 direction = Direction.Right;
-                location = new Vector3(character.Location.X + 1, character.Location.Y, 0);
+                location = new Location(character.Location.X + 1, character.Location.Y, 0);
             }
 
-            AddTask(character, "CloseDoor", true, true, TimeSpan.FromSeconds(1), location, direction);
+            AddTask(character, "CloseDoor", true, true, TimeSpan.FromSeconds(10), location, direction);
         }
 
         public static void CloseWindow_Behind(Character character)
         {
             Direction direction = Direction.Nowhere;
-            Vector3 location = default;
+            Location location = null;
 
             if (character.Direction == Direction.Up)
             {
                 direction = Direction.Down;
-                location = new Vector3(character.Location.X, character.Location.Y + 1, 0);
+                location = new Location(character.Location.X, character.Location.Y + 1, 0);
             }
             else if (character.Direction == Direction.Right)
             {
                 direction = Direction.Left;
-                location = new Vector3(character.Location.X - 1, character.Location.Y, 0);
+                location = new Location(character.Location.X - 1, character.Location.Y, 0);
             }
             else if (character.Direction == Direction.Down)
             {
                 direction = Direction.Up;
-                location = new Vector3(character.Location.X, character.Location.Y - 1, 0);
+                location = new Location(character.Location.X, character.Location.Y - 1, 0);
             }
             else if (character.Direction == Direction.Left)
             {
                 direction = Direction.Right;
-                location = new Vector3(character.Location.X + 1, character.Location.Y, 0);
+                location = new Location(character.Location.X + 1, character.Location.Y, 0);
             }
 
-            AddTask(character, "CloseWindow", true, true, TimeSpan.FromSeconds(1), location, direction);
+            AddTask(character, "CloseWindow", true, true, TimeSpan.FromSeconds(10), location, direction);
         }
 
         public static void Wander(Character character)
@@ -535,7 +535,7 @@ namespace Despicaville
             choice = random.Next(1, 11);
             if (choice <= 5)
             {
-                AddTask(character, "Wait", true, false, TimeSpan.FromMilliseconds(1000), default, direction);
+                AddTask(character, "Wait", true, false, TimeSpan.FromMilliseconds(10000), default, direction);
             }
             else if (choice > 5 &&
                      choice <= 8)
@@ -571,19 +571,19 @@ namespace Despicaville
 
             if (task.Direction == Direction.Up)
             {
-                character.Destination = new Vector3(character.Location.X, character.Location.Y - 1, character.Location.Z);
+                character.Destination = new Location(character.Location.X, character.Location.Y - 1, character.Location.Z);
             }
             else if (task.Direction == Direction.Right)
             {
-                character.Destination = new Vector3(character.Location.X + 1, character.Location.Y, character.Location.Z);
+                character.Destination = new Location(character.Location.X + 1, character.Location.Y, character.Location.Z);
             }
             else if (task.Direction == Direction.Down)
             {
-                character.Destination = new Vector3(character.Location.X, character.Location.Y + 1, character.Location.Z);
+                character.Destination = new Location(character.Location.X, character.Location.Y + 1, character.Location.Z);
             }
             else if (task.Direction == Direction.Left)
             {
-                character.Destination = new Vector3(character.Location.X - 1, character.Location.Y, character.Location.Z);
+                character.Destination = new Location(character.Location.X - 1, character.Location.Y, character.Location.Z);
             }
 
             Map map = world.Maps[0];
@@ -633,7 +633,7 @@ namespace Despicaville
                 
                     if (character.Type == "Player")
                     {
-                        TimeTracker.Tick(200);
+                        TimeTracker.Tick((long)CharacterUtil.GetTurnTime(character));
                     }
                 }
                 else if (character.Type != "Player")
@@ -645,16 +645,16 @@ namespace Despicaville
                         if (tile.Name.Contains("Window") &&
                             tile.Name.Contains("Closed"))
                         {
-                            AddTask(character, "OpenWindow", false, true, TimeSpan.FromSeconds(1), character.Destination, task.Direction);
-                            AddTask(character, task.Name, false, false, TimeSpan.FromSeconds(1), default, task.Direction);
-                            AddTask(character, task.Name, false, false, TimeSpan.FromSeconds(1), default, task.Direction);
+                            AddTask(character, "OpenWindow", false, true, TimeSpan.FromSeconds(10), character.Destination, task.Direction);
+                            AddTask(character, task.Name, false, false, TimeSpan.FromSeconds(10), default, task.Direction);
+                            AddTask(character, task.Name, false, false, TimeSpan.FromSeconds(10), default, task.Direction);
                         }
                         else if (tile.Name.Contains("Door") &&
                                  tile.Name.Contains("Closed"))
                         {
-                            AddTask(character, "OpenDoor", false, true, TimeSpan.FromSeconds(1), character.Destination, task.Direction);
-                            AddTask(character, task.Name, false, false, TimeSpan.FromSeconds(1), default, task.Direction);
-                            AddTask(character, task.Name, false, false, TimeSpan.FromSeconds(1), default, task.Direction);
+                            AddTask(character, "OpenDoor", false, true, TimeSpan.FromSeconds(10), character.Destination, task.Direction);
+                            AddTask(character, task.Name, false, false, TimeSpan.FromSeconds(10), default, task.Direction);
+                            AddTask(character, task.Name, false, false, TimeSpan.FromSeconds(10), default, task.Direction);
                         }
                     }
                 }
@@ -670,7 +670,7 @@ namespace Despicaville
             if (character.Path.Count > 0)
             {
                 ALocation last_path = character.Path[character.Path.Count - 1];
-                Vector3 location = new Vector3(last_path.X, last_path.Y, 0);
+                Location location = new Location(last_path.X, last_path.Y, 0);
 
                 bool reached_destination = false;
 
@@ -681,7 +681,7 @@ namespace Despicaville
                     if (character.Path.Count > 0)
                     {
                         last_path = character.Path[character.Path.Count - 1];
-                        location = new Vector3(last_path.X, last_path.Y, 0);
+                        location = new Location(last_path.X, last_path.Y, 0);
                     }
                     else
                     {
@@ -697,19 +697,19 @@ namespace Despicaville
                     {
                         if (direction == Direction.Up)
                         {
-                            character.Destination = new Vector3(character.Location.X, character.Location.Y - 1, character.Location.Z);
+                            character.Destination = new Location(character.Location.X, character.Location.Y - 1, character.Location.Z);
                         }
                         else if (direction == Direction.Right)
                         {
-                            character.Destination = new Vector3(character.Location.X + 1, character.Location.Y, character.Location.Z);
+                            character.Destination = new Location(character.Location.X + 1, character.Location.Y, character.Location.Z);
                         }
                         else if (direction == Direction.Down)
                         {
-                            character.Destination = new Vector3(character.Location.X, character.Location.Y + 1, character.Location.Z);
+                            character.Destination = new Location(character.Location.X, character.Location.Y + 1, character.Location.Z);
                         }
                         else if (direction == Direction.Left)
                         {
-                            character.Destination = new Vector3(character.Location.X - 1, character.Location.Y, character.Location.Z);
+                            character.Destination = new Location(character.Location.X - 1, character.Location.Y, character.Location.Z);
                         }
 
                         if (WorldUtil.PassedOpenDoor(world.Maps[0].GetLayer("MiddleTiles"), character))
@@ -766,11 +766,11 @@ namespace Despicaville
                             string[] task_parts = task.Name.Split('_');
                             long item_id = long.Parse(task_parts[3]);
 
-                            AddTask(character, "UseSink_End_" + item_id, true, true, TimeSpan.FromSeconds(3), sink.Location, furniture_direction);
+                            AddTask(character, "UseSink_End_" + item_id, true, true, TimeSpan.FromSeconds(30), sink.Location, furniture_direction);
                         }
                         else
                         {
-                            AddTask(character, "UseSink_End_Drink", true, true, TimeSpan.FromSeconds(30), sink.Location, furniture_direction);
+                            AddTask(character, "UseSink_End_Drink", true, true, TimeSpan.FromSeconds(300), sink.Location, furniture_direction);
                         }
 
                         if (character.Type == "Player")
@@ -1502,7 +1502,7 @@ namespace Despicaville
             Layer bottom_tiles = map.GetLayer("BottomTiles");
             Layer middle_tiles = map.GetLayer("MiddleTiles");
 
-            Tile tile = WorldUtil.GetFurniture(middle_tiles, new Vector3(location.X, location.Y, 0));
+            Tile tile = WorldUtil.GetFurniture(middle_tiles, new Location(location.X, location.Y, 0));
             if ((tile != null && tile.Texture == null) ||
                 tile == null)
             {
@@ -1784,7 +1784,7 @@ namespace Despicaville
             Map block_map = WorldUtil.GetCurrentMap(character);
             Layer top_tiles = block_map.GetLayer("TopTiles");
 
-            Tile sink = WorldUtil.GetFurniture(top_tiles, new Vector3(location.X, location.Y, 0));
+            Tile sink = WorldUtil.GetFurniture(top_tiles, new Location(location.X, location.Y, 0));
             if (sink != null)
             {
                 if (sink.Name.Contains("Sink"))
@@ -1953,7 +1953,7 @@ namespace Despicaville
             task.Keep_On_Completed = true;
             task.StartTime = new TimeHandler(TimeManager.Now);
             task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CombatUtil.AttackTime(attacker, attackType)));
-            task.Location = new Vector3(defender.Location.X, defender.Location.Y, 0);
+            task.Location = new Location(defender.Location.X, defender.Location.Y, 0);
 
             bool attacker_visible_to_player = WorldUtil.Location_IsVisible(player.ID, attacker.Location);
             bool defender_visible_to_player = WorldUtil.Location_IsVisible(player.ID, defender.Location);
@@ -1988,7 +1988,7 @@ namespace Despicaville
             attacker.Job.Tasks.Add(task);
         }
 
-        public static void AddTask(Character character, string name, bool started, bool keep_on_completed, TimeSpan? time_span, Vector3 location, Direction direction)
+        public static void AddTask(Character character, string name, bool started, bool keep_on_completed, TimeSpan? time_span, Location location, Direction direction)
         {
             Task task = new Task();
             task.Name = name;
@@ -2039,19 +2039,19 @@ namespace Despicaville
 
             if (player.Direction == Direction.Up)
             {
-                task.Location = new Vector3(player.Location.X, player.Location.Y - 1, 0);
+                task.Location = new Location(player.Location.X, player.Location.Y - 1, 0);
             }
             else if (player.Direction == Direction.Right)
             {
-                task.Location = new Vector3(player.Location.X + 1, player.Location.Y, 0);
+                task.Location = new Location(player.Location.X + 1, player.Location.Y, 0);
             }
             else if (player.Direction == Direction.Down)
             {
-                task.Location = new Vector3(player.Location.X, player.Location.Y + 1, 0);
+                task.Location = new Location(player.Location.X, player.Location.Y + 1, 0);
             }
             else if (player.Direction == Direction.Left)
             {
-                task.Location = new Vector3(player.Location.X - 1, player.Location.Y, 0);
+                task.Location = new Location(player.Location.X - 1, player.Location.Y, 0);
             }
 
             bool found = false;
@@ -2304,6 +2304,10 @@ namespace Despicaville
                     {
                         AddTask(character, "GoTo_Walk", true, false, null, default, 0);
                     }
+                }
+                else
+                {
+                    Wander(character);
                 }
             }
             else

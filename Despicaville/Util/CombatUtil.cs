@@ -209,23 +209,23 @@ namespace Despicaville.Util
             if (attack_type == "Grab" ||
                 attack_type == "Stab")
             {
-                base_speed = 300;
+                base_speed = 3000;
             }
             else if (attack_type == "Throw")
             {
-                base_speed = 500;
+                base_speed = 5000;
             }
             else if (attack_type == "Punch")
             {
-                base_speed = 400;
+                base_speed = 4000;
             }
             else if (attack_type == "Swing")
             {
-                base_speed = 600;
+                base_speed = 6000;
             }
             else if (attack_type == "Shoot")
             {
-                base_speed = 200;
+                base_speed = 2000;
             }
 
             Something strength = character.GetStat("Strength");

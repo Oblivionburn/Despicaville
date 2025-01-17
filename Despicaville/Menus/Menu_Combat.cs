@@ -279,7 +279,7 @@ namespace Despicaville.Menus
             task.Keep_On_Completed = true;
             task.StartTime = new TimeHandler(TimeManager.Now);
             task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CombatUtil.AttackTime(player, attack_type)));
-            task.Location = new Vector3(target.Location.X, target.Location.Y, 0);
+            task.Location = new Location(target.Location.X, target.Location.Y, 0);
 
             player.Job.Tasks.Add(task);
 

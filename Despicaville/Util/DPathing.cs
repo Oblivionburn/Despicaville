@@ -30,7 +30,7 @@ namespace Despicaville.Util
             {
                 if (last_min != null)
                 {
-                    nearby_characters = WorldUtil.GetNearbyCharacters(character.ID, new Vector3(last_min.X, last_min.Y, 0));
+                    nearby_characters = WorldUtil.GetNearbyCharacters(character.ID, new Location(last_min.X, last_min.Y, 0));
 
                     List<ALocation> locations = GetLocations(bottom_tiles, middle_tiles, last_min);
 
@@ -41,8 +41,8 @@ namespace Despicaville.Util
 
                         if (!HasLocation(path, location))
                         {
-                            location.Distance_ToStart = WorldUtil.GetDistance(new Vector3(location.X, location.Y, 0), new Vector3(last_min.X, last_min.Y, 0));
-                            location.Distance_ToDestination = WorldUtil.GetDistance(new Vector3(location.X, location.Y, 0), new Vector3(target.X, target.Y, 0));
+                            location.Distance_ToStart = WorldUtil.GetDistance(new Location(location.X, location.Y, 0), new Location(last_min.X, last_min.Y, 0));
+                            location.Distance_ToDestination = WorldUtil.GetDistance(new Location(location.X, location.Y, 0), new Location(target.X, target.Y, 0));
                             location.Parent = last_min;
                             open.Add(location);
                         }
@@ -360,7 +360,7 @@ namespace Despicaville.Util
 
                 if (nearby_characters.Count > 0)
                 {
-                    Character other = WorldUtil.GetCharacter(nearby_characters, new Vector3(location.X, location.Y, 0));
+                    Character other = WorldUtil.GetCharacter(nearby_characters, new Location(location.X, location.Y, 0));
                     if (other != null)
                     {
                         return false;

@@ -711,7 +711,7 @@ namespace Despicaville.Menus
                                             if (slot_empty)
                                             {
                                                 item.Equipped = false;
-                                                item.Location = new Vector3(grid.Location.X, grid.Location.Y, 0);
+                                                item.Location = new Location(grid.Location.X, grid.Location.Y, 0);
                                                 item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
 
                                                 selected_Item = 0;
@@ -767,7 +767,7 @@ namespace Despicaville.Menus
                                                 if (slot_empty)
                                                 {
                                                     item.Equipped = false;
-                                                    item.Location = new Vector3(grid.Location.X, grid.Location.Y, 0);
+                                                    item.Location = new Location(grid.Location.X, grid.Location.Y, 0);
                                                     item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
 
                                                     selected_Item = 0;
@@ -842,7 +842,7 @@ namespace Despicaville.Menus
 
                                             if (slot_empty)
                                             {
-                                                item.Location = new Vector3(x, y, 0);
+                                                item.Location = new Location(x, y, 0);
                                                 item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
 
                                                 selected_Item = 0;
@@ -896,7 +896,7 @@ namespace Despicaville.Menus
 
                                                 if (slot_empty)
                                                 {
-                                                    item.Location = new Vector3(x, y, 0);
+                                                    item.Location = new Location(x, y, 0);
                                                     item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
 
                                                     selected_Item = 0;
@@ -1493,7 +1493,7 @@ namespace Despicaville.Menus
                                 Picture grid = GetPicture(inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString());
                                 if (grid != null)
                                 {
-                                    grid.Location = new Vector3(x, y, 0);
+                                    grid.Location = new Location(x, y, 0);
                                     GridList.Add(grid);
                                 }
 
@@ -1631,7 +1631,7 @@ namespace Despicaville.Menus
                     Picture grid = GetPicture(other_inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString());
                     if (grid != null)
                     {
-                        grid.Location = new Vector3(x, y, 0);
+                        grid.Location = new Location(x, y, 0);
                         Other_GridList.Add(grid);
                     }
 

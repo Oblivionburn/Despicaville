@@ -234,6 +234,14 @@ namespace Despicaville.Util
             stats.Add(stat);
 
             stat = new Something();
+            stat.Name = "Comfort";
+            stat.Description = "How comfortable you are.\nMax Stamina -1 every minute at 0%.";
+            stat.Max_Value = 100;
+            stat.Value = 100;
+            stat.Rate = 0.00556f;
+            stats.Add(stat);
+
+            stat = new Something();
             stat.Name = "Paranoia";
             stat.Description = "How paranoid you are.\nYou will commit suicide at 100%.";
             stat.Max_Value = 100;
@@ -938,7 +946,7 @@ namespace Despicaville.Util
             foreach (Vector2 location in locations)
             {
                 Tile new_tile = new Tile();
-                new_tile.Location = new Vector3(location.X, location.Y, 0);
+                new_tile.Location = new Location(location.X, location.Y, 0);
                 new_tile.Texture = AssetManager.Textures["SelectionBox"];
                 new_tile.Image = new Rectangle(0, 0, new_tile.Texture.Width, new_tile.Texture.Height);
 
@@ -1331,7 +1339,7 @@ namespace Despicaville.Util
         public static float GetTurnTime(Character character)
         {
             Something agility = character.GetStat("Agility");
-            return 1000 / agility.Value;
+            return 10000 / agility.Value;
         }
 
         public static void Sleep(Character character)

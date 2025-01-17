@@ -568,7 +568,7 @@ namespace Despicaville.Util
                             int choice = random.Next(0, possible_items.Count);
 
                             Item new_item = CopyItem(possible_items[choice], true);
-                            new_item.Location = new Vector3(X, Y, 0);
+                            new_item.Location = new Location(X, Y, 0);
 
                             if (new_item.Name == "Small Backpack" ||
                                 new_item.Name == "Cape" ||

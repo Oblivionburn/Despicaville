@@ -2047,7 +2047,7 @@ namespace Despicaville.Util
             tile.Type = type;
             tile.Texture = AssetManager.Textures[type];
             tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
-            tile.Location = new Vector3(column, row, 0);
+            tile.Location = new Location(column, row, 0);
             tile.Region = new Region(column * Main.Game.TileSize.X, row * Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
             tile.Visible = true;
             Worldmap.Add(tile);
@@ -2055,7 +2055,7 @@ namespace Despicaville.Util
             Map map = new Map();
             map.ID = tile.ID;
             map.Name = name;
-            map.Location = new Vector3(column, row, 0);
+            map.Location = new Location(column, row, 0);
 
             if (type.Contains("Residential"))
             {
@@ -2294,7 +2294,7 @@ namespace Despicaville.Util
 
                                 if (!found)
                                 {
-                                    AddEmptyTile(map, middle_tiles, worldTile, new Vector3(x, y, 0));
+                                    AddEmptyTile(map, middle_tiles, worldTile, new Location(x, y, 0));
 
                                     current++;
                                     Handler.Loading_Percent = (current * 100) / total;
@@ -2330,7 +2330,7 @@ namespace Despicaville.Util
 
                                 if (!found)
                                 {
-                                    AddEmptyTile(map, top_tiles, worldTile, new Vector3(x, y, 0));
+                                    AddEmptyTile(map, top_tiles, worldTile, new Location(x, y, 0));
 
                                     current++;
                                     Handler.Loading_Percent = (current * 100) / total;
@@ -2366,7 +2366,7 @@ namespace Despicaville.Util
 
                                 if (!found)
                                 {
-                                    AddEmptyTile(map, room_tiles, worldTile, new Vector3(x, y, 0));
+                                    AddEmptyTile(map, room_tiles, worldTile, new Location(x, y, 0));
 
                                     current++;
                                     Handler.Loading_Percent = (current * 100) / total;
@@ -2414,7 +2414,7 @@ namespace Despicaville.Util
             foreach (Tile bottom_tile in bottom_tiles.Tiles)
             {
                 Tile roof_tile = new Tile();
-                roof_tile.Location = new Vector3(bottom_tile.Location.X, bottom_tile.Location.Y, 0);
+                roof_tile.Location = new Location(bottom_tile.Location.X, bottom_tile.Location.Y, 0);
                 roof_tile.Region = new Region((int)roof_tile.Location.X * Main.Game.TileSize.X, (int)roof_tile.Location.Y * Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
                 roof_tiles.Tiles.Add(roof_tile);
 
@@ -2478,7 +2478,7 @@ namespace Despicaville.Util
             foreach (Tile bottom_tile in bottom_tiles.Tiles)
             {
                 Tile effect_tile = new Tile();
-                effect_tile.Location = new Vector3(bottom_tile.Location.X, bottom_tile.Location.Y, 0);
+                effect_tile.Location = new Location(bottom_tile.Location.X, bottom_tile.Location.Y, 0);
                 effect_tile.Region = new Region((int)effect_tile.Location.X * Main.Game.TileSize.X, (int)effect_tile.Location.Y * Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
                 effect_tile.Visible = false;
                 effect_tiles.Tiles.Add(effect_tile);
@@ -2528,7 +2528,7 @@ namespace Despicaville.Util
             new_tile.Type = tile.Type;
             new_tile.Texture = AssetManager.Textures[tile.Texture.Name];
             new_tile.Image = new Rectangle(0, 0, new_tile.Texture.Width, new_tile.Texture.Height);
-            new_tile.Location = new Vector3(x, y, 0);
+            new_tile.Location = new Location(x, y, 0);
             new_tile.Region = new Region((int)new_tile.Location.X * Main.Game.TileSize.X, (int)new_tile.Location.Y * Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
             new_tile.Visible = true;
 
@@ -2608,17 +2608,17 @@ namespace Despicaville.Util
 
                 if (new_tile.Direction == Direction.Up)
                 {
-                    character.Location = new Vector3(new_tile.Location.X, new_tile.Location.Y + 1, new_tile.Location.Z);
+                    character.Location = new Location(new_tile.Location.X, new_tile.Location.Y + 1, new_tile.Location.Z);
                     character.Region = new Region(new_tile.Region.X, new_tile.Region.Y + Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
                 }
                 else if (new_tile.Direction == Direction.Left)
                 {
-                    character.Location = new Vector3(new_tile.Location.X + 1, new_tile.Location.Y, new_tile.Location.Z);
+                    character.Location = new Location(new_tile.Location.X + 1, new_tile.Location.Y, new_tile.Location.Z);
                     character.Region = new Region(new_tile.Region.X + Main.Game.TileSize.X, new_tile.Region.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
                 }
                 else
                 {
-                    character.Location = new Vector3(new_tile.Location.X, new_tile.Location.Y, new_tile.Location.Z);
+                    character.Location = new Location(new_tile.Location.X, new_tile.Location.Y, new_tile.Location.Z);
                     character.Region = new Region(new_tile.Region.X, new_tile.Region.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
                 }
 
@@ -2629,7 +2629,7 @@ namespace Despicaville.Util
                 layer.Name == "MiddleTiles")
             {
                 new_tile.Inventory.ID = Handler.GetID();
-                new_tile.Inventory.Location = new Vector3(x, y, 0);
+                new_tile.Inventory.Location = new Location(x, y, 0);
                 InventoryManager.Inventories.Add(new_tile.Inventory);
             }
 
@@ -2703,7 +2703,7 @@ namespace Despicaville.Util
             }
         }
 
-        public static void AddEmptyTile(Map map, Layer layer, Tile worldTile, Vector3 location)
+        public static void AddEmptyTile(Map map, Layer layer, Tile worldTile, Location location)
         {
             Tile new_tile = new Tile();
             new_tile.ID = Handler.GetID();

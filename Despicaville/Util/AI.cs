@@ -11,7 +11,7 @@ namespace Despicaville.Util
 {
     public static class AI
     {
-        public static bool CanMove(Character character, Map map, Vector3 destination)
+        public static bool CanMove(Character character, Map map, Location destination)
         {
             Layer bottom_tiles = map.GetLayer("BottomTiles");
             Layer middle_tiles = map.GetLayer("MiddleTiles");
@@ -38,7 +38,7 @@ namespace Despicaville.Util
             //Check furniture on current block
             Map block_map = WorldUtil.GetCurrentMap(character);
             Layer block_middle_tiles = block_map.GetLayer("MiddleTiles");
-            Tile furniture = WorldUtil.GetFurniture(block_middle_tiles, new Vector3((int)destination.X, (int)destination.Y, (int)destination.Z));
+            Tile furniture = WorldUtil.GetFurniture(block_middle_tiles, new Location((int)destination.X, (int)destination.Y, (int)destination.Z));
             if (furniture != null)
             {
                 if (furniture.Texture != null)
