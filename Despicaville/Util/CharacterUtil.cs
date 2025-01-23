@@ -1070,6 +1070,10 @@ namespace Despicaville.Util
                     {
                         pain.IncreaseValue(4);
                     }
+                    else if (wound.Name == "Set")
+                    {
+                        pain.IncreaseValue(10);
+                    }
                     else if (wound.Name == "Burn")
                     {
                         pain.IncreaseValue(50);

@@ -168,6 +168,7 @@ namespace Despicaville
             MenuManager.Menus.Add(new Menu_Inventory(Content));
             MenuManager.Menus.Add(new Menu_Interact(Content));
             MenuManager.Menus.Add(new Menu_Combat(Content));
+            MenuManager.Menus.Add(new Menu_Wounds(Content));
         }
 
         #endregion

@@ -685,6 +685,7 @@ namespace Despicaville.Util
         public static void AddWound(Character attacker, Character defender, BodyPart part, string wound_type)
         {
             Something wound = new Something();
+            wound.ID = Handler.GetID();
             wound.Name = wound_type;
 
             if (wound_type == "Break")

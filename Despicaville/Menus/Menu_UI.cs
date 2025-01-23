@@ -257,7 +257,14 @@ namespace Despicaville.Menus
 
             if (picture.Name.Contains("Paperdoll"))
             {
+                Handler.Selected_BodyPart = picture.Name.Substring(10);
 
+                TimeManager.Paused = true;
+
+                Menu menu = MenuManager.GetMenu("Wounds");
+                menu.Load();
+                menu.Active = true;
+                menu.Visible = true;
             }
         }
 

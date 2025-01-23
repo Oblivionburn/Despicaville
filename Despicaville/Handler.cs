@@ -61,6 +61,7 @@ namespace Despicaville
         public static Dictionary<string, string> Skills = new Dictionary<string, string>();
 
         public static int CharGen_Stage;
+        public static string Selected_BodyPart;
 
         public static int Icon_Count;
         public static int Loading_Stage;

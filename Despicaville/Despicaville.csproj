@@ -86,6 +86,7 @@
     <Compile Include="Menus\Menu_Main.cs" />
     <Compile Include="Menus\Menu_Options.cs" />
     <Compile Include="Menus\Menu_UI.cs" />
+    <Compile Include="Menus\Menu_Wounds.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scenes\CharGen.cs" />

@@ -15,6 +15,7 @@ using OP_Engine.Tiles;
 using OP_Engine.Utility;
 using OP_Engine.Time;
 using OP_Engine.Jobs;
+using System;
 
 namespace Despicaville.Util
 {
@@ -1035,6 +1036,19 @@ namespace Despicaville.Util
             }
 
             return false;
+        }
+
+        public static string SecondsToTime(float seconds)
+        {
+            float hours = seconds / 60 / 60;
+            float minutes = (hours - (int)hours) * 60;
+            float secs = (minutes - (int)minutes) * 60;
+
+            string hours_str = (hours >= 10) ? ((int)hours).ToString() : ("0" + ((int)hours));
+            string minutes_str = (minutes >= 10) ? ((int)minutes).ToString() : ("0" + ((int)minutes));
+            string seconds_str = (secs >= 10) ? ((int)secs).ToString() : ("0" + ((int)secs));
+
+            return hours_str + ":" + minutes_str + ":" + seconds_str;
         }
     }
 }
