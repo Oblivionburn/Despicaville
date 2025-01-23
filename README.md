@@ -20,9 +20,9 @@
 - Consumable item usage (right-click to use)
 - Drinking from sinks
 - Very basic NPC AI to satisfy survival needs (eating and drinking)
-  
-### Planned features not yet implemented:
 - Wound Management (menu to view wounds and apply items to decrease recovery time or stop bleeding)
+
+### Planned features not yet implemented:
 - Stats menu to view current base stats and status effects
 - Grappling/grabbing/dragging actions and mechanics based on stats
 - More dynamic and personality-based reactions for NPCs being attacked
