@@ -24,6 +24,7 @@ namespace Despicaville.Menus
         private long selected_wound;
 
         Character player;
+        Item selected_item;
         List<Picture> GridList = new List<Picture>();
 
         private int inventory_x;
@@ -265,6 +266,7 @@ namespace Despicaville.Menus
                     item.Name == "Splint")
                 {
                     found = true;
+                    selected_item = item;
                     AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Heal", "Use Splint", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
                         new Region(x, y, width, height), false, true);
                     break;
@@ -274,6 +276,7 @@ namespace Despicaville.Menus
                          item.Name == "Needle & Thread")
                 {
                     found = true;
+                    selected_item = item;
                     AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Heal", "Use Needle & Thread", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
                         new Region(x, y, width, height), false, true);
                     break;
@@ -282,6 +285,7 @@ namespace Despicaville.Menus
                          item.Name == "Bandaid")
                 {
                     found = true;
+                    selected_item = item;
                     AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Heal", "Use Bandaid", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
                         new Region(x, y, width, height), false, true);
                     break;
@@ -291,6 +295,7 @@ namespace Despicaville.Menus
                          item.Name == "Bandage")
                 {
                     found = true;
+                    selected_item = item;
                     AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Heal", "Use Bandage", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
                         new Region(x, y, width, height), false, true);
                     break;
@@ -299,6 +304,8 @@ namespace Despicaville.Menus
 
             if (!found)
             {
+                selected_item = null;
+
                 if (wound.Name == "Break" ||
                     wound.Name == "Fracture")
                 {
@@ -388,6 +395,9 @@ namespace Despicaville.Menus
 
                         wound.Image = new Rectangle(0, 0, wound.Texture.Width, wound.Texture.Height);
                         wound.Value /= 2;
+
+                        player.Inventory.Items.Remove(selected_item);
+                        selected_item = null;
 
                         break;
                     }

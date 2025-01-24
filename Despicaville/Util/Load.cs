@@ -1,9 +1,11 @@
 ﻿using System;
 using System.IO;
+using System.Windows.Forms;
 using System.Xml;
 
 using OP_Engine.Inputs;
 using OP_Engine.Sounds;
+using OP_Engine.Utility;
 
 namespace Despicaville.Util
 {
@@ -59,14 +61,15 @@ namespace Despicaville.Util
                     case "Fullscreen":
                         if (reader.Value == "True")
                         {
-                            Main.Game.GraphicsManager.IsFullScreen = true;
+                            Main.Game.ScreenType = ScreenType.BorderlessFullscreen;
+                            Main.Game.ResetScreen();
                         }
                         else
                         {
-                            Main.Game.GraphicsManager.IsFullScreen = false;
+                            Main.Game.ScreenType = ScreenType.Windowed;
+                            Main.Game.Form.WindowState = FormWindowState.Normal;
+                            Main.Game.ResetScreen();
                         }
-
-                        Main.Game.GraphicsManager.ApplyChanges();
                         break;
 
                     case "MusicEnabled":

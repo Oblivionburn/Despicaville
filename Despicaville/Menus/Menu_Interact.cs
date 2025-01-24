@@ -128,20 +128,39 @@ namespace Despicaville.Menus
         public override void Load()
         {
             Loaded = false;
+            Character player = Handler.GetPlayer();
+
             Clear();
 
             AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Cancel", "Cancel", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
                 new Region(0, 0, 0, 0), false, true);
             AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "Examine", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
                 new Region(0, 0, 0, 0), false, true);
-            AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Use", "Use", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
-                new Region(0, 0, 0, 0), false, false);
-            AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Search", "Search", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
-                new Region(0, 0, 0, 0), false, false);
-            AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Talk", "Talk", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
-                new Region(0, 0, 0, 0), false, false);
-            AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Attack", "Attack", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
-                new Region(0, 0, 0, 0), false, false);
+
+            if (Handler.Interaction_Character != null)
+            {
+                if (WorldUtil.NextTo(Handler.Interaction_Character.Location, player.Location))
+                {
+                    AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Talk", "Talk", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
+                        new Region(0, 0, 0, 0), false, false);
+                    AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Attack", "Attack", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
+                        new Region(0, 0, 0, 0), false, false);
+                }
+                else if (CombatUtil.CanAttack_Ranged(player) &&
+                         CombatUtil.InRange(player, Handler.Interaction_Character, "Shoot"))
+                {
+                    AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Attack", "Attack", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
+                        new Region(0, 0, 0, 0), false, false);
+                }
+            }
+            else if (Handler.Interaction_Tile != null &&
+                     WorldUtil.NextTo(Handler.Interaction_Tile.Location, player.Location))
+            {
+                AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Use", "Use", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
+                    new Region(0, 0, 0, 0), false, false);
+                AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Search", "Search", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
+                    new Region(0, 0, 0, 0), false, false);
+            }
 
             Loaded = true;
             Resize(Main.Game.Resolution);
@@ -211,39 +230,34 @@ namespace Despicaville.Menus
                     if (WorldUtil.CanSearch(Handler.Interaction_Tile.Name))
                     {
                         Button search = GetButton("Search");
-                        search.Visible = true;
-                        search.Region = new Region(x, Y, width, height);
+                        if (search != null)
+                        {
+                            search.Region = new Region(x, Y, width, height);
+                        }
                     }
                     else
                     {
                         Button use = GetButton("Use");
-                        use.Visible = true;
-                        use.Region = new Region(x, Y, width, height);
+                        if (use != null)
+                        {
+                            use.Region = new Region(x, Y, width, height);
+                        }
                     }
                 }
                 else if (Handler.Interaction_Character != null)
                 {
                     Button talk = GetButton("Talk");
-                    talk.Visible = true;
-                    talk.Region = new Region(x, Y, width, height);
+                    if (talk != null)
+                    {
+                        talk.Region = new Region(x, Y, width, height);
+                    }
 
                     Y = listing == Direction.Up ? Y - height : Y + height;
 
                     Button attack = GetButton("Attack");
-                    attack.Region = new Region(x, Y, width, height);
-
-                    Character target = Handler.Interaction_Character;
-                    if (player != null &&
-                        target != null)
+                    if (attack != null)
                     {
-                        if (CombatUtil.CanAttack_Ranged(player, target))
-                        {
-                            attack.Visible = CombatUtil.InRange(player, target, "Shoot");
-                        }
-                        else
-                        {
-                            attack.Visible = CombatUtil.InRange(player, target, "Punch");
-                        }
+                        attack.Region = new Region(x, Y, width, height);
                     }
                 }
             }

@@ -565,10 +565,6 @@ namespace Despicaville.Util
         public static void AddMessage(string message)
         {
             int NewHours = (int)TimeManager.Now.Hours;
-            string hours;
-            string minutes;
-            string seconds;
-            string milliseconds;
             string am_pm = " AM";
 
             if (NewHours > 12)
@@ -585,48 +581,14 @@ namespace Despicaville.Util
                 am_pm = " PM";
             }
 
-            if (NewHours < 10)
-            {
-                hours = "0" + NewHours.ToString();
-            }
-            else
-            {
-                hours = NewHours.ToString();
-            }
+            string months = TimeManager.Now.Months >= 10 ? TimeManager.Now.Months.ToString() : "0" + TimeManager.Now.Months.ToString();
+            string days = TimeManager.Now.Days >= 10 ? TimeManager.Now.Days.ToString() : "0" + TimeManager.Now.Days.ToString();
+            string hours = NewHours >= 10 ? NewHours.ToString() : "0" + NewHours.ToString();
+            string minutes = TimeManager.Now.Minutes >= 10 ? TimeManager.Now.Minutes.ToString() : "0" + TimeManager.Now.Minutes.ToString();
+            string seconds = TimeManager.Now.Seconds >= 10 ? TimeManager.Now.Seconds.ToString() : "0" + TimeManager.Now.Seconds.ToString();
 
-            if (TimeManager.Now.Minutes < 10)
-            {
-                minutes = "0" + TimeManager.Now.Minutes.ToString();
-            }
-            else
-            {
-                minutes = TimeManager.Now.Minutes.ToString();
-            }
-
-            if (TimeManager.Now.Seconds < 10)
-            {
-                seconds = "0" + TimeManager.Now.Seconds.ToString();
-            }
-            else
-            {
-                seconds = TimeManager.Now.Seconds.ToString();
-            }
-
-            if (TimeManager.Now.Milliseconds < 10)
-            {
-                milliseconds = "00" + TimeManager.Now.Milliseconds.ToString();
-            }
-            else if (TimeManager.Now.Milliseconds < 100)
-            {
-                milliseconds = "0" + TimeManager.Now.Milliseconds.ToString();
-            }
-            else
-            {
-                milliseconds = TimeManager.Now.Milliseconds.ToString();
-            }
-
-            string datestamp = TimeManager.Now.Months.ToString() + "/" + TimeManager.Now.Days.ToString() + "/" + TimeManager.Now.Years.ToString();
-            string timestamp = hours + ":" + minutes + ":" + seconds + "." + milliseconds + am_pm;
+            string datestamp = months + "/" + days + "/" + TimeManager.Now.TotalYears.ToString();
+            string timestamp = hours + ":" + minutes + ":" + seconds + am_pm;
 
             List<string> messages = new List<string>();
             int max_length = 75;
@@ -670,29 +632,31 @@ namespace Despicaville.Util
             }
 
             Menu UI = MenuManager.GetMenu("UI");
-
-            int start = 0;
-            if (Handler.Messages.Count >= Handler.MessageMax)
+            if (UI != null)
             {
-                start = Handler.Messages.Count - Handler.MessageMax;
-            }
-
-            int end = Handler.Messages.Count;
-
-            for (int i = start; i < end; i++)
-            {
-                int message_num = (i + Handler.MessageMax) - Handler.Messages.Count;
-
-                Label label = UI.GetLabel("Message" + message_num.ToString());
-                if (label != null)
+                int start = 0;
+                if (Handler.Messages.Count >= Handler.MessageMax)
                 {
-                    if (Handler.Messages.Count >= i + 1)
+                    start = Handler.Messages.Count - Handler.MessageMax;
+                }
+
+                int end = Handler.Messages.Count;
+
+                for (int i = start; i < end; i++)
+                {
+                    int message_num = (i + Handler.MessageMax) - Handler.Messages.Count;
+
+                    Label label = UI.GetLabel("Message" + message_num.ToString());
+                    if (label != null)
                     {
-                        label.Text = Handler.Messages[i];
-                    }
-                    else
-                    {
-                        label.Text = "";
+                        if (Handler.Messages.Count >= i + 1)
+                        {
+                            label.Text = Handler.Messages[i];
+                        }
+                        else
+                        {
+                            label.Text = "";
+                        }
                     }
                 }
             }

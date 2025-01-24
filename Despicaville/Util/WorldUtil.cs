@@ -295,15 +295,13 @@ namespace Despicaville.Util
             for (int i = 0; i < characters.Count; i++)
             {
                 Character existing = characters[i];
-                if (existing.Destination != null)
+                if ((existing.Destination != null &&
+                     existing.Destination.X == destination.X &&
+                     existing.Destination.Y == destination.Y) ||
+                    (existing.Location.X == destination.X &&
+                     existing.Location.Y == destination.Y))
                 {
-                    if ((existing.Destination.X == destination.X &&
-                         existing.Destination.Y == destination.Y) ||
-                        (existing.Location.X == destination.X &&
-                         existing.Location.Y == destination.Y))
-                    {
-                        return existing;
-                    }
+                    return existing;
                 }
             }
 

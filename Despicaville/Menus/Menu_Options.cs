@@ -172,7 +172,7 @@ namespace Despicaville.Menus
             }
             else if (button.Name == "FullscreenOn")
             {
-                Main.Game.GraphicsManager.IsFullScreen = false;
+                Main.Game.ScreenType = ScreenType.Windowed;
                 Main.Game.ResetScreen();
 
                 button.Name = "FullscreenOff";
@@ -181,7 +181,7 @@ namespace Despicaville.Menus
             }
             else if (button.Name == "FullscreenOff")
             {
-                Main.Game.GraphicsManager.IsFullScreen = true;
+                Main.Game.ScreenType = ScreenType.BorderlessFullscreen;
                 Main.Game.ResetScreen();
 
                 button.Name = "FullscreenOn";
@@ -295,7 +295,7 @@ namespace Despicaville.Menus
 
         private void Back()
         {
-            //Save.ExportINI();
+            Save.ExportINI();
 
             Visible = false;
             Active = false;

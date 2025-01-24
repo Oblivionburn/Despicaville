@@ -435,7 +435,7 @@ namespace Despicaville.Menus
                 Label label = GetLabel("Message" + i.ToString());
                 label.Alignment_Horizontal = Alignment.Left;
                 label.AutoScale = false;
-                label.Scale = 1;
+                label.Scale = 0.9f;
             }
 
             Resize(Main.Game.Resolution);
@@ -445,23 +445,27 @@ namespace Despicaville.Menus
         {
             GetLabel("Examine").Region = new Region(0, 0, 0, 0);
 
-            //Panels
+            //Hidden Panels
             int panel_width = Main.Game.MenuSize_X * 5;
             int upper_panel_height = Main.Game.MenuSize_Y * 12;
-            int lower_panel_height = Main.Game.ScreenHeight - upper_panel_height;
+            int lower_panel_height = Main.Game.MenuSize_Y * 3;
 
             GetPicture("Panel_Upper_Left").Region = new Region(0, 0, panel_width, upper_panel_height);
             GetPicture("Panel_Lower_Left").Region = new Region(0, upper_panel_height, panel_width, lower_panel_height);
             GetPicture("Panel_Upper_Right").Region = new Region(Main.Game.ScreenWidth - panel_width, 0, panel_width, upper_panel_height);
             GetPicture("Panel_Lower_Right").Region = new Region(Main.Game.ScreenWidth - panel_width, upper_panel_height, panel_width, lower_panel_height);
             GetPicture("Panel_Upper_Center").Region = new Region(panel_width, 0, Main.Game.ScreenWidth - (panel_width * 2), upper_panel_height);
-            GetPicture("Panel_Lower_Center").Region = new Region(panel_width, upper_panel_height, Main.Game.ScreenWidth - (panel_width * 2), lower_panel_height);
 
-            int Y = upper_panel_height;
+            //Message Panel
+            int Y = Main.Game.ScreenHeight - lower_panel_height;
+            GetPicture("Panel_Lower_Center").Region = new Region(panel_width, Y, Main.Game.ScreenWidth - (panel_width * 2), lower_panel_height);
+
             int message_height = lower_panel_height / Handler.MessageMax;
             for (int i = 0; i < Handler.MessageMax; i++)
             {
-                GetLabel("Message" + i.ToString()).Region = new Region(panel_width, Y, Main.Game.ScreenWidth - (panel_width * 2), message_height);
+                Label message = GetLabel("Message" + i.ToString());
+                message.Region = new Region(panel_width, Y, Main.Game.ScreenWidth - (panel_width * 2), message_height);
+                message.Scale = (float)lower_panel_height / 212;
                 Y += message_height;
             }
 

@@ -100,7 +100,7 @@ namespace Despicaville.Util
             }
         }
 
-        public static bool CanAttack_Ranged(Character attacker, Character defender)
+        public static bool CanAttack_Ranged(Character attacker)
         {
             Item rightHandItem = InventoryUtil.Get_EquippedItem(attacker, "Right Weapon Slot");
             if (rightHandItem != null)
