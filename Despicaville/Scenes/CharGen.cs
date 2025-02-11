@@ -169,7 +169,7 @@ namespace Despicaville.Scenes
 
                         Menu.GetLabel("TownSize_Amount").Text = TownSize.ToString();
 
-                        if (TownSize == 3)
+                        if (TownSize == 6)
                         {
                             button.Enabled = false;
                         }
@@ -444,7 +444,7 @@ namespace Despicaville.Scenes
 
                         Menu.GetLabel("TownSize_Amount").Text = TownSize.ToString();
 
-                        if (TownSize == 10)
+                        if (TownSize == 8)
                         {
                             button.Enabled = false;
                         }

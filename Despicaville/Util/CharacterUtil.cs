@@ -201,9 +201,9 @@ namespace Despicaville.Util
             shoes.Icon_DrawColor = GameUtil.ColorFromName(Handler.Colors[shoes_color]);
             shoes.Name = Handler.Colors[shoes_color] + " Shoes";
 
-            character.OnHearSomething += AI.ReactToNoise;
-            character.OnSeeSomething += AI.ReactToMovement;
-            character.OnSmellSomething += AI.ReactToSmell;
+            character.OnHearSomething += ReactToNoise;
+            character.OnSeeSomething += ReactToMovement;
+            character.OnSmellSomething += ReactToSmell;
 
             return character;
         }
@@ -1379,6 +1379,27 @@ namespace Despicaville.Util
             character.Unconscious = false;
             character.Dead = true;
             JobManager.Jobs.Remove(character.Job);
+        }
+
+        public static string ReactToAttack(Character attacker, Character defender)
+        {
+            defender.Target_ID = attacker.ID;
+            return "Attacking";
+        }
+
+        public static void ReactToNoise(object sender, ReactionEventArgs e)
+        {
+
+        }
+
+        public static void ReactToMovement(object sender, ReactionEventArgs e)
+        {
+
+        }
+
+        public static void ReactToSmell(object sender, ReactionEventArgs e)
+        {
+
         }
     }
 }

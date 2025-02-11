@@ -40,10 +40,11 @@ namespace Despicaville
 
             Squad citizens = CharacterManager.GetArmy("Characters").GetSquad("Citizens");
 
-            int count = citizens.Characters.Count;
+            Character[] citizens_array = citizens.Characters.ToArray();
+            int count = citizens_array.Length;
             for (int i = 0; i < count; i++)
             {
-                Character character = citizens.Characters[i];
+                Character character = citizens_array[i];
                 if (!character.Dead)
                 {
                     bool sleeping = false;
@@ -58,8 +59,6 @@ namespace Despicaville
 
                     if (!sleeping)
                     {
-                        Something consciousness = character.GetStat("Consciousness");
-
                         if (!character.Unconscious)
                         {
                             Tasker.Character_StartAction(scene.World, character);
@@ -110,8 +109,8 @@ namespace Despicaville
 
                                         if (character.Path.Count > 0)
                                         {
-                                            ALocation last_path = character.Path[character.Path.Count - 1];
-                                            character.Path.Remove(last_path);
+                                            ALocation first_path = character.Path[0];
+                                            character.Path.Remove(first_path);
 
                                             character.Job.Tasks.Add(new Task
                                             {
@@ -130,11 +129,6 @@ namespace Despicaville
                                 {
                                     Tasker.GiveTask_Citizen(scene.World, character);
                                 }
-
-                                if (consciousness.Value <= 0)
-                                {
-                                    character.Unconscious = true;
-                                }
                             }
 
                             character.Job.Update(TimeManager.Now);
@@ -143,31 +137,6 @@ namespace Despicaville
                         {
                             CharacterUtil.Rest(character);
                         }
-
-                        if (consciousness.Value < 100)
-                        {
-                            Something pain = character.GetStat("Pain");
-                            Something stamina = character.GetStat("Stamina");
-
-                            if (pain.Value < 100 &&
-                                stamina.Value > 0)
-                            {
-                                consciousness.IncreaseValue(0.001f);
-
-                                if (consciousness.Value >= 20)
-                                {
-                                    character.Unconscious = false;
-                                }
-                            }
-                        }
-                    }
-
-                    Something blood = character.GetStat("Blood");
-                    if (blood.Value <= 0)
-                    {
-                        CharacterUtil.Kill(character);
-                        citizens.Characters.Remove(character);
-                        i--;
                     }
                 }
             }
@@ -205,11 +174,24 @@ namespace Despicaville
 
         public static void SecondsChanged(object sender, EventArgs e)
         {
-            Army characters = CharacterManager.GetArmy("Characters");
-            foreach (Squad squad in characters.Squads)
+            Army army = CharacterManager.GetArmy("Characters");
+            foreach (Squad squad in army.Squads)
             {
-                foreach (Character character in squad.Characters)
+                Character[] characters = squad.Characters.ToArray();
+
+                int count = characters.Length;
+                for (int i = 0; i < count; i++)
                 {
+                    Character character = characters[i];
+
+                    Something blood = character.GetStat("Blood");
+                    if (blood.Value <= 0)
+                    {
+                        CharacterUtil.Kill(character);
+                        squad.Characters.Remove(character);
+                        i--;
+                    }
+
                     if (!character.Dead)
                     {
                         bool sleeping = false;
@@ -235,16 +217,36 @@ namespace Despicaville
                             character.GetStat("Boredom").IncreaseValueByRate();
                         }
 
+                        Something consciousness = character.GetStat("Consciousness");
+
                         Something stamina = character.GetStat("Stamina");
                         if (stamina.Value <= 0)
                         {
-                            character.GetStat("Consciousness").DecreaseValue(1);
+                            consciousness.DecreaseValue(1);
                         }
 
                         Something pain = character.GetStat("Pain");
                         if (pain.Value >= 100)
                         {
-                            character.GetStat("Consciousness").DecreaseValue(5);
+                            consciousness.DecreaseValue(5);
+                        }
+
+                        if (consciousness.Value <= 0)
+                        {
+                            character.Unconscious = true;
+                        }
+                        else if (consciousness.Value < 100)
+                        {
+                            if (pain.Value < 100 &&
+                                stamina.Value > 0)
+                            {
+                                consciousness.IncreaseValue(1);
+
+                                if (consciousness.Value >= 20)
+                                {
+                                    character.Unconscious = false;
+                                }
+                            }
                         }
                     }
                 }

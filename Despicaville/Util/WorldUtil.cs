@@ -13,6 +13,85 @@ namespace Despicaville.Util
 {
     public static class WorldUtil
     {
+        public static bool CanMove(Character character, Map map, Location destination)
+        {
+            Layer bottom_tiles = map.GetLayer("BottomTiles");
+            Layer middle_tiles = map.GetLayer("MiddleTiles");
+
+            //Check bottom tiles
+            if (destination.X < bottom_tiles.Columns && destination.X >= 0 &&
+                destination.Y < bottom_tiles.Rows && destination.Y >= 0)
+            {
+                Tile current = bottom_tiles.GetTile(new Vector2(destination.X, destination.Y));
+                if (current != null)
+                {
+                    if (current.BlocksMovement)
+                    {
+                        return false;
+                    }
+                }
+            }
+            else if (character.Type == "Player" ||
+                     character.Type == "Citizen")
+            {
+                return false;
+            }
+
+            //Check furniture on current block
+            Map block_map = GetCurrentMap(character);
+            Layer block_middle_tiles = block_map.GetLayer("MiddleTiles");
+            //List<Tile> all_furniture = GetAllFurniture(block_middle_tiles, new Point((int)block_map.Location.X, (int)block_map.Location.Y));
+            Tile furniture = GetFurniture(block_middle_tiles, destination);
+            if (furniture != null)
+            {
+                if (furniture.Texture != null)
+                {
+                    if (!furniture.Name.Contains("Open"))
+                    {
+                        if (furniture.BlocksMovement)
+                        {
+                            return false;
+                        }
+                        else if (furniture.Name.Contains("Window") &&
+                                 character.Type != "Player")
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            //Check middle tiles for edge pieces of a nearby block (e.g. fence)
+            Tile tile = middle_tiles.GetTile(new Vector2(destination.X, destination.Y));
+            if (tile != null)
+            {
+                if (tile.Texture != null)
+                {
+                    if (!tile.Name.Contains("Open"))
+                    {
+                        if (tile.BlocksMovement)
+                        {
+                            return false;
+                        }
+                        else if (tile.Name.Contains("Window") &&
+                                 character.Type != "Player")
+                        {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            //Check other characters
+            Character other = GetCharacter(destination);
+            if (other != null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         public static bool InRange(Location location, Location source, int distance)
         {
             float x_diff = location.X - source.X;
@@ -449,123 +528,311 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static Tile GetFurniture(Layer middle_tiles, Location destination)
+        public static Tile GetFurniture(string layer, Location destination)
         {
-            if (middle_tiles != null)
+            int width = Main.Game.TileSize_X;
+            int width_double = width * 2;
+            int width_triple = width * 3;
+
+            int destination_x = (int)destination.X;
+            int destination_y = (int)destination.Y;
+
+            Tile[] tiles = null;
+
+            if (layer == "Middle" &&
+                Handler.MiddleFurniture.Count > 0)
             {
-                foreach (Tile existing in middle_tiles.Tiles)
+                tiles = Handler.MiddleFurniture.ToArray();
+            }
+            else if (layer == "Top" &&
+                Handler.TopFurniture.Count > 0)
+            {
+                tiles = Handler.TopFurniture.ToArray();
+            }
+
+            if (tiles != null)
+            {
+                int count = tiles.Length;
+                for (int i = 0; i < count; i++)
                 {
-                    if (existing.Texture != null)
+                    Tile existing = tiles[i];
+
+                    int location_x = (int)existing.Location.X;
+                    int location_y = (int)existing.Location.Y;
+
+                    if (destination_x == location_x &&
+                        destination_y == location_y)
                     {
-                        if (destination.X == existing.Location.X &&
-                            destination.Y == existing.Location.Y)
+                        return existing;
+                    }
+                    else if (existing.Region.Height == width)
+                    {
+                        if (existing.Direction == Direction.Right)
+                        {
+                            if (existing.Region.Width == width_double)
+                            {
+                                if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
+                                    destination.Y == existing.Location.Y)
+                                {
+                                    return existing;
+                                }
+                            }
+                        }
+                        else if (existing.Direction == Direction.Left)
+                        {
+                            if (existing.Region.Width == width_double)
+                            {
+                                if (destination.X >= existing.Location.X - 1 && destination.X <= existing.Location.X &&
+                                    destination.Y == existing.Location.Y)
+                                {
+                                    return existing;
+                                }
+                            }
+                        }
+                        else if (existing.Direction == Direction.Up ||
+                                 existing.Direction == Direction.Down)
+                        {
+                            if (existing.Region.Width == width_double)
+                            {
+                                if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
+                                    destination.Y == existing.Location.Y)
+                                {
+                                    return existing;
+                                }
+                            }
+                            else if (existing.Region.Width == width_triple)
+                            {
+                                if (destination.X >= existing.Location.X - 1 && destination.X <= existing.Location.X + 1 &&
+                                    destination.Y == existing.Location.Y)
+                                {
+                                    return existing;
+                                }
+                            }
+                        }
+                    }
+                    else if (existing.Region.Width == width)
+                    {
+                        if (existing.Direction == Direction.Up)
+                        {
+                            if (existing.Region.Height == width_double)
+                            {
+                                if (destination.X == existing.Location.X &&
+                                    destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y - 1)
+                                {
+                                    return existing;
+                                }
+                            }
+                        }
+                        else if (existing.Direction == Direction.Down)
+                        {
+                            if (existing.Region.Height == width_double)
+                            {
+                                if (destination.X == existing.Location.X &&
+                                    destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
+                                {
+                                    return existing;
+                                }
+                            }
+                        }
+                        else if (existing.Direction == Direction.Left ||
+                                 existing.Direction == Direction.Right)
+                        {
+                            if (existing.Region.Height == width_double)
+                            {
+                                if (destination.X == existing.Location.X &&
+                                    destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
+                                {
+                                    return existing;
+                                }
+                            }
+                            else if (existing.Region.Height == width_triple)
+                            {
+                                if (destination.X == existing.Location.X &&
+                                    destination.Y >= existing.Location.Y - 1 && destination.Y <= existing.Location.Y + 1)
+                                {
+                                    return existing;
+                                }
+                            }
+                        }
+                    }
+                    else if (existing.Region.Width == width_double &&
+                             existing.Region.Height == width_double)
+                    {
+                        if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
+                            destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
                         {
                             return existing;
-                        }
-                        else if (existing.Region.Height == Main.Game.TileSize.Y)
-                        {
-                            if (existing.Direction == Direction.Right)
-                            {
-                                if (existing.Region.Width == (Main.Game.TileSize.X * 2))
-                                {
-                                    if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
-                                        destination.Y == existing.Location.Y)
-                                    {
-                                        return existing;
-                                    }
-                                }
-                            }
-                            else if (existing.Direction == Direction.Left)
-                            {
-                                if (existing.Region.Width == (Main.Game.TileSize.X * 2))
-                                {
-                                    if (destination.X >= existing.Location.X - 1 && destination.X <= existing.Location.X &&
-                                        destination.Y == existing.Location.Y)
-                                    {
-                                        return existing;
-                                    }
-                                }
-                            }
-                            else if (existing.Direction == Direction.Up ||
-                                     existing.Direction == Direction.Down)
-                            {
-                                if (existing.Region.Width == (Main.Game.TileSize.X * 2))
-                                {
-                                    if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
-                                        destination.Y == existing.Location.Y)
-                                    {
-                                        return existing;
-                                    }
-                                }
-                                else if (existing.Region.Width == (Main.Game.TileSize.X * 3))
-                                {
-                                    if (destination.X >= existing.Location.X - 1 && destination.X <= existing.Location.X + 1 &&
-                                        destination.Y == existing.Location.Y)
-                                    {
-                                        return existing;
-                                    }
-                                }
-                            }
-                        }
-                        else if (existing.Region.Width == Main.Game.TileSize.X)
-                        {
-                            if (existing.Direction == Direction.Up)
-                            {
-                                if (existing.Region.Height == (Main.Game.TileSize.Y * 2))
-                                {
-                                    if (destination.X == existing.Location.X &&
-                                        destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y - 1)
-                                    {
-                                        return existing;
-                                    }
-                                }
-                            }
-                            else if (existing.Direction == Direction.Down)
-                            {
-                                if (existing.Region.Height == (Main.Game.TileSize.Y * 2))
-                                {
-                                    if (destination.X == existing.Location.X &&
-                                        destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
-                                    {
-                                        return existing;
-                                    }
-                                }
-                            }
-                            else if (existing.Direction == Direction.Left ||
-                                     existing.Direction == Direction.Right)
-                            {
-                                if (existing.Region.Height == (Main.Game.TileSize.Y * 2))
-                                {
-                                    if (destination.X == existing.Location.X &&
-                                        destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
-                                    {
-                                        return existing;
-                                    }
-                                }
-                                else if (existing.Region.Height == (Main.Game.TileSize.Y * 3))
-                                {
-                                    if (destination.X == existing.Location.X &&
-                                        destination.Y >= existing.Location.Y - 1 && destination.Y <= existing.Location.Y + 1)
-                                    {
-                                        return existing;
-                                    }
-                                }
-                            }
-                        }
-                        else if (existing.Region.Width == (Main.Game.TileSize.X * 2) &&
-                                 existing.Region.Height == (Main.Game.TileSize.Y * 2))
-                        {
-                            if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
-                                destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
-                            {
-                                return existing;
-                            }
                         }
                     }
                 }
             }
 
             return null;
+        }
+
+        public static Tile GetFurniture(Layer layer, Location destination)
+        {
+            int width = Main.Game.TileSize_X;
+            int width_double = width * 2;
+            int width_triple = width * 3;
+
+            Tile[] tiles = layer.Tiles.ToArray();
+            int count = tiles.Length;
+            for (int i = 0; i < count; i++)
+            {
+                Tile existing = tiles[i];
+
+                if (destination.X.Equals(existing.Location.X) &&
+                    destination.Y.Equals(existing.Location.Y))
+                {
+                    return existing;
+                }
+                else if (existing.Region.Height == width)
+                {
+                    if (existing.Direction == Direction.Right)
+                    {
+                        if (existing.Region.Width == width_double)
+                        {
+                            if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
+                                destination.Y == existing.Location.Y)
+                            {
+                                return existing;
+                            }
+                        }
+                    }
+                    else if (existing.Direction == Direction.Left)
+                    {
+                        if (existing.Region.Width == width_double)
+                        {
+                            if (destination.X >= existing.Location.X - 1 && destination.X <= existing.Location.X &&
+                                destination.Y == existing.Location.Y)
+                            {
+                                return existing;
+                            }
+                        }
+                    }
+                    else if (existing.Direction == Direction.Up ||
+                             existing.Direction == Direction.Down)
+                    {
+                        if (existing.Region.Width == width_double)
+                        {
+                            if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
+                                destination.Y == existing.Location.Y)
+                            {
+                                return existing;
+                            }
+                        }
+                        else if (existing.Region.Width == width_triple)
+                        {
+                            if (destination.X >= existing.Location.X - 1 && destination.X <= existing.Location.X + 1 &&
+                                destination.Y == existing.Location.Y)
+                            {
+                                return existing;
+                            }
+                        }
+                    }
+                }
+                else if (existing.Region.Width == width)
+                {
+                    if (existing.Direction == Direction.Up)
+                    {
+                        if (existing.Region.Height == width_double)
+                        {
+                            if (destination.X == existing.Location.X &&
+                                destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y - 1)
+                            {
+                                return existing;
+                            }
+                        }
+                    }
+                    else if (existing.Direction == Direction.Down)
+                    {
+                        if (existing.Region.Height == width_double)
+                        {
+                            if (destination.X == existing.Location.X &&
+                                destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
+                            {
+                                return existing;
+                            }
+                        }
+                    }
+                    else if (existing.Direction == Direction.Left ||
+                             existing.Direction == Direction.Right)
+                    {
+                        if (existing.Region.Height == width_double)
+                        {
+                            if (destination.X == existing.Location.X &&
+                                destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
+                            {
+                                return existing;
+                            }
+                        }
+                        else if (existing.Region.Height == width_triple)
+                        {
+                            if (destination.X == existing.Location.X &&
+                                destination.Y >= existing.Location.Y - 1 && destination.Y <= existing.Location.Y + 1)
+                            {
+                                return existing;
+                            }
+                        }
+                    }
+                }
+                else if (existing.Region.Width == width_double &&
+                         existing.Region.Height == width_double)
+                {
+                    if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
+                        destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
+                    {
+                        return existing;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        public static List<Tile> GetAllFurniture(Layer layer, Point map_coords)
+        {
+            List<Tile> furniture = new List<Tile>();
+
+            if (layer != null)
+            {
+                int world_x = map_coords.X * 20;
+                int world_y = map_coords.Y * 20;
+
+                foreach (Tile tile in layer.Tiles)
+                {
+                    if (tile.Texture != null)
+                    {
+                        if (tile.Location.X >= world_x && tile.Location.X < world_x + 20 &&
+                            tile.Location.Y >= world_y && tile.Location.Y < world_y + 20)
+                        {
+                            furniture.Add(tile);
+                        }
+                    }
+                }
+            }
+
+            return furniture;
+        }
+
+        public static List<Tile> GetOwned_Furniture(Character character, string name)
+        {
+            List<Tile> tiles = new List<Tile>();
+
+            Tile[] furniture = Handler.OwnedFurniture[character.ID].ToArray();
+
+            int count = furniture.Length;
+            for (int i = 0; i < count; i++)
+            {
+                Tile tile = furniture[i];
+                if (tile.Name.IndexOf(name, System.StringComparison.OrdinalIgnoreCase) != -1)
+                {
+                    tiles.Add(tile);
+                }
+            }
+
+            return tiles;
         }
 
         public static Direction GetFurnitureDirection(Tile tile, Character character)
@@ -1280,48 +1547,10 @@ namespace Despicaville.Util
             return exits;
         }
 
-        public static List<Tile> GetAllFurniture(Layer layer, Point map_coords)
-        {
-            List<Tile> furniture = new List<Tile>();
-
-            if (layer != null)
-            {
-                int world_x = map_coords.X * 20;
-                int world_y = map_coords.Y * 20;
-                
-                foreach (Tile tile in layer.Tiles)
-                {
-                    if (tile.Texture != null)
-                    {
-                        if (tile.Location.X >= world_x && tile.Location.X < world_x + 20 &&
-                            tile.Location.Y >= world_y && tile.Location.Y < world_y + 20)
-                        {
-                            furniture.Add(tile);
-                        }
-                    }
-                }
-            }
-
-            return furniture;
-        }
-
-        public static List<Tile> GetOwned_Furniture(Character character, string name)
-        {
-            List<Tile> tiles = new List<Tile>();
-
-            foreach (Tile tile in Handler.OwnedFurniture[character.ID])
-            {
-                if (tile.Name.Contains(name))
-                {
-                    tiles.Add(tile);
-                }
-            }
-
-            return tiles;
-        }
-
         public static void AssignPlayerBed(World world, Character player)
         {
+            player.Relationships.Clear();
+
             Army army = CharacterManager.GetArmy("Characters");
             Squad squad = army.GetSquad("Citizens");
             bool found_bed = false;
@@ -1541,6 +1770,8 @@ namespace Despicaville.Util
                                     }
                                 }
                             }
+
+                            break;
                         }
                     }
                 }

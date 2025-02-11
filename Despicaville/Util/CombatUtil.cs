@@ -5,6 +5,7 @@ using OP_Engine.Controls;
 using OP_Engine.Inventories;
 using OP_Engine.Menus;
 using OP_Engine.Utility;
+using System.Collections.Generic;
 
 namespace Despicaville.Util
 {
@@ -98,6 +99,52 @@ namespace Despicaville.Util
                     }
                 }
             }
+        }
+
+        public static Dictionary<string, string> AttackChoice(Character character)
+        {
+            Dictionary<string, string> attack = new Dictionary<string, string>();
+
+            Item rightHandItem = InventoryUtil.Get_EquippedItem(character, "Right Weapon Slot");
+            if (rightHandItem != null)
+            {
+                if (IsAttack(rightHandItem.Task))
+                {
+                    attack.Add(rightHandItem.Name, rightHandItem.Task);
+                }
+            }
+
+            if (attack.Count == 0)
+            {
+                Item leftHandItem = InventoryUtil.Get_EquippedItem(character, "Left Weapon Slot");
+                if (leftHandItem != null)
+                {
+                    if (IsAttack(leftHandItem.Task))
+                    {
+                        attack.Add(leftHandItem.Name, rightHandItem.Task);
+                    }
+                }
+            }
+
+            if (attack.Count == 0)
+            {
+                string attacking_with;
+
+                CryptoRandom random = new CryptoRandom();
+                int hand_choice = random.Next(0, 2);
+                if (hand_choice == 0)
+                {
+                    attacking_with = "Right Hand";
+                }
+                else
+                {
+                    attacking_with = "Right Hand";
+                }
+
+                attack.Add(attacking_with, "Punch");
+            }
+
+            return attack;
         }
 
         public static bool CanAttack_Ranged(Character attacker)

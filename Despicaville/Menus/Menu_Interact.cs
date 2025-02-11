@@ -233,6 +233,7 @@ namespace Despicaville.Menus
                         if (search != null)
                         {
                             search.Region = new Region(x, Y, width, height);
+                            search.Visible = true;
                         }
                     }
                     else
@@ -241,6 +242,7 @@ namespace Despicaville.Menus
                         if (use != null)
                         {
                             use.Region = new Region(x, Y, width, height);
+                            use.Visible = true;
                         }
                     }
                 }
@@ -250,6 +252,7 @@ namespace Despicaville.Menus
                     if (talk != null)
                     {
                         talk.Region = new Region(x, Y, width, height);
+                        talk.Visible = true;
                     }
 
                     Y = listing == Direction.Up ? Y - height : Y + height;
@@ -258,6 +261,7 @@ namespace Despicaville.Menus
                     if (attack != null)
                     {
                         attack.Region = new Region(x, Y, width, height);
+                        attack.Visible = true;
                     }
                 }
             }

@@ -96,7 +96,6 @@
     <Compile Include="Scenes\Title.cs" />
     <Compile Include="Tasker.cs" />
     <Compile Include="TimeTracker.cs" />
-    <Compile Include="Util\AI.cs" />
     <Compile Include="Util\CharacterUtil.cs" />
     <Compile Include="Util\CombatUtil.cs" />
     <Compile Include="Util\DPathing.cs" />

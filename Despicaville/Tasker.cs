@@ -83,39 +83,36 @@ namespace Despicaville
 
         public static void Character_StartAction(World world, Character character)
         {
-            if (character.Job.Tasks.Count > 0)
+            Task task = character.Job.CurrentTask;
+            if (task != null)
             {
-                Task task = character.Job.CurrentTask;
-                if (task != null)
+                if (task.Started &&
+                    !character.Moving)
                 {
-                    if (task.Started &&
-                        !character.Moving)
+                    if (task.Name == "Sneak" ||
+                        task.Name == "Walk" ||
+                        task.Name == "Run")
                     {
-                        if (task.Name == "Sneak" || 
-                            task.Name == "Walk" || 
-                            task.Name == "Run")
+                        Move(world, character);
+                    }
+                    else if (task.Name.Contains("GoTo"))
+                    {
+                        string[] task_parts = task.Name.Split('_');
+                        GoTo(world, character, task_parts[1]);
+                    }
+                    else if (task.Name == "Attacking")
+                    {
+                        Attacking(character);
+                    }
+                    else if (task.Name.Contains("UseSink_Start"))
+                    {
+                        if (task.Name.Contains("Drink"))
                         {
-                            Move(world, character);
+                            UseSink_Start(character, false);
                         }
-                        else if (task.Name.Contains("GoTo"))
+                        else
                         {
-                            string[] task_parts = task.Name.Split('_');
-                            GoTo(world, character, task_parts[1]);
-                        }
-                        else if (task.Name == "Attacking")
-                        {
-                            Attacking(character);
-                        }
-                        else if (task.Name.Contains("UseSink_Start"))
-                        {
-                            if (task.Name.Contains("Drink"))
-                            {
-                                UseSink_Start(character, false);
-                            }
-                            else
-                            {
-                                UseSink_Start(character, true);
-                            }
+                            UseSink_Start(character, true);
                         }
                     }
                 }
@@ -257,6 +254,21 @@ namespace Despicaville
                 }
             }
 
+            //Are we already pathing to something?
+            if (character.Path.Count > 0)
+            {
+                found = true;
+
+                if (desperate)
+                {
+                    AddTask(character, "GoTo_Run", true, false, null, default, 0);
+                }
+                else
+                {
+                    AddTask(character, "GoTo_Walk", true, false, null, default, 0);
+                }
+            }
+
             //Does a nearby fridge have something to drink?
             if (!found)
             {
@@ -369,6 +381,21 @@ namespace Despicaville
                     found = true;
                     AddTask(character, "UseItem_" + existing.ID, false, true, TimeSpan.FromSeconds(hunger.Value * -10), default, 0);
                     break;
+                }
+            }
+
+            //Are we already pathing to something?
+            if (character.Path.Count > 0)
+            {
+                found = true;
+
+                if (desperate)
+                {
+                    AddTask(character, "GoTo_Run", true, false, null, default, 0);
+                }
+                else
+                {
+                    AddTask(character, "GoTo_Walk", true, false, null, default, 0);
                 }
             }
 
@@ -535,7 +562,7 @@ namespace Despicaville
             choice = random.Next(1, 11);
             if (choice <= 5)
             {
-                AddTask(character, "Wait", true, false, TimeSpan.FromMilliseconds(10000), default, direction);
+                AddTask(character, "Wait", true, false, TimeSpan.FromSeconds(10), default, direction);
             }
             else if (choice > 5 &&
                      choice <= 8)
@@ -587,7 +614,7 @@ namespace Despicaville
             }
 
             Map map = world.Maps[0];
-            if (AI.CanMove(character, map, character.Destination))
+            if (WorldUtil.CanMove(character, map, character.Destination))
             {
                 if (task.Direction != character.Direction)
                 {
@@ -657,6 +684,11 @@ namespace Despicaville
                             AddTask(character, task.Name, false, false, TimeSpan.FromSeconds(10), default, task.Direction);
                         }
                     }
+                    else
+                    {
+                        character.Path.Clear();
+                        AddTask(character, "Wait", true, false, TimeSpan.FromSeconds(21), default, task.Direction);
+                    }
                 }
             }
         }
@@ -669,30 +701,30 @@ namespace Despicaville
 
             if (character.Path.Count > 0)
             {
-                ALocation last_path = character.Path[character.Path.Count - 1];
-                Location location = new Location(last_path.X, last_path.Y, 0);
-
-                bool reached_destination = false;
-
-                while (location.X == character.Location.X &&
-                       location.Y == character.Location.Y)
+                ALocation first_path = character.Path[0];
+                if (first_path.X == character.Location.X &&
+                    first_path.Y == character.Location.Y)
                 {
-                    character.Path.Remove(last_path);
+                    character.Path.Remove(first_path);
                     if (character.Path.Count > 0)
                     {
-                        last_path = character.Path[character.Path.Count - 1];
-                        location = new Location(last_path.X, last_path.Y, 0);
+                        first_path = character.Path[0];
                     }
-                    else
-                    {
-                        reached_destination = true;
-                        break;
-                    }
+                }
+                Location destination = new Location(first_path.X, first_path.Y, 0);
+
+                bool reached_destination = false;
+                ALocation last_path = character.Path[character.Path.Count - 1];
+                if (last_path.X == character.Location.X &&
+                    last_path.Y == character.Location.Y)
+                {
+                    reached_destination = true;
+                    character.Path.Remove(last_path);
                 }
 
                 if (!reached_destination)
                 {
-                    Direction direction = WorldUtil.GetDirection(location, character.Location, false);
+                    Direction direction = WorldUtil.GetDirection(destination, character.Location, false);
                     if (direction == character.Direction)
                     {
                         if (direction == Direction.Up)
@@ -723,7 +755,6 @@ namespace Despicaville
                         else
                         {
                             AddTask(character, speed, true, false, null, character.Destination, direction);
-                            Character_StartAction(world, character);
                         }
                     }
                     else
@@ -813,7 +844,7 @@ namespace Despicaville
             Character target = WorldUtil.GetCharacter_Target(attacker);
             if (target != null)
             {
-                Dictionary<string, string> attackChoice = AI.AttackChoice(attacker);
+                Dictionary<string, string> attackChoice = CombatUtil.AttackChoice(attacker);
                 string attackType = attackChoice.ElementAt(0).Value;
 
                 if (CombatUtil.InRange(attacker, target, attackType))
@@ -1502,7 +1533,7 @@ namespace Despicaville
             Layer bottom_tiles = map.GetLayer("BottomTiles");
             Layer middle_tiles = map.GetLayer("MiddleTiles");
 
-            Tile tile = WorldUtil.GetFurniture(middle_tiles, new Location(location.X, location.Y, 0));
+            Tile tile = WorldUtil.GetFurniture("Middle", new Location(location.X, location.Y, 0));
             if ((tile != null && tile.Texture == null) ||
                 tile == null)
             {
@@ -1784,7 +1815,7 @@ namespace Despicaville
             Map block_map = WorldUtil.GetCurrentMap(character);
             Layer top_tiles = block_map.GetLayer("TopTiles");
 
-            Tile sink = WorldUtil.GetFurniture(top_tiles, new Location(location.X, location.Y, 0));
+            Tile sink = WorldUtil.GetFurniture("Top", new Location(location.X, location.Y, 0));
             if (sink != null)
             {
                 if (sink.Name.Contains("Sink"))
@@ -1919,7 +1950,7 @@ namespace Despicaville
 
             if (react)
             {
-                string reaction = AI.ReactToAttack(attacker, defender);
+                string reaction = CharacterUtil.ReactToAttack(attacker, defender);
                 AddTask(defender, reaction, true, false, null, default, 0);
             }
         }
@@ -2294,6 +2325,13 @@ namespace Despicaville
                 if (path != null &&
                     path.Count > 0)
                 {
+                    path.Reverse();
+                    if (path[0].X == character.Location.X &&
+                        path[0].Y == character.Location.Y)
+                    {
+                        path.Remove(path[0]);
+                    }
+
                     character.Path.AddRange(path);
 
                     if (desperate)

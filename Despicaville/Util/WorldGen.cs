@@ -19,7 +19,11 @@ namespace Despicaville.Util
 
         public static List<Tile> Worldmap = new List<Tile>();
         private static List<Map> Blocks = new List<Map>();
-        private static List<Map> Available_Commercial = new List<Map>();
+
+        private static List<Map> PoliceBlocks = new List<Map>();
+        private static List<Map> GroceryBlocks = new List<Map>();
+        private static List<Map> DinerBlocks = new List<Map>();
+        private static List<Map> ResidentialBlocks = new List<Map>();
         private static List<Map> ParkBlocks = new List<Map>();
 
         public static List<Map> Residential = new List<Map>();
@@ -320,8 +324,15 @@ namespace Despicaville.Util
 
             Worldmap.Clear();
 
-            Available_Commercial.Clear();
+            PoliceBlocks.Clear();
+            GroceryBlocks.Clear();
+            DinerBlocks.Clear();
             ParkBlocks.Clear();
+
+            Residential.Clear();
+            Commercial.Clear();
+            Parks.Clear();
+            Roads.Clear();
 
             foreach (Map block in Blocks)
             {
@@ -331,7 +342,22 @@ namespace Despicaville.Util
                 }
                 else if (block.Type == "Commercial")
                 {
-                    Available_Commercial.Add(block);
+                    if (block.Name.Contains("Police"))
+                    {
+                        PoliceBlocks.Add(block);
+                    }
+                    else if (block.Name.Contains("Grocery"))
+                    {
+                        GroceryBlocks.Add(block);
+                    }
+                    else if (block.Name.Contains("Diner"))
+                    {
+                        DinerBlocks.Add(block);
+                    }
+                }
+                else if (block.Type == "Residential")
+                {
+                    ResidentialBlocks.Add(block);
                 }
             }
 
@@ -343,10 +369,10 @@ namespace Despicaville.Util
 
             #region First Row
 
-            AddMapTile("Road_Corner_NW", "Map_Road_Corner_NW", 0, 0);
+            AddToWorldmap("Road_Corner_NW", "Map_Road_Corner_NW", 0, 0);
 
             column++;
-            AddMapTile("Road_WE", "Map_Road_WE", column, 0);
+            AddToWorldmap("Road_WE", "Map_Road_WE", column, 0);
 
             if (Handler.MapSize_X > 3)
             {
@@ -356,12 +382,12 @@ namespace Despicaville.Util
                     if (choice <= 2)
                     {
                         column++;
-                        AddMapTile("Road_TSection_S", "Map_Road_TSection_S", column, 0);
+                        AddToWorldmap("Road_TSection_S", "Map_Road_TSection_S", column, 0);
                     }
                     else if (choice == 3)
                     {
                         column++;
-                        AddMapTile("Road_WE", "Map_Road_WE", column, 0);
+                        AddToWorldmap("Road_WE", "Map_Road_WE", column, 0);
                     }
 
                     if (Handler.MapSize_X > 5)
@@ -375,20 +401,20 @@ namespace Despicaville.Util
                                 if (choice <= 2)
                                 {
                                     column++;
-                                    AddMapTile("Road_TSection_S", "Map_Road_TSection_S", column, 0);
+                                    AddToWorldmap("Road_TSection_S", "Map_Road_TSection_S", column, 0);
                                     previous_type = previous_w = "Road_TSection_S";
                                 }
                                 else if (choice == 3)
                                 {
                                     column++;
-                                    AddMapTile("Road_WE", "Map_Road_WE", column, 0);
+                                    AddToWorldmap("Road_WE", "Map_Road_WE", column, 0);
                                     previous_type = previous_w = "Road_WE";
                                 }
                             }
                             else
                             {
                                 column++;
-                                AddMapTile("Road_WE", "Map_Road_WE", column, 0);
+                                AddToWorldmap("Road_WE", "Map_Road_WE", column, 0);
                                 previous_type = previous_w = "Road_WE";
                             }
                         }
@@ -396,11 +422,11 @@ namespace Despicaville.Util
                 }
 
                 column++;
-                AddMapTile("Road_WE", "Map_Road_WE", column, 0);
+                AddToWorldmap("Road_WE", "Map_Road_WE", column, 0);
             }
 
             column++;
-            AddMapTile("Road_Corner_NE", "Map_Road_Corner_NE", column, 0);
+            AddToWorldmap("Road_Corner_NE", "Map_Road_Corner_NE", column, 0);
 
             #endregion
 
@@ -417,18 +443,18 @@ namespace Despicaville.Util
                     choice = random.Next(1, 4);
                     if (choice <= 2)
                     {
-                        AddMapTile("Road_TSection_E", "Map_Road_TSection_E", 0, row);
+                        AddToWorldmap("Road_TSection_E", "Map_Road_TSection_E", 0, row);
                         previous_type = previous_w = "Road_TSection_E";
                     }
                     else if (choice == 3)
                     {
-                        AddMapTile("Road_NS", "Map_Road_NS", 0, row);
+                        AddToWorldmap("Road_NS", "Map_Road_NS", 0, row);
                         previous_type = previous_w = "Road_NS";
                     }
                 }
                 else
                 {
-                    AddMapTile("Road_NS", "Map_Road_NS", 0, row);
+                    AddToWorldmap("Road_NS", "Map_Road_NS", 0, row);
                     previous_type = previous_w = "Road_NS";
                 }
 
@@ -440,11 +466,10 @@ namespace Despicaville.Util
                     }
                 }
 
-                bool Previous_Block = GetPreviousBlock(previous_type) != null ? true : false;
-                if (Previous_Block)
+                if (previous_type == "Open")
                 {
                     column++;
-                    previous_type = AddMapTile("Road_NS", "Map_Road_NS", column, row);
+                    previous_type = AddToWorldmap("Road_NS", "Map_Road_NS", column, row);
                 }
                 else if (previous_type == "Road_NS" ||
                          previous_type == "Road_Corner_NE" ||
@@ -452,12 +477,12 @@ namespace Despicaville.Util
                          previous_type == "Road_TSection_W")
                 {
                     column++;
-                    previous_type = AddMapTile("Road_NS", "Map_Road_NS", column, row);
+                    previous_type = AddToWorldmap("Road_NS", "Map_Road_NS", column, row);
                 }
                 else
                 {
                     column++;
-                    previous_type = AddMapTile("Road_TSection_W", "Map_Road_TSection_W", column, row);
+                    previous_type = AddToWorldmap("Road_TSection_W", "Map_Road_TSection_W", column, row);
                 }
             }
 
@@ -468,7 +493,7 @@ namespace Despicaville.Util
             row = Handler.MapSize_Y - 1;
             column = 0;
 
-            previous_type = AddMapTile("Road_Corner_SW", "Map_Road_Corner_SW", 0, row);
+            previous_type = AddToWorldmap("Road_Corner_SW", "Map_Road_Corner_SW", 0, row);
 
             for (int i = 1; i < Handler.MapSize_X - 1; i++)
             {
@@ -478,9 +503,11 @@ namespace Despicaville.Util
                 }
             }
 
-            previous_type = AddMapTile("Road_Corner_SE", "Map_Road_Corner_SE", Handler.MapSize_X - 1, row);
+            previous_type = AddToWorldmap("Road_Corner_SE", "Map_Road_Corner_SE", Handler.MapSize_X - 1, row);
 
             #endregion
+
+            FillMap();
         }
 
         #region GenMap
@@ -507,560 +534,30 @@ namespace Despicaville.Util
                     upper_block.Name == "Road_Corner_NW" ||
                     upper_block.Name == "Road_Corner_NE")
                 {
-                    this_block = AddMapTile("Road_NS", "Map_Road_NS", column, row);
+                    this_block = AddToWorldmap("Road_NS", "Map_Road_NS", column, row);
                 }
                 else if (upper_block.Name == "Road_NS")
                 {
                     if (y == Handler.MapSize_Y - 2)
                     {
-                        this_block = AddMapTile("Road_NS", "Map_Road_NS", column, row);
+                        this_block = AddToWorldmap("Road_NS", "Map_Road_NS", column, row);
                     }
                     else
                     {
                         int type = random.Next(1, 3);
                         if (type == 1)
                         {
-                            this_block = AddMapTile("Road_NS", "Map_Road_NS", column, row);
+                            this_block = AddToWorldmap("Road_NS", "Map_Road_NS", column, row);
                         }
                         else if (type == 2)
                         {
-                            this_block = AddMapTile("Road_TSection_E", "Map_Road_TSection_E", column, row);
+                            this_block = AddToWorldmap("Road_TSection_E", "Map_Road_TSection_E", column, row);
                         }
                     }
                 }
                 else
                 {
-                    bool BlockAbove_South = false;
-                    Map blockAbove = GetBlockAbove(upper_block);
-                    if (blockAbove != null)
-                    {
-                        if (blockAbove.Type != "Park" &&
-                            blockAbove.Direction == Direction.Down)
-                        {
-                            BlockAbove_South = true;
-                        }
-                    }
-
-                    if (BlockAbove_South)
-                    {
-                        this_block = AddMapTile("Road_Corner_NW", "Map_Road_Corner_NW", column, row);
-                    }
-                    else
-                    {
-                        bool BlockAbove = GetBlockAbove(upper_block) != null;
-                        if (BlockAbove)
-                        {
-                            if (Available_Commercial.Count > 0)
-                            {
-                                int type = random.Next(1, 11);
-                                if (type <= 3)
-                                {
-                                    #region Residential
-
-                                    if (y == Handler.MapSize_Y - 2)
-                                    {
-                                        List<Map> WestBlocks = new List<Map>();
-                                        foreach (Map block in Blocks)
-                                        {
-                                            if (block.Type == "Residential" &&
-                                                block.Direction == Direction.Left)
-                                            {
-                                                WestBlocks.Add(block);
-                                            }
-                                        }
-
-                                        if (WestBlocks.Count > 0)
-                                        {
-                                            int choice = random.Next(0, WestBlocks.Count);
-                                            this_block = AddMapTile(WestBlocks[choice].Name, "Map_Residential", column, row);
-                                        }
-                                        else
-                                        {
-                                            int choice = random.Next(0, ParkBlocks.Count);
-                                            this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (x == Handler.MapSize_X - 3)
-                                        {
-                                            List<Map> WestBlocks = new List<Map>();
-                                            foreach (Map block in Blocks)
-                                            {
-                                                if (block.Type == "Residential" &&
-                                                    block.Direction == Direction.Left)
-                                                {
-                                                    WestBlocks.Add(block);
-                                                }
-                                            }
-
-                                            if (WestBlocks.Count > 0)
-                                            {
-                                                int choice = random.Next(0, WestBlocks.Count);
-                                                this_block = AddMapTile(WestBlocks[choice].Name, "Map_Residential", column, row);
-                                            }
-                                            else
-                                            {
-                                                int choice = random.Next(0, ParkBlocks.Count);
-                                                this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            int direction = random.Next(1, 3);
-                                            if (direction == 1)
-                                            {
-                                                List<Map> EastBlocks = new List<Map>();
-                                                foreach (Map block in Blocks)
-                                                {
-                                                    if (block.Type == "Residential" &&
-                                                        block.Direction == Direction.Right)
-                                                    {
-                                                        EastBlocks.Add(block);
-                                                    }
-                                                }
-
-                                                if (EastBlocks.Count > 0)
-                                                {
-                                                    int choice = random.Next(0, EastBlocks.Count);
-                                                    this_block = AddMapTile(EastBlocks[choice].Name, "Map_Residential", column, row);
-                                                }
-                                                else
-                                                {
-                                                    int choice = random.Next(0, ParkBlocks.Count);
-                                                    this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                }
-                                            }
-                                            else if (direction == 2)
-                                            {
-                                                List<Map> WestBlocks = new List<Map>();
-                                                foreach (Map block in Blocks)
-                                                {
-                                                    if (block.Type == "Residential" &&
-                                                        block.Direction == Direction.Left)
-                                                    {
-                                                        WestBlocks.Add(block);
-                                                    }
-                                                }
-
-                                                if (WestBlocks.Count > 0)
-                                                {
-                                                    int choice = random.Next(0, WestBlocks.Count);
-                                                    this_block = AddMapTile(WestBlocks[choice].Name, "Map_Residential", column, row);
-                                                }
-                                                else
-                                                {
-                                                    int choice = random.Next(0, ParkBlocks.Count);
-                                                    this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    #endregion
-                                }
-                                else if (type > 3)
-                                {
-                                    #region Commercial
-
-                                    if (y == Handler.MapSize_Y - 2)
-                                    {
-                                        List<Map> WestBlocks = new List<Map>();
-                                        foreach (Map block in Available_Commercial)
-                                        {
-                                            if (block.Type == "Commercial" &&
-                                                block.Direction == Direction.Left)
-                                            {
-                                                WestBlocks.Add(block);
-                                            }
-                                        }
-
-                                        if (WestBlocks.Count > 0)
-                                        {
-                                            int choice = random.Next(0, WestBlocks.Count);
-                                            this_block = AddMapTile(WestBlocks[choice].Name, "Map_Commercial", column, row);
-                                        }
-                                        else
-                                        {
-                                            int choice = random.Next(0, ParkBlocks.Count);
-                                            this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (x == Handler.MapSize_X - 3)
-                                        {
-                                            List<Map> WestBlocks = new List<Map>();
-                                            foreach (Map block in Available_Commercial)
-                                            {
-                                                if (block.Type == "Commercial" &&
-                                                    block.Direction == Direction.Left)
-                                                {
-                                                    WestBlocks.Add(block);
-                                                }
-                                            }
-
-                                            if (WestBlocks.Count > 0)
-                                            {
-                                                int choice = random.Next(0, WestBlocks.Count);
-                                                this_block = AddMapTile(WestBlocks[choice].Name, "Map_Commercial", column, row);
-                                            }
-                                            else
-                                            {
-                                                int choice = random.Next(0, ParkBlocks.Count);
-                                                this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            int direction = random.Next(1, 3);
-                                            if (direction == 1)
-                                            {
-                                                List<Map> EastBlocks = new List<Map>();
-                                                foreach (Map block in Available_Commercial)
-                                                {
-                                                    if (block.Type == "Commercial" &&
-                                                        block.Direction == Direction.Right)
-                                                    {
-                                                        EastBlocks.Add(block);
-                                                    }
-                                                }
-
-                                                if (EastBlocks.Count > 0)
-                                                {
-                                                    int choice = random.Next(0, EastBlocks.Count);
-                                                    this_block = AddMapTile(EastBlocks[choice].Name, "Map_Commercial", column, row);
-                                                }
-                                                else
-                                                {
-                                                    int choice = random.Next(0, ParkBlocks.Count);
-                                                    this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                }
-                                            }
-                                            else if (direction == 2)
-                                            {
-                                                List<Map> WestBlocks = new List<Map>();
-                                                foreach (Map block in Available_Commercial)
-                                                {
-                                                    if (block.Type == "Commercial" &&
-                                                        block.Direction == Direction.Left)
-                                                    {
-                                                        WestBlocks.Add(block);
-                                                    }
-                                                }
-
-                                                if (WestBlocks.Count > 0)
-                                                {
-                                                    int choice = random.Next(0, WestBlocks.Count);
-                                                    this_block = AddMapTile(WestBlocks[choice].Name, "Map_Commercial", column, row);
-                                                }
-                                                else
-                                                {
-                                                    int choice = random.Next(0, ParkBlocks.Count);
-                                                    this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    #endregion
-                                }
-                            }
-                            else
-                            {
-                                int type = random.Next(1, 11);
-                                if (type <= 8)
-                                {
-                                    #region Residential
-
-                                    if (y == Handler.MapSize_Y - 2)
-                                    {
-                                        List<Map> WestBlocks = new List<Map>();
-                                        foreach (Map block in Blocks)
-                                        {
-                                            if (block.Type == "Residential" &&
-                                                block.Direction == Direction.Left)
-                                            {
-                                                WestBlocks.Add(block);
-                                            }
-                                        }
-
-                                        if (WestBlocks.Count > 0)
-                                        {
-                                            int choice = random.Next(0, WestBlocks.Count);
-                                            this_block = AddMapTile(WestBlocks[choice].Name, "Map_Residential", column, row);
-                                        }
-                                        else
-                                        {
-                                            int choice = random.Next(0, ParkBlocks.Count);
-                                            this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (x == Handler.MapSize_X - 3)
-                                        {
-                                            List<Map> WestBlocks = new List<Map>();
-                                            foreach (Map block in Blocks)
-                                            {
-                                                if (block.Type == "Residential" &&
-                                                    block.Direction == Direction.Left)
-                                                {
-                                                    WestBlocks.Add(block);
-                                                }
-                                            }
-
-                                            if (WestBlocks.Count > 0)
-                                            {
-                                                int choice = random.Next(0, WestBlocks.Count);
-                                                this_block = AddMapTile(WestBlocks[choice].Name, "Map_Residential", column, row);
-                                            }
-                                            else
-                                            {
-                                                int choice = random.Next(0, ParkBlocks.Count);
-                                                this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                            }
-                                        }
-                                        else
-                                        {
-                                            int direction = random.Next(1, 3);
-                                            if (direction == 1)
-                                            {
-                                                List<Map> EastBlocks = new List<Map>();
-                                                foreach (Map block in Blocks)
-                                                {
-                                                    if (block.Type == "Residential" &&
-                                                        block.Direction == Direction.Right)
-                                                    {
-                                                        EastBlocks.Add(block);
-                                                    }
-                                                }
-
-                                                if (EastBlocks.Count > 0)
-                                                {
-                                                    int choice = random.Next(0, EastBlocks.Count);
-                                                    this_block = AddMapTile(EastBlocks[choice].Name, "Map_Residential", column, row);
-                                                }
-                                                else
-                                                {
-                                                    int choice = random.Next(0, ParkBlocks.Count);
-                                                    this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                }
-                                            }
-                                            else if (direction == 2)
-                                            {
-                                                List<Map> WestBlocks = new List<Map>();
-                                                foreach (Map block in Blocks)
-                                                {
-                                                    if (block.Type == "Residential" &&
-                                                        block.Direction == Direction.Left)
-                                                    {
-                                                        WestBlocks.Add(block);
-                                                    }
-                                                }
-
-                                                if (WestBlocks.Count > 0)
-                                                {
-                                                    int choice = random.Next(0, WestBlocks.Count);
-                                                    this_block = AddMapTile(WestBlocks[choice].Name, "Map_Residential", column, row);
-                                                }
-                                                else
-                                                {
-                                                    int choice = random.Next(0, ParkBlocks.Count);
-                                                    this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    #endregion
-                                }
-                                else if (type > 8)
-                                {
-                                    int choice = random.Next(0, ParkBlocks.Count);
-                                    this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (Available_Commercial.Count > 0)
-                            {
-                                int type = random.Next(1, 11);
-                                if (type <= 3)
-                                {
-                                    #region Residential
-
-                                    int direction = random.Next(1, 3);
-                                    if (direction == 1)
-                                    {
-                                        List<Map> NorthBlocks = new List<Map>();
-                                        foreach (Map block in Blocks)
-                                        {
-                                            if (block.Type == "Residential" &&
-                                                block.Direction == Direction.Up)
-                                            {
-                                                NorthBlocks.Add(block);
-                                            }
-                                        }
-
-                                        if (NorthBlocks.Count > 0)
-                                        {
-                                            int choice = random.Next(0, NorthBlocks.Count);
-                                            this_block = AddMapTile(NorthBlocks[choice].Name, "Map_Residential", column, row);
-                                        }
-                                        else
-                                        {
-                                            int choice = random.Next(0, ParkBlocks.Count);
-                                            this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                        }
-                                    }
-                                    else if (direction == 2)
-                                    {
-                                        List<Map> WestBlocks = new List<Map>();
-                                        foreach (Map block in Blocks)
-                                        {
-                                            if (block.Type == "Residential" &&
-                                                block.Direction == Direction.Left)
-                                            {
-                                                WestBlocks.Add(block);
-                                            }
-                                        }
-
-                                        if (WestBlocks.Count > 0)
-                                        {
-                                            int choice = random.Next(0, WestBlocks.Count);
-                                            this_block = AddMapTile(WestBlocks[choice].Name, "Map_Residential", column, row);
-                                        }
-                                        else
-                                        {
-                                            int choice = random.Next(0, ParkBlocks.Count);
-                                            this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                        }
-                                    }
-
-                                    #endregion
-                                }
-                                else if (type > 3)
-                                {
-                                    #region Commercial
-
-                                    int direction = random.Next(1, 3);
-                                    if (direction == 1)
-                                    {
-                                        List<Map> NorthBlocks = new List<Map>();
-                                        foreach (Map block in Available_Commercial)
-                                        {
-                                            if (block.Type == "Commercial" &&
-                                                block.Direction == Direction.Up)
-                                            {
-                                                NorthBlocks.Add(block);
-                                            }
-                                        }
-
-                                        if (NorthBlocks.Count > 0)
-                                        {
-                                            int choice = random.Next(0, NorthBlocks.Count);
-                                            this_block = AddMapTile(NorthBlocks[choice].Name, "Map_Commercial", column, row);
-                                        }
-                                        else
-                                        {
-                                            int choice = random.Next(0, ParkBlocks.Count);
-                                            this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                        }
-                                    }
-                                    else if (direction == 2)
-                                    {
-                                        List<Map> WestBlocks = new List<Map>();
-                                        foreach (Map block in Available_Commercial)
-                                        {
-                                            if (block.Type == "Commercial" &&
-                                                block.Direction == Direction.Left)
-                                            {
-                                                WestBlocks.Add(block);
-                                            }
-                                        }
-
-                                        if (WestBlocks.Count > 0)
-                                        {
-                                            int choice = random.Next(0, WestBlocks.Count);
-                                            this_block = AddMapTile(WestBlocks[choice].Name, "Map_Commercial", column, row);
-                                        }
-                                        else
-                                        {
-                                            int choice = random.Next(0, ParkBlocks.Count);
-                                            this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                        }
-                                    }
-
-                                    #endregion
-                                }
-                            }
-                            else
-                            {
-                                int type = random.Next(1, 11);
-                                if (type <= 8)
-                                {
-                                    #region Residential
-
-                                    int direction = random.Next(1, 3);
-                                    if (direction == 1)
-                                    {
-                                        List<Map> NorthBlocks = new List<Map>();
-                                        foreach (Map block in Blocks)
-                                        {
-                                            if (block.Type == "Residential" &&
-                                                block.Direction == Direction.Up)
-                                            {
-                                                NorthBlocks.Add(block);
-                                            }
-                                        }
-
-                                        if (NorthBlocks.Count > 0)
-                                        {
-                                            int choice = random.Next(0, NorthBlocks.Count);
-                                            this_block = AddMapTile(NorthBlocks[choice].Name, "Map_Residential", column, row);
-                                        }
-                                        else
-                                        {
-                                            int choice = random.Next(0, ParkBlocks.Count);
-                                            this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                        }
-                                    }
-                                    else if (direction == 2)
-                                    {
-                                        List<Map> WestBlocks = new List<Map>();
-                                        foreach (Map block in Blocks)
-                                        {
-                                            if (block.Type == "Residential" &&
-                                                block.Direction == Direction.Left)
-                                            {
-                                                WestBlocks.Add(block);
-                                            }
-                                        }
-
-                                        if (WestBlocks.Count > 0)
-                                        {
-                                            int choice = random.Next(0, WestBlocks.Count);
-                                            this_block = AddMapTile(WestBlocks[choice].Name, "Map_Residential", column, row);
-                                        }
-                                        else
-                                        {
-                                            int choice = random.Next(0, ParkBlocks.Count);
-                                            this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                        }
-                                    }
-
-                                    #endregion
-                                }
-                                else if (type > 8)
-                                {
-                                    int choice = random.Next(0, ParkBlocks.Count);
-                                    this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                }
-                            }
-                        }
-                    }
+                    this_block = AddToWorldmap("Open", "Map_Open", column, row);
                 }
 
                 #endregion
@@ -1076,22 +573,22 @@ namespace Despicaville.Util
                 {
                     if (y == Handler.MapSize_Y - 2)
                     {
-                        this_block = AddMapTile("Road_TSection_W", "Map_Road_TSection_W", column, row);
+                        this_block = AddToWorldmap("Road_TSection_W", "Map_Road_TSection_W", column, row);
                     }
                     else
                     {
                         int type = random.Next(1, 4);
                         if (type == 1)
                         {
-                            this_block = AddMapTile("Road_Cross", "Map_Road_Cross", column, row);
+                            this_block = AddToWorldmap("Road_Cross", "Map_Road_Cross", column, row);
                         }
                         else if (type == 2)
                         {
-                            this_block = AddMapTile("Road_TSection_N", "Map_Road_TSection_N", column, row);
+                            this_block = AddToWorldmap("Road_TSection_N", "Map_Road_TSection_N", column, row);
                         }
                         else if (type == 3)
                         {
-                            this_block = AddMapTile("Road_TSection_W", "Map_Road_TSection_W", column, row);
+                            this_block = AddToWorldmap("Road_TSection_W", "Map_Road_TSection_W", column, row);
                         }
                     }
                 }
@@ -1102,24 +599,24 @@ namespace Despicaville.Util
                 {
                     if (y == Handler.MapSize_Y - 2)
                     {
-                        this_block = AddMapTile("Road_TSection_W", "Map_Road_TSection_W", column, row);
+                        this_block = AddToWorldmap("Road_TSection_W", "Map_Road_TSection_W", column, row);
                     }
                     else
                     {
                         int type = random.Next(1, 3);
                         if (type == 1)
                         {
-                            this_block = AddMapTile("Road_Corner_SE", "Map_Road_Corner_SE", column, row);
+                            this_block = AddToWorldmap("Road_Corner_SE", "Map_Road_Corner_SE", column, row);
                         }
                         else if (type == 2)
                         {
-                            this_block = AddMapTile("Road_TSection_W", "Map_Road_TSection_W", column, row);
+                            this_block = AddToWorldmap("Road_TSection_W", "Map_Road_TSection_W", column, row);
                         }
                     }
                 }
                 else
                 {
-                    this_block = AddMapTile("Road_WE", "Map_Road_WE", column, row);
+                    this_block = AddToWorldmap("Road_WE", "Map_Road_WE", column, row);
                 }
 
                 #endregion
@@ -1137,11 +634,11 @@ namespace Despicaville.Util
                 {
                     if (y == Handler.MapSize_Y - 2)
                     {
-                        this_block = AddMapTile("Road_TSection_W", "Map_Road_TSection_W", column, row);
+                        this_block = AddToWorldmap("Road_TSection_W", "Map_Road_TSection_W", column, row);
                     }
                     else
                     {
-                        this_block = AddMapTile("Road_Corner_SE", "Map_Road_Corner_SE", column, row);
+                        this_block = AddToWorldmap("Road_Corner_SE", "Map_Road_Corner_SE", column, row);
                     }
                 }
                 else if (upper_block.Name == "Road_NS" ||
@@ -1150,22 +647,22 @@ namespace Despicaville.Util
                 {
                     if (y == Handler.MapSize_Y - 2)
                     {
-                        this_block = AddMapTile("Road_TSection_W", "Map_Road_TSection_W", column, row);
+                        this_block = AddToWorldmap("Road_TSection_W", "Map_Road_TSection_W", column, row);
                     }
                     else
                     {
-                        this_block = AddMapTile("Road_TSection_N", "Map_Road_TSection_N", column, row);
+                        this_block = AddToWorldmap("Road_TSection_N", "Map_Road_TSection_N", column, row);
                     }
                 }
                 else
                 {
                     if (y == Handler.MapSize_Y - 2)
                     {
-                        this_block = AddMapTile("Road_Corner_NE", "Map_Road_Corner_NE", column, row);
+                        this_block = AddToWorldmap("Road_Corner_NE", "Map_Road_Corner_NE", column, row);
                     }
                     else
                     {
-                        this_block = AddMapTile("Road_WE", "Map_Road_WE", column, row);
+                        this_block = AddToWorldmap("Road_WE", "Map_Road_WE", column, row);
                     }
                 }
 
@@ -1182,11 +679,11 @@ namespace Despicaville.Util
                 {
                     if (y == Handler.MapSize_Y - 2)
                     {
-                        this_block = AddMapTile("Road_TSection_W", "Map_Road_TSection_W", column, row);
+                        this_block = AddToWorldmap("Road_TSection_W", "Map_Road_TSection_W", column, row);
                     }
                     else
                     {
-                        this_block = AddMapTile("Road_Corner_SE", "Map_Road_Corner_SE", column, row);
+                        this_block = AddToWorldmap("Road_Corner_SE", "Map_Road_Corner_SE", column, row);
                     }
                 }
                 else if (upper_block.Name == "Road_NS" ||
@@ -1195,22 +692,22 @@ namespace Despicaville.Util
                 {
                     if (y == Handler.MapSize_Y - 2)
                     {
-                        this_block = AddMapTile("Road_TSection_W", "Map_Road_TSection_W", column, row);
+                        this_block = AddToWorldmap("Road_TSection_W", "Map_Road_TSection_W", column, row);
                     }
                     else
                     {
-                        this_block = AddMapTile("Road_TSection_N", "Map_Road_TSection_N", column, row);
+                        this_block = AddToWorldmap("Road_TSection_N", "Map_Road_TSection_N", column, row);
                     }
                 }
                 else
                 {
                     if (y == Handler.MapSize_Y - 2)
                     {
-                        this_block = AddMapTile("Road_Corner_NE", "Map_Road_Corner_NE", column, row);
+                        this_block = AddToWorldmap("Road_Corner_NE", "Map_Road_Corner_NE", column, row);
                     }
                     else
                     {
-                        this_block = AddMapTile("Road_WE", "Map_Road_WE", column, row);
+                        this_block = AddToWorldmap("Road_WE", "Map_Road_WE", column, row);
                     }
                 }
 
@@ -1227,33 +724,33 @@ namespace Despicaville.Util
                     {
                         if (x == Handler.MapSize_X - 2)
                         {
-                            this_block = AddMapTile("Road_Cross", "Map_Road_Cross", column, row);
+                            this_block = AddToWorldmap("Road_Cross", "Map_Road_Cross", column, row);
                         }
                         else
                         {
-                            this_block = AddMapTile("Road_TSection_W", "Map_Road_TSection_W", column, row);
+                            this_block = AddToWorldmap("Road_TSection_W", "Map_Road_TSection_W", column, row);
                         }
                     }
                     else
                     {
                         if (x == Handler.MapSize_X - 2)
                         {
-                            this_block = AddMapTile("Road_TSection_N", "Map_Road_TSection_N", column, row);
+                            this_block = AddToWorldmap("Road_TSection_N", "Map_Road_TSection_N", column, row);
                         }
                         else
                         {
                             int type = random.Next(1, 4);
                             if (type == 1)
                             {
-                                this_block = AddMapTile("Road_Cross", "Map_Road_Cross", column, row);
+                                this_block = AddToWorldmap("Road_Cross", "Map_Road_Cross", column, row);
                             }
                             else if (type == 2)
                             {
-                                this_block = AddMapTile("Road_TSection_N", "Map_Road_TSection_N", column, row);
+                                this_block = AddToWorldmap("Road_TSection_N", "Map_Road_TSection_N", column, row);
                             }
                             else if (type == 3)
                             {
-                                this_block = AddMapTile("Road_TSection_W", "Map_Road_TSection_W", column, row);
+                                this_block = AddToWorldmap("Road_TSection_W", "Map_Road_TSection_W", column, row);
                             }
                         }
                     }
@@ -1266,22 +763,22 @@ namespace Despicaville.Util
                     {
                         if (x == Handler.MapSize_X - 2)
                         {
-                            this_block = AddMapTile("Road_Cross", "Map_Road_Cross", column, row);
+                            this_block = AddToWorldmap("Road_Cross", "Map_Road_Cross", column, row);
                         }
                         else
                         {
-                            this_block = AddMapTile("Road_TSection_W", "Map_Road_TSection_W", column, row);
+                            this_block = AddToWorldmap("Road_TSection_W", "Map_Road_TSection_W", column, row);
                         }
                     }
                     else
                     {
                         if (x == Handler.MapSize_X - 2)
                         {
-                            this_block = AddMapTile("Road_TSection_N", "Map_Road_TSection_N", column, row);
+                            this_block = AddToWorldmap("Road_TSection_N", "Map_Road_TSection_N", column, row);
                         }
                         else
                         {
-                            this_block = AddMapTile("Road_TSection_W", "Map_Road_TSection_W", column, row);
+                            this_block = AddToWorldmap("Road_TSection_W", "Map_Road_TSection_W", column, row);
                         }
                     }
                 }
@@ -1291,22 +788,22 @@ namespace Despicaville.Util
                     {
                         if (x == Handler.MapSize_X - 2)
                         {
-                            this_block = AddMapTile("Road_Cross", "Map_Road_Cross", column, row);
+                            this_block = AddToWorldmap("Road_Cross", "Map_Road_Cross", column, row);
                         }
                         else
                         {
-                            this_block = AddMapTile("Road_TSection_W", "Map_Road_TSection_W", column, row);
+                            this_block = AddToWorldmap("Road_TSection_W", "Map_Road_TSection_W", column, row);
                         }
                     }
                     else
                     {
                         if (x == Handler.MapSize_X - 2)
                         {
-                            this_block = AddMapTile("Road_TSection_N", "Map_Road_TSection_N", column, row);
+                            this_block = AddToWorldmap("Road_TSection_N", "Map_Road_TSection_N", column, row);
                         }
                         else
                         {
-                            this_block = AddMapTile("Road_TSection_W", "Map_Road_TSection_W", column, row);
+                            this_block = AddToWorldmap("Road_TSection_W", "Map_Road_TSection_W", column, row);
                         }
                     }
                 }
@@ -1316,33 +813,33 @@ namespace Despicaville.Util
                     {
                         if (x == Handler.MapSize_X - 2)
                         {
-                            this_block = AddMapTile("Road_Cross", "Map_Road_Cross", column, row);
+                            this_block = AddToWorldmap("Road_Cross", "Map_Road_Cross", column, row);
                         }
                         else
                         {
-                            this_block = AddMapTile("Road_TSection_W", "Map_Road_TSection_W", column, row);
+                            this_block = AddToWorldmap("Road_TSection_W", "Map_Road_TSection_W", column, row);
                         }
                     }
                     else
                     {
                         if (x == Handler.MapSize_X - 2)
                         {
-                            this_block = AddMapTile("Road_TSection_N", "Map_Road_TSection_N", column, row);
+                            this_block = AddToWorldmap("Road_TSection_N", "Map_Road_TSection_N", column, row);
                         }
                         else
                         {
                             int type = random.Next(1, 7);
                             if (type <= 4)
                             {
-                                this_block = AddMapTile("Road_Cross", "Map_Road_Cross", column, row);
+                                this_block = AddToWorldmap("Road_Cross", "Map_Road_Cross", column, row);
                             }
                             else if (type == 5)
                             {
-                                this_block = AddMapTile("Road_TSection_N", "Map_Road_TSection_N", column, row);
+                                this_block = AddToWorldmap("Road_TSection_N", "Map_Road_TSection_N", column, row);
                             }
                             else if (type == 6)
                             {
-                                this_block = AddMapTile("Road_TSection_W", "Map_Road_TSection_W", column, row);
+                                this_block = AddToWorldmap("Road_TSection_W", "Map_Road_TSection_W", column, row);
                             }
                         }
                     }
@@ -1351,18 +848,18 @@ namespace Despicaville.Util
                 {
                     if (x == Handler.MapSize_X - 2)
                     {
-                        this_block = AddMapTile("Road_WE", "Map_Road_WE", column, row);
+                        this_block = AddToWorldmap("Road_WE", "Map_Road_WE", column, row);
                     }
                     else
                     {
                         int type = random.Next(1, 3);
                         if (type == 1)
                         {
-                            this_block = AddMapTile("Road_TSection_S", "Map_Road_TSection_S", column, row);
+                            this_block = AddToWorldmap("Road_TSection_S", "Map_Road_TSection_S", column, row);
                         }
                         else if (type == 2)
                         {
-                            this_block = AddMapTile("Road_WE", "Map_Road_WE", column, row);
+                            this_block = AddToWorldmap("Road_WE", "Map_Road_WE", column, row);
                         }
                     }
                 }
@@ -1371,641 +868,39 @@ namespace Despicaville.Util
             }
             else
             {
-                #region West Block Not Road
+                #region West Block Not Facing Current
 
-                Direction previous_direction = Direction.Nowhere;
-                Map previous_block = GetPreviousBlock(previous);
-                if (previous_block != null)
+                if (upper_block.Name == "Road_Cross" ||
+                    upper_block.Name == "Road_TSection_S" ||
+                    upper_block.Name == "Road_TSection_W" ||
+                    upper_block.Name == "Road_TSection_E" ||
+                    upper_block.Name == "Road_Corner_NW" ||
+                    upper_block.Name == "Road_Corner_NE")
                 {
-                    previous_direction = previous_block.Direction;
+                    this_block = AddToWorldmap("Road_NS", "Map_Road_NS", column, row);
                 }
-
-                if (previous_direction == Direction.Up ||
-                    previous_direction == Direction.Left ||
-                    previous_direction == Direction.Down ||
-                    previous_direction == Direction.Nowhere)
+                else if (upper_block.Name == "Road_NS")
                 {
-                    #region West Block Not Facing Current
-
-                    if (upper_block.Name == "Road_Cross" ||
-                        upper_block.Name == "Road_TSection_S" ||
-                        upper_block.Name == "Road_TSection_W" ||
-                        upper_block.Name == "Road_TSection_E" ||
-                        upper_block.Name == "Road_Corner_NW" ||
-                        upper_block.Name == "Road_Corner_NE")
+                    if (y == Handler.MapSize_Y - 2)
                     {
-                        this_block = AddMapTile("Road_NS", "Map_Road_NS", column, row);
-                    }
-                    else if (upper_block.Name == "Road_NS")
-                    {
-                        if (y == Handler.MapSize_Y - 2)
-                        {
-                            this_block = AddMapTile("Road_NS", "Map_Road_NS", column, row);
-                        }
-                        else
-                        {
-                            int type = random.Next(1, 3);
-                            if (type == 1)
-                            {
-                                this_block = AddMapTile("Road_NS", "Map_Road_NS", column, row);
-                            }
-                            else if (type == 2)
-                            {
-                                this_block = AddMapTile("Road_TSection_E", "Map_Road_TSection_E", column, row);
-                            }
-                        }
+                        this_block = AddToWorldmap("Road_NS", "Map_Road_NS", column, row);
                     }
                     else
                     {
-                        bool BlockAbove = GetBlockAbove(upper_block) != null;
-                        if (BlockAbove)
+                        int type = random.Next(1, 3);
+                        if (type == 1)
                         {
-                            bool BlockAbove_South = false;
-                            Map blockAbove = GetBlockAbove(upper_block);
-                            if (blockAbove != null)
-                            {
-                                if (blockAbove.Type != "Park" &&
-                                    blockAbove.Direction == Direction.Down)
-                                {
-                                    BlockAbove_South = true;
-                                }
-                            }
-
-                            if (BlockAbove_South)
-                            {
-                                this_block = AddMapTile("Road_Corner_NW", "Map_Road_Corner_NW", column, row);
-                            }
-                            else
-                            {
-                                if (x == Handler.MapSize_X - 2)
-                                {
-                                    int choice = random.Next(0, ParkBlocks.Count);
-                                    this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                }
-                                else
-                                {
-                                    if (Available_Commercial.Count > 0)
-                                    {
-                                        int type = random.Next(1, 11);
-                                        if (type <= 3)
-                                        {
-                                            #region Residential
-
-                                            if (y == Handler.MapSize_Y - 3)
-                                            {
-                                                if (x == Handler.MapSize_X - 3)
-                                                {
-                                                    int choice = random.Next(0, ParkBlocks.Count);
-                                                    this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                }
-                                                else
-                                                {
-                                                    List<Map> EastBlocks = new List<Map>();
-                                                    foreach (Map block in Blocks)
-                                                    {
-                                                        if (block.Type == "Residential" &&
-                                                            block.Direction == Direction.Right)
-                                                        {
-                                                            EastBlocks.Add(block);
-                                                        }
-                                                    }
-
-                                                    if (EastBlocks.Count > 0)
-                                                    {
-                                                        int choice = random.Next(0, EastBlocks.Count);
-                                                        this_block = AddMapTile(EastBlocks[choice].Name, "Map_Residential", column, row);
-                                                    }
-                                                    else
-                                                    {
-                                                        int choice = random.Next(0, ParkBlocks.Count);
-                                                        this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                    }
-                                                }
-                                            }
-                                            else if (y == Handler.MapSize_Y - 2)
-                                            {
-                                                List<Map> SouthBlocks = new List<Map>();
-                                                foreach (Map block in Blocks)
-                                                {
-                                                    if (block.Type == "Residential" &&
-                                                        block.Direction == Direction.Down)
-                                                    {
-                                                        SouthBlocks.Add(block);
-                                                    }
-                                                }
-
-                                                if (SouthBlocks.Count > 0)
-                                                {
-                                                    int choice = random.Next(0, SouthBlocks.Count);
-                                                    this_block = AddMapTile(SouthBlocks[choice].Name, "Map_Residential", column, row);
-                                                }
-                                                else
-                                                {
-                                                    int choice = random.Next(0, ParkBlocks.Count);
-                                                    this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                }
-                                            }
-                                            else
-                                            {
-                                                if (x == Handler.MapSize_X - 3)
-                                                {
-                                                    List<Map> SouthBlocks = new List<Map>();
-                                                    foreach (Map block in Blocks)
-                                                    {
-                                                        if (block.Type == "Residential" &&
-                                                            block.Direction == Direction.Down)
-                                                        {
-                                                            SouthBlocks.Add(block);
-                                                        }
-                                                    }
-
-                                                    if (SouthBlocks.Count > 0)
-                                                    {
-                                                        int choice = random.Next(0, SouthBlocks.Count);
-                                                        this_block = AddMapTile(SouthBlocks[choice].Name, "Map_Residential", column, row);
-                                                    }
-                                                    else
-                                                    {
-                                                        int choice = random.Next(0, ParkBlocks.Count);
-                                                        this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    int direction = random.Next(1, 3);
-                                                    if (direction == 1)
-                                                    {
-                                                        List<Map> EastBlocks = new List<Map>();
-                                                        foreach (Map block in Blocks)
-                                                        {
-                                                            if (block.Type == "Residential" &&
-                                                                block.Direction == Direction.Right)
-                                                            {
-                                                                EastBlocks.Add(block);
-                                                            }
-                                                        }
-
-                                                        if (EastBlocks.Count > 0)
-                                                        {
-                                                            int choice = random.Next(0, EastBlocks.Count);
-                                                            this_block = AddMapTile(EastBlocks[choice].Name, "Map_Residential", column, row);
-                                                        }
-                                                        else
-                                                        {
-                                                            int choice = random.Next(0, ParkBlocks.Count);
-                                                            this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                        }
-                                                    }
-                                                    else if (direction == 2)
-                                                    {
-                                                        List<Map> SouthBlocks = new List<Map>();
-                                                        foreach (Map block in Blocks)
-                                                        {
-                                                            if (block.Type == "Residential" &&
-                                                                block.Direction == Direction.Down)
-                                                            {
-                                                                SouthBlocks.Add(block);
-                                                            }
-                                                        }
-
-                                                        if (SouthBlocks.Count > 0)
-                                                        {
-                                                            int choice = random.Next(0, SouthBlocks.Count);
-                                                            this_block = AddMapTile(SouthBlocks[choice].Name, "Map_Residential", column, row);
-                                                        }
-                                                        else
-                                                        {
-                                                            int choice = random.Next(0, ParkBlocks.Count);
-                                                            this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            #endregion
-                                        }
-                                        else if (type >= 4 && type <= 8)
-                                        {
-                                            #region Commercial
-
-                                            if (y == Handler.MapSize_Y - 3)
-                                            {
-                                                if (x == Handler.MapSize_X - 3)
-                                                {
-                                                    int choice = random.Next(0, ParkBlocks.Count);
-                                                    this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                }
-                                                else
-                                                {
-                                                    List<Map> EastBlocks = new List<Map>();
-                                                    foreach (Map block in Available_Commercial)
-                                                    {
-                                                        if (block.Type == "Commercial" &&
-                                                            block.Direction == Direction.Right)
-                                                        {
-                                                            EastBlocks.Add(block);
-                                                        }
-                                                    }
-
-                                                    if (EastBlocks.Count > 0)
-                                                    {
-                                                        int choice = random.Next(0, EastBlocks.Count);
-                                                        this_block = AddMapTile(EastBlocks[choice].Name, "Map_Commercial", column, row);
-                                                    }
-                                                    else
-                                                    {
-                                                        int choice = random.Next(0, ParkBlocks.Count);
-                                                        this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                    }
-                                                }
-                                            }
-                                            else if (y == Handler.MapSize_Y - 2)
-                                            {
-                                                List<Map> SouthBlocks = new List<Map>();
-                                                foreach (Map block in Available_Commercial)
-                                                {
-                                                    if (block.Type == "Commercial" &&
-                                                        block.Direction == Direction.Down)
-                                                    {
-                                                        SouthBlocks.Add(block);
-                                                    }
-                                                }
-
-                                                if (SouthBlocks.Count > 0)
-                                                {
-                                                    int choice = random.Next(0, SouthBlocks.Count);
-                                                    this_block = AddMapTile(SouthBlocks[choice].Name, "Map_Commercial", column, row);
-                                                }
-                                                else
-                                                {
-                                                    int choice = random.Next(0, ParkBlocks.Count);
-                                                    this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                }
-                                            }
-                                            else
-                                            {
-                                                if (x == Handler.MapSize_X - 3)
-                                                {
-                                                    List<Map> SouthBlocks = new List<Map>();
-                                                    foreach (Map block in Available_Commercial)
-                                                    {
-                                                        if (block.Type == "Commercial" &&
-                                                            block.Direction == Direction.Down)
-                                                        {
-                                                            SouthBlocks.Add(block);
-                                                        }
-                                                    }
-
-                                                    if (SouthBlocks.Count > 0)
-                                                    {
-                                                        int choice = random.Next(0, SouthBlocks.Count);
-                                                        this_block = AddMapTile(SouthBlocks[choice].Name, "Map_Commercial", column, row);
-                                                    }
-                                                    else
-                                                    {
-                                                        int choice = random.Next(0, ParkBlocks.Count);
-                                                        this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    int direction = random.Next(1, 3);
-                                                    if (direction == 1)
-                                                    {
-                                                        List<Map> EastBlocks = new List<Map>();
-                                                        foreach (Map block in Available_Commercial)
-                                                        {
-                                                            if (block.Type == "Commercial" &&
-                                                                block.Direction == Direction.Right)
-                                                            {
-                                                                EastBlocks.Add(block);
-                                                            }
-                                                        }
-
-                                                        if (EastBlocks.Count > 0)
-                                                        {
-                                                            int choice = random.Next(0, EastBlocks.Count);
-                                                            this_block = AddMapTile(EastBlocks[choice].Name, "Map_Commercial", column, row);
-                                                        }
-                                                        else
-                                                        {
-                                                            int choice = random.Next(0, ParkBlocks.Count);
-                                                            this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                        }
-                                                    }
-                                                    else if (direction == 2)
-                                                    {
-                                                        List<Map> SouthBlocks = new List<Map>();
-                                                        foreach (Map block in Available_Commercial)
-                                                        {
-                                                            if (block.Type == "Commercial" &&
-                                                                block.Direction == Direction.Down)
-                                                            {
-                                                                SouthBlocks.Add(block);
-                                                            }
-                                                        }
-
-                                                        if (SouthBlocks.Count > 0)
-                                                        {
-                                                            int choice = random.Next(0, SouthBlocks.Count);
-                                                            this_block = AddMapTile(SouthBlocks[choice].Name, "Map_Commercial", column, row);
-                                                        }
-                                                        else
-                                                        {
-                                                            int choice = random.Next(0, ParkBlocks.Count);
-                                                            this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            #endregion
-                                        }
-                                        else if (type >= 9)
-                                        {
-                                            int choice = random.Next(0, ParkBlocks.Count);
-                                            this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        int type = random.Next(1, 11);
-                                        if (type <= 8)
-                                        {
-                                            #region Residential
-
-                                            if (y == Handler.MapSize_Y - 3)
-                                            {
-                                                if (x == Handler.MapSize_X - 3)
-                                                {
-                                                    int choice = random.Next(0, ParkBlocks.Count);
-                                                    this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                }
-                                                else
-                                                {
-                                                    List<Map> EastBlocks = new List<Map>();
-                                                    foreach (Map block in Blocks)
-                                                    {
-                                                        if (block.Type == "Residential" &&
-                                                            block.Direction == Direction.Right)
-                                                        {
-                                                            EastBlocks.Add(block);
-                                                        }
-                                                    }
-
-                                                    if (EastBlocks.Count > 0)
-                                                    {
-                                                        int choice = random.Next(0, EastBlocks.Count);
-                                                        this_block = AddMapTile(EastBlocks[choice].Name, "Map_Residential", column, row);
-                                                    }
-                                                    else
-                                                    {
-                                                        int choice = random.Next(0, ParkBlocks.Count);
-                                                        this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                    }
-                                                }
-                                            }
-                                            else if (y == Handler.MapSize_Y - 2)
-                                            {
-                                                List<Map> SouthBlocks = new List<Map>();
-                                                foreach (Map block in Blocks)
-                                                {
-                                                    if (block.Type == "Residential" &&
-                                                        block.Direction == Direction.Down)
-                                                    {
-                                                        SouthBlocks.Add(block);
-                                                    }
-                                                }
-
-                                                if (SouthBlocks.Count > 0)
-                                                {
-                                                    int choice = random.Next(0, SouthBlocks.Count);
-                                                    this_block = AddMapTile(SouthBlocks[choice].Name, "Map_Residential", column, row);
-                                                }
-                                                else
-                                                {
-                                                    int choice = random.Next(0, ParkBlocks.Count);
-                                                    this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                }
-                                            }
-                                            else
-                                            {
-                                                if (x == Handler.MapSize_X - 3)
-                                                {
-                                                    List<Map> SouthBlocks = new List<Map>();
-                                                    foreach (Map block in Blocks)
-                                                    {
-                                                        if (block.Type == "Residential" &&
-                                                            block.Direction == Direction.Down)
-                                                        {
-                                                            SouthBlocks.Add(block);
-                                                        }
-                                                    }
-
-                                                    if (SouthBlocks.Count > 0)
-                                                    {
-                                                        int choice = random.Next(0, SouthBlocks.Count);
-                                                        this_block = AddMapTile(SouthBlocks[choice].Name, "Map_Residential", column, row);
-                                                    }
-                                                    else
-                                                    {
-                                                        int choice = random.Next(0, ParkBlocks.Count);
-                                                        this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    int direction = random.Next(1, 3);
-                                                    if (direction == 1)
-                                                    {
-                                                        List<Map> EastBlocks = new List<Map>();
-                                                        foreach (Map block in Blocks)
-                                                        {
-                                                            if (block.Type == "Residential" &&
-                                                                block.Direction == Direction.Right)
-                                                            {
-                                                                EastBlocks.Add(block);
-                                                            }
-                                                        }
-
-                                                        if (EastBlocks.Count > 0)
-                                                        {
-                                                            int choice = random.Next(0, EastBlocks.Count);
-                                                            this_block = AddMapTile(EastBlocks[choice].Name, "Map_Residential", column, row);
-                                                        }
-                                                        else
-                                                        {
-                                                            int choice = random.Next(0, ParkBlocks.Count);
-                                                            this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                        }
-                                                    }
-                                                    else if (direction == 2)
-                                                    {
-                                                        List<Map> SouthBlocks = new List<Map>();
-                                                        foreach (Map block in Blocks)
-                                                        {
-                                                            if (block.Type == "Residential" &&
-                                                                block.Direction == Direction.Down)
-                                                            {
-                                                                SouthBlocks.Add(block);
-                                                            }
-                                                        }
-
-                                                        if (SouthBlocks.Count > 0)
-                                                        {
-                                                            int choice = random.Next(0, SouthBlocks.Count);
-                                                            this_block = AddMapTile(SouthBlocks[choice].Name, "Map_Residential", column, row);
-                                                        }
-                                                        else
-                                                        {
-                                                            int choice = random.Next(0, ParkBlocks.Count);
-                                                            this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                                        }
-                                                    }
-                                                }
-                                            }
-
-                                            #endregion
-                                        }
-                                        else if (type >= 9)
-                                        {
-                                            int choice = random.Next(0, ParkBlocks.Count);
-                                            this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                        }
-                                    }
-                                }
-                            }
+                            this_block = AddToWorldmap("Road_NS", "Map_Road_NS", column, row);
                         }
-                        else
+                        else if (type == 2)
                         {
-                            #region Road_WE Above
-
-                            if (Available_Commercial.Count > 0)
-                            {
-                                int type = random.Next(1, 11);
-                                if (type <= 3)
-                                {
-                                    #region Residential
-
-                                    List<Map> NorthBlocks = new List<Map>();
-                                    foreach (Map block in Blocks)
-                                    {
-                                        if (block.Type == "Residential" &&
-                                            block.Direction == Direction.Up)
-                                        {
-                                            NorthBlocks.Add(block);
-                                        }
-                                    }
-
-                                    if (NorthBlocks.Count > 0)
-                                    {
-                                        int choice = random.Next(0, NorthBlocks.Count);
-                                        this_block = AddMapTile(NorthBlocks[choice].Name, "Map_Residential", column, row);
-                                    }
-                                    else
-                                    {
-                                        int choice = random.Next(0, ParkBlocks.Count);
-                                        this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                    }
-
-                                    #endregion
-                                }
-                                else if (type >= 4 && type <= 8)
-                                {
-                                    #region Commercial
-
-                                    List<Map> NorthBlocks = new List<Map>();
-                                    foreach (Map block in Available_Commercial)
-                                    {
-                                        if (block.Type == "Commercial" &&
-                                            block.Direction == Direction.Up)
-                                        {
-                                            NorthBlocks.Add(block);
-                                        }
-                                    }
-
-                                    if (NorthBlocks.Count > 0)
-                                    {
-                                        int choice = random.Next(0, NorthBlocks.Count);
-                                        this_block = AddMapTile(NorthBlocks[choice].Name, "Map_Commercial", column, row);
-                                    }
-                                    else
-                                    {
-                                        int choice = random.Next(0, ParkBlocks.Count);
-                                        this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                    }
-
-                                    #endregion
-                                }
-                                else if (type >= 9)
-                                {
-                                    int choice = random.Next(0, ParkBlocks.Count);
-                                    this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                }
-                            }
-                            else
-                            {
-                                int type = random.Next(1, 11);
-                                if (type <= 8)
-                                {
-                                    #region Residential
-
-                                    List<Map> NorthBlocks = new List<Map>();
-                                    foreach (Map block in Blocks)
-                                    {
-                                        if (block.Type == "Residential" &&
-                                            block.Direction == Direction.Up)
-                                        {
-                                            NorthBlocks.Add(block);
-                                        }
-                                    }
-
-                                    if (NorthBlocks.Count > 0)
-                                    {
-                                        int choice = random.Next(0, NorthBlocks.Count);
-                                        this_block = AddMapTile(NorthBlocks[choice].Name, "Map_Residential", column, row);
-                                    }
-                                    else
-                                    {
-                                        int choice = random.Next(0, ParkBlocks.Count);
-                                        this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                    }
-
-                                    #endregion
-                                }
-                                else if (type >= 9)
-                                {
-                                    int choice = random.Next(0, ParkBlocks.Count);
-                                    this_block = AddMapTile(ParkBlocks[choice].Name, "Map_Park", column, row);
-                                }
-                            }
-
-                            #endregion
+                            this_block = AddToWorldmap("Road_TSection_E", "Map_Road_TSection_E", column, row);
                         }
                     }
-
-                    #endregion
                 }
-                else if (previous_direction == Direction.Right)
+                else
                 {
-                    #region West Block Facing Current
-
-                    if (upper_block.Name == "Road_Cross" ||
-                        upper_block.Name == "Road_TSection_S" ||
-                        upper_block.Name == "Road_TSection_W" ||
-                        upper_block.Name == "Road_TSection_E" ||
-                        upper_block.Name == "Road_Corner_NW" ||
-                        upper_block.Name == "Road_Corner_NE" ||
-                        upper_block.Name == "Road_NS")
-                    {
-                        this_block = AddMapTile("Road_NS", "Map_Road_NS", column, row);
-                    }
-                    else
-                    {
-                        this_block = AddMapTile("Road_Corner_NW", "Map_Road_Corner_NW", column, row);
-                    }
-
-                    #endregion
+                    this_block = AddToWorldmap("Open", "Map_Open", column, row);
                 }
 
                 #endregion
@@ -2029,17 +924,17 @@ namespace Despicaville.Util
                 upper_block.Name == "Road_Corner_NE" ||
                 upper_block.Name == "Road_NS")
             {
-                this_block = AddMapTile("Road_TSection_N", "Map_Road_TSection_N", column, row);
+                this_block = AddToWorldmap("Road_TSection_N", "Map_Road_TSection_N", column, row);
             }
             else
             {
-                this_block = AddMapTile("Road_WE", "Map_Road_WE", column, row);
+                this_block = AddToWorldmap("Road_WE", "Map_Road_WE", column, row);
             }
 
             return this_block;
         }
 
-        private static string AddMapTile(string name, string type, int column, int row)
+        private static string AddToWorldmap(string name, string type, int column, int row)
         {
             Tile tile = new Tile();
             tile.ID = Handler.GetID();
@@ -2052,110 +947,309 @@ namespace Despicaville.Util
             tile.Visible = true;
             Worldmap.Add(tile);
 
-            Map map = new Map();
-            map.ID = tile.ID;
-            map.Name = name;
-            map.Location = new Location(column, row, 0);
-
-            if (type.Contains("Residential"))
-            {
-                Residential.Add(map);
-            }
-            else if (type.Contains("Commercial"))
-            {
-                Commercial.Add(map);
-
-                if (name.Contains("Diner"))
-                {
-                    for (int a = 0; a < Available_Commercial.Count; a++)
-                    {
-                        Map block = Available_Commercial[a];
-                        if (block.Name.Contains("Diner"))
-                        {
-                            Available_Commercial.Remove(block);
-                            a--;
-                        }
-                    }
-                }
-                else if (name.Contains("Grocery"))
-                {
-                    for (int a = 0; a < Available_Commercial.Count; a++)
-                    {
-                        Map block = Available_Commercial[a];
-                        if (block.Name.Contains("Grocery"))
-                        {
-                            Available_Commercial.Remove(block);
-                            a--;
-                        }
-                    }
-                }
-                else if (name.Contains("Police"))
-                {
-                    for (int a = 0; a < Available_Commercial.Count; a++)
-                    {
-                        Map block = Available_Commercial[a];
-                        if (block.Name.Contains("Police"))
-                        {
-                            Available_Commercial.Remove(block);
-                            a--;
-                        }
-                    }
-                }
-            }
-            else if (type.Contains("Park"))
-            {
-                Parks.Add(map);
-            }
-            else if (type.Contains("Road"))
-            {
-                Roads.Add(map);
-            }
-
-            Layer bottom_tiles = NewLayer(map, "BottomTiles");
-            map.Layers.Add(bottom_tiles);
-
-            Layer room_tiles = NewLayer(map, "RoomTiles");
-            map.Layers.Add(room_tiles);
-
-            Layer middle_tiles = NewLayer(map, "MiddleTiles");
-            map.Layers.Add(middle_tiles);
-
-            Layer top_tiles = NewLayer(map, "TopTiles");
-            map.Layers.Add(top_tiles);
-
-            current++;
-            Handler.Loading_Percent = (current * 100) / total;
-
             return name;
         }
 
-        private static Map GetBlockAbove(Tile upper_block)
+        private static void UpdateWorldmap(Tile tile, string name, string type)
         {
-            foreach (Map block in Blocks)
+            tile.Name = name;
+            tile.Type = type;
+            tile.Texture = AssetManager.Textures[tile.Type];
+            tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+        }
+
+        private static void FillMap()
+        {
+            int residential_count = 0;
+
+            int open_count = 0;
+            foreach (Tile tile in Worldmap)
             {
-                if ((block.Type == "Residential" ||
-                    block.Type == "Commercial" ||
-                    block.Type == "Park") &&
-                    block.Name == upper_block.Name)
+                if (tile.Name == "Open")
                 {
-                    return block;
+                    open_count++;
                 }
             }
 
-            return null;
+            CryptoRandom random;
+
+            foreach (Tile tile in Worldmap)
+            {
+                Map map = new Map();
+                map.ID = tile.ID;
+                map.Location = new Location(tile.Location.X, tile.Location.Y, 0);
+
+                if (tile.Name == "Open")
+                {
+                    bool force_park = false;
+
+                    if (open_count <= 3 &&
+                        (PoliceBlocks.Count > 0 ||
+                         GroceryBlocks.Count > 0 ||
+                         DinerBlocks.Count > 0))
+                    {
+                        Map block = null;
+
+                        //Force commercial
+                        if (PoliceBlocks.Count > 0)
+                        {
+                            random = new CryptoRandom();
+                            block = GetBlock(PoliceBlocks, tile.Location);
+                            if (block != null)
+                            {
+                                map.Name = block.Name;
+                                PoliceBlocks.Clear();
+                            }
+                        }
+                        else if (GroceryBlocks.Count > 0)
+                        {
+                            random = new CryptoRandom();
+                            block = GetBlock(GroceryBlocks, tile.Location);
+                            if (block != null)
+                            {
+                                map.Name = block.Name;
+                                GroceryBlocks.Clear();
+                            }
+                        }
+                        else if (DinerBlocks.Count > 0)
+                        {
+                            random = new CryptoRandom();
+                            block = GetBlock(DinerBlocks, tile.Location);
+                            if (block != null)
+                            {
+                                map.Name = block.Name;
+                                DinerBlocks.Clear();
+                            }
+                        }
+
+                        if (block != null)
+                        {
+                            map.Type = "Map_Commercial";
+                            map.Texture = AssetManager.Textures[map.Type];
+                            map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
+                            Commercial.Add(map);
+                            open_count--;
+                        }
+                        else
+                        {
+                            force_park = true;
+                        }
+                    }
+                    else if (open_count <= 6 &&
+                             residential_count < 3)
+                    {
+                        //Force residential
+                        Map block = GetBlock(ResidentialBlocks, tile.Location);
+                        if (block != null)
+                        {
+                            map.Name = block.Name;
+                            map.Type = "Map_Residential";
+                            map.Texture = AssetManager.Textures[map.Type];
+                            map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
+                            Residential.Add(map);
+                            residential_count++;
+                            open_count--;
+                        }
+                        else
+                        {
+                            force_park = true;
+                        }
+                    }
+                    else 
+                    {
+                        random = new CryptoRandom();
+                        int block_choice = random.Next(0, 3);
+                        if (block_choice == 0)
+                        {
+                            //Commercial
+                            if (PoliceBlocks.Count > 0)
+                            {
+                                //Police
+                                random = new CryptoRandom();
+                                Map block = GetBlock(PoliceBlocks, tile.Location);
+                                if (block != null)
+                                {
+                                    map.Name = block.Name;
+                                    map.Type = "Map_Commercial";
+                                    map.Texture = AssetManager.Textures[map.Type];
+                                    map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
+                                    Commercial.Add(map);
+                                    open_count--;
+
+                                    PoliceBlocks.Clear();
+                                }
+                                else
+                                {
+                                    force_park = true;
+                                }
+                            }
+                            else if (GroceryBlocks.Count > 0)
+                            {
+                                //Grocery
+                                random = new CryptoRandom();
+                                Map block = GetBlock(GroceryBlocks, tile.Location);
+                                if (block != null)
+                                {
+                                    map.Name = block.Name;
+                                    map.Type = "Map_Commercial";
+                                    map.Texture = AssetManager.Textures[map.Type];
+                                    map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
+                                    Commercial.Add(map);
+                                    open_count--;
+
+                                    GroceryBlocks.Clear();
+                                }
+                                else
+                                {
+                                    force_park = true;
+                                }
+                            }
+                            else if (DinerBlocks.Count > 0)
+                            {
+                                //Diner
+                                random = new CryptoRandom();
+                                Map block = GetBlock(DinerBlocks, tile.Location);
+                                if (block != null)
+                                {
+                                    map.Name = block.Name;
+                                    map.Type = "Map_Commercial";
+                                    map.Texture = AssetManager.Textures[map.Type];
+                                    map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
+                                    Commercial.Add(map);
+                                    open_count--;
+
+                                    DinerBlocks.Clear();
+                                }
+                                else
+                                {
+                                    force_park = true;
+                                }
+                            }
+                            else
+                            {
+                                force_park = true;
+                            }
+                        }
+                        else if (block_choice == 1)
+                        {
+                            //Residential
+                            random = new CryptoRandom();
+                            Map block = GetBlock(ResidentialBlocks, tile.Location);
+                            if (block != null)
+                            {
+                                map.Name = block.Name;
+                                map.Type = "Map_Residential";
+                                map.Texture = AssetManager.Textures[map.Type];
+                                map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
+                                Residential.Add(map);
+                                residential_count++;
+                                open_count--;
+                            }
+                            else
+                            {
+                                force_park = true;
+                            }
+                        }
+                        else if (block_choice == 2)
+                        {
+                            force_park = true;
+                        }
+                    }
+
+                    if (force_park)
+                    {
+                        //Park
+                        random = new CryptoRandom();
+                        Map block = GetBlock(ParkBlocks, tile.Location);
+
+                        map.Name = block.Name;
+                        map.Type = "Map_Park";
+                        map.Texture = AssetManager.Textures[map.Type];
+                        map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
+                        Parks.Add(map);
+                        open_count--;
+                    }
+                }
+                else if (tile.Type.Contains("Road"))
+                {
+                    map.Name = tile.Name;
+                    map.Type = tile.Type;
+                    Roads.Add(map);
+                }
+
+                UpdateWorldmap(tile, map.Name, map.Type);
+
+                Layer bottom_tiles = NewLayer(map, "BottomTiles");
+                map.Layers.Add(bottom_tiles);
+
+                Layer room_tiles = NewLayer(map, "RoomTiles");
+                map.Layers.Add(room_tiles);
+
+                Layer middle_tiles = NewLayer(map, "MiddleTiles");
+                map.Layers.Add(middle_tiles);
+
+                Layer top_tiles = NewLayer(map, "TopTiles");
+                map.Layers.Add(top_tiles);
+
+                current++;
+                Handler.Loading_Percent = (current * 100) / total;
+            }
         }
 
-        private static Map GetPreviousBlock(string previous)
+        private static Map GetBlock(List<Map> Blocks, Location location)
         {
-            foreach (Map block in Blocks)
+            List<Map> possible = new List<Map>();
+            List<Direction> blocked_directions = new List<Direction>();
+            CryptoRandom random = new CryptoRandom();
+
+            foreach (Tile tile in Worldmap)
             {
-                if ((block.Type == "Residential" ||
-                    block.Type == "Commercial" ||
-                    block.Type == "Park") &&
-                    block.Name == previous)
+                if (tile.Type.Contains("Commercial") ||
+                    tile.Type.Contains("Residential") ||
+                    tile.Type.Contains("Park") ||
+                    tile.Type.Contains("Open"))
                 {
-                    return block;
+                    if (tile.Location.Y == location.Y - 1 &&
+                        tile.Location.X == location.X)
+                    {
+                        blocked_directions.Add(Direction.Up);
+                    }
+                    else if (tile.Location.Y == location.Y &&
+                             tile.Location.X == location.X + 1)
+                    {
+                        blocked_directions.Add(Direction.Right);
+                    }
+                    else if (tile.Location.Y == location.Y + 1 &&
+                             tile.Location.X == location.X)
+                    {
+                        blocked_directions.Add(Direction.Down);
+                    }
+                    else if (tile.Location.Y == location.Y &&
+                             tile.Location.X == location.X - 1)
+                    {
+                        blocked_directions.Add(Direction.Left);
+                    }
                 }
+            }
+
+            if (blocked_directions.Count > 0)
+            {
+                foreach (Map map in Blocks)
+                {
+                    if (!blocked_directions.Contains(map.Direction))
+                    {
+                        possible.Add(map);
+                    }
+                }
+            }
+            else
+            {
+                return Blocks[random.Next(0, Blocks.Count)];
+            }
+
+            if (possible.Count > 0)
+            {
+                return possible[random.Next(0, possible.Count)];
             }
 
             return null;
@@ -2165,6 +1259,9 @@ namespace Despicaville.Util
 
         public static void GenTown()
         {
+            Handler.MiddleFurniture.Clear();
+            Handler.TopFurniture.Clear();
+            Handler.OwnedFurniture.Clear();
             Handler.light_sources.Clear();
 
             Handler.Loading_Percent = 0;
@@ -2631,6 +1728,15 @@ namespace Despicaville.Util
                 new_tile.Inventory.ID = Handler.GetID();
                 new_tile.Inventory.Location = new Location(x, y, 0);
                 InventoryManager.Inventories.Add(new_tile.Inventory);
+            }
+
+            if (layer.Name == "MiddleTiles")
+            {
+                Handler.MiddleFurniture.Add(new_tile);
+            }
+            else if (layer.Name == "TopTiles")
+            {
+                Handler.TopFurniture.Add(new_tile);
             }
 
             //Add to world

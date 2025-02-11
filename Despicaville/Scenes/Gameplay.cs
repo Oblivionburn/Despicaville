@@ -119,7 +119,6 @@ namespace Despicaville.Scenes
                     for (int i = 0; i < bottom_count; i++)
                     {
                         Tile bottom_tile = bottom_tiles.Tiles[i];
-                        Vector2 location = new Vector2(bottom_tile.Location.X, bottom_tile.Location.Y);
 
                         bottom_tile.Update(resolution);
 
@@ -136,6 +135,7 @@ namespace Despicaville.Scenes
 
                             if (Main.Game.Debugging)
                             {
+                                Vector2 location = new Vector2(bottom_tile.Location.X, bottom_tile.Location.Y);
                                 Tile room_tile = room_tiles.GetTile(location);
                                 if (room_tile != null)
                                 {
@@ -555,11 +555,11 @@ namespace Despicaville.Scenes
 
                     if (InputManager.KeyDown("Run"))
                     {
-                        time = Handler.ActionRate * 10;
+                        time = Handler.ActionRate * 5;
                     }
                     else if (InputManager.KeyDown("Crouch"))
                     {
-                        time = Handler.ActionRate / 10;
+                        time = Handler.ActionRate / 5;
                     }
 
                     Tasker.AddTask(player, "Wait", true, false, TimeSpan.FromMilliseconds(time), default, 0);
@@ -601,8 +601,8 @@ namespace Despicaville.Scenes
                 Layer effect_tiles = map.GetLayer("EffectTiles");
 
                 Tile bottom_tile = bottom_tiles.GetTile(location);
-                Tile middle_tile = WorldUtil.GetFurniture(middle_tiles, new Location(location.X, location.Y, 0));
-                Tile top_tile = WorldUtil.GetFurniture(top_tiles, new Location(location.X, location.Y, 0));
+                Tile middle_tile = WorldUtil.GetFurniture("Middle", new Location(location.X, location.Y, 0));
+                Tile top_tile = WorldUtil.GetFurniture("Top", new Location(location.X, location.Y, 0));
                 Tile effect_tile = effect_tiles.GetTile(location);
 
                 Tile interaction_tile = null;
@@ -658,7 +658,7 @@ namespace Despicaville.Scenes
                             Layer effect_tiles = map.GetLayer("EffectTiles");
 
                             Tile bottom_tile = bottom_tiles.GetTile(location);
-                            Tile middle_tile = WorldUtil.GetFurniture(middle_tiles, tile.Location);
+                            Tile middle_tile = WorldUtil.GetFurniture("Middle", tile.Location);
                             Tile top_tile = top_tiles.GetTile(location);
                             Tile effect_tile = effect_tiles.GetTile(location);
 
