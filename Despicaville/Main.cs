@@ -14,6 +14,7 @@ using OP_Engine.Characters;
 using OP_Engine.Inventories;
 using OP_Engine.Time;
 using OP_Engine.Rendering;
+using OP_Engine.Weathers;
 
 using Despicaville.Scenes;
 using Despicaville.Menus;
@@ -119,7 +120,52 @@ namespace Despicaville
 
         protected override void Update(GameTime gameTime)
         {
-            Game.Update(gameTime);
+            try
+            {
+                if (Window != null)
+                {
+                    if (Window.ClientBounds.Width > 0 &&
+                        Window.ClientBounds.Height > 0)
+                    {
+                        if (!Game.Form.Focused)
+                        {
+                            if (Game.GameStarted &&
+                                !TimeManager.Paused)
+                            {
+                                OpenMainMenu();
+                            }
+
+                            SoundManager.Paused = true;
+                        }
+                        else if (Game.Form.Focused)
+                        {
+                            SoundManager.Paused = false;
+                            InputManager.Update();
+                            MenuManager.Update(Game.Game, Content);
+                            SceneManager.Update(Game.Game, Content);
+                            RenderingManager.Update();
+                            WeatherManager.Update(Game.Resolution, Color.White);
+                        }
+                    }
+                    else
+                    {
+                        TimeManager.Paused = true;
+                        SoundManager.Paused = true;
+                    }
+
+                    SoundManager.Update();
+                }
+
+                if (Game.Quit)
+                {
+                    SoundManager.StopAll();
+                    Game.Game.Exit();
+                }
+            }
+            catch (Exception e)
+            {
+                Game.CrashHandler(e);
+            }
         }
 
         protected override void Draw(GameTime gameTime)
@@ -168,7 +214,36 @@ namespace Despicaville
             MenuManager.Menus.Add(new Menu_Inventory(Content));
             MenuManager.Menus.Add(new Menu_Interact(Content));
             MenuManager.Menus.Add(new Menu_Combat(Content));
+            MenuManager.Menus.Add(new Menu_Health(Content));
             MenuManager.Menus.Add(new Menu_Wounds(Content));
+        }
+
+        public static void OpenMainMenu()
+        {
+            InputManager.Keyboard.Flush();
+
+            OP_Engine.Menus.Menu menu = MenuManager.GetMenu("Main");
+            if (menu != null)
+            {
+                OP_Engine.Menus.Menu menu_health = MenuManager.GetMenu("Health");
+                if (menu_health != null)
+                {
+                    if (Handler.Menu_Health)
+                    {
+                        menu_health.Active = false;
+                        menu_health.Visible = false;
+                    }
+                }
+
+                OP_Engine.Menus.Menu menu_ui = MenuManager.GetMenu("UI");
+                if (menu_ui != null)
+                {
+                    menu_ui.Active = false;
+                    menu_ui.Visible = false;
+                }
+
+                menu.Open();
+            }
         }
 
         #endregion

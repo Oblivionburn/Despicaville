@@ -79,6 +79,7 @@
     <Compile Include="Handler.cs" />
     <Compile Include="LightingRenderer.cs" />
     <Compile Include="Main.cs" />
+    <Compile Include="Menus\Menu_Health.cs" />
     <Compile Include="Menus\Menu_Combat.cs" />
     <Compile Include="Menus\Menu_Controls.cs" />
     <Compile Include="Menus\Menu_Interact.cs" />

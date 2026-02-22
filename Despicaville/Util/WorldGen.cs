@@ -10,6 +10,7 @@ using OP_Engine.Utility;
 using OP_Engine.Scenes;
 using OP_Engine.Inventories;
 using OP_Engine.Characters;
+using OP_Engine.Enums;
 
 namespace Despicaville.Util
 {
@@ -1353,7 +1354,7 @@ namespace Despicaville.Util
                                     if (tile_x == x &&
                                         tile_y == y)
                                     {
-                                        AddTile(map, bottom_tiles, worldTile, tile);
+                                        AddTile(block.Name, map, bottom_tiles, worldTile, tile);
 
                                         current++;
                                         Handler.Loading_Percent = (current * 100) / total;
@@ -1380,7 +1381,7 @@ namespace Despicaville.Util
                                         {
                                             found = true;
 
-                                            AddTile(map, middle_tiles, worldTile, tile);
+                                            AddTile(block.Name, map, middle_tiles, worldTile, tile);
 
                                             current++;
                                             Handler.Loading_Percent = (current * 100) / total;
@@ -1416,7 +1417,7 @@ namespace Despicaville.Util
                                         {
                                             found = true;
 
-                                            AddTile(map, top_tiles, worldTile, tile);
+                                            AddTile(block.Name, map, top_tiles, worldTile, tile);
 
                                             current++;
                                             Handler.Loading_Percent = (current * 100) / total;
@@ -1452,7 +1453,7 @@ namespace Despicaville.Util
                                         {
                                             found = true;
 
-                                            AddTile(map, room_tiles, worldTile, tile);
+                                            AddTile(block.Name, map, room_tiles, worldTile, tile);
 
                                             current++;
                                             Handler.Loading_Percent = (current * 100) / total;
@@ -1589,38 +1590,41 @@ namespace Despicaville.Util
 
         public static Map NewMap(World world, string name)
         {
-            Map map = new Map();
-            map.ID = Handler.GetID();
-            map.WorldID = world.ID;
-            map.Visible = true;
-            map.DrawColor = Color.White;
-            map.Name = name;
-            return map;
+            return new Map
+            {
+                ID = Handler.GetID(),
+                World = world,
+                Visible = true,
+                DrawColor = Color.White,
+                Name = name
+            };
         }
 
         public static Layer NewLayer(Map map, string name)
         {
-            Layer layer = new Layer();
-            layer.ID = Handler.GetID();
-            layer.WorldID = map.WorldID;
-            layer.MapID = map.ID;
-            layer.Visible = true;
-            layer.DrawColor = Color.White;
-            layer.Name = name;
-            layer.Rows = Handler.MapSize_Y * 20;
-            layer.Columns = Handler.MapSize_X * 20;
-            return layer;
+            return new Layer
+            {
+                ID = Handler.GetID(),
+                Name = name,
+                World = map.World,
+                Map = map,
+                Rows = Handler.MapSize_Y * 20,
+                Columns = Handler.MapSize_X * 20,
+                DrawColor = Color.White,
+                Visible = true
+            };
         }
 
-        public static void AddTile(Map map, Layer layer, Tile worldTile, Tile tile)
+        public static void AddTile(string blockName, Map map, Layer layer, Tile worldTile, Tile tile)
         {
             int x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
             int y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
 
             Tile new_tile = new Tile();
             new_tile.ID = Handler.GetID();
-            new_tile.MapID = map.ID;
-            new_tile.LayerID = layer.ID;
+            new_tile.Map = map;
+            new_tile.Layer = layer;
+            new_tile.World = layer.World;
             new_tile.Name = tile.Name;
             new_tile.Type = tile.Type;
             new_tile.Texture = AssetManager.Textures[tile.Texture.Name];
@@ -1680,11 +1684,11 @@ namespace Despicaville.Util
                 new_tile.Name += "_Closed";
             }
             else if (new_tile.Name.Contains("Bed") &&
-                     !new_tile.Name.Contains("RoomType"))
+                     !new_tile.Name.Contains("RoomType") &&
+                     !blockName.Contains("Police"))
             {
                 Character character = CharacterUtil.GenCharacter(last_name);
                 character.Direction = new_tile.Direction;
-                character.MapID = worldTile.ID;
 
                 if (new_tile.Direction == Direction.Up)
                 {
@@ -1813,8 +1817,9 @@ namespace Despicaville.Util
         {
             Tile new_tile = new Tile();
             new_tile.ID = Handler.GetID();
-            new_tile.MapID = map.ID;
-            new_tile.LayerID = layer.ID;
+            new_tile.Map = map;
+            new_tile.Layer = layer;
+            new_tile.World = layer.World;
             new_tile.Name = "";
             new_tile.Location = location;
             new_tile.Region = new Region((int)new_tile.Location.X * Main.Game.TileSize.X, (int)new_tile.Location.Y * Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);

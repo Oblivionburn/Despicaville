@@ -392,7 +392,7 @@ namespace Despicaville.Menus
                 base_button.Selected = false;
 
                 int x = (int)base_button.Region.X;
-                int y = (int)base_button.Region.Y + Main.Game.MenuSize_Y;
+                int y = (int)(base_button.Region.Y + Main.Game.MenuSize_Y);
                 int width = (int)base_button.Region.Width;
                 int height = (int)base_button.Region.Height;
 
@@ -460,7 +460,7 @@ namespace Despicaville.Menus
                 base_button.Selected = false;
 
                 int x = (int)base_button.Region.X;
-                int y = (int)base_button.Region.Y + Main.Game.MenuSize_Y;
+                int y = (int)(base_button.Region.Y + Main.Game.MenuSize_Y);
                 int width = (int)base_button.Region.Width;
                 int height = (int)base_button.Region.Height;
 
@@ -544,43 +544,43 @@ namespace Despicaville.Menus
         {
             GetLabel("Examine").Region = new Region(0, 0, 0, 0);
 
-            int x = Main.Game.MenuSize_X * 9;
-            int y = Main.Game.MenuSize_Y;
-            int width = Main.Game.MenuSize_X * 5;
-            int height = Main.Game.MenuSize_X * 10;
+            int x = (int)(Main.Game.MenuSize_X * 9);
+            int y = (int)Main.Game.MenuSize_Y;
+            int width = (int)(Main.Game.MenuSize_X * 5);
+            int height = (int)(Main.Game.MenuSize_X * 10);
 
             Picture frame = GetPicture("Body_Frame");
             frame.Region = new Region(x, y, width, height);
 
             GetLabel("Name_Frame").Region = new Region(x, y - Main.Game.MenuSize_Y, width, Main.Game.MenuSize_Y);
 
-            x += width + Main.Game.MenuSize_X;
+            x += (int)(width + Main.Game.MenuSize_X);
             //y += Main.Game.MenuSize_Y * 3;
-            width = Main.Game.MenuSize_X * 4;
-            height = Main.Game.MenuSize_Y;
+            width = (int)(Main.Game.MenuSize_X * 4);
+            height = (int)Main.Game.MenuSize_Y;
             GetLabel("PartTarget").Region = new Region(x, y, width, height);
             GetLabel("PartTarget_Value").Region = new Region(x + width, y, width, height);
 
-            y += Main.Game.MenuSize_Y * 2;
+            y += (int)(Main.Game.MenuSize_Y * 2);
             GetLabel("AttackingWith").Region = new Region(x, y, width, height);
             GetButton("AttackingWith_Value").Region = new Region(x + width, y, width, height);
 
-            y += Main.Game.MenuSize_Y * 2;
+            y += (int)(Main.Game.MenuSize_Y * 2);
             GetLabel("AttackType").Region = new Region(x, y, width, height);
             GetButton("AttackType_Value").Region = new Region(x + width, y, width, height);
 
-            y += Main.Game.MenuSize_Y * 4;
+            y += (int)(Main.Game.MenuSize_Y * 4);
             GetLabel("AttackTime").Region = new Region(x, y, width, height);
             GetLabel("AttackTime_Value").Region = new Region(x + width, y, width, height);
 
-            y += Main.Game.MenuSize_Y;
+            y += (int)Main.Game.MenuSize_Y;
             GetButton("Cancel").Region = new Region(x, y, width, height);
             GetButton("Attack").Region = new Region(x + width, y, width, height);
 
             int paperdoll_x = (int)frame.Region.X;
             int paperdoll_y = (int)frame.Region.Y;
-            int paperdoll_width = Main.Game.MenuSize_X * 5;
-            int paperdoll_height = Main.Game.MenuSize_X * 10;
+            int paperdoll_width = (int)(Main.Game.MenuSize_X * 5);
+            int paperdoll_height = (int)(Main.Game.MenuSize_X * 10);
             GetPicture("Paperdoll_Head").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);
             GetPicture("Paperdoll_Neck").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);
             GetPicture("Paperdoll_Torso").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);
@@ -600,8 +600,8 @@ namespace Despicaville.Menus
             Label examine = GetLabel("Examine");
             examine.Text = text;
 
-            int width = Main.Game.MenuSize_X * 5;
-            int height = (Main.Game.MenuSize_Y / 4) * 6;
+            int width = (int)(Main.Game.MenuSize_X * 5);
+            int height = (int)(Main.Game.MenuSize_Y / 4 * 6);
 
             int X = InputManager.Mouse.X - (width / 2);
             if (X < 0)

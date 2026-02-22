@@ -38,7 +38,7 @@ namespace Despicaville.Menus
         {
             ID = Handler.GetID();
             Name = "Wounds";
-            Load(content);
+            Load();
         }
 
         #endregion
@@ -135,6 +135,11 @@ namespace Despicaville.Menus
                 {
                     picture.Visible = false;
                 }
+            }
+
+            if (InputManager.KeyPressed("Cancel"))
+            {
+                Close();
             }
         }
 
@@ -251,13 +256,13 @@ namespace Despicaville.Menus
 
             int x = (int)wound.Region.X + (int)wound.Region.Width;
             int y = (int)wound.Region.Y;
-            int width = Main.Game.MenuSize_X * 3;
-            int height = Main.Game.MenuSize_Y;
+            int width = (int)(Main.Game.MenuSize_X * 3);
+            int height = (int)Main.Game.MenuSize_Y;
 
             AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Cancel", "Cancel", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
                 new Region(x, y, width, height), false, true);
 
-            y += Main.Game.MenuSize_Y;
+            y += (int)Main.Game.MenuSize_Y;
             bool found = false;
             foreach (Item item in player.Inventory.Items)
             {
@@ -409,6 +414,7 @@ namespace Despicaville.Menus
         {
             ClearGrid();
 
+            InputManager.Keyboard.Flush();
             TimeManager.Paused = false;
             Visible = false;
             Active = false;
@@ -457,7 +463,7 @@ namespace Despicaville.Menus
                     new Region(inventory_x + (Main.Game.MenuSize_X * 3), inventory_y, (Main.Game.MenuSize_X * 4), Main.Game.MenuSize_Y), true);
 
                 int starting_x = inventory_x;
-                int starting_y = inventory_y + Main.Game.MenuSize_Y;
+                int starting_y = (int)(inventory_y + Main.Game.MenuSize_Y);
 
                 for (int y = 0; y < 10; y++)
                 {
@@ -506,7 +512,7 @@ namespace Despicaville.Menus
             if (player != null)
             {
                 int starting_x = inventory_x;
-                int starting_y = inventory_y + Main.Game.MenuSize_Y;
+                int starting_y = (int)(inventory_y + Main.Game.MenuSize_Y);
 
                 for (int y = 0; y < 10; y++)
                 {
@@ -547,8 +553,8 @@ namespace Despicaville.Menus
 
         private void ExamineItem(Something wound)
         {
-            int width = (Main.Game.MenuSize_X * 4) + (Main.Game.MenuSize_X / 2);
-            int height = Main.Game.MenuSize_Y + (Main.Game.MenuSize_Y / 2);
+            int width = (int)((Main.Game.MenuSize_X * 4) + (Main.Game.MenuSize_X / 2));
+            int height = (int)(Main.Game.MenuSize_Y + (Main.Game.MenuSize_Y / 2));
 
             Label examine = GetLabel("Examine");
             examine.Text = wound.Name + "\n" + "Time To Heal: " + GameUtil.SecondsToTime(wound.Value);
@@ -579,12 +585,6 @@ namespace Despicaville.Menus
 
         public override void Load()
         {
-            player = Handler.GetPlayer();
-            LoadGrid();
-        }
-
-        public override void Load(ContentManager content)
-        {
             Clear();
 
             AddButton(Handler.GetID(), "Close", AssetManager.Textures["Button_Back"], AssetManager.Textures["Button_Back_Hover"], AssetManager.Textures["Button_Back_Disabled"],
@@ -593,15 +593,20 @@ namespace Despicaville.Menus
 
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "", Color.White, AssetManager.Textures["Frame"], new Region(0, 0, 0, 0), false);
             AddPicture(Handler.GetID(), "Highlight", AssetManager.Textures["Grid_Hover"], new Region(0, 0, 0, 0), Color.White, false);
+
+            player = Handler.GetPlayer();
+            LoadGrid();
+
+            Resize(Main.Game.Resolution);
         }
 
         public override void Resize(Point point)
         {
-            inventory_y = (Main.Game.ScreenHeight / 2) - (Main.Game.MenuSize_Y * 8);
-            inventory_x = (Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X * 5);
+            inventory_y = (int)((Main.Game.ScreenHeight / 2) - (Main.Game.MenuSize_Y * 8));
+            inventory_x = (int)((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X * 5));
 
-            int x = (Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2);
-            int y = inventory_y + (Main.Game.MenuSize_Y * 10) + Main.Game.MenuSize_Y;
+            int x = (int)((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2));
+            int y = (int)(inventory_y + (Main.Game.MenuSize_Y * 10) + Main.Game.MenuSize_Y);
 
             GetButton("Close").Region = new Region(x, y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
 

@@ -15,9 +15,9 @@ namespace Despicaville.Util
         {
             if (player != null)
             {
-                Menu UI = MenuManager.GetMenu("UI");
+                Menu menu = MenuManager.GetMenu("Health");
 
-                Picture picture = UI.GetPicture("Paperdoll_" + body_part);
+                Picture picture = menu.GetPicture("Paperdoll_" + body_part);
                 if (picture != null)
                 {
                     BodyPart part = player.GetBodyPart(body_part);

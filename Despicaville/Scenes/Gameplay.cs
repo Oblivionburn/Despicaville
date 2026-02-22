@@ -17,6 +17,7 @@ using OP_Engine.Controls;
 using OP_Engine.Time;
 using OP_Engine.Inventories;
 using OP_Engine.Rendering;
+using OP_Engine.Enums;
 
 using Despicaville.Util;
 
@@ -58,8 +59,6 @@ namespace Despicaville.Scenes
                         AssetManager.PlayMusic_Random("Night", false);
                     }
                 }
-
-                UpdateMenuControls();
 
                 if (!TimeManager.Paused)
                 {
@@ -384,49 +383,6 @@ namespace Despicaville.Scenes
                     }
 
                     Handler.GetPlayer().Draw(spriteBatch, resolution, Color.White);
-                }
-            }
-        }
-
-        private void UpdateMenuControls()
-        {
-            if (InputManager.KeyPressed("Cancel"))
-            {
-                Menu main_menu = MenuManager.GetMenu("Main");
-                if (!main_menu.Visible)
-                {
-                    main_menu.Open();
-                }
-                else
-                {
-                    main_menu.Close();
-                }
-            }
-
-            if (InputManager.KeyPressed("Inventory"))
-            {
-                Menu inv_menu = MenuManager.GetMenu("Inventory");
-                if (!inv_menu.Visible)
-                {
-                    Handler.Trading = false;
-                    Handler.Trading_InventoryID.Clear();
-                    inv_menu.Open();
-                }
-                else
-                {
-                    inv_menu.Close();
-                }
-            }
-
-            if (InputManager.KeyPressed("Debug"))
-            {
-                if (!Main.Game.Debugging)
-                {
-                    Main.Game.Debugging = true;
-                }
-                else if (Main.Game.Debugging)
-                {
-                    Main.Game.Debugging = false;
                 }
             }
         }

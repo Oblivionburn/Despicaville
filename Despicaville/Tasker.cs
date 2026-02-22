@@ -13,6 +13,7 @@ using OP_Engine.Time;
 using OP_Engine.Inventories;
 using OP_Engine.Sounds;
 using OP_Engine.Inputs;
+using OP_Engine.Enums;
 
 using Despicaville.Util;
 
@@ -39,41 +40,46 @@ namespace Despicaville
 
         public static void GiveTask_Citizen(World world, Character character)
         {
-            if (character.GetStat("Thirst").Value >= 60)
-            {
-                FindWater(world, character, true);
-            }
-            else if (character.GetStat("Thirst").Value >= 30)
-            {
-                FindWater(world, character, false);
-            }
-            else if (character.GetStat("Hunger").Value >= 60)
-            {
-                FindFood(world, character, true);
-            }
-            else if (character.GetStat("Hunger").Value >= 30)
-            {
-                FindFood(world, character, false);
-            }
-            else if (character.GetStat("Stamina").Value <= 30)
-            {
-                GoToSleep(world, character);
-            }
-            else if (character.GetStat("Boredom").Value >= 30)
-            {
-                FindEntertainment(world, character);
-            }
-            else if (character.GetStat("Stamina").Value <= 60)
-            {
-                FindRest(world, character);
-            }
-            else if (WorldUtil.PassedOpenDoor(world.Maps[0].GetLayer("MiddleTiles"), character))
+            Something thirst = character.GetStat("Thirst");
+            Something hunger = character.GetStat("Hunger");
+            Something stamina = character.GetStat("Stamina");
+            Something boredom = character.GetStat("Boredom");
+
+            if (WorldUtil.PassedOpenDoor(world.Maps[0].GetLayer("MiddleTiles"), character))
             {
                 CloseDoor_Behind(character);
             }
             else if (WorldUtil.PassedOpenWindow(world.Maps[0].GetLayer("MiddleTiles"), character))
             {
                 CloseWindow_Behind(character);
+            }
+            else if (thirst.Value >= 60)
+            {
+                FindWater(world, character, true);
+            }
+            else if (thirst.Value >= 30)
+            {
+                FindWater(world, character, false);
+            }
+            else if (hunger.Value >= 60)
+            {
+                FindFood(world, character, true);
+            }
+            else if (hunger.Value >= 30)
+            {
+                FindFood(world, character, false);
+            }
+            else if (stamina.Value <= 30)
+            {
+                GoToSleep(world, character);
+            }
+            else if (boredom.Value >= 30)
+            {
+                FindEntertainment(world, character);
+            }
+            else if (stamina.Value <= 60)
+            {
+                FindRest(world, character);
             }
             else
             {
@@ -340,6 +346,8 @@ namespace Despicaville
                     Tile sink = WorldUtil.GetClosestTile(sinks, character);
                     if (sink != null)
                     {
+                        found = true;
+
                         if (WorldUtil.NextTo(sink.Location, character.Location))
                         {
                             Direction direction = WorldUtil.GetFurnitureDirection(sink, character);

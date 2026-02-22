@@ -11,6 +11,7 @@ using OP_Engine.Controls;
 using OP_Engine.Weathers;
 using OP_Engine.Utility;
 using OP_Engine.Scenes;
+using OP_Engine.Enums;
 
 using Despicaville.Util;
 
@@ -330,7 +331,7 @@ namespace Despicaville.Menus
             else if (bar.Name == "Ambience")
             {
                 SoundManager.AmbientVolume = volume / 100;
-                SoundManager.AmbientChannel.setVolume(SoundManager.AmbientVolume);
+                SoundManager.AmbientChannels[0].setVolume(SoundManager.AmbientVolume);
 
                 GetLabel("Ambience").Text = ((int)volume).ToString() + @"%";
             }
@@ -383,7 +384,7 @@ namespace Despicaville.Menus
         {
             Clear();
 
-            int Y = Main.Game.ScreenHeight / (Main.Game.MenuSize_Y * 2);
+            int Y = (int)(Main.Game.ScreenHeight / (Main.Game.MenuSize_Y * 2));
 
             AddButton(Handler.GetID(), "Back", AssetManager.Textures["Button_Back"], AssetManager.Textures["Button_Back_Hover"], AssetManager.Textures["Button_Back_Disabled"],
                 new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2), Main.Game.MenuSize_Y * Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y), Color.White, true);
@@ -488,7 +489,7 @@ namespace Despicaville.Menus
 
         public override void Resize(Point point)
         {
-            int Y = Main.Game.ScreenHeight / (Main.Game.MenuSize_Y * 2);
+            int Y = (int)(Main.Game.ScreenHeight / (Main.Game.MenuSize_Y * 2));
 
             GetButton("Back").Region = new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2), Main.Game.MenuSize_Y * Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
 

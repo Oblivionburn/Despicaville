@@ -5,7 +5,7 @@ using System.Xml;
 
 using OP_Engine.Inputs;
 using OP_Engine.Sounds;
-using OP_Engine.Utility;
+using OP_Engine.Enums;
 
 namespace Despicaville.Util
 {

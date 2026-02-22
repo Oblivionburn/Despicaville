@@ -83,6 +83,12 @@ namespace Despicaville.Menus
             {
                 GetLabel("Examine").Visible = false;
             }
+
+            if (Main.Game.GameStarted &&
+                InputManager.KeyPressed("Cancel"))
+            {
+                Close();
+            }
         }
 
         private void CheckClick(Button button)
@@ -137,6 +143,18 @@ namespace Despicaville.Menus
 
         public override void Close()
         {
+            Menu ui = MenuManager.GetMenu("UI");
+            ui.Visible = true;
+            ui.Active = true;
+
+            if (Handler.Menu_Health)
+            {
+                Menu menu_health = MenuManager.GetMenu("Health");
+                menu_health.Active = true;
+                menu_health.Visible = true;
+            }
+
+            InputManager.Keyboard.Flush();
             TimeManager.Paused = false;
             Visible = false;
             Active = false;
@@ -146,7 +164,7 @@ namespace Despicaville.Menus
         {
             Clear();
 
-            int Y = Main.Game.ScreenHeight / (Main.Game.MenuSize_Y * 2);
+            int Y = (int)(Main.Game.ScreenHeight / (Main.Game.MenuSize_Y * 2));
 
             AddButton(Handler.GetID(), "Back", AssetManager.Textures["Button_Back"], AssetManager.Textures["Button_Back_Hover"], AssetManager.Textures["Button_Back_Disabled"],
                 new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2), Main.Game.MenuSize_Y * Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y), Color.White, false);
@@ -184,7 +202,7 @@ namespace Despicaville.Menus
 
         public override void Resize(Point point)
         {
-            int Y = Main.Game.ScreenHeight / (Main.Game.MenuSize_Y * 2);
+            int Y = (int)(Main.Game.ScreenHeight / (Main.Game.MenuSize_Y * 2));
 
             Button back = GetButton("Back");
             back.Region = new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2), Main.Game.MenuSize_Y * Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);

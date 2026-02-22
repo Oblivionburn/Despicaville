@@ -407,8 +407,8 @@ namespace Despicaville.Scenes
         {
             Menu.GetPicture("Loading").Region = new Region(0, 0, Main.Game.ScreenWidth, Main.Game.ScreenHeight);
 
-            int Width = Main.Game.MenuSize_X;
-            int Height = Main.Game.MenuSize_Y;
+            int Width = (int)Main.Game.MenuSize_X;
+            int Height = (int)Main.Game.MenuSize_Y;
 
             int X = Main.Game.ScreenWidth / 2;
             int Y = (Main.Game.ScreenHeight / 20) * 12;

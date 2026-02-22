@@ -323,8 +323,8 @@ namespace Despicaville.Menus
 
         public override void Resize(Point point)
         {
-            int height = Main.Game.MenuSize_Y / 2;
-            int Y = Main.Game.ScreenHeight / (Main.Game.MenuSize_Y * 8);
+            int height = (int)(Main.Game.MenuSize_Y / 2);
+            int Y = (int)(Main.Game.ScreenHeight / (Main.Game.MenuSize_Y * 8));
             int label_width = 4;
 
             GetButton("Back").Region = new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2), Main.Game.MenuSize_Y * Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);

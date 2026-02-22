@@ -11,6 +11,7 @@ using OP_Engine.Utility;
 using OP_Engine.Time;
 using OP_Engine.Characters;
 using OP_Engine.Tiles;
+using OP_Engine.Enums;
 
 using Despicaville.Util;
 
@@ -170,8 +171,8 @@ namespace Despicaville.Menus
         {
             if (Loaded)
             {
-                width = Main.Game.MenuSize_X * 3;
-                height = Main.Game.MenuSize_Y;
+                width = (int)(Main.Game.MenuSize_X * 3);
+                height = (int)Main.Game.MenuSize_Y;
 
                 #region Get Position
 

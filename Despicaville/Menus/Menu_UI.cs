@@ -7,6 +7,7 @@ using OP_Engine.Menus;
 using OP_Engine.Characters;
 using OP_Engine.Utility;
 using OP_Engine.Time;
+using OP_Engine.Enums;
 
 using Despicaville.Util;
 
@@ -16,8 +17,7 @@ namespace Despicaville.Menus
     {
         #region Variables
 
-        private int InitBody;
-        private bool ShowHealth;
+        
 
         #endregion
 
@@ -44,12 +44,6 @@ namespace Despicaville.Menus
                     UpdateControls();
                     UpdateTime();
 
-                    if (InitBody == 0)
-                    {
-                        InitBodyDisplay();
-                        InitBody = 1;
-                    }
-                    
                     UpdateStats();
 
                     base.Update(gameRef, content);
@@ -140,54 +134,34 @@ namespace Despicaville.Menus
                 }
             }
 
-            foreach (Picture picture in Pictures)
-            {
-                if (picture.Visible &&
-                    picture.Name.Contains("Paperdoll"))
-                {
-                    if (InputManager.MouseWithin(picture.Region.ToRectangle))
-                    {
-                        if (picture.Value == 1)
-                        {
-                            GameUtil.ResetHover(picture);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            foreach (Picture picture in Pictures)
-            {
-                if (picture.Visible &&
-                    picture.Name.Contains("Paperdoll"))
-                {
-                    if (InputManager.MouseWithin(picture.Region.ToRectangle))
-                    {
-                        if (GameUtil.MouseOnPixel(picture))
-                        {
-                            found = true;
-
-                            if (picture.HoverText != null)
-                            {
-                                GameUtil.Examine(this, picture.HoverText);
-                            }
-
-                            if (InputManager.Mouse_LB_Pressed)
-                            {
-                                found = false;
-                                GameUtil.ResetHover(picture);
-                                CheckClick(picture);
-                            }
-
-                            break;
-                        }
-                    }
-                }
-            }
-
             if (!found)
             {
                 GetLabel("Examine").Visible = false;
+            }
+
+            if (InputManager.KeyPressed("Cancel"))
+            {
+                Main.OpenMainMenu();
+            }
+            else if (InputManager.KeyPressed("Inventory"))
+            {
+                InputManager.Keyboard.Flush();
+
+                Handler.Trading = false;
+                Handler.Trading_InventoryID.Clear();
+
+                MenuManager.GetMenu("Inventory").Open();
+            }
+            else if (InputManager.KeyPressed("Debug"))
+            {
+                if (!Main.Game.Debugging)
+                {
+                    Main.Game.Debugging = true;
+                }
+                else if (Main.Game.Debugging)
+                {
+                    Main.Game.Debugging = false;
+                }
             }
         }
 
@@ -197,74 +171,34 @@ namespace Despicaville.Menus
 
             if (button.Name == "Main")
             {
-                TimeManager.Paused = true;
-
-                Menu main = MenuManager.GetMenu(button.Name);
-                main.Active = true;
-                main.Visible = true;
+                Main.OpenMainMenu();
             }
             else if (button.Name == "Inventory")
             {
-                TimeManager.Paused = true;
+                Handler.Trading = false;
+                Handler.Trading_InventoryID.Clear();
 
-                Menu main = MenuManager.GetMenu(button.Name);
-                main.Load();
-                main.Active = true;
-                main.Visible = true;
+                MenuManager.GetMenu("Inventory").Open();
             }
             else if (button.Name == "Health")
             {
-                if (ShowHealth)
+                if (!Handler.Menu_Health)
                 {
-                    GetPicture("Paperdoll_Right_Foot").Visible = false;
-                    GetPicture("Paperdoll_Left_Foot").Visible = false;
-                    GetPicture("Paperdoll_Right_Leg").Visible = false;
-                    GetPicture("Paperdoll_Left_Leg").Visible = false;
-                    GetPicture("Paperdoll_Right_Hand").Visible = false;
-                    GetPicture("Paperdoll_Left_Hand").Visible = false;
-                    GetPicture("Paperdoll_Right_Arm").Visible = false;
-                    GetPicture("Paperdoll_Left_Arm").Visible = false;
-                    GetPicture("Paperdoll_Groin").Visible = false;
-                    GetPicture("Paperdoll_Torso").Visible = false;
-                    GetPicture("Paperdoll_Neck").Visible = false;
-                    GetPicture("Paperdoll_Head").Visible = false;
+                    Handler.Menu_Health = true;
 
-                    ShowHealth = false;
+                    Menu main = MenuManager.GetMenu(button.Name);
+                    main.Load();
+                    main.Active = true;
+                    main.Visible = true;
                 }
                 else
                 {
-                    GetPicture("Paperdoll_Right_Foot").Visible = true;
-                    GetPicture("Paperdoll_Left_Foot").Visible = true;
-                    GetPicture("Paperdoll_Right_Leg").Visible = true;
-                    GetPicture("Paperdoll_Left_Leg").Visible = true;
-                    GetPicture("Paperdoll_Right_Hand").Visible = true;
-                    GetPicture("Paperdoll_Left_Hand").Visible = true;
-                    GetPicture("Paperdoll_Right_Arm").Visible = true;
-                    GetPicture("Paperdoll_Left_Arm").Visible = true;
-                    GetPicture("Paperdoll_Groin").Visible = true;
-                    GetPicture("Paperdoll_Torso").Visible = true;
-                    GetPicture("Paperdoll_Neck").Visible = true;
-                    GetPicture("Paperdoll_Head").Visible = true;
+                    Handler.Menu_Health = false;
 
-                    ShowHealth = true;
+                    Menu main = MenuManager.GetMenu(button.Name);
+                    main.Active = false;
+                    main.Visible = false;
                 }
-            }
-        }
-
-        private void CheckClick(Picture picture)
-        {
-            AssetManager.PlaySound_Random("Click");
-
-            if (picture.Name.Contains("Paperdoll"))
-            {
-                Handler.Selected_BodyPart = picture.Name.Substring(10);
-
-                TimeManager.Paused = true;
-
-                Menu menu = MenuManager.GetMenu("Wounds");
-                menu.Load();
-                menu.Active = true;
-                menu.Visible = true;
             }
         }
 
@@ -327,16 +261,6 @@ namespace Despicaville.Menus
             }
         }
 
-        private void InitBodyDisplay()
-        {
-            Character player = Handler.GetPlayer();
-
-            foreach (string body_part in Handler.BodyParts)
-            {
-                CombatUtil.Update_Player_BodyStat(player, body_part);
-            }
-        }
-
         public override void Load(ContentManager content)
         {
             Clear();
@@ -348,19 +272,6 @@ namespace Despicaville.Menus
             AddPicture(Handler.GetID(), "Panel_Lower_Right", AssetManager.Textures["Frame_Large"], new Region(0, 0, 0, 0), Color.White, false);
             AddPicture(Handler.GetID(), "Panel_Lower_Center", AssetManager.Textures["Frame_Wide"], new Region(0, 0, 0, 0), Color.White * 0.6f, true);
 
-            AddPicture(Handler.GetID(), "Paperdoll_Right_Foot", AssetManager.Textures["Paperdoll_Right_Foot"], new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Paperdoll_Left_Foot", AssetManager.Textures["Paperdoll_Left_Foot"], new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Paperdoll_Right_Leg", AssetManager.Textures["Paperdoll_Right_Leg"], new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Paperdoll_Left_Leg", AssetManager.Textures["Paperdoll_Left_Leg"], new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Paperdoll_Right_Hand", AssetManager.Textures["Paperdoll_Right_Hand"], new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Paperdoll_Left_Hand", AssetManager.Textures["Paperdoll_Left_Hand"], new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Paperdoll_Right_Arm", AssetManager.Textures["Paperdoll_Right_Arm"], new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Paperdoll_Left_Arm", AssetManager.Textures["Paperdoll_Left_Arm"], new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Paperdoll_Groin", AssetManager.Textures["Paperdoll_Groin"], new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Paperdoll_Torso", AssetManager.Textures["Paperdoll_Torso"], new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Paperdoll_Neck", AssetManager.Textures["Paperdoll_Neck"], new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Paperdoll_Head", AssetManager.Textures["Paperdoll_Head"], new Region(0, 0, 0, 0), Color.White, false);
-            
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Time", "", Color.White, AssetManager.Textures["Frame_Wide"], new Region(0, 0, 0, 0), Color.White * 0f, true);
 
             AddProgressBar(Handler.GetID(), "Hunger", 100, 0, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
@@ -446,9 +357,9 @@ namespace Despicaville.Menus
             GetLabel("Examine").Region = new Region(0, 0, 0, 0);
 
             //Hidden Panels
-            int panel_width = Main.Game.MenuSize_X * 5;
-            int upper_panel_height = Main.Game.MenuSize_Y * 12;
-            int lower_panel_height = Main.Game.MenuSize_Y * 3;
+            int panel_width = (int)(Main.Game.MenuSize_X * 5);
+            int upper_panel_height = (int)(Main.Game.MenuSize_Y * 12);
+            int lower_panel_height = (int)(Main.Game.MenuSize_Y * 3);
 
             GetPicture("Panel_Upper_Left").Region = new Region(0, 0, panel_width, upper_panel_height);
             GetPicture("Panel_Lower_Left").Region = new Region(0, upper_panel_height, panel_width, lower_panel_height);
@@ -469,31 +380,13 @@ namespace Despicaville.Menus
                 Y += message_height;
             }
 
-            //Upper Left
-            int paperdoll_x = 0;
-            int paperdoll_y = 0;
-            int paperdoll_width = Main.Game.MenuSize_X * 5;
-            int paperdoll_height = Main.Game.MenuSize_X * 10;
-            GetPicture("Paperdoll_Head").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);
-            GetPicture("Paperdoll_Neck").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);
-            GetPicture("Paperdoll_Torso").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);
-            GetPicture("Paperdoll_Right_Arm").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);
-            GetPicture("Paperdoll_Right_Hand").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);
-            GetPicture("Paperdoll_Left_Arm").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);
-            GetPicture("Paperdoll_Left_Hand").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);
-            GetPicture("Paperdoll_Groin").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);
-            GetPicture("Paperdoll_Right_Leg").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);
-            GetPicture("Paperdoll_Right_Foot").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);
-            GetPicture("Paperdoll_Left_Leg").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);
-            GetPicture("Paperdoll_Left_Foot").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);
-
             //Upper Center
             GetLabel("Time").Region = new Region(Main.Game.ScreenWidth - panel_width, 0, panel_width, Main.Game.MenuSize_Y * 2);
 
             //Upper Right
             int x = Main.Game.ScreenWidth - panel_width;
-            int y = Main.Game.MenuSize_Y * 2;
-            int height = (Main.Game.MenuSize_Y / 4) * 2;
+            int y = (int)Main.Game.MenuSize_Y * 2;
+            int height = (int)((Main.Game.MenuSize_Y / 4) * 2);
 
             GetProgressBar("Hunger").Base_Region = new Region(x, y, panel_width, height);
             GetLabel("Hunger").Region = new Region(x, y, panel_width, height);
@@ -541,8 +434,8 @@ namespace Despicaville.Menus
             Label examine = GetLabel("Examine");
             examine.Text = text;
 
-            int width = Main.Game.MenuSize_X * 7;
-            int height = Main.Game.MenuSize_Y;
+            int width = (int)(Main.Game.MenuSize_X * 7);
+            int height = (int)Main.Game.MenuSize_Y;
 
             int X = InputManager.Mouse.X - (width / 2);
             if (X < 0)

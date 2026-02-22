@@ -74,8 +74,8 @@ namespace Despicaville
                                         }
 
                                         int distance = Main.light_tile_distance;
-                                        int full_width = distance * Main.Game.TileSize.X;
-                                        int full_height = distance * Main.Game.TileSize.Y;
+                                        int full_width = (int)(distance * Main.Game.TileSize.X);
+                                        int full_height = (int)(distance * Main.Game.TileSize.Y);
                                         int resolution_width = Main.Game.Resolution.X;
                                         int resolution_height = Main.Game.Resolution.Y;
 
@@ -85,8 +85,8 @@ namespace Despicaville
                                             if (starting_tile.Region.Y >= 0 - full_height - 1 &&
                                                 starting_tile.Region.Y <= resolution_height + full_height + 1)
                                             {
-                                                int size_width = Main.Game.TileSize.X;
-                                                int size_height = Main.Game.TileSize.Y;
+                                                int size_width = (int)Main.Game.TileSize.X;
+                                                int size_height = (int)Main.Game.TileSize.Y;
 
                                                 int half_width = size_width / 2;
                                                 int half_height = size_height / 2;
@@ -247,7 +247,7 @@ namespace Despicaville
                     Something map = light_maps[i];
                     Vector2 coord = new Vector2(map.Location.X, map.Location.Y);
 
-                    Rectangle region = new Rectangle((int)map.Region.X, (int)map.Region.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
+                    Rectangle region = new Rectangle((int)map.Region.X, (int)map.Region.Y, (int)Main.Game.TileSize.X, (int)Main.Game.TileSize.Y);
 
                     int image_x = (int)coord.X * light_sub_width;
                     int image_y = (int)coord.Y * light_sub_height;

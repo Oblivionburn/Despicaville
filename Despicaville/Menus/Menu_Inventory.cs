@@ -202,6 +202,12 @@ namespace Despicaville.Menus
                     highlight2.Visible = false;
                 }
             }
+
+            if (InputManager.KeyPressed("Cancel") ||
+                InputManager.KeyPressed("Inventory"))
+            {
+                Close();
+            }
         }
 
         private bool HoveringButton()
@@ -1139,6 +1145,7 @@ namespace Despicaville.Menus
                 Handler.Trading_InventoryID.Clear();
             }
 
+            InputManager.Keyboard.Flush();
             TimeManager.Paused = false;
             Visible = false;
             Active = false;
@@ -1196,7 +1203,7 @@ namespace Despicaville.Menus
                 other_inventory = null;
             }
 
-            inventory_y = (Main.Game.ScreenHeight / 2) - (Main.Game.MenuSize_Y * 4) - Main.Game.MenuSize_Y;
+            inventory_y = (int)((Main.Game.ScreenHeight / 2) - (Main.Game.MenuSize_Y * 4) - Main.Game.MenuSize_Y);
 
             Character player = Handler.GetPlayer();
             if (player != null)
@@ -1224,7 +1231,7 @@ namespace Despicaville.Menus
 
         private void ResizeInventories()
         {
-            inventory_y = (Main.Game.ScreenHeight / 2) - (Main.Game.MenuSize_Y * 4) - Main.Game.MenuSize_Y;
+            inventory_y = (int)((Main.Game.ScreenHeight / 2) - (Main.Game.MenuSize_Y * 4) - Main.Game.MenuSize_Y);
 
             Resize_Inventory_Grids();
 
@@ -1456,7 +1463,7 @@ namespace Despicaville.Menus
                             new Region(inventory_x, inventory_y, (Main.Game.MenuSize_X * 4), Main.Game.MenuSize_Y), true);
 
                         int starting_x = inventory_x;
-                        int starting_y = inventory_y + Main.Game.MenuSize_Y;
+                        int starting_y = (int)(inventory_y + Main.Game.MenuSize_Y);
 
                         int Y;
                         if (inventory.Max_Value / 7 >= 1)
@@ -1511,7 +1518,7 @@ namespace Despicaville.Menus
                             }
                         }
 
-                        inventory_y += (Main.Game.MenuSize_Y * (Y + 1));
+                        inventory_y += (int)(Main.Game.MenuSize_Y * (Y + 1));
                     }
                 }
             }
@@ -1532,7 +1539,7 @@ namespace Despicaville.Menus
                         }
 
                         int starting_x = inventory_x;
-                        int starting_y = inventory_y + Main.Game.MenuSize_Y;
+                        int starting_y = (int)(inventory_y + Main.Game.MenuSize_Y);
 
                         int Y;
                         if (inventory.Max_Value / 7 >= 1)
@@ -1582,7 +1589,7 @@ namespace Despicaville.Menus
                             }
                         }
 
-                        inventory_y += (Main.Game.MenuSize_Y * 2);
+                        inventory_y += (int)(Main.Game.MenuSize_Y * 2);
                     }
                 }
             }
@@ -1594,7 +1601,7 @@ namespace Despicaville.Menus
                 new Region(other_inventory_x, other_inventory_y, (Main.Game.MenuSize_X * 4), Main.Game.MenuSize_Y), true);
 
             int starting_x = other_inventory_x;
-            int starting_y = other_inventory_y + Main.Game.MenuSize_Y;
+            int starting_y = (int)(other_inventory_y + Main.Game.MenuSize_Y);
 
             int Y;
             if (other_inventory.Max_Value / 7 >= 1)
@@ -1659,7 +1666,7 @@ namespace Despicaville.Menus
             }
 
             int starting_x = other_inventory_x;
-            int starting_y = other_inventory_y + Main.Game.MenuSize_Y;
+            int starting_y = (int)(other_inventory_y + Main.Game.MenuSize_Y);
 
             int Y;
             if (other_inventory.Max_Value / 7 >= 1)
@@ -1712,8 +1719,8 @@ namespace Despicaville.Menus
 
         private void ExamineItem(Item item)
         {
-            int width = (Main.Game.MenuSize_X * 4) + (Main.Game.MenuSize_X / 2);
-            int height = Main.Game.MenuSize_Y + (Main.Game.MenuSize_Y / 2);
+            int width = (int)((Main.Game.MenuSize_X * 4) + (Main.Game.MenuSize_X / 2));
+            int height = (int)(Main.Game.MenuSize_Y + (Main.Game.MenuSize_Y / 2));
 
             string text = item.Name;
 
@@ -1724,7 +1731,7 @@ namespace Despicaville.Menus
 
                 if (i < item.Properties.Count - 1)
                 {
-                    height += (Main.Game.MenuSize_Y / 2);
+                    height += (int)(Main.Game.MenuSize_Y / 2);
                 }
             }
 
@@ -1793,14 +1800,14 @@ namespace Despicaville.Menus
 
         public override void Resize(Point point)
         {
-            int x = (Main.Game.ScreenWidth / 2) - Main.Game.MenuSize_X - (Main.Game.MenuSize_X / 2);
-            int y = (Main.Game.ScreenHeight / 2) - (Main.Game.MenuSize_Y * 4);
+            int x = (int)((Main.Game.ScreenWidth / 2) - Main.Game.MenuSize_X - (Main.Game.MenuSize_X / 2));
+            int y = (int)((Main.Game.ScreenHeight / 2) - (Main.Game.MenuSize_Y * 4));
 
-            inventory_y = y - Main.Game.MenuSize_Y;
-            inventory_x = x + (Main.Game.MenuSize_X * 4);
+            inventory_y = (int)(y - Main.Game.MenuSize_Y);
+            inventory_x = (int)(x + (Main.Game.MenuSize_X * 4));
 
-            other_inventory_y = y - Main.Game.MenuSize_Y;
-            other_inventory_x = x - (Main.Game.MenuSize_X * 8);
+            other_inventory_y = (int)(y - Main.Game.MenuSize_Y);
+            other_inventory_x = (int)(x - (Main.Game.MenuSize_X * 8));
 
             if (Pictures.Count > 0)
             {

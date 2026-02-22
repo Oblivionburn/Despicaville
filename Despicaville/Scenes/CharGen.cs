@@ -11,6 +11,7 @@ using OP_Engine.Characters;
 using OP_Engine.Inventories;
 using OP_Engine.Utility;
 using OP_Engine.Jobs;
+using OP_Engine.Enums;
 
 using Despicaville.Util;
 
@@ -861,7 +862,7 @@ namespace Despicaville.Scenes
             player.Region.Height = Main.Game.TileSize.Y;
             players.Characters.Add(player);
 
-            JobManager.Jobs.Add(player.Job);
+            JobManager.Jobs = new List<Job> { player.Job };
 
             LoadInventory(player);
             CharacterUtil.LoadStats(player, Stats);
@@ -1263,8 +1264,8 @@ namespace Despicaville.Scenes
 
         public override void Resize(Point point)
         {
-            int Width = Main.Game.MenuSize_X;
-            int Height = Main.Game.MenuSize_Y;
+            int Width = (int)Main.Game.MenuSize_X;
+            int Height = (int)Main.Game.MenuSize_Y;
 
             int x = Main.Game.ScreenWidth / 2;
             int y = (Main.Game.ScreenHeight / 40) * 29;
@@ -1451,8 +1452,8 @@ namespace Despicaville.Scenes
             Label examine = Menu.GetLabel("ExamineStat");
             examine.Text = text;
 
-            int width = Main.Game.MenuSize_X * 14;
-            int height = Main.Game.MenuSize_Y;
+            int width = (int)(Main.Game.MenuSize_X * 14);
+            int height = (int)Main.Game.MenuSize_Y;
 
             int X = InputManager.Mouse.X - (width / 2);
             if (X < 0)

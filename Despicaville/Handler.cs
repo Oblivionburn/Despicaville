@@ -25,12 +25,15 @@ namespace Despicaville
         #region Variables
 
         public static long ID;
+
         public static int SightDistance = 10;
         public static int HearingDistance = 5;
         public static int SmellDistance = 3;
         public static int ActionRate = 320;
         public static int MapSize_X = 10;
         public static int MapSize_Y = 10;
+
+        public static bool Menu_Health;
         public static bool WorldMap_Visible;
 
         public static bool Trading;
@@ -176,7 +179,7 @@ namespace Despicaville
             {
                 AssetManager.LoadAmbient(dir);
             }
-            SoundManager.AmbientFade = 1;
+            //SoundManager.AmbientFade = 1;
             SoundManager.AmbientVolume = 0.6f;
             SoundManager.AmbientEnabled = true;
 

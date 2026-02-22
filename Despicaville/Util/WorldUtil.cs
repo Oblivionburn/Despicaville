@@ -8,6 +8,7 @@ using OP_Engine.Inventories;
 using OP_Engine.Tiles;
 using OP_Engine.Utility;
 using OP_Engine.Scenes;
+using OP_Engine.Enums;
 
 namespace Despicaville.Util
 {
@@ -530,7 +531,7 @@ namespace Despicaville.Util
 
         public static Tile GetFurniture(string layer, Location destination)
         {
-            int width = Main.Game.TileSize_X;
+            int width = (int)Main.Game.TileSize_X;
             int width_double = width * 2;
             int width_triple = width * 3;
 
@@ -672,7 +673,7 @@ namespace Despicaville.Util
 
         public static Tile GetFurniture(Layer layer, Location destination)
         {
-            int width = Main.Game.TileSize_X;
+            int width = (int)Main.Game.TileSize_X;
             int width_double = width * 2;
             int width_triple = width * 3;
 
@@ -1941,9 +1942,14 @@ namespace Despicaville.Util
 
         public static Map GetCurrentMap(Character character)
         {
+            if (character.Map == null)
+            {
+                SetCurrentMap(character);
+            }
+
             foreach (Map map in WorldGen.Residential)
             {
-                if (map.ID == character.MapID)
+                if (map.ID == character.Map.ID)
                 {
                     return map;
                 }
@@ -1951,7 +1957,7 @@ namespace Despicaville.Util
 
             foreach (Map map in WorldGen.Commercial)
             {
-                if (map.ID == character.MapID)
+                if (map.ID == character.Map.ID)
                 {
                     return map;
                 }
@@ -1959,7 +1965,7 @@ namespace Despicaville.Util
 
             foreach (Map map in WorldGen.Parks)
             {
-                if (map.ID == character.MapID)
+                if (map.ID == character.Map.ID)
                 {
                     return map;
                 }
@@ -1967,51 +1973,7 @@ namespace Despicaville.Util
 
             foreach (Map map in WorldGen.Roads)
             {
-                if (map.ID == character.MapID)
-                {
-                    return map;
-                }
-            }
-
-            return null;
-        }
-
-        public static Map GetCurrentMap(Vector2 location)
-        {
-            int world_x = (int)location.X / 20;
-            int world_y = (int)location.Y / 20;
-
-            foreach (Map map in WorldGen.Residential)
-            {
-                if (map.Location.X == world_x &&
-                    map.Location.Y == world_y)
-                {
-                    return map;
-                }
-            }
-
-            foreach (Map map in WorldGen.Commercial)
-            {
-                if (map.Location.X == world_x &&
-                    map.Location.Y == world_y)
-                {
-                    return map;
-                }
-            }
-
-            foreach (Map map in WorldGen.Parks)
-            {
-                if (map.Location.X == world_x &&
-                    map.Location.Y == world_y)
-                {
-                    return map;
-                }
-            }
-
-            foreach (Map map in WorldGen.Roads)
-            {
-                if (map.Location.X == world_x &&
-                    map.Location.Y == world_y)
+                if (map.ID == character.Map.ID)
                 {
                     return map;
                 }
@@ -2025,57 +1987,43 @@ namespace Despicaville.Util
             int block_x = (int)character.Location.X / 20;
             int block_y = (int)character.Location.Y / 20;
 
-            bool found = false;
-
             foreach (Map map in WorldGen.Residential)
             {
                 if (map.Location.X == block_x &&
                     map.Location.Y == block_y)
                 {
-                    found = true;
-                    character.MapID = map.ID;
-                    break;
+                    character.Map = map;
+                    return;
                 }
             }
 
-            if (!found)
+            foreach (Map map in WorldGen.Commercial)
             {
-                foreach (Map map in WorldGen.Commercial)
+                if (map.Location.X == block_x &&
+                    map.Location.Y == block_y)
                 {
-                    if (map.Location.X == block_x &&
-                        map.Location.Y == block_y)
-                    {
-                        found = true;
-                        character.MapID = map.ID;
-                        break;
-                    }
+                    character.Map = map;
+                    return;
                 }
             }
 
-            if (!found)
+            foreach (Map map in WorldGen.Parks)
             {
-                foreach (Map map in WorldGen.Parks)
+                if (map.Location.X == block_x &&
+                    map.Location.Y == block_y)
                 {
-                    if (map.Location.X == block_x &&
-                        map.Location.Y == block_y)
-                    {
-                        found = true;
-                        character.MapID = map.ID;
-                        break;
-                    }
+                    character.Map = map;
+                    return;
                 }
             }
 
-            if (!found)
+            foreach (Map map in WorldGen.Roads)
             {
-                foreach (Map map in WorldGen.Roads)
+                if (map.Location.X == block_x &&
+                    map.Location.Y == block_y)
                 {
-                    if (map.Location.X == block_x &&
-                        map.Location.Y == block_y)
-                    {
-                        character.MapID = map.ID;
-                        break;
-                    }
+                    character.Map = map;
+                    return;
                 }
             }
         }
@@ -2166,8 +2114,8 @@ namespace Despicaville.Util
                     {
                         Tile new_tile = new Tile();
                         new_tile.ID = Handler.GetID();
-                        new_tile.MapID = map.ID;
-                        new_tile.LayerID = effect_tiles.ID;
+                        new_tile.Map.ID = map.ID;
+                        new_tile.Layer.ID = effect_tiles.ID;
                         new_tile.Name = name;
                         new_tile.Location = new Location(location.X, location.Y, 0);
                         new_tile.Region = bottom_tile.Region;

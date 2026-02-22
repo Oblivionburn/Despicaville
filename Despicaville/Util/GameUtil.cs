@@ -15,7 +15,7 @@ using OP_Engine.Tiles;
 using OP_Engine.Utility;
 using OP_Engine.Time;
 using OP_Engine.Jobs;
-using System;
+using OP_Engine.Enums;
 
 namespace Despicaville.Util
 {
@@ -387,8 +387,8 @@ namespace Despicaville.Util
             Army characters = CharacterManager.GetArmy("Characters");
             Character player = Handler.GetPlayer();
 
-            int center_x = (Main.Game.ScreenWidth / 2) - (Main.Game.TileSize.X / 2);
-            int center_y = (Main.Game.ScreenHeight / 2) - (Main.Game.TileSize.Y / 2) - (Main.Game.TileSize.Y * 2);
+            int center_x = (int)((Main.Game.ScreenWidth / 2) - (Main.Game.TileSize.X / 2));
+            int center_y = (int)((Main.Game.ScreenHeight / 2) - (Main.Game.TileSize.Y / 2) - (Main.Game.TileSize.Y * 2));
 
             float x_diff = center_x - player.Region.X;
             float y_diff = center_y - player.Region.Y;
@@ -535,8 +535,8 @@ namespace Despicaville.Util
             Label examine = menu.GetLabel("Examine");
             examine.Text = text;
 
-            int width = Main.Game.MenuSize_X * 4;
-            int height = Main.Game.MenuSize_X;
+            int width = (int)(Main.Game.MenuSize_X * 4);
+            int height = (int)Main.Game.MenuSize_X;
 
             int X = InputManager.Mouse.X - (width / 2);
             if (X < 0)
