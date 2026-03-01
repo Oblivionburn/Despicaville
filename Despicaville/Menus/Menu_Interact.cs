@@ -154,8 +154,7 @@ namespace Despicaville.Menus
                         new Region(0, 0, 0, 0), false, false);
                 }
             }
-            else if (Handler.Interaction_Tile != null &&
-                     WorldUtil.NextTo(Handler.Interaction_Tile.Location, player.Location))
+            else if (Handler.Interaction_Tile != null)
             {
                 AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Use", "Use", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
                     new Region(0, 0, 0, 0), false, false);

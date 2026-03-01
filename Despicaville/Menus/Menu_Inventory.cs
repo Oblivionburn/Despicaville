@@ -301,14 +301,6 @@ namespace Despicaville.Menus
         {
             bool found = false;
 
-            foreach (Picture picture in Pictures)
-            {
-                if (picture.Name.Contains("Slot"))
-                {
-                    picture.Opacity = 0.8f;
-                }
-            }
-
             Picture slot = GetPicture(type);
             if (slot != null)
             {
@@ -320,8 +312,6 @@ namespace Despicaville.Menus
                     {
                         GameUtil.Examine(this, slot.Name);
                     }
-
-                    slot.Opacity = 1;
 
                     Picture highlight = GetPicture("Highlight");
                     highlight.Region = slot.Region;
@@ -337,14 +327,6 @@ namespace Despicaville.Menus
             bool found = false;
             bool open_container = false;
             using_item = false;
-
-            foreach (Picture picture in Pictures)
-            {
-                if (picture.Name.Contains("Slot"))
-                {
-                    picture.Opacity = 0.8f;
-                }
-            }
 
             Character player = Handler.GetPlayer();
             if (player != null)
@@ -606,94 +588,148 @@ namespace Despicaville.Menus
         {
             Character player = Handler.GetPlayer();
 
-            if (Inventories.Count > 0)
+            Item item = null;
+            Inventory item_inventory = null;
+
+            bool equipped = false;
+
+            foreach (Item existing in player.Inventory.Items)
             {
-                Item item = null;
-                Inventory item_inventory = null;
-
-                bool equipped = false;
-
-                foreach (Item existing in player.Inventory.Items)
+                if (existing.ID == selected_Item)
                 {
-                    if (existing.ID == selected_Item)
-                    {
-                        item = existing;
-                        item_inventory = player.Inventory;
-                        equipped = existing.Equipped;
-                        break;
-                    }
+                    item = existing;
+                    item_inventory = player.Inventory;
+                    equipped = existing.Equipped;
+                    break;
                 }
+            }
 
-                if (item_inventory == null &&
-                    item == null)
+            if (item_inventory == null &&
+                item == null)
+            {
+                foreach (Inventory inventory in Inventories)
                 {
-                    foreach (Inventory inventory in Inventories)
-                    {
-                        foreach (Item existing in inventory.Items)
-                        {
-                            if (existing.ID == selected_Item)
-                            {
-                                item = existing;
-                                item_inventory = inventory;
-                                equipped = existing.Equipped;
-                                break;
-                            }
-                        }
-
-                        if (item != null)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                if (item_inventory == null &&
-                    item == null &&
-                    other_inventory != null)
-                {
-                    foreach (Item existing in other_inventory.Items)
+                    foreach (Item existing in inventory.Items)
                     {
                         if (existing.ID == selected_Item)
                         {
                             item = existing;
-                            item_inventory = other_inventory;
+                            item_inventory = inventory;
+                            equipped = existing.Equipped;
                             break;
                         }
                     }
+
+                    if (item != null)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (item_inventory == null &&
+                item == null &&
+                other_inventory != null)
+            {
+                foreach (Item existing in other_inventory.Items)
+                {
+                    if (existing.ID == selected_Item)
+                    {
+                        item = existing;
+                        item_inventory = other_inventory;
+                        break;
+                    }
+                }
+            }
+
+            if (item != null)
+            {
+                bool found_grid = HoveringGrid();
+                bool found_slot = FoundSlot();
+                if (!found_slot &&
+                    !found_grid)
+                {
+                    GetPicture("Highlight").Visible = false;
                 }
 
-                if (item != null)
+                if (InputManager.Mouse_LB_Held)
                 {
-                    bool found_grid = HoveringGrid();
-                    bool found_slot = FoundSlot();
-                    if (!found_slot &&
-                        !found_grid)
-                    {
-                        GetPicture("Highlight").Visible = false;
-                    }
+                    item.Icon_Region = new Region(InputManager.Mouse.X - (Main.Game.MenuSize_X / 2), InputManager.Mouse.Y - (Main.Game.MenuSize_Y / 2), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+                }
+                else
+                {
+                    moving = false;
 
-                    if (InputManager.Mouse_LB_Held)
+                    if (equipped)
                     {
-                        item.Icon_Region = new Region(InputManager.Mouse.X - (Main.Game.MenuSize_X / 2), InputManager.Mouse.Y - (Main.Game.MenuSize_Y / 2), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-                    }
-                    else
-                    {
-                        moving = false;
-
-                        if (equipped)
+                        if (!found_grid)
                         {
-                            if (!found_grid)
-                            {
-                                selected_Item = 0;
-                                item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
+                            selected_Item = 0;
+                            item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
 
-                                LoadInventories();
+                            LoadInventories();
+                        }
+                        else
+                        {
+                            bool found = false;
+
+                            foreach (Picture grid in GridList)
+                            {
+                                if (InputManager.MouseWithin(grid.Region.ToRectangle))
+                                {
+                                    Inventory existing = InventoryUtil.GetInventory_FromGrid(grid);
+                                    if (existing != null)
+                                    {
+                                        found = true;
+
+                                        bool slot_empty = true;
+
+                                        foreach (Item existing_item in existing.Items)
+                                        {
+                                            if (existing_item.Location.X == grid.Location.X &&
+                                                existing_item.Location.Y == grid.Location.Y)
+                                            {
+                                                slot_empty = false;
+                                                break;
+                                            }
+                                        }
+
+                                        if (slot_empty)
+                                        {
+                                            item.Equipped = false;
+                                            item.Location = new Location(grid.Location.X, grid.Location.Y, 0);
+                                            item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
+
+                                            selected_Item = 0;
+
+                                            InventoryUtil.TransferItem(Handler.GetPlayer().Inventory, existing, item);
+
+                                            Picture slot = GetPicture(item.Assignment);
+                                            if (slot != null)
+                                            {
+                                                item.Assignment = "";
+                                                ResetSlot(slot);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            selected_Item = 0;
+                                            item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        selected_Item = 0;
+                                        item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
+                                    }
+
+                                    break;
+                                }
                             }
-                            else
-                            {
-                                bool found = false;
 
-                                foreach (Picture grid in GridList)
+                            if (!found)
+                            {
+                                foreach (Picture grid in Other_GridList)
                                 {
                                     if (InputManager.MouseWithin(grid.Region.ToRectangle))
                                     {
@@ -746,78 +782,76 @@ namespace Despicaville.Menus
                                         break;
                                     }
                                 }
-
-                                if (!found)
-                                {
-                                    foreach (Picture grid in Other_GridList)
-                                    {
-                                        if (InputManager.MouseWithin(grid.Region.ToRectangle))
-                                        {
-                                            Inventory existing = InventoryUtil.GetInventory_FromGrid(grid);
-                                            if (existing != null)
-                                            {
-                                                found = true;
-
-                                                bool slot_empty = true;
-
-                                                foreach (Item existing_item in existing.Items)
-                                                {
-                                                    if (existing_item.Location.X == grid.Location.X &&
-                                                        existing_item.Location.Y == grid.Location.Y)
-                                                    {
-                                                        slot_empty = false;
-                                                        break;
-                                                    }
-                                                }
-
-                                                if (slot_empty)
-                                                {
-                                                    item.Equipped = false;
-                                                    item.Location = new Location(grid.Location.X, grid.Location.Y, 0);
-                                                    item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
-
-                                                    selected_Item = 0;
-
-                                                    InventoryUtil.TransferItem(Handler.GetPlayer().Inventory, existing, item);
-
-                                                    Picture slot = GetPicture(item.Assignment);
-                                                    if (slot != null)
-                                                    {
-                                                        item.Assignment = "";
-                                                        ResetSlot(slot);
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    selected_Item = 0;
-                                                    item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
-                                                }
-                                            }
-                                            else
-                                            {
-                                                selected_Item = 0;
-                                                item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
-                                            }
-
-                                            break;
-                                        }
-                                    }
-                                }
                             }
                         }
-                        else
+                    }
+                    else
+                    {
+                        if (!found_slot &&
+                            !found_grid)
                         {
-                            if (!found_slot &&
-                                !found_grid)
-                            {
-                                selected_Item = 0;
-                                item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
-                            }
-                            else if (found_grid)
-                            {
-                                bool found = false;
+                            selected_Item = 0;
+                            item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
+                        }
+                        else if (found_grid)
+                        {
+                            bool found = false;
 
-                                foreach (Picture grid in GridList)
+                            foreach (Picture grid in GridList)
+                            {
+                                if (InputManager.MouseWithin(grid.Region.ToRectangle))
+                                {
+                                    found = true;
+
+                                    Inventory existing = InventoryUtil.GetInventory_FromGrid(grid);
+                                    if (existing != null)
+                                    {
+                                        string[] properties = grid.Name.Split(';');
+                                        string[] coords = properties[1].Split(',');
+                                        string[] x_coord = coords[0].Split(':');
+                                        string[] y_coord = coords[1].Split(':');
+
+                                        int x = int.Parse(x_coord[1]);
+                                        int y = int.Parse(y_coord[1]);
+
+                                        bool slot_empty = true;
+
+                                        foreach (Item existing_item in existing.Items)
+                                        {
+                                            if (existing_item.Location.X == x &&
+                                                existing_item.Location.Y == y)
+                                            {
+                                                slot_empty = false;
+                                                break;
+                                            }
+                                        }
+
+                                        if (slot_empty)
+                                        {
+                                            item.Location = new Location(x, y, 0);
+                                            item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
+
+                                            selected_Item = 0;
+
+                                            if (existing.ID != item_inventory.ID)
+                                            {
+                                                InventoryUtil.TransferItem(item_inventory, existing, item);
+                                            }
+                                        }
+                                        else
+                                        {
+                                            selected_Item = 0;
+                                            item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
+                                        }
+                                    }
+
+                                    break;
+                                }
+                            }
+
+                            if (!found)
+                            {
+                                foreach (Picture grid in Other_GridList)
                                 {
                                     if (InputManager.MouseWithin(grid.Region.ToRectangle))
                                     {
@@ -868,150 +902,95 @@ namespace Despicaville.Menus
                                         break;
                                     }
                                 }
+                            }
+                        }
+                        else if (found_slot)
+                        {
+                            Picture slot = null;
 
-                                if (!found)
+                            if (item.Type == "Gloves")
+                            {
+                                if (HoveringSlot("Right Glove Slot") &&
+                                    item.Name.Contains("Right"))
                                 {
-                                    foreach (Picture grid in Other_GridList)
-                                    {
-                                        if (InputManager.MouseWithin(grid.Region.ToRectangle))
-                                        {
-                                            found = true;
-
-                                            Inventory existing = InventoryUtil.GetInventory_FromGrid(grid);
-                                            if (existing != null)
-                                            {
-                                                string[] properties = grid.Name.Split(';');
-                                                string[] coords = properties[1].Split(',');
-                                                string[] x_coord = coords[0].Split(':');
-                                                string[] y_coord = coords[1].Split(':');
-
-                                                int x = int.Parse(x_coord[1]);
-                                                int y = int.Parse(y_coord[1]);
-
-                                                bool slot_empty = true;
-
-                                                foreach (Item existing_item in existing.Items)
-                                                {
-                                                    if (existing_item.Location.X == x &&
-                                                        existing_item.Location.Y == y)
-                                                    {
-                                                        slot_empty = false;
-                                                        break;
-                                                    }
-                                                }
-
-                                                if (slot_empty)
-                                                {
-                                                    item.Location = new Location(x, y, 0);
-                                                    item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
-
-                                                    selected_Item = 0;
-
-                                                    if (existing.ID != item_inventory.ID)
-                                                    {
-                                                        InventoryUtil.TransferItem(item_inventory, existing, item);
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    selected_Item = 0;
-                                                    item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
-                                                }
-                                            }
-
-                                            break;
-                                        }
-                                    }
+                                    slot = GetPicture("Right Glove Slot");
+                                }
+                                else if (HoveringSlot("Left Glove Slot") &&
+                                         item.Name.Contains("Left"))
+                                {
+                                    slot = GetPicture("Left Glove Slot");
                                 }
                             }
-                            else if (found_slot)
+                            else if (item.Type == "Weapon" ||
+                                     item.Type == "Tool" ||
+                                     item.Name.Contains("Bag") ||
+                                     item.Name == "Basket" ||
+                                     item.Name == "Briefcase" ||
+                                     item.Name == "Purse" ||
+                                     item.Name == "Cooler" ||
+                                     item.Name == "First Aid Kit")
                             {
-                                Picture slot = null;
-
-                                if (item.Type == "Gloves")
+                                if (HoveringSlot("Right Weapon Slot"))
                                 {
-                                    if (HoveringSlot("Right Glove Slot") &&
-                                        item.Name.Contains("Right"))
+                                    slot = GetPicture("Right Weapon Slot");
+                                }
+                                else if (HoveringSlot("Left Weapon Slot"))
+                                {
+                                    slot = GetPicture("Left Weapon Slot");
+                                }
+                            }
+                            else if (item.Name.Contains("Backpack") ||
+                                     item.Name == "Quiver" ||
+                                     item.Type == "Back")
+                            {
+                                if (HoveringSlot("Backpack Slot"))
+                                {
+                                    slot = GetPicture("Backpack Slot");
+                                }
+                            }
+                            else if (HoveringSlot(item.Type + " Slot"))
+                            {
+                                slot = GetPicture(item.Type + " Slot");
+                            }
+
+                            if (slot != null)
+                            {
+                                bool slot_empty = true;
+
+                                foreach (Item existing in player.Inventory.Items)
+                                {
+                                    if (existing.Equipped &&
+                                        existing.Assignment == slot.Name)
                                     {
-                                        slot = GetPicture("Right Glove Slot");
-                                    }
-                                    else if (HoveringSlot("Left Glove Slot") &&
-                                             item.Name.Contains("Left"))
-                                    {
-                                        slot = GetPicture("Left Glove Slot");
+                                        slot_empty = false;
+                                        break;
                                     }
                                 }
-                                else if (item.Type == "Weapon" ||
-                                         item.Type == "Tool" ||
-                                         item.Name.Contains("Bag") ||
-                                         item.Name == "Basket" ||
-                                         item.Name == "Briefcase" ||
-                                         item.Name == "Purse" ||
-                                         item.Name == "Cooler" ||
-                                         item.Name == "First Aid Kit")
+
+                                if (slot_empty)
                                 {
-                                    if (HoveringSlot("Right Weapon Slot"))
-                                    {
-                                        slot = GetPicture("Right Weapon Slot");
-                                    }
-                                    else if (HoveringSlot("Left Weapon Slot"))
-                                    {
-                                        slot = GetPicture("Left Weapon Slot");
-                                    }
-                                }
-                                else if (item.Name.Contains("Backpack") ||
-                                         item.Name == "Quiver" ||
-                                         item.Type == "Back")
-                                {
-                                    if (HoveringSlot("Backpack Slot"))
-                                    {
-                                        slot = GetPicture("Backpack Slot");
-                                    }
-                                }
-                                else if (HoveringSlot(item.Type + " Slot"))
-                                {
-                                    slot = GetPicture(item.Type + " Slot");
-                                }
+                                    item.Equipped = true;
+                                    item.Icon_Region = new Region(slot.Region.X, slot.Region.Y, slot.Region.Width, slot.Region.Height);
+                                    item.Assignment = slot.Name;
 
-                                if (slot != null)
-                                {
-                                    bool slot_empty = true;
+                                    selected_Item = 0;
 
-                                    foreach (Item existing in player.Inventory.Items)
-                                    {
-                                        if (existing.Equipped &&
-                                            existing.Assignment == slot.Name)
-                                        {
-                                            slot_empty = false;
-                                            break;
-                                        }
-                                    }
+                                    InventoryUtil.TransferItem(item_inventory, player.Inventory, item);
 
-                                    if (slot_empty)
-                                    {
-                                        item.Equipped = true;
-                                        item.Icon_Region = new Region(slot.Region.X, slot.Region.Y, slot.Region.Width, slot.Region.Height);
-                                        item.Assignment = slot.Name;
+                                    slot.Texture = AssetManager.Textures["Slot_Empty"];
 
-                                        selected_Item = 0;
-
-                                        InventoryUtil.TransferItem(item_inventory, player.Inventory, item);
-
-                                        slot.Texture = AssetManager.Textures["Slot_Empty"];
-
-                                        LoadInventories();
-                                    }
-                                    else
-                                    {
-                                        selected_Item = 0;
-                                        item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
-                                    }
+                                    LoadInventories();
                                 }
                                 else
                                 {
                                     selected_Item = 0;
                                     item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
                                 }
+                            }
+                            else
+                            {
+                                selected_Item = 0;
+                                item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
                             }
                         }
                     }
@@ -1319,7 +1298,9 @@ namespace Despicaville.Menus
                     equip.Icon_Region = new Region(slot_pic.Region.X, slot_pic.Region.Y, slot_pic.Region.Width, slot_pic.Region.Height);
                     equip.Icon_Image = new Rectangle(0, 0, equip.Icon.Width, equip.Icon.Height);
                     equip.Icon_Visible = true;
-                    slot_pic.Texture = AssetManager.Textures["Slot_Empty"];
+
+                    slot_pic.Texture = AssetManager.Textures["Grid"];
+                    slot_pic.Image = new Rectangle(0, 0, slot_pic.Texture.Width, slot_pic.Texture.Height);
                 }
             }
         }

@@ -923,7 +923,7 @@ namespace Despicaville.Util
             }
             else if (name == "Brown")
             {
-                return new Color(66, 50, 50, 255);
+                return new Color(95, 80, 80, 255);
             }
             else if (name == "Cyan")
             {
