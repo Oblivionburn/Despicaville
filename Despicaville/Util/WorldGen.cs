@@ -1260,7 +1260,6 @@ namespace Despicaville.Util
 
         public static void GenTown()
         {
-            Handler.MiddleFurniture.Clear();
             Handler.TopFurniture.Clear();
             Handler.OwnedFurniture.Clear();
             Handler.light_sources.Clear();
@@ -1663,16 +1662,29 @@ namespace Despicaville.Util
             {
                 new_tile.BlocksMovement = true;
 
-                if (new_tile.Name.Contains("Lamp") ||
-                    new_tile.Name.Contains("StreetLight"))
+                if (new_tile.Name.Contains("StreetLight"))
                 {
                     new_tile.IsLightSource = true;
                     Handler.light_sources.Add(new Point((int)new_tile.Location.X, (int)new_tile.Location.Y));
                 }
-                else if (new_tile.Name.Contains("TV"))
+                else if (new_tile.Name.Contains("Lamp") ||
+                         new_tile.Name.Contains("TV"))
                 {
+                    new_tile.CanMove = true;
+                    new_tile.IsLightSource = true;
                     Handler.light_sources.Add(new Point((int)new_tile.Location.X, (int)new_tile.Location.Y));
                 }
+            }
+            else if (new_tile.Name.Contains("Chair") ||
+                     new_tile.Name.Contains("Bench") ||
+                     new_tile.Name.Contains("Bookshelf") ||
+                     new_tile.Name.Contains("ComputerDesk") ||
+                     new_tile.Name.Contains("Couch") ||
+                     new_tile.Name.Contains("Dresser") ||
+                     new_tile.Name.Contains("Loveseat") ||
+                     new_tile.Name.Contains("NiceChair"))
+            {
+                new_tile.CanMove = true;
             }
             else if (new_tile.Name.Contains("Door"))
             {
@@ -1734,11 +1746,7 @@ namespace Despicaville.Util
                 InventoryManager.Inventories.Add(new_tile.Inventory);
             }
 
-            if (layer.Name == "MiddleTiles")
-            {
-                Handler.MiddleFurniture.Add(new_tile);
-            }
-            else if (layer.Name == "TopTiles")
+            if (layer.Name == "TopTiles")
             {
                 Handler.TopFurniture.Add(new_tile);
             }

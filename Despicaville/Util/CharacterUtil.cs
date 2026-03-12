@@ -747,6 +747,212 @@ namespace Despicaville.Util
             }
         }
 
+        public static void MovePlayer()
+        {
+            Character player = Handler.GetPlayer();
+            Something heldThing = WorldUtil.GetHeldThing(player);
+
+            if (player.Moving &&
+                player.Region != null)
+            {
+                if (player.Destination.X > player.Location.X)
+                {
+                    player.Region.X += player.Speed;
+                    player.Moved += player.Speed;
+
+                    if (heldThing != null)
+                    {
+                        if (heldThing.Location.Y == player.Location.Y)
+                        {
+                            heldThing.Region.X += player.Speed;
+                        }
+                        else if (heldThing.Location.Y < player.Location.Y)
+                        {
+                            heldThing.Region.Y += player.Speed;
+                        }
+                        else if (heldThing.Location.Y > player.Location.Y)
+                        {
+                            heldThing.Region.Y -= player.Speed;
+                        }
+                    }
+
+                    if (player.Moved == player.Move_TotalDistance)
+                    {
+                        player.Location.X++;
+
+                        if (heldThing != null)
+                        {
+                            WorldUtil.MoveHeldThing(player, Direction.East, heldThing.Region.X < player.Region.X);
+                        }
+
+                        player.Moved = 0;
+                        player.Moving = false;
+                        player.Animator.Reset(player);
+                    }
+                    else
+                    {
+                        for (int i = 1; i <= player.Animator.Frames; i++)
+                        {
+                            if (player.Moved == (player.Move_TotalDistance / player.Animator.Frames) * i)
+                            {
+                                player.Animator.Animate(player);
+                                break;
+                            }
+                        }
+                    }
+                }
+                else if (player.Destination.X < player.Location.X)
+                {
+                    player.Region.X -= player.Speed;
+                    player.Moved += player.Speed;
+
+                    if (heldThing != null)
+                    {
+                        if (heldThing.Location.Y == player.Location.Y)
+                        {
+                            heldThing.Region.X -= player.Speed;
+                        }
+                        else if (heldThing.Location.Y < player.Location.Y)
+                        {
+                            heldThing.Region.Y += player.Speed;
+                        }
+                        else if (heldThing.Location.Y > player.Location.Y)
+                        {
+                            heldThing.Region.Y -= player.Speed;
+                        }
+                    }
+
+                    if (player.Moved == player.Move_TotalDistance)
+                    {
+                        player.Location.X--;
+
+                        if (heldThing != null)
+                        {
+                            WorldUtil.MoveHeldThing(player, Direction.West, heldThing.Region.X > player.Region.X);
+                        }
+
+                        player.Moved = 0;
+                        player.Moving = false;
+                        player.Animator.Reset(player);
+                    }
+                    else
+                    {
+                        for (int i = 1; i <= player.Animator.Frames; i++)
+                        {
+                            if (player.Moved == (player.Move_TotalDistance / player.Animator.Frames) * i)
+                            {
+                                player.Animator.Animate(player);
+                                break;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (player.Destination.Y > player.Location.Y)
+                    {
+                        player.Region.Y += player.Speed;
+                        player.Moved += player.Speed;
+
+                        if (heldThing != null)
+                        {
+                            if (heldThing.Location.X == player.Location.X)
+                            {
+                                heldThing.Region.Y += player.Speed;
+                            }
+                            else if (heldThing.Location.X < player.Location.X)
+                            {
+                                heldThing.Region.X += player.Speed;
+                            }
+                            else if (heldThing.Location.X > player.Location.X)
+                            {
+                                heldThing.Region.X -= player.Speed;
+                            }
+                        }
+
+                        if (player.Moved == player.Move_TotalDistance)
+                        {
+                            player.Location.Y++;
+
+                            if (heldThing != null)
+                            {
+                                WorldUtil.MoveHeldThing(player, Direction.South, heldThing.Region.Y < player.Region.Y);
+                            }
+
+                            player.Moved = 0;
+                            player.Moving = false;
+                            player.Animator.Reset(player);
+                        }
+                        else
+                        {
+                            for (int i = 1; i <= player.Animator.Frames; i++)
+                            {
+                                if (player.Moved == (player.Move_TotalDistance / player.Animator.Frames) * i)
+                                {
+                                    player.Animator.Animate(player);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else if (player.Destination.Y < player.Location.Y)
+                    {
+                        player.Region.Y -= player.Speed;
+                        player.Moved += player.Speed;
+
+                        if (heldThing != null)
+                        {
+                            if (heldThing.Location.X == player.Location.X)
+                            {
+                                heldThing.Region.Y -= player.Speed;
+                            }
+                            else if (heldThing.Location.X < player.Location.X)
+                            {
+                                heldThing.Region.X += player.Speed;
+                            }
+                            else if (heldThing.Location.X > player.Location.X)
+                            {
+                                heldThing.Region.X -= player.Speed;
+                            }
+                        }
+
+                        if (player.Moved == player.Move_TotalDistance)
+                        {
+                            player.Location.Y--;
+
+                            if (heldThing != null)
+                            {
+                                WorldUtil.MoveHeldThing(player, Direction.North, heldThing.Region.Y > player.Region.Y);
+                            }
+
+                            player.Moved = 0;
+                            player.Moving = false;
+                            player.Animator.Reset(player);
+                        }
+                        else
+                        {
+                            for (int i = 1; i <= player.Animator.Frames; i++)
+                            {
+                                if (player.Moved == (player.Move_TotalDistance / player.Animator.Frames) * i)
+                                {
+                                    player.Animator.Animate(player);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        player.Moved = 0;
+                        player.Moving = false;
+                        player.Animator.Reset(player);
+                    }
+                }
+            }
+
+            player.Animator.Update(player);
+        }
+
         public static void UpdateSight(Character character)
         {
             Handler.VisibleTiles.Remove(character.ID);
@@ -1000,6 +1206,17 @@ namespace Despicaville.Util
             }
 
             return his_her;
+        }
+
+        public static bool HeldByPlayer(Character character)
+        {
+            Something holding = Handler.GetPlayer().GetStatusEffect("Holding");
+            if (holding?.ID == character.ID)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static float UpdatePain(Character character)

@@ -24,19 +24,19 @@ namespace Despicaville.Menus
         List<Picture> GridList = new List<Picture>();
         List<Picture> Other_GridList = new List<Picture>();
 
-        private bool using_item;
+        bool using_item;
 
-        private bool moving;
-        private Rectangle starting_pos;
-        private long selected_Item;
+        bool moving;
+        Rectangle starting_pos;
+        Item selected_Item;
 
         List<Inventory> Inventories = new List<Inventory>();
-        private int inventory_y;
-        private int inventory_x;
+        int inventory_y;
+        int inventory_x;
 
         Inventory other_inventory;
-        private int other_inventory_y;
-        private int other_inventory_x;
+        int other_inventory_y;
+        int other_inventory_x;
 
         #endregion
 
@@ -145,6 +145,11 @@ namespace Despicaville.Menus
                         label.Draw(spriteBatch);
                         break;
                     }
+                }
+
+                if (selected_Item != null)
+                {
+                    spriteBatch.Draw(selected_Item.Icon, selected_Item.Icon_Region.ToRectangle, selected_Item.Icon_Image, selected_Item.Icon_DrawColor);
                 }
             }
         }
@@ -350,7 +355,7 @@ namespace Despicaville.Menus
                             {
                                 moving = true;
                                 starting_pos = item.Icon_Region.ToRectangle;
-                                selected_Item = item.ID;
+                                selected_Item = item;
 
                                 if (item.Equipped &&
                                     InventoryUtil.IsContainer(item))
@@ -419,7 +424,7 @@ namespace Despicaville.Menus
                             {
                                 moving = true;
                                 starting_pos = item.Icon_Region.ToRectangle;
-                                selected_Item = item.ID;
+                                selected_Item = item;
 
                                 if (item.Equipped &&
                                     InventoryUtil.IsContainer(item))
@@ -516,7 +521,7 @@ namespace Despicaville.Menus
                             {
                                 moving = true;
                                 starting_pos = item.Icon_Region.ToRectangle;
-                                selected_Item = item.ID;
+                                selected_Item = item;
                             }
                             else if (InputManager.Mouse_RB_Pressed)
                             {
@@ -595,7 +600,7 @@ namespace Despicaville.Menus
 
             foreach (Item existing in player.Inventory.Items)
             {
-                if (existing.ID == selected_Item)
+                if (existing.ID == selected_Item?.ID)
                 {
                     item = existing;
                     item_inventory = player.Inventory;
@@ -611,7 +616,7 @@ namespace Despicaville.Menus
                 {
                     foreach (Item existing in inventory.Items)
                     {
-                        if (existing.ID == selected_Item)
+                        if (existing.ID == selected_Item?.ID)
                         {
                             item = existing;
                             item_inventory = inventory;
@@ -633,7 +638,7 @@ namespace Despicaville.Menus
             {
                 foreach (Item existing in other_inventory.Items)
                 {
-                    if (existing.ID == selected_Item)
+                    if (existing.ID == selected_Item?.ID)
                     {
                         item = existing;
                         item_inventory = other_inventory;
@@ -664,7 +669,7 @@ namespace Despicaville.Menus
                     {
                         if (!found_grid)
                         {
-                            selected_Item = 0;
+                            selected_Item = null;
                             item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
 
                             LoadInventories();
@@ -700,7 +705,7 @@ namespace Despicaville.Menus
                                             item.Location = new Location(grid.Location.X, grid.Location.Y, 0);
                                             item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
 
-                                            selected_Item = 0;
+                                            selected_Item = null;
 
                                             InventoryUtil.TransferItem(Handler.GetPlayer().Inventory, existing, item);
 
@@ -713,13 +718,13 @@ namespace Despicaville.Menus
                                         }
                                         else
                                         {
-                                            selected_Item = 0;
+                                            selected_Item = null;
                                             item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
                                         }
                                     }
                                     else
                                     {
-                                        selected_Item = 0;
+                                        selected_Item = null;
                                         item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
                                     }
 
@@ -756,7 +761,7 @@ namespace Despicaville.Menus
                                                 item.Location = new Location(grid.Location.X, grid.Location.Y, 0);
                                                 item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
 
-                                                selected_Item = 0;
+                                                selected_Item = null;
 
                                                 InventoryUtil.TransferItem(Handler.GetPlayer().Inventory, existing, item);
 
@@ -769,13 +774,13 @@ namespace Despicaville.Menus
                                             }
                                             else
                                             {
-                                                selected_Item = 0;
+                                                selected_Item = null;
                                                 item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
                                             }
                                         }
                                         else
                                         {
-                                            selected_Item = 0;
+                                            selected_Item = null;
                                             item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
                                         }
 
@@ -790,7 +795,7 @@ namespace Despicaville.Menus
                         if (!found_slot &&
                             !found_grid)
                         {
-                            selected_Item = 0;
+                            selected_Item = null;
                             item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
                         }
                         else if (found_grid)
@@ -831,7 +836,7 @@ namespace Despicaville.Menus
                                             item.Location = new Location(x, y, 0);
                                             item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
 
-                                            selected_Item = 0;
+                                            selected_Item = null;
 
                                             if (existing.ID != item_inventory.ID)
                                             {
@@ -840,7 +845,7 @@ namespace Despicaville.Menus
                                         }
                                         else
                                         {
-                                            selected_Item = 0;
+                                            selected_Item = null;
                                             item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
                                         }
                                     }
@@ -885,7 +890,7 @@ namespace Despicaville.Menus
                                                 item.Location = new Location(x, y, 0);
                                                 item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
 
-                                                selected_Item = 0;
+                                                selected_Item = null;
 
                                                 if (existing.ID != item_inventory.ID)
                                                 {
@@ -894,7 +899,7 @@ namespace Despicaville.Menus
                                             }
                                             else
                                             {
-                                                selected_Item = 0;
+                                                selected_Item = null;
                                                 item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
                                             }
                                         }
@@ -973,7 +978,7 @@ namespace Despicaville.Menus
                                     item.Icon_Region = new Region(slot.Region.X, slot.Region.Y, slot.Region.Width, slot.Region.Height);
                                     item.Assignment = slot.Name;
 
-                                    selected_Item = 0;
+                                    selected_Item = null;
 
                                     InventoryUtil.TransferItem(item_inventory, player.Inventory, item);
 
@@ -983,13 +988,13 @@ namespace Despicaville.Menus
                                 }
                                 else
                                 {
-                                    selected_Item = 0;
+                                    selected_Item = null;
                                     item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
                                 }
                             }
                             else
                             {
-                                selected_Item = 0;
+                                selected_Item = null;
                                 item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
                             }
                         }
@@ -1115,7 +1120,7 @@ namespace Despicaville.Menus
             Clear_Inventory_Grids();
             Inventories.Clear();
 
-            selected_Item = 0;
+            selected_Item = null;
             other_inventory = null;
             
             if (!using_item)
@@ -1125,6 +1130,7 @@ namespace Despicaville.Menus
             }
 
             InputManager.Keyboard.Flush();
+            InputManager.Mouse.Flush();
             TimeManager.Paused = false;
             Visible = false;
             Active = false;
@@ -1191,7 +1197,7 @@ namespace Despicaville.Menus
                 {
                     if (item.Equipped &&
                         InventoryUtil.IsContainer(item) &&
-                        item.ID != selected_Item)
+                        item.ID != selected_Item?.ID)
                     {
                         Inventories.Add(item.Inventory);
                     }
@@ -1525,7 +1531,7 @@ namespace Despicaville.Menus
                         int Y;
                         if (inventory.Max_Value / 7 >= 1)
                         {
-                            Y = (int)inventory.Max_Value / 7;
+                            Y = (int)Math.Ceiling(inventory.Max_Value / 7);
                         }
                         else
                         {

@@ -390,6 +390,7 @@ namespace Despicaville.Scenes
         private void UpdatePlayerControls(Character player)
         {
             bool mouse_in_view = false;
+            bool turning = false;
 
             Menu ui = MenuManager.GetMenu("UI");
             Picture world_view = ui.GetPicture("Panel_Upper_Center");
@@ -398,115 +399,163 @@ namespace Despicaville.Scenes
                 mouse_in_view = true;
             }
 
+            Something holdingStatus = player.GetStatusEffect("Holding");
+
             if (player.Job.Tasks.Count == 0)
             {
                 #region Move
 
-                Task task = new Task();
-                task.OwnerIDs.Add(player.ID);
-                task.Started = true;
-                task.StartTime = TimeManager.Now;
-
-                task.Name = "Walk";
-                if (InputManager.KeyDown("Run"))
+                string speed = "Walk";
+                if (InputManager.KeyDown("Run") &&
+                    holdingStatus == null)
                 {
-                    task.Name = "Run";
+                    speed = "Run";
                 }
                 else if (InputManager.KeyDown("Crouch"))
                 {
-                    task.Name = "Sneak";
+                    speed = "Sneak";
                 }
 
                 if (InputManager.KeyDown("Up"))
                 {
-                    task.Direction = Direction.Up;
+                    Tasker.AddTask(player, speed, true, false, null, default, Direction.Up);
                 }
                 else if (InputManager.KeyDown("Right"))
                 {
-                    task.Direction = Direction.Right;
+                    Tasker.AddTask(player, speed, true, false, null, default, Direction.Right);
                 }
                 else if (InputManager.KeyDown("Down"))
                 {
-                    task.Direction = Direction.Down;
+                    Tasker.AddTask(player, speed, true, false, null, default, Direction.Down);
                 }
                 else if (InputManager.KeyDown("Left"))
                 {
-                    task.Direction = Direction.Left;
-                }
-
-                if (task.Direction != Direction.Nowhere)
-                {
-                    player.Job.Tasks.Add(task);
+                    Tasker.AddTask(player, speed, true, false, null, default, Direction.Left);
                 }
 
                 #endregion
-            }
 
-            if (player.Job.Tasks.Count == 0 &&
-                mouse_in_view &&
-                InputManager.Mouse.LB_Held)
-            {
-                #region Turn
-
-                Task task = new Task();
-                task.Name = "Turn";
-                task.OwnerIDs.Add(player.ID);
-                task.Keep_On_Completed = true;
-                task.StartTime = new TimeHandler(TimeManager.Now);
-                task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(player)));
-
-                int x_diff = (int)Math.Abs(InputManager.Mouse.X - (player.Region.X + (player.Region.Width / 2)));
-                int y_diff = (int)Math.Abs(InputManager.Mouse.Y - (player.Region.Y + (player.Region.Height / 2)));
-
-                if (x_diff > y_diff)
+                if (mouse_in_view &&
+                    InputManager.Mouse.LB_Held)
                 {
-                    if (InputManager.Mouse.X <= player.Region.X + (player.Region.Width / 2))
+                    #region Turn
+
+                    Task task = new Task();
+                    task.Name = "Turn";
+                    task.OwnerIDs.Add(player.ID);
+                    task.Keep_On_Completed = true;
+                    task.StartTime = new TimeHandler(TimeManager.Now);
+                    task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(player)));
+
+                    int x_diff = (int)Math.Abs(InputManager.Mouse.X - (player.Region.X + (player.Region.Width / 2)));
+                    int y_diff = (int)Math.Abs(InputManager.Mouse.Y - (player.Region.Y + (player.Region.Height / 2)));
+
+                    if (x_diff > y_diff)
                     {
-                        if (player.Direction != Direction.Left)
+                        if (InputManager.Mouse.X <= player.Region.X + (player.Region.Width / 2))
                         {
-                            task.Direction = Direction.Left;
+                            if (player.Direction != Direction.Left)
+                            {
+                                task.Direction = Direction.Left;
+                            }
+                        }
+                        else if (InputManager.Mouse.X > player.Region.X + (player.Region.Width / 2))
+                        {
+                            if (player.Direction != Direction.Right)
+                            {
+                                task.Direction = Direction.Right;
+                            }
                         }
                     }
-                    else if (InputManager.Mouse.X > player.Region.X + (player.Region.Width / 2))
+                    else
                     {
-                        if (player.Direction != Direction.Right)
+                        if (InputManager.Mouse.Y <= player.Region.Y + (player.Region.Height / 2))
                         {
-                            task.Direction = Direction.Right;
+                            if (player.Direction != Direction.Up)
+                            {
+                                task.Direction = Direction.Up;
+                            }
+                        }
+                        else if (InputManager.Mouse.Y > player.Region.Y + (player.Region.Height / 2))
+                        {
+                            if (player.Direction != Direction.Down)
+                            {
+                                task.Direction = Direction.Down;
+                            }
                         }
                     }
+
+                    if (task.Direction != Direction.Nowhere)
+                    {
+                        turning = true;
+                        player.Job.Tasks.Add(task);
+                    }
+
+                    #endregion
                 }
-                else
+
+                if (!turning &&
+                    InputManager.Mouse.LB_Pressed)
                 {
-                    if (InputManager.Mouse.Y <= player.Region.Y + (player.Region.Height / 2))
+                    #region Interact
+
+                    Vector2 location = new Vector2(-1, -1);
+                    if (player.Direction == Direction.Up)
                     {
-                        if (player.Direction != Direction.Up)
-                        {
-                            task.Direction = Direction.Up;
-                        }
+                        location = new Vector2(player.Location.X, player.Location.Y - 1);
                     }
-                    else if (InputManager.Mouse.Y > player.Region.Y + (player.Region.Height / 2))
+                    else if (player.Direction == Direction.Right)
                     {
-                        if (player.Direction != Direction.Down)
-                        {
-                            task.Direction = Direction.Down;
-                        }
+                        location = new Vector2(player.Location.X + 1, player.Location.Y);
                     }
+                    else if (player.Direction == Direction.Down)
+                    {
+                        location = new Vector2(player.Location.X, player.Location.Y + 1);
+                    }
+                    else if (player.Direction == Direction.Left)
+                    {
+                        location = new Vector2(player.Location.X - 1, player.Location.Y);
+                    }
+
+                    Map map = World.Maps[0];
+
+                    Layer bottom_tiles = map.GetLayer("BottomTiles");
+                    Layer middle_tiles = map.GetLayer("MiddleTiles");
+                    Layer top_tiles = map.GetLayer("TopTiles");
+                    Layer effect_tiles = map.GetLayer("EffectTiles");
+
+                    Tile bottom_tile = bottom_tiles.GetTile(location);
+                    Tile middle_tile = WorldUtil.GetFurniture(middle_tiles, new Location(location.X, location.Y, 0), false);
+                    Tile top_tile = top_tiles.GetTile(location);
+                    Tile effect_tile = effect_tiles.GetTile(location);
+
+                    Tile interaction_tile = null;
+                    if (effect_tile?.Texture != null)
+                    {
+                        interaction_tile = effect_tile;
+                    }
+                    else if (top_tile?.Texture != null)
+                    {
+                        interaction_tile = top_tile;
+                    }
+                    else if (middle_tile?.Texture != null)
+                    {
+                        interaction_tile = middle_tile;
+                    }
+                    else if (bottom_tile != null)
+                    {
+                        interaction_tile = bottom_tile;
+                    }
+
+                    Tasker.Interact(interaction_tile, player);
+
+                    #endregion
                 }
-
-                if (task.Direction != Direction.Nowhere)
-                {
-                    player.Job.Tasks.Add(task);
-                }
-
-                #endregion
-            }
-
-            if (player.Job.Tasks.Count == 0)
-            {
-                #region Wait
 
                 if (InputManager.KeyDown("Wait"))
                 {
+                    #region Wait
+
                     long time = Handler.ActionRate;
 
                     if (InputManager.KeyDown("Run"))
@@ -520,165 +569,184 @@ namespace Despicaville.Scenes
 
                     Tasker.AddTask(player, "Wait", true, false, TimeSpan.FromMilliseconds(time), default, 0);
                     TimeTracker.Tick(time);
+
+                    #endregion
                 }
 
-                #endregion
-            }
-
-            if (InputManager.KeyPressed("Interact") &&
-                player.Job.Tasks.Count == 0)
-            {
-                #region Interact
-
-                Vector3 location = default;
-                if (player.Direction == Direction.Up)
+                if (InputManager.Mouse_RB_Held)
                 {
-                    location = new Vector3(player.Location.X, player.Location.Y - 1, 0);
-                }
-                else if (player.Direction == Direction.Right)
-                {
-                    location = new Vector3(player.Location.X + 1, player.Location.Y, 0);
-                }
-                else if (player.Direction == Direction.Down)
-                {
-                    location = new Vector3(player.Location.X, player.Location.Y + 1, 0);
-                }
-                else if (player.Direction == Direction.Left)
-                {
-                    location = new Vector3(player.Location.X - 1, player.Location.Y, 0);
-                }
+                    #region Holding
 
-                Map block_map = WorldUtil.GetCurrentMap(player);
-
-                Map map = World.Maps[0];
-                Layer bottom_tiles = map.GetLayer("BottomTiles");
-                Layer middle_tiles = map.GetLayer("MiddleTiles");
-                Layer top_tiles = block_map.GetLayer("TopTiles");
-                Layer effect_tiles = map.GetLayer("EffectTiles");
-
-                Tile bottom_tile = bottom_tiles.GetTile(location);
-                Tile middle_tile = WorldUtil.GetFurniture("Middle", new Location(location.X, location.Y, 0));
-                Tile top_tile = WorldUtil.GetFurniture("Top", new Location(location.X, location.Y, 0));
-                Tile effect_tile = effect_tiles.GetTile(location);
-
-                Tile interaction_tile = null;
-                if (effect_tile?.Texture != null)
-                {
-                    interaction_tile = effect_tile;
-                }
-                else if (top_tile?.Texture != null)
-                {
-                    interaction_tile = top_tile;
-                }
-                else if (middle_tile?.Texture != null)
-                {
-                    interaction_tile = middle_tile;
-                }
-                else if (bottom_tile != null)
-                {
-                    interaction_tile = bottom_tile;
-                }
-
-                Tasker.Interact(interaction_tile, player);
-
-                #endregion
-            }
-
-            if (InputManager.Mouse_RB_Pressed &&
-                player.Job.Tasks.Count == 0)
-            {
-                #region Interaction Menu
-
-                Handler.Interaction_Character = null;
-                Handler.Interaction_Tile = null;
-
-                if (Handler.VisibleTiles.ContainsKey(player.ID))
-                {
-                    List<Tile> visible = Handler.VisibleTiles[player.ID];
-                    foreach (Tile tile in visible)
+                    if (holdingStatus == null &&
+                        InventoryUtil.HasEmptyHand(player))
                     {
-                        Vector2 location = new Vector2(tile.Location.X, tile.Location.Y);
-
-                        if (InputManager.MouseWithin(tile.Region.ToRectangle))
+                        Vector3 location = new Vector3(-1, -1, -1);
+                        if (player.Direction == Direction.Up)
                         {
-                            Army army = CharacterManager.GetArmy("Characters");
-                            Squad citizens = army.GetSquad("Citizens");
+                            location = new Vector3(player.Location.X, player.Location.Y - 1, 0);
+                        }
+                        else if (player.Direction == Direction.Right)
+                        {
+                            location = new Vector3(player.Location.X + 1, player.Location.Y, 0);
+                        }
+                        else if (player.Direction == Direction.Down)
+                        {
+                            location = new Vector3(player.Location.X, player.Location.Y + 1, 0);
+                        }
+                        else if (player.Direction == Direction.Left)
+                        {
+                            location = new Vector3(player.Location.X - 1, player.Location.Y, 0);
+                        }
 
-                            Character character = WorldUtil.MouseGetCharacter(citizens.Characters, tile.Location);
+                        bool holding = false;
 
+                        Army army = CharacterManager.GetArmy("Characters");
+                        Squad citizens = army.GetSquad("Citizens");
+
+                        Character character = WorldUtil.MouseGetCharacter(citizens.Characters, new Location(location.X, location.Y, 0));
+                        if (character != null)
+                        {
+                            holding = true;
+                            player.StatusEffects.Add(new Something
+                            {
+                                ID = character.ID,
+                                Name = "Holding"
+                            });
+                        }
+
+                        if (!holding)
+                        {
                             Map map = World.Maps[0];
-
-                            Layer bottom_tiles = map.GetLayer("BottomTiles");
                             Layer middle_tiles = map.GetLayer("MiddleTiles");
-                            Layer top_tiles = map.GetLayer("TopTiles");
-                            Layer effect_tiles = map.GetLayer("EffectTiles");
 
-                            Tile bottom_tile = bottom_tiles.GetTile(location);
-                            Tile middle_tile = WorldUtil.GetFurniture("Middle", tile.Location);
-                            Tile top_tile = top_tiles.GetTile(location);
-                            Tile effect_tile = effect_tiles.GetTile(location);
-
-                            if (InputManager.KeyDown("Crouch"))
+                            Tile middle_tile = WorldUtil.GetFurniture(middle_tiles, new Location(location.X, location.Y, 0), true);
+                            if (middle_tile != null)
                             {
-                                if (character != null)
+                                if (middle_tile.Texture != null &&
+                                    middle_tile.CanMove)
                                 {
-                                    Handler.Interaction_Character = character;
-                                }
-                                else if (effect_tile?.Texture != null)
-                                {
-                                    Handler.Interaction_Tile = effect_tile;
-                                }
-                                else if (top_tile?.Texture != null)
-                                {
-                                    //Get what's underneath
-                                    if (middle_tile?.Texture != null)
+                                    player.StatusEffects.Add(new Something
                                     {
-                                        Handler.Interaction_Tile = middle_tile;
-                                    }
-                                }
-                                else if (middle_tile?.Texture != null)
-                                {
-                                    Handler.Interaction_Tile = middle_tile;
-                                }
-                                else if (bottom_tile != null)
-                                {
-                                    Handler.Interaction_Tile = bottom_tile;
+                                        ID = middle_tile.ID,
+                                        Name = "Holding"
+                                    });
                                 }
                             }
-                            else
-                            {
-                                if (character != null)
-                                {
-                                    Handler.Interaction_Character = character;
-                                }
-                                else if (effect_tile?.Texture != null)
-                                {
-                                    Handler.Interaction_Tile = effect_tile;
-                                }
-                                else if (top_tile?.Texture != null)
-                                {
-                                    Handler.Interaction_Tile = top_tile;
-                                }
-                                else if (middle_tile?.Texture != null)
-                                {
-                                    Handler.Interaction_Tile = middle_tile;
-                                }
-                                else if (bottom_tile != null)
-                                {
-                                    Handler.Interaction_Tile = bottom_tile;
-                                }
-                            }
-
-                            Menu interact = MenuManager.GetMenu("Interact");
-                            interact.Load();
-                            interact.Open();
-
-                            break;
                         }
                     }
+                    else
+                    {
+                        Label label = ui.GetLabel("Holding");
+                        label.Opacity = 1;
+                        label.TextColor = Color.Lime;
+                    }
+
+                    #endregion
+                }
+                else if (holdingStatus != null)
+                {
+                    Label label = ui.GetLabel("Holding");
+                    label.Opacity = 0.6f;
+                    label.TextColor = Color.White;
+
+                    player.StatusEffects.Remove(holdingStatus);
                 }
 
-                #endregion
+                #region Interaction Menu
+                    /*
+                    if (InputManager.Mouse_RB_Pressed)
+                    {
+                        Handler.Interaction_Character = null;
+                        Handler.Interaction_Tile = null;
+
+                        if (Handler.VisibleTiles.ContainsKey(player.ID))
+                        {
+                            List<Tile> visible = Handler.VisibleTiles[player.ID];
+                            foreach (Tile tile in visible)
+                            {
+                                Vector2 location = new Vector2(tile.Location.X, tile.Location.Y);
+
+                                if (InputManager.MouseWithin(tile.Region.ToRectangle))
+                                {
+                                    Army army = CharacterManager.GetArmy("Characters");
+                                    Squad citizens = army.GetSquad("Citizens");
+
+                                    Character character = WorldUtil.MouseGetCharacter(citizens.Characters, tile.Location);
+
+                                    Map map = World.Maps[0];
+
+                                    Layer bottom_tiles = map.GetLayer("BottomTiles");
+                                    Layer middle_tiles = map.GetLayer("MiddleTiles");
+                                    Layer top_tiles = map.GetLayer("TopTiles");
+                                    Layer effect_tiles = map.GetLayer("EffectTiles");
+
+                                    Tile bottom_tile = bottom_tiles.GetTile(location);
+                                    Tile middle_tile = WorldUtil.GetFurniture("Middle", tile.Location);
+                                    Tile top_tile = top_tiles.GetTile(location);
+                                    Tile effect_tile = effect_tiles.GetTile(location);
+
+                                    if (InputManager.KeyDown("Crouch"))
+                                    {
+                                        if (character != null)
+                                        {
+                                            Handler.Interaction_Character = character;
+                                        }
+                                        else if (effect_tile?.Texture != null)
+                                        {
+                                            Handler.Interaction_Tile = effect_tile;
+                                        }
+                                        else if (top_tile?.Texture != null)
+                                        {
+                                            //Get what's underneath
+                                            if (middle_tile?.Texture != null)
+                                            {
+                                                Handler.Interaction_Tile = middle_tile;
+                                            }
+                                        }
+                                        else if (middle_tile?.Texture != null)
+                                        {
+                                            Handler.Interaction_Tile = middle_tile;
+                                        }
+                                        else if (bottom_tile != null)
+                                        {
+                                            Handler.Interaction_Tile = bottom_tile;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if (character != null)
+                                        {
+                                            Handler.Interaction_Character = character;
+                                        }
+                                        else if (effect_tile?.Texture != null)
+                                        {
+                                            Handler.Interaction_Tile = effect_tile;
+                                        }
+                                        else if (top_tile?.Texture != null)
+                                        {
+                                            Handler.Interaction_Tile = top_tile;
+                                        }
+                                        else if (middle_tile?.Texture != null)
+                                        {
+                                            Handler.Interaction_Tile = middle_tile;
+                                        }
+                                        else if (bottom_tile != null)
+                                        {
+                                            Handler.Interaction_Tile = bottom_tile;
+                                        }
+                                    }
+
+                                    Menu interact = MenuManager.GetMenu("Interact");
+                                    interact.Load();
+                                    interact.Open();
+
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    */
+                    #endregion
             }
         }
 
@@ -706,7 +774,7 @@ namespace Despicaville.Scenes
                     Tasker.Character_EndAction(World, player);
 
                     player.Move_TotalDistance = Main.Game.TileSize.X;
-                    player.Update();
+                    CharacterUtil.MovePlayer();
 
                     CharacterUtil.UpdateGear(player);
 

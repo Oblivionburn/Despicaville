@@ -178,6 +178,20 @@ namespace Despicaville.Util
             return result;
         }
 
+        public static bool HasEmptyHand(Character character)
+        {
+            Item leftHand = Get_EquippedItem(character, "Left Weapon Slot");
+            Item rightHand = Get_EquippedItem(character, "Right Weapon Slot");
+
+            if (leftHand == null ||
+                rightHand == null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public static bool IsContainer(Item item)
         {
             if (!string.IsNullOrEmpty(item.Inventory.Name))

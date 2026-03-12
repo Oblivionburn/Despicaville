@@ -589,6 +589,11 @@ namespace Despicaville
 
         public static void Move(World world, Character character)
         {
+            if (CharacterUtil.HeldByPlayer(character))
+            {
+                return;
+            }
+
             Task task = character.Job.CurrentTask;
 
             if (task.Name == "Sneak")
@@ -1541,7 +1546,7 @@ namespace Despicaville
             Layer bottom_tiles = map.GetLayer("BottomTiles");
             Layer middle_tiles = map.GetLayer("MiddleTiles");
 
-            Tile tile = WorldUtil.GetFurniture("Middle", new Location(location.X, location.Y, 0));
+            Tile tile = WorldUtil.GetFurniture(middle_tiles, new Location(location.X, location.Y, 0), false);
             if ((tile != null && tile.Texture == null) ||
                 tile == null)
             {
@@ -1820,10 +1825,10 @@ namespace Despicaville
 
             Vector2 location = new Vector2(task.Location.X, task.Location.Y);
 
-            Map block_map = WorldUtil.GetCurrentMap(character);
-            Layer top_tiles = block_map.GetLayer("TopTiles");
+            Map map = world.Maps[0];
+            Layer top_tiles = map.GetLayer("TopTiles");
 
-            Tile sink = WorldUtil.GetFurniture("Top", new Location(location.X, location.Y, 0));
+            Tile sink = WorldUtil.GetFurniture(top_tiles, new Location(location.X, location.Y, 0), false);
             if (sink != null)
             {
                 if (sink.Name.Contains("Sink"))
@@ -2029,14 +2034,16 @@ namespace Despicaville
 
         public static void AddTask(Character character, string name, bool started, bool keep_on_completed, TimeSpan? time_span, Location location, Direction direction)
         {
-            Task task = new Task();
-            task.Name = name;
-            task.OwnerIDs = GameUtil.OwnerIDs(character);
-            task.Started = started;
-            task.Keep_On_Completed = keep_on_completed;
-            task.StartTime = new TimeHandler(TimeManager.Now);
-            task.Location = location;
-            task.Direction = direction;
+            Task task = new Task
+            {
+                Name = name,
+                OwnerIDs = GameUtil.OwnerIDs(character),
+                Started = started,
+                Keep_On_Completed = keep_on_completed,
+                StartTime = new TimeHandler(TimeManager.Now),
+                Location = location,
+                Direction = direction
+            };
 
             if (time_span.HasValue)
             {
@@ -2093,25 +2100,20 @@ namespace Despicaville
                 task.Location = new Location(player.Location.X - 1, player.Location.Y, 0);
             }
 
-            bool found = false;
-
             if (tile != null)
             {
                 if (tile.Name.Contains("Sink"))
                 {
-                    found = true;
                     task.Name = "UseSink_Start_Drink";
                     task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(1));
                 }
                 else if (tile.Name.Contains("Lamp"))
                 {
-                    found = true;
                     task.Name = "ToggleLight";
                     task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1));
                 }
                 else if (tile.Name.Contains("TV"))
                 {
-                    found = true;
                     task.Name = "ToggleTV";
                     task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1));
                 }
@@ -2119,8 +2121,6 @@ namespace Despicaville
                 {
                     if (tile.Name.Contains("Closed"))
                     {
-                        found = true;
-
                         if (InputManager.KeyDown("Crouch"))
                         {
                             task.Name = "Quiet_OpenDoor";
@@ -2141,8 +2141,6 @@ namespace Despicaville
                     }
                     else if (tile.Name.Contains("Open"))
                     {
-                        found = true;
-
                         if (InputManager.KeyDown("Crouch"))
                         {
                             task.Name = "Quiet_CloseDoor";
@@ -2167,8 +2165,6 @@ namespace Despicaville
                 {
                     if (tile.Name.Contains("Closed"))
                     {
-                        found = true;
-
                         if (InputManager.KeyDown("Crouch"))
                         {
                             task.Name = "Quiet_OpenWindow";
@@ -2189,8 +2185,6 @@ namespace Despicaville
                     }
                     else if (tile.Name.Contains("Open"))
                     {
-                        found = true;
-
                         if (InputManager.KeyDown("Crouch"))
                         {
                             task.Name = "Quiet_CloseWindow";
@@ -2212,8 +2206,6 @@ namespace Despicaville
                 }
                 else if (WorldUtil.CanSearch(tile.Name))
                 {
-                    found = true;
-
                     if (InputManager.KeyDown("Crouch"))
                     {
                         task.Name = "Quiet_Search";
@@ -2260,8 +2252,7 @@ namespace Despicaville
                 }
             }
 
-            if (!string.IsNullOrEmpty(task.Name) &&
-                found)
+            if (!string.IsNullOrEmpty(task.Name))
             {
                 player.Job.Tasks.Add(task);
             }

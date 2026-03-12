@@ -109,7 +109,9 @@ namespace Despicaville.Menus
                     }
                     else if (label.Name == "Running")
                     {
-                        if (InputManager.KeyDown("Run"))
+                        Something holdingStatus = Handler.GetPlayer().GetStatusEffect("Holding");
+                        if (InputManager.KeyDown("Run") &&
+                            holdingStatus == null)
                         {
                             label.Opacity = 1;
                             label.TextColor = Color.LimeGreen;
@@ -300,6 +302,7 @@ namespace Despicaville.Menus
 
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Crouching", "Quiet | Crouch", Color.White, new Region(0, 0, 0, 0), true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Running", "Loud | Run", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Holding", "Holding", Color.White, new Region(0, 0, 0, 0), true);
 
             AddProgressBar(Handler.GetID(), "Blood", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
                 new Region(0, 0, 0, 0), new Color(100, 0, 0), true);
@@ -408,18 +411,19 @@ namespace Despicaville.Menus
 
             GetLabel("Crouching").Region = new Region(x, y + (height * 6), panel_width, height);
             GetLabel("Running").Region = new Region(x, y + (height * 7), panel_width, height);
+            GetLabel("Holding").Region = new Region(x, y + (height * 8), panel_width, height);
 
-            GetProgressBar("Blood").Base_Region = new Region(x, y + (height * 8), panel_width, height);
-            GetLabel("Blood").Region = new Region(x, y + (height * 8), panel_width, height);
+            GetProgressBar("Blood").Base_Region = new Region(x, y + (height * 9), panel_width, height);
+            GetLabel("Blood").Region = new Region(x, y + (height * 9), panel_width, height);
 
-            GetProgressBar("Consciousness").Base_Region = new Region(x, y + (height * 9), panel_width, height);
-            GetLabel("Consciousness").Region = new Region(x, y + (height * 9), panel_width, height);
+            GetProgressBar("Consciousness").Base_Region = new Region(x, y + (height * 10), panel_width, height);
+            GetLabel("Consciousness").Region = new Region(x, y + (height * 10), panel_width, height);
 
-            GetProgressBar("Stamina").Base_Region = new Region(x, y + (height * 10), panel_width, height);
-            GetLabel("Stamina").Region = new Region(x, y + (height * 10), panel_width, height);
+            GetProgressBar("Stamina").Base_Region = new Region(x, y + (height * 11), panel_width, height);
+            GetLabel("Stamina").Region = new Region(x, y + (height * 11), panel_width, height);
 
-            GetProgressBar("Comfort").Base_Region = new Region(x, y + (height * 11), panel_width, height);
-            GetLabel("Comfort").Region = new Region(x, y + (height * 11), panel_width, height);
+            GetProgressBar("Comfort").Base_Region = new Region(x, y + (height * 12), panel_width, height);
+            GetLabel("Comfort").Region = new Region(x, y + (height * 12), panel_width, height);
 
             //Lower Right
             GetButton("Main").Region = new Region(Main.Game.ScreenWidth - Main.Game.MenuSize_X, Main.Game.ScreenHeight - Main.Game.MenuSize_Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
