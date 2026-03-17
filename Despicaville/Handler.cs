@@ -2274,7 +2274,7 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Bladder",
-                Value = 10
+                Value = 5
             });
             assets.Items.Add(item);
             current++;
@@ -2384,7 +2384,7 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Bladder",
-                Value = 2
+                Value = 1
             });
             assets.Items.Add(item);
             current++;
@@ -2594,7 +2594,7 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Bladder",
-                Value = 2
+                Value = 1
             });
 
             assets.Items.Add(item);
@@ -2635,12 +2635,12 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Hunger",
-                Value = -3
+                Value = -2
             });
             item.Properties.Add(new Something
             {
                 Name = "Thirst",
-                Value = -3
+                Value = -4
             });
             item.Properties.Add(new Something
             {
@@ -2650,7 +2650,7 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Bladder",
-                Value = 3
+                Value = 2
             });
             assets.Items.Add(item);
             current++;
@@ -2670,7 +2670,7 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Bladder",
-                Value = 2
+                Value = 1
             });
             assets.Items.Add(item);
             current++;
@@ -2685,7 +2685,7 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Bladder",
-                Value = 10
+                Value = 5
             });
             assets.Items.Add(item);
             current++;
@@ -2705,7 +2705,7 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Bladder",
-                Value = 2
+                Value = 1
             });
             assets.Items.Add(item);
             current++;
@@ -2725,7 +2725,7 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Bladder",
-                Value = 2
+                Value = 1
             });
             assets.Items.Add(item);
             current++;
@@ -2755,7 +2755,7 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Bladder",
-                Value = 2
+                Value = 1
             });
             assets.Items.Add(item);
             current++;
@@ -2775,7 +2775,7 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Bladder",
-                Value = 2
+                Value = 1
             });
             assets.Items.Add(item);
             current++;
@@ -2855,7 +2855,7 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Bladder",
-                Value = 10
+                Value = 5
             });
             assets.Items.Add(item);
             current++;
@@ -2885,7 +2885,7 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Bladder",
-                Value = 2
+                Value = 1
             });
             assets.Items.Add(item);
             current++;
@@ -2905,7 +2905,7 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Bladder",
-                Value = 2
+                Value = 1
             });
             assets.Items.Add(item);
             current++;
@@ -2925,7 +2925,7 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Bladder",
-                Value = 8
+                Value = 4
             });
             assets.Items.Add(item);
             current++;
@@ -2945,7 +2945,7 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Bladder",
-                Value = 8
+                Value = 4
             });
             assets.Items.Add(item);
             current++;
@@ -2970,7 +2970,7 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Bladder",
-                Value = 2
+                Value = 1
             });
             assets.Items.Add(item);
             current++;
@@ -2990,7 +2990,7 @@ namespace Despicaville
             item.Properties.Add(new Something
             {
                 Name = "Bladder",
-                Value = 2
+                Value = 1
             });
             assets.Items.Add(item);
             current++;

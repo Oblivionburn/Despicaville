@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-
 using Microsoft.Xna.Framework;
-
 using OP_Engine.Characters;
 using OP_Engine.Tiles;
 using OP_Engine.Utility;
@@ -14,7 +12,6 @@ using OP_Engine.Inventories;
 using OP_Engine.Sounds;
 using OP_Engine.Inputs;
 using OP_Engine.Enums;
-
 using Despicaville.Util;
 
 namespace Despicaville
@@ -121,6 +118,10 @@ namespace Despicaville
                             UseSink_Start(character, true);
                         }
                     }
+                    else if (task.Name.Contains("UseToilet_Start"))
+                    {
+                        UseToilet_Start(character);
+                    }
                 }
             }
         }
@@ -174,7 +175,7 @@ namespace Despicaville
 
                         if (task.Name == "Turn")
                         {
-                            Turn(character);
+                            Turn_End(character);
                         }
                         else if (CombatUtil.IsAttack(task.Name))
                         {
@@ -227,6 +228,10 @@ namespace Despicaville
                                 UseSink_End(world, character, true);
                             }
                         }
+                        else if (task.Name.Contains("UseToilet_End"))
+                        {
+                            UseToilet_End(world, character);
+                        }
                         else if (task.Name.Contains("UseItem"))
                         {
                             UseItem(world, character);
@@ -241,6 +246,22 @@ namespace Despicaville
         }
 
         #region New Task
+
+        public static void Turn(Character character, Direction direction)
+        {
+            if (direction != Direction.Nowhere)
+            {
+                float turnTime = CharacterUtil.GetTurnTime(character);
+                TimeSpan timeSpan = TimeSpan.FromMilliseconds(turnTime);
+
+                AddTask(character, "Turn", true, true, timeSpan, null, direction);
+
+                if (character.Type == "Player")
+                {
+                    TimeTracker.Tick((long)turnTime);
+                }
+            }
+        }
 
         public static void FindWater(World world, Character character, bool desperate)
         {
@@ -591,6 +612,23 @@ namespace Despicaville
         {
             if (CharacterUtil.HeldByPlayer(character))
             {
+                Direction direction = WorldUtil.GetDirection(Handler.GetPlayer().Location, character.Location, false);
+                if (direction == Direction.Up)
+                {
+                    character.Animator.FaceNorth(character);
+                }
+                else if (direction == Direction.Right)
+                {
+                    character.Animator.FaceEast(character);
+                }
+                else if (direction == Direction.Down)
+                {
+                    character.Animator.FaceSouth(character);
+                }
+                else if (direction == Direction.Left)
+                {
+                    character.Animator.FaceWest(character);
+                }
                 return;
             }
 
@@ -631,37 +669,25 @@ namespace Despicaville
             {
                 if (task.Direction != character.Direction)
                 {
-                    if (task.Direction == Direction.Up)
-                    {
-                        character.Animator.FaceNorth(character);
-                    }
-                    else if (task.Direction == Direction.Right)
-                    {
-                        character.Animator.FaceEast(character);
-                    }
-                    else if (task.Direction == Direction.Down)
-                    {
-                        character.Animator.FaceSouth(character);
-                    }
-                    else if (task.Direction == Direction.Left)
-                    {
-                        character.Animator.FaceWest(character);
-                    }
+                    AbortTask(character);
+                    Turn(character, task.Direction);
                 }
-
-                character.Moving = true;
-
-                Layer effect_tiles = map.GetLayer("EffectTiles");
-                Layer middle_tiles = map.GetLayer("MiddleTiles");
-                Tile tile = middle_tiles.GetTile(new Vector2(character.Destination.X, character.Destination.Y));
-                if (tile != null)
+                else
                 {
-                    if (tile.Name.Contains("Window") &&
-                        tile.Name.Contains("Closed"))
+                    character.Moving = true;
+
+                    Layer effect_tiles = map.GetLayer("EffectTiles");
+                    Layer middle_tiles = map.GetLayer("MiddleTiles");
+                    Tile tile = middle_tiles.GetTile(new Vector2(character.Destination.X, character.Destination.Y));
+                    if (tile != null)
                     {
-                        BreakWindow(effect_tiles, tile, character);
+                        if (tile.Name.Contains("Window") &&
+                            tile.Name.Contains("Closed"))
+                        {
+                            BreakWindow(effect_tiles, tile, character);
+                        }
                     }
-                }
+                } 
             }
             else
             {
@@ -669,12 +695,8 @@ namespace Despicaville
 
                 if (task.Direction != character.Direction)
                 {
-                    AddTask(character, "Turn", false, true, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character)), character.Destination, task.Direction);
-                
-                    if (character.Type == "Player")
-                    {
-                        TimeTracker.Tick((long)CharacterUtil.GetTurnTime(character));
-                    }
+                    AbortTask(character);
+                    Turn(character, task.Direction);
                 }
                 else if (character.Type != "Player")
                 {
@@ -685,21 +707,65 @@ namespace Despicaville
                         if (tile.Name.Contains("Window") &&
                             tile.Name.Contains("Closed"))
                         {
+                            AbortTask(character);
+
                             AddTask(character, "OpenWindow", false, true, TimeSpan.FromSeconds(10), character.Destination, task.Direction);
-                            AddTask(character, task.Name, false, false, TimeSpan.FromSeconds(10), default, task.Direction);
-                            AddTask(character, task.Name, false, false, TimeSpan.FromSeconds(10), default, task.Direction);
+                            AddTask(character, task.Name, false, false, null, character.Destination, task.Direction);
+
+                            Location nextMove = null;
+
+                            if (character.Direction == Direction.Up)
+                            {
+                                nextMove = new Location(character.Destination.X, character.Destination.Y - 1, character.Destination.Z);
+                            }
+                            else if (character.Direction == Direction.Right)
+                            {
+                                nextMove = new Location(character.Destination.X + 1, character.Destination.Y, character.Destination.Z);
+                            }
+                            else if (character.Direction == Direction.Down)
+                            {
+                                nextMove = new Location(character.Destination.X, character.Destination.Y + 1, character.Destination.Z);
+                            }
+                            else if (character.Direction == Direction.Left)
+                            {
+                                nextMove = new Location(character.Destination.X - 1, character.Destination.Y, character.Destination.Z);
+                            }
+
+                            AddTask(character, task.Name, false, false, null, nextMove, task.Direction);
                         }
                         else if (tile.Name.Contains("Door") &&
                                  tile.Name.Contains("Closed"))
                         {
+                            AbortTask(character);
+
                             AddTask(character, "OpenDoor", false, true, TimeSpan.FromSeconds(10), character.Destination, task.Direction);
-                            AddTask(character, task.Name, false, false, TimeSpan.FromSeconds(10), default, task.Direction);
-                            AddTask(character, task.Name, false, false, TimeSpan.FromSeconds(10), default, task.Direction);
+                            AddTask(character, task.Name, false, false, null, character.Destination, task.Direction);
+
+                            Location nextMove = null;
+
+                            if (character.Direction == Direction.Up)
+                            {
+                                nextMove = new Location(character.Destination.X, character.Destination.Y - 1, character.Destination.Z);
+                            }
+                            else if (character.Direction == Direction.Right)
+                            {
+                                nextMove = new Location(character.Destination.X + 1, character.Destination.Y, character.Destination.Z);
+                            }
+                            else if (character.Direction == Direction.Down)
+                            {
+                                nextMove = new Location(character.Destination.X, character.Destination.Y + 1, character.Destination.Z);
+                            }
+                            else if (character.Direction == Direction.Left)
+                            {
+                                nextMove = new Location(character.Destination.X - 1, character.Destination.Y, character.Destination.Z);
+                            }
+
+                            AddTask(character, task.Name, false, false, null, nextMove, task.Direction);
                         }
                     }
                     else
                     {
-                        character.Path.Clear();
+                        AbortTask(character);
                         AddTask(character, "Wait", true, false, TimeSpan.FromSeconds(21), default, task.Direction);
                     }
                 }
@@ -802,11 +868,11 @@ namespace Despicaville
                 {
                     if (!sink.Texture.Name.Contains("Used"))
                     {
-                        sink.Texture = AssetManager.Textures[sink.Texture.Name + "_Used"];
-                        AssetManager.PlaySound_Random_AtDistance("WaterRunning", player_location, new Vector2(sink.Location.X, sink.Location.Y), 5);
-
                         if (fill)
                         {
+                            sink.Texture = AssetManager.Textures[sink.Texture.Name + "_Used"];
+                            AssetManager.PlaySound_Random_AtDistance("WaterRunning", player_location, new Vector2(sink.Location.X, sink.Location.Y), 5);
+
                             string[] task_parts = task.Name.Split('_');
                             long item_id = long.Parse(task_parts[3]);
 
@@ -814,28 +880,21 @@ namespace Despicaville
                         }
                         else
                         {
-                            AddTask(character, "UseSink_End_Drink", true, true, TimeSpan.FromSeconds(300), sink.Location, furniture_direction);
-                        }
-
-                        if (character.Type == "Player")
-                        {
-                            if (fill)
+                            Something thirst = character.GetStat("Thirst");
+                            if (thirst.Value > 0)
                             {
-                                string[] task_parts = task.Name.Split('_');
-                                long item_id = long.Parse(task_parts[3]);
+                                sink.Texture = AssetManager.Textures[sink.Texture.Name + "_Used"];
+                                AssetManager.PlaySound_Random_AtDistance("WaterRunning", player_location, new Vector2(sink.Location.X, sink.Location.Y), 5);
 
-                                Item container = character.Inventory.GetItem(item_id);
-                                if (container != null)
-                                {
-                                    GameUtil.AddMessage("You fill a " + container.Name + " from a sink.");
-                                }
+                                AddTask(character, "UseSink_End_Drink", true, true, TimeSpan.FromSeconds(thirst.Value), sink.Location, furniture_direction);
                             }
-                            else
+                            else if (character.Type == "Player")
                             {
-                                GameUtil.AddMessage("You drink water from a sink.");
+                                GameUtil.AddMessage("You're not thirsty enough to drink from a sink.");
                             }
                         }
-                        else
+
+                        if (character.Type != "Player")
                         {
                             Direction direction = WorldUtil.GetDirection(sink.Location, player.Location, true);
                             if (WorldUtil.InRange(player.Location, sink.Location, 5))
@@ -843,6 +902,110 @@ namespace Despicaville
                                 GameUtil.AddMessage("You hear a sink running to the " + direction.ToString() + ".");
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        public static void UseToilet_Start(Character character)
+        {
+            Task task = character.Job.CurrentTask;
+            task.Completed = true;
+            character.Job.Update(TimeManager.Now);
+
+            Map block_map = WorldUtil.GetCurrentMap(character);
+            Layer middle_tiles = block_map.GetLayer("MiddleTiles");
+
+            bool nextTo = false;
+
+            Tile toilet = null;
+
+            foreach (Tile tile in middle_tiles.Tiles)
+            {
+                if (tile.Name.Contains("Toilet"))
+                {
+                    if (WorldUtil.NextTo(tile.Location, character.Location) &&
+                        character.Gender == "Male")
+                    {
+                        nextTo = true;
+                        toilet = tile;
+                        break;
+                    }
+                    else if (tile.Location.X == character.Location.X &&
+                             tile.Location.Y == character.Location.Y)
+                    {
+                        toilet = tile;
+                        break;
+                    }
+                }
+            }
+
+            if (toilet != null)
+            {
+                bool use = true;
+
+                if (nextTo)
+                {
+                    Direction furniture_direction = WorldUtil.GetDirection(toilet.Location, character.Location, false);
+                    if (character.Direction != furniture_direction)
+                    {
+                        if (furniture_direction == Direction.Up)
+                        {
+                            character.Animator.FaceNorth(character);
+                        }
+                        else if (furniture_direction == Direction.Right)
+                        {
+                            character.Animator.FaceEast(character);
+                        }
+                        else if (furniture_direction == Direction.Down)
+                        {
+                            character.Animator.FaceSouth(character);
+                        }
+                        else if (furniture_direction == Direction.Left)
+                        {
+                            character.Animator.FaceWest(character);
+                        }
+                    }
+                }
+                else
+                {
+                    if (character.Direction != toilet.Direction)
+                    {
+                        if (toilet.Direction == Direction.Up)
+                        {
+                            character.Animator.FaceNorth(character);
+                        }
+                        else if (toilet.Direction == Direction.Right)
+                        {
+                            character.Animator.FaceEast(character);
+                        }
+                        else if (toilet.Direction == Direction.Down)
+                        {
+                            character.Animator.FaceSouth(character);
+                        }
+                        else if (toilet.Direction == Direction.Left)
+                        {
+                            character.Animator.FaceWest(character);
+                        }
+                    }
+                }
+
+                CharacterUtil.UpdateGear(character);
+
+                if (use)
+                {
+                    Something bladder = character.GetStat("Bladder");
+                    if (bladder.Value > 0)
+                    {
+                        if (!toilet.Texture.Name.Contains("Used"))
+                        {
+                            toilet.Texture = AssetManager.Textures[toilet.Texture.Name + "_Used"];
+                            AddTask(character, "UseToilet_End", true, true, TimeSpan.FromSeconds(bladder.Value), toilet.Location, toilet.Direction);
+                        }
+                    }
+                    else if(character.Type == "Player")
+                    {
+                        GameUtil.AddMessage("You don't need to use a toilet right now.");
                     }
                 }
             }
@@ -897,7 +1060,7 @@ namespace Despicaville
 
         #region End Task
 
-        public static void Turn(Character character)
+        public static void Turn_End(Character character)
         {
             Task task = character.Job.Get_CurrentTask();
 
@@ -920,6 +1083,9 @@ namespace Despicaville
                     character.Animator.FaceWest(character);
                 }
             }
+
+            CharacterUtil.UpdateGear(character);
+            CharacterUtil.UpdateSight(character);
         }
 
         public static void ToggleLight(World world, Character character)
@@ -1856,18 +2022,69 @@ namespace Despicaville
                         character.Inventory.Items.Remove(container);
                         character.Inventory.Items.Add(new_container);
                     }
+
+                    if (character.Type == "Player")
+                    {
+                        GameUtil.AddMessage("You filled a " + container.Name + " from a sink.");
+                    }
                 }
             }
             else
             {
                 Something thirst = character.GetStat("Thirst");
-                thirst.DecreaseValue(30);
-
                 Something bladder = character.GetStat("Bladder");
-                bladder.IncreaseValue(30);
+
+                bladder.IncreaseValue(thirst.Value / 2);
+                thirst.Value = 0;
+
+                if (character.Type == "Player")
+                {
+                    GameUtil.AddMessage("You drank water from a sink.");
+                }
             }
 
             SoundManager.StopSound("WaterRunning");
+        }
+
+        public static void UseToilet_End(World world, Character character)
+        {
+            Task task = character.Job.Get_CurrentTask();
+
+            Vector2 location = new Vector2(task.Location.X, task.Location.Y);
+
+            Map map = world.Maps[0];
+            Layer middle_tiles = map.GetLayer("MiddleTiles");
+
+            Tile toilet = WorldUtil.GetFurniture(middle_tiles, new Location(location.X, location.Y, 0), false);
+            if (toilet != null)
+            {
+                if (toilet.Name.Contains("Toilet"))
+                {
+                    string[] name_parts = toilet.Texture.Name.Split('_');
+                    toilet.Texture = AssetManager.Textures[name_parts[0] + "_" + name_parts[1]];
+                }
+            }
+
+            Something bladder = character.GetStat("Bladder");
+            bladder.Value = 0;
+
+            Character player = Handler.GetPlayer();
+            Vector2 player_location = new Vector2(player.Location.X, player.Location.Y);
+
+            AssetManager.PlaySound_Random_AtDistance("Flush", player_location, new Vector2(toilet.Location.X, toilet.Location.Y), 5);
+
+            if (character.Type == "Player")
+            {
+                GameUtil.AddMessage("You used a toilet.");
+            }
+            else
+            {
+                Direction direction = WorldUtil.GetDirection(toilet.Location, player.Location, true);
+                if (WorldUtil.InRange(player.Location, toilet.Location, 5))
+                {
+                    GameUtil.AddMessage("You hear a toilet flush to the " + direction.ToString() + ".");
+                }
+            }
         }
 
         public static void Attack(Character attacker)
@@ -2105,6 +2322,11 @@ namespace Despicaville
                 if (tile.Name.Contains("Sink"))
                 {
                     task.Name = "UseSink_Start_Drink";
+                    task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(1));
+                }
+                else if (tile.Name.Contains("Toilet"))
+                {
+                    task.Name = "UseToilet_Start";
                     task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(1));
                 }
                 else if (tile.Name.Contains("Lamp"))

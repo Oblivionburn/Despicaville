@@ -1735,6 +1735,8 @@ namespace Despicaville.Util
                     character.Region = new Region(new_tile.Region.X, new_tile.Region.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
                 }
 
+                CharacterUtil.UpdateGear(character);
+
                 CharacterManager.GetArmy("Characters").GetSquad("Citizens").Characters.Add(character);
             }
 

@@ -10,6 +10,7 @@ using OP_Engine.Scenes;
 using OP_Engine.Tiles;
 using OP_Engine.Utility;
 using OP_Engine.Enums;
+using OP_Engine.Time;
 
 namespace Despicaville.Util
 {
@@ -747,7 +748,118 @@ namespace Despicaville.Util
             }
         }
 
-        public static void MovePlayer()
+        public static void MoveCharacter(Character character, Task task)
+        {
+            if (character.Moving &&
+                character.Region != null)
+            {
+                character.Move_TotalDistance = Main.Game.TileSize.X;
+
+                if (character.Destination.X > character.Location.X)
+                {
+                    character.Region.X += character.Speed;
+                    character.Moved += character.Speed;
+
+                    if (character.Moved == character.Move_TotalDistance)
+                    {
+                        character.Location.X++;
+                        Move_Finish(character, task);
+                    }
+                    else
+                    {
+                        for (int i = 1; i <= character.Animator.Frames; i++)
+                        {
+                            if (character.Moved == (character.Move_TotalDistance / character.Animator.Frames) * i)
+                            {
+                                character.Animator.Animate(character);
+                                UpdateGear(character);
+                                break;
+                            }
+                        }
+                    }
+                }
+                else if (character.Destination.X < character.Location.X)
+                {
+                    character.Region.X -= character.Speed;
+                    character.Moved += character.Speed;
+
+                    if (character.Moved == character.Move_TotalDistance)
+                    {
+                        character.Location.X--;
+                        Move_Finish(character, task);
+                    }
+                    else
+                    {
+                        for (int i = 1; i <= character.Animator.Frames; i++)
+                        {
+                            if (character.Moved == (character.Move_TotalDistance / character.Animator.Frames) * i)
+                            {
+                                character.Animator.Animate(character);
+                                UpdateGear(character);
+                                break;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (character.Destination.Y > character.Location.Y)
+                    {
+                        character.Region.Y += character.Speed;
+                        character.Moved += character.Speed;
+
+                        if (character.Moved == character.Move_TotalDistance)
+                        {
+                            character.Location.Y++;
+                            Move_Finish(character, task);
+                        }
+                        else
+                        {
+                            for (int i = 1; i <= character.Animator.Frames; i++)
+                            {
+                                if (character.Moved == (character.Move_TotalDistance / character.Animator.Frames) * i)
+                                {
+                                    character.Animator.Animate(character);
+                                    UpdateGear(character);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else if (character.Destination.Y < character.Location.Y)
+                    {
+                        character.Region.Y -= character.Speed;
+                        character.Moved += character.Speed;
+
+                        if (character.Moved == character.Move_TotalDistance)
+                        {
+                            character.Location.Y--;
+                            Move_Finish(character, task);
+                        }
+                        else
+                        {
+                            for (int i = 1; i <= character.Animator.Frames; i++)
+                            {
+                                if (character.Moved == (character.Move_TotalDistance / character.Animator.Frames) * i)
+                                {
+                                    character.Animator.Animate(character);
+                                    UpdateGear(character);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Move_Finish(character, task);
+                    }
+                }
+            }
+
+            character.Animator.Update(character);
+        }
+
+        public static void MovePlayer(Task task)
         {
             Character player = Handler.GetPlayer();
             Something heldThing = WorldUtil.GetHeldThing(player);
@@ -755,6 +867,8 @@ namespace Despicaville.Util
             if (player.Moving &&
                 player.Region != null)
             {
+                player.Move_TotalDistance = Main.Game.TileSize.X;
+
                 if (player.Destination.X > player.Location.X)
                 {
                     player.Region.X += player.Speed;
@@ -774,6 +888,11 @@ namespace Despicaville.Util
                         {
                             heldThing.Region.Y -= player.Speed;
                         }
+
+                        if (heldThing.Type == "Citizen")
+                        {
+                            UpdateGear((Character)heldThing);
+                        }
                     }
 
                     if (player.Moved == player.Move_TotalDistance)
@@ -785,9 +904,7 @@ namespace Despicaville.Util
                             WorldUtil.MoveHeldThing(player, Direction.East, heldThing.Region.X < player.Region.X);
                         }
 
-                        player.Moved = 0;
-                        player.Moving = false;
-                        player.Animator.Reset(player);
+                        Move_Finish(player, task);
                     }
                     else
                     {
@@ -796,6 +913,7 @@ namespace Despicaville.Util
                             if (player.Moved == (player.Move_TotalDistance / player.Animator.Frames) * i)
                             {
                                 player.Animator.Animate(player);
+                                UpdateGear(player);
                                 break;
                             }
                         }
@@ -820,6 +938,11 @@ namespace Despicaville.Util
                         {
                             heldThing.Region.Y -= player.Speed;
                         }
+
+                        if (heldThing.Type == "Citizen")
+                        {
+                            UpdateGear((Character)heldThing);
+                        }
                     }
 
                     if (player.Moved == player.Move_TotalDistance)
@@ -831,9 +954,7 @@ namespace Despicaville.Util
                             WorldUtil.MoveHeldThing(player, Direction.West, heldThing.Region.X > player.Region.X);
                         }
 
-                        player.Moved = 0;
-                        player.Moving = false;
-                        player.Animator.Reset(player);
+                        Move_Finish(player, task);
                     }
                     else
                     {
@@ -842,6 +963,7 @@ namespace Despicaville.Util
                             if (player.Moved == (player.Move_TotalDistance / player.Animator.Frames) * i)
                             {
                                 player.Animator.Animate(player);
+                                UpdateGear(player);
                                 break;
                             }
                         }
@@ -868,6 +990,11 @@ namespace Despicaville.Util
                             {
                                 heldThing.Region.X -= player.Speed;
                             }
+
+                            if (heldThing.Type == "Citizen")
+                            {
+                                UpdateGear((Character)heldThing);
+                            }
                         }
 
                         if (player.Moved == player.Move_TotalDistance)
@@ -879,9 +1006,7 @@ namespace Despicaville.Util
                                 WorldUtil.MoveHeldThing(player, Direction.South, heldThing.Region.Y < player.Region.Y);
                             }
 
-                            player.Moved = 0;
-                            player.Moving = false;
-                            player.Animator.Reset(player);
+                            Move_Finish(player, task);
                         }
                         else
                         {
@@ -890,6 +1015,7 @@ namespace Despicaville.Util
                                 if (player.Moved == (player.Move_TotalDistance / player.Animator.Frames) * i)
                                 {
                                     player.Animator.Animate(player);
+                                    UpdateGear(player);
                                     break;
                                 }
                             }
@@ -914,6 +1040,11 @@ namespace Despicaville.Util
                             {
                                 heldThing.Region.X -= player.Speed;
                             }
+
+                            if (heldThing.Type == "Citizen")
+                            {
+                                UpdateGear((Character)heldThing);
+                            }
                         }
 
                         if (player.Moved == player.Move_TotalDistance)
@@ -925,9 +1056,7 @@ namespace Despicaville.Util
                                 WorldUtil.MoveHeldThing(player, Direction.North, heldThing.Region.Y > player.Region.Y);
                             }
 
-                            player.Moved = 0;
-                            player.Moving = false;
-                            player.Animator.Reset(player);
+                            Move_Finish(player, task);
                         }
                         else
                         {
@@ -936,6 +1065,7 @@ namespace Despicaville.Util
                                 if (player.Moved == (player.Move_TotalDistance / player.Animator.Frames) * i)
                                 {
                                     player.Animator.Animate(player);
+                                    UpdateGear(player);
                                     break;
                                 }
                             }
@@ -943,14 +1073,44 @@ namespace Despicaville.Util
                     }
                     else
                     {
-                        player.Moved = 0;
-                        player.Moving = false;
-                        player.Animator.Reset(player);
+                        Move_Finish(player, task);
                     }
                 }
+
+                TimeTracker.Tick(Handler.ActionRate);
+                GameUtil.CenterToPlayer_OnFrame();
             }
 
             player.Animator.Update(player);
+        }
+
+        public static void Move_Finish(Character character, Task task)
+        {
+            character.Moved = 0;
+            character.Moving = false;
+            character.Animator.Reset(character);
+
+            task.EndTime = new TimeHandler(TimeManager.Now);
+
+            Something stamina = character.GetStat("Stamina");
+            Something endurance = character.GetStat("Endurance");
+
+            if (task.Name == "Sneak")
+            {
+                stamina.DecreaseValue(0.0385f / endurance.Value);
+            }
+            else if (task.Name == "Walk")
+            {
+                stamina.DecreaseValue(0.077f / endurance.Value);
+            }
+            else if (task.Name == "Run")
+            {
+                stamina.DecreaseValue(0.154f / endurance.Value);
+            }
+
+            WorldUtil.SetCurrentMap(character);
+            UpdateGear(character);
+            UpdateSight(character);
         }
 
         public static void UpdateSight(Character character)
@@ -1217,6 +1377,29 @@ namespace Despicaville.Util
             }
 
             return false;
+        }
+
+        public static void UpdateConsciousness(Character character)
+        {
+            Something consciousness = character.GetStat("Consciousness");
+            Something pain = character.GetStat("Pain");
+            Something stamina = character.GetStat("Stamina");
+
+            if (pain.Value < 100 &&
+                stamina.Value > 0)
+            {
+                consciousness.IncreaseValue(0.001f);
+
+                if (consciousness.Value >= 20)
+                {
+                    character.Unconscious = false;
+                }
+            }
+
+            if (consciousness.Value <= 0)
+            {
+                character.Unconscious = true;
+            }
         }
 
         public static float UpdatePain(Character character)

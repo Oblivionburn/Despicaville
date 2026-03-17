@@ -70,72 +70,106 @@ namespace Despicaville.Util
             {
                 //Check for held thing colliding when pushed
                 Something thing = GetHeldThing(character);
-                if (thing.Location.X == destination.X &&
-                    thing.Location.Y == destination.Y)
+                Region size = GetSize(thing);
+
+                Location newLocation = new Location(thing.Location.X, thing.Location.Y, 0);
+
+                Direction direction = GetDirection(character.Destination, character.Location, false);
+                if (direction == Direction.Up)
                 {
-                    Location newDestination = new Location(destination.X, destination.Y, 0);
+                    if (thing.Location.X == character.Location.X)
+                    {
+                        newLocation.Y--;
+                    }
+                    else if (thing.Location.X < character.Location.X)
+                    {
+                        newLocation.X++;
+                    }
+                    else if (thing.Location.X > character.Location.X)
+                    {
+                        newLocation.X--;
+                    }
+                }
+                else if (direction == Direction.Right)
+                {
+                    if (thing.Location.Y == character.Location.Y)
+                    {
+                        newLocation.X++;
+                    }
+                    else if (thing.Location.Y < character.Location.Y)
+                    {
+                        newLocation.Y++;
+                    }
+                    else if (thing.Location.Y > character.Location.Y)
+                    {
+                        newLocation.Y--;
+                    }
+                }
+                else if (direction == Direction.Down)
+                {
+                    if (thing.Location.X == character.Location.X)
+                    {
+                        newLocation.Y++;
+                    }
+                    else if (thing.Location.X < character.Location.X)
+                    {
+                        newLocation.X++;
+                    }
+                    else if (thing.Location.X > character.Location.X)
+                    {
+                        newLocation.X--;
+                    }
+                }
+                else if (direction == Direction.Left)
+                {
+                    if (thing.Location.Y == character.Location.Y)
+                    {
+                        newLocation.X--;
+                    }
+                    else if (thing.Location.Y < character.Location.Y)
+                    {
+                        newLocation.Y++;
+                    }
+                    else if (thing.Location.Y > character.Location.Y)
+                    {
+                        newLocation.Y--;
+                    }
+                }
 
-                    Direction direction = GetDirection(character.Destination, character.Location, false);
-                    if (direction == Direction.Up)
-                    {
-                        newDestination.Y--;
-                    }
-                    else if (direction == Direction.Right)
-                    {
-                        newDestination.X++;
-                    }
-                    else if (direction == Direction.Down)
-                    {
-                        newDestination.Y++;
-                    }
-                    else if (direction == Direction.Left)
-                    {
-                        newDestination.X--;
-                    }
+                for (int y = 0; y <= size.Height; y++)
+                {
+                    float Y = newLocation.Y + y;
 
-                    //Check bottom tiles
-                    if (newDestination.X < bottom_tiles.Columns && newDestination.X >= 0 &&
-                        newDestination.Y < bottom_tiles.Rows && newDestination.Y >= 0)
+                    for (int x = 0; x <= size.Width; x++)
                     {
-                        Tile current = bottom_tiles.GetTile(new Vector2(newDestination.X, newDestination.Y));
-                        if (current != null)
+                        float X = newLocation.X + x;
+
+                        Tile bottom = bottom_tiles.GetTile(new Vector2(X, Y));
+                        if (bottom != null)
                         {
-                            if (current.BlocksMovement)
+                            if (bottom.BlocksMovement)
                             {
                                 return false;
                             }
                         }
-                    }
-                    else if (character.Type == "Player" ||
-                             character.Type == "Citizen")
-                    {
-                        return false;
-                    }
-
-                    //Check middle tiles
-                    furniture = GetFurniture(middle_tiles, newDestination, false);
-                    if (furniture != null)
-                    {
-                        if (!furniture.Name.Contains("Open"))
+                        else
                         {
-                            if (holding?.ID != furniture.ID &&
-                                furniture.BlocksMovement)
-                            {
-                                return false;
-                            }
-                            else if (furniture.Name.Contains("Window") &&
-                                     character.Type != "Player")
-                            {
-                                return false;
-                            }
+                            return false;
                         }
-                    }
 
-                    //Check other characters
-                    other = GetCharacter(newDestination);
-                    if (other != null)
-                    {
-                        return false;
+                        Tile middle = GetFurniture(middle_tiles, new Location(X, Y, 0));
+                        if (middle != null &&
+                            middle.ID != thing.ID)
+                        {
+                            return false;
+                        }
+
+                        other = GetCharacter(new Location(X, Y, 0));
+                        if (other != null &&
+                            other.ID != character.ID)
+                        {
+                            return false;
+                        }
                     }
                 }
             }
@@ -572,6 +606,10 @@ namespace Despicaville.Util
                 middle_tiles.Tiles[newIndex] = middle_tiles.Tiles[oldIndex];
                 middle_tiles.Tiles[oldIndex] = temp;
             }
+            else if (thing.Type == "Citizen")
+            {
+                CharacterUtil.UpdateGear((Character)thing);
+            }
         }
 
         public static Tile GetNearestExit_ToFurniture(Character character, Layer bottom_tiles, Layer middle_tiles, Layer room_tiles, Tile furniture)
@@ -847,6 +885,132 @@ namespace Despicaville.Util
             return null;
         }
 
+        public static Tile GetFurniture(Layer layer, Location destination)
+        {
+            int width = (int)Main.Game.TileSize_X;
+            int width_double = width * 2;
+            int width_triple = width * 3;
+
+            Tile[] tiles = layer.Tiles.ToArray();
+            int count = tiles.Length;
+            for (int i = 0; i < count; i++)
+            {
+                Tile existing = tiles[i];
+
+                if (existing.Texture == null)
+                {
+                    continue;
+                }
+
+                if (destination.X.Equals(existing.Location.X) &&
+                    destination.Y.Equals(existing.Location.Y))
+                {
+                    return existing;
+                }
+                else if (existing.Region.Height == width)
+                {
+                    if (existing.Direction == Direction.Right)
+                    {
+                        if (existing.Region.Width == width_double)
+                        {
+                            if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
+                                destination.Y == existing.Location.Y)
+                            {
+                                return existing;
+                            }
+                        }
+                    }
+                    else if (existing.Direction == Direction.Left)
+                    {
+                        if (existing.Region.Width == width_double)
+                        {
+                            if (destination.X >= existing.Location.X - 1 && destination.X <= existing.Location.X &&
+                                destination.Y == existing.Location.Y)
+                            {
+                                return existing;
+                            }
+                        }
+                    }
+                    else if (existing.Direction == Direction.Up ||
+                             existing.Direction == Direction.Down)
+                    {
+                        if (existing.Region.Width == width_double)
+                        {
+                            if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
+                                destination.Y == existing.Location.Y)
+                            {
+                                return existing;
+                            }
+                        }
+                        else if (existing.Region.Width == width_triple)
+                        {
+                            if (destination.X >= existing.Location.X - 1 && destination.X <= existing.Location.X + 1 &&
+                                destination.Y == existing.Location.Y)
+                            {
+                                return existing;
+                            }
+                        }
+                    }
+                }
+                else if (existing.Region.Width == width)
+                {
+                    if (existing.Direction == Direction.Up)
+                    {
+                        if (existing.Region.Height == width_double)
+                        {
+                            if (destination.X == existing.Location.X &&
+                                destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y - 1)
+                            {
+                                return existing;
+                            }
+                        }
+                    }
+                    else if (existing.Direction == Direction.Down)
+                    {
+                        if (existing.Region.Height == width_double)
+                        {
+                            if (destination.X == existing.Location.X &&
+                                destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
+                            {
+                                return existing;
+                            }
+                        }
+                    }
+                    else if (existing.Direction == Direction.Left ||
+                             existing.Direction == Direction.Right)
+                    {
+                        if (existing.Region.Height == width_double)
+                        {
+                            if (destination.X == existing.Location.X &&
+                                destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
+                            {
+                                return existing;
+                            }
+                        }
+                        else if (existing.Region.Height == width_triple)
+                        {
+                            if (destination.X == existing.Location.X &&
+                                destination.Y >= existing.Location.Y - 1 && destination.Y <= existing.Location.Y + 1)
+                            {
+                                return existing;
+                            }
+                        }
+                    }
+                }
+                else if (existing.Region.Width == width_double &&
+                         existing.Region.Height == width_double)
+                {
+                    if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
+                        destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
+                    {
+                        return existing;
+                    }
+                }
+            }
+
+            return null;
+        }
+
         public static Tile GetFurniture(Layer layer, Location destination, bool movable)
         {
             int width = (int)Main.Game.TileSize_X;
@@ -972,6 +1136,50 @@ namespace Despicaville.Util
             }
 
             return null;
+        }
+
+        public static Region GetSize(Something thing)
+        {
+            Region size = new Region
+            {
+                X = thing.Location.X,
+                Y = thing.Location.Y
+            };
+
+            int width = (int)Main.Game.TileSize_X;
+            int width_double = width * 2;
+            int width_triple = width * 3;
+
+            if (thing.Region.Height == width)
+            {
+                if (thing.Region.Width == width_double)
+                {
+                    size.Width = 1;
+                }
+                else if (thing.Region.Width == width_triple)
+                {
+                    size.Width = 2;
+                }
+            }
+            else if (thing.Region.Width == width)
+            {
+                if (thing.Region.Height == width_double)
+                {
+                    size.Height = 1;
+                }
+                else if (thing.Region.Height == width_triple)
+                {
+                    size.Height = 2;
+                }
+            }
+            else if (thing.Region.Width == width_double &&
+                     thing.Region.Height == width_double)
+            {
+                size.Width = 1;
+                size.Height = 1;
+            }
+
+            return size;
         }
 
         public static List<Tile> GetAllFurniture(Layer layer, Point map_coords)

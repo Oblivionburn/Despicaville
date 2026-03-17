@@ -44,6 +44,11 @@ namespace Despicaville.Util
             SceneManager.ChangeScene(scene);
 
             CenterToPlayer_OnFrame();
+
+            Character player = Handler.GetPlayer();
+
+            CharacterUtil.UpdateSight(player);
+            UpdateWorld(scene.World, player);
         }
 
         public static void ReturnToTitle()

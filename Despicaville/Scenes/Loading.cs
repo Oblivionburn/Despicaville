@@ -284,6 +284,7 @@ namespace Despicaville.Scenes
         private void CheckClick(Button button)
         {
             AssetManager.PlaySound_Random("Click");
+            InputManager.Mouse.Flush();
 
             if (button.Name == "Back")
             {

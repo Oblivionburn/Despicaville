@@ -626,7 +626,11 @@ namespace Despicaville.Util
                                 Color new_color = GameUtil.ColorFromName(Handler.Colors[color_choice]);
 
                                 new_item.Name = Handler.Colors[color_choice] + " " + new_item.Name;
-                                new_item.Inventory.Name = new_item.Name;
+
+                                if (new_item.Type == "Container")
+                                {
+                                    new_item.Inventory.Name = new_item.Name;
+                                }
 
                                 new_item.DrawColor = new_color;
                                 new_item.Icon_DrawColor = new_color;

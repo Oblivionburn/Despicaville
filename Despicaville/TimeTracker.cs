@@ -67,8 +67,10 @@ namespace Despicaville
                             {
                                 if (character.Moving)
                                 {
-                                    character.Move_TotalDistance = Main.Game.TileSize.X;
-                                    character.Update();
+                                    if (task != null)
+                                    {
+                                        CharacterUtil.MoveCharacter(character, task); 
+                                    }
                                 }
                                 else
                                 {
@@ -84,29 +86,6 @@ namespace Despicaville
                                         task.Name == "Walk" ||
                                         task.Name == "Run")
                                     {
-                                        task.EndTime = new TimeHandler(TimeManager.Now);
-
-                                        if (character.Location == character.Destination)
-                                        {
-                                            Something stamina = character.GetStat("Stamina");
-                                            Something endurance = character.GetStat("Endurance");
-
-                                            if (task.Name == "Sneak")
-                                            {
-                                                stamina.DecreaseValue(0.0385f / endurance.Value);
-                                            }
-                                            else if (task.Name == "Walk")
-                                            {
-                                                stamina.DecreaseValue(0.077f / endurance.Value);
-                                            }
-                                            else if (task.Name == "Run")
-                                            {
-                                                stamina.DecreaseValue(0.154f / endurance.Value);
-                                            }
-                                        }
-
-                                        WorldUtil.SetCurrentMap(character);
-
                                         if (character.Path.Count > 0)
                                         {
                                             ALocation first_path = character.Path[0];
@@ -155,18 +134,6 @@ namespace Despicaville
             else
             {
                 CharacterUtil.Rest(player);
-            }
-
-            if (player.GetStat("Pain").Value < 100 &&
-                player.GetStat("Stamina").Value > 0)
-            {
-                Something consciousness = player.GetStat("Consciousness");
-                consciousness.IncreaseValue(0.001f);
-
-                if (consciousness.Value >= 20)
-                {
-                    player.Unconscious = false;
-                }
             }
 
             player.Job.Update(TimeManager.Now);
