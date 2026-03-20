@@ -102,8 +102,8 @@
     <Compile Include="Util\DPathing.cs" />
     <Compile Include="Util\GameUtil.cs" />
     <Compile Include="Util\InventoryUtil.cs" />
-    <Compile Include="Util\Load.cs" />
-    <Compile Include="Util\Save.cs" />
+    <Compile Include="Util\LoadUtil.cs" />
+    <Compile Include="Util\SaveUtil.cs" />
     <Compile Include="Util\WorldGen.cs" />
     <Compile Include="Util\WorldUtil.cs" />
   </ItemGroup>

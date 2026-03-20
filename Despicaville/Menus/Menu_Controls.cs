@@ -177,7 +177,7 @@ namespace Despicaville.Menus
 
         private void Back()
         {
-            Save.ExportINI();
+            SaveUtil.ExportINI();
 
             Visible = false;
             Active = false;
@@ -281,9 +281,9 @@ namespace Despicaville.Menus
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Run_Key", InputManager.GetMappedKey("Run").ToString(), label_color,
                 new Region(0, 0, 0, 0), true);
 
-            AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Interact", "Interact", Color.White, Color.Red, AssetManager.Textures["ButtonFrame"], AssetManager.Textures["ButtonFrame_Highlight"], AssetManager.Textures["ButtonFrame"],
+            AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Combat", "Combat", Color.White, Color.Red, AssetManager.Textures["ButtonFrame"], AssetManager.Textures["ButtonFrame_Highlight"], AssetManager.Textures["ButtonFrame"],
                 new Region(0, 0, 0, 0), false, true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Interact_Key", InputManager.GetMappedKey("Interact").ToString(), label_color,
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Combat_Key", InputManager.GetMappedKey("Combat").ToString(), label_color,
                 new Region(0, 0, 0, 0), true);
 
             AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Cancel", "Cancel", Color.White, Color.Red, AssetManager.Textures["ButtonFrame"], AssetManager.Textures["ButtonFrame_Highlight"], AssetManager.Textures["ButtonFrame"],
@@ -294,16 +294,6 @@ namespace Despicaville.Menus
             AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Inventory", "Inventory", Color.White, Color.Red, AssetManager.Textures["ButtonFrame"], AssetManager.Textures["ButtonFrame_Highlight"], AssetManager.Textures["ButtonFrame"],
                 new Region(0, 0, 0, 0), false, true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Inventory_Key", InputManager.GetMappedKey("Inventory").ToString(), label_color,
-                new Region(0, 0, 0, 0), true);
-
-            AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Stats", "Stats", Color.White, Color.Red, AssetManager.Textures["ButtonFrame"], AssetManager.Textures["ButtonFrame_Highlight"], AssetManager.Textures["ButtonFrame"],
-                new Region(0, 0, 0, 0), false, true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Stats_Key", InputManager.GetMappedKey("Stats").ToString(), label_color,
-                new Region(0, 0, 0, 0), true);
-
-            AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Skills", "Skills", Color.White, Color.Red, AssetManager.Textures["ButtonFrame"], AssetManager.Textures["ButtonFrame_Highlight"], AssetManager.Textures["ButtonFrame"],
-                new Region(0, 0, 0, 0), false, true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Skills_Key", InputManager.GetMappedKey("Skills").ToString(), label_color,
                 new Region(0, 0, 0, 0), true);
 
             AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Map", "Map", Color.White, Color.Red, AssetManager.Textures["ButtonFrame"], AssetManager.Textures["ButtonFrame_Highlight"], AssetManager.Textures["ButtonFrame"],
@@ -361,8 +351,8 @@ namespace Despicaville.Menus
             GetLabel("Run_Key").Region = new Region((Main.Game.ScreenWidth / 2), height * Y, Main.Game.MenuSize_X * label_width, height);
 
             Y += 1;
-            GetButton("Interact").Region = new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X * 5), height * Y, Main.Game.MenuSize_X * 4, height);
-            GetLabel("Interact_Key").Region = new Region((Main.Game.ScreenWidth / 2), height * Y, Main.Game.MenuSize_X * label_width, height);
+            GetButton("Combat").Region = new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X * 5), height * Y, Main.Game.MenuSize_X * 4, height);
+            GetLabel("Combat_Key").Region = new Region((Main.Game.ScreenWidth / 2), height * Y, Main.Game.MenuSize_X * label_width, height);
 
             Y += 1;
             GetButton("Cancel").Region = new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X * 5), height * Y, Main.Game.MenuSize_X * 4, height);
@@ -371,14 +361,6 @@ namespace Despicaville.Menus
             Y += 1;
             GetButton("Inventory").Region = new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X * 5), height * Y, Main.Game.MenuSize_X * 4, height);
             GetLabel("Inventory_Key").Region = new Region((Main.Game.ScreenWidth / 2), height * Y, Main.Game.MenuSize_X * label_width, height);
-
-            Y += 1;
-            GetButton("Stats").Region = new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X * 5), height * Y, Main.Game.MenuSize_X * 4, height);
-            GetLabel("Stats_Key").Region = new Region((Main.Game.ScreenWidth / 2), height * Y, Main.Game.MenuSize_X * label_width, height);
-
-            Y += 1;
-            GetButton("Skills").Region = new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X * 5), height * Y, Main.Game.MenuSize_X * 4, height);
-            GetLabel("Skills_Key").Region = new Region((Main.Game.ScreenWidth / 2), height * Y, Main.Game.MenuSize_X * label_width, height);
 
             Y += 1;
             GetButton("Map").Region = new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X * 5), height * Y, Main.Game.MenuSize_X * 4, height);

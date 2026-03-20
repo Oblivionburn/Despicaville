@@ -94,6 +94,7 @@ namespace Despicaville.Menus
         private void CheckClick(Button button)
         {
             AssetManager.PlaySound_Random("Click");
+            InputManager.Mouse.Flush();
 
             if (button.Name == "Back")
             {
@@ -109,7 +110,7 @@ namespace Despicaville.Menus
             }
             else if (button.Name == "Save")
             {
-                TimeManager.Paused = false;
+                //TimeManager.Paused = false;
                 //Handler.Save();
                 //GameUtil.ShowAlert("Your progress has been saved!");
             }
@@ -137,8 +138,17 @@ namespace Despicaville.Menus
         public override void Open()
         {
             TimeManager.Paused = true;
+
             Visible = true;
             Active = true;
+
+            Menu menu_health = MenuManager.GetMenu("Health");
+            menu_health.Active = false;
+            menu_health.Visible = false;
+
+            Menu menu_ui = MenuManager.GetMenu("UI");
+            menu_ui.Active = false;
+            menu_ui.Visible = false;
         }
 
         public override void Close()
@@ -164,36 +174,28 @@ namespace Despicaville.Menus
         {
             Clear();
 
-            int Y = (int)(Main.Game.ScreenHeight / (Main.Game.MenuSize_Y * 2));
-
             AddButton(Handler.GetID(), "Back", AssetManager.Textures["Button_Back"], AssetManager.Textures["Button_Back_Hover"], AssetManager.Textures["Button_Back_Disabled"],
-                new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2), Main.Game.MenuSize_Y * Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y), Color.White, false);
+                new Region(0, 0, 0, 0), Color.White, false);
             GetButton("Back").HoverText = "Resume";
 
-            Y += 2;
             AddButton(Handler.GetID(), "Play", AssetManager.Textures["Button_Play"], AssetManager.Textures["Button_Play_Hover"], AssetManager.Textures["Button_Play_Disabled"],
-                new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2), Main.Game.MenuSize_Y * Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y), Color.White, true);
+                new Region(0, 0, 0, 0), Color.White, true);
             GetButton("Play").HoverText = "Play";
 
-            AddButton(Handler.GetID(), "Save", AssetManager.Textures["Button_Save"], AssetManager.Textures["Button_Save_Hover"], AssetManager.Textures["Button_Save_Disabled"],
-                new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2), Main.Game.MenuSize_Y * Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y), Color.White, false);
-            GetButton("Save").HoverText = "Save Game";
-
-            Y += 1;
             AddButton(Handler.GetID(), "Main", AssetManager.Textures["Button_Main"], AssetManager.Textures["Button_Main_Hover"], null,
-                new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2), Main.Game.MenuSize_Y * Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y), Color.White, false);
+                new Region(0, 0, 0, 0), Color.White, false);
             GetButton("Main").HoverText = "Back to Title";
 
             AddButton(Handler.GetID(), "Options", AssetManager.Textures["Button_Options"], AssetManager.Textures["Button_Options_Hover"], null,
-                new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2), GetButton("Play").Region.Y + (Main.Game.MenuSize_Y * 2), Main.Game.MenuSize_X, Main.Game.MenuSize_Y), Color.White, true);
+                new Region(0, 0, 0, 0), Color.White, true);
             GetButton("Options").HoverText = "Options";
 
             AddButton(Handler.GetID(), "Exit", AssetManager.Textures["Button_Exit"], AssetManager.Textures["Button_Exit_Hover"], null,
-                new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2), GetButton("Play").Region.Y + (Main.Game.MenuSize_Y * 3), Main.Game.MenuSize_X, Main.Game.MenuSize_Y), Color.White, true);
+                new Region(0, 0, 0, 0), Color.White, true);
             GetButton("Exit").HoverText = "Exit";
 
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Version", "v" + Main.Version, Color.White,
-                new Region(Main.Game.ScreenWidth - (Main.Game.MenuSize_X * 2) - 16, Main.Game.ScreenHeight - Main.Game.MenuSize_X, Main.Game.MenuSize_X * 2, Main.Game.MenuSize_X), true);
+                new Region(0, 0, 0, 0), true);
 
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "", Color.White, AssetManager.Textures["Frame"], new Region(0, 0, 0, 0), false);
 
@@ -202,27 +204,25 @@ namespace Despicaville.Menus
 
         public override void Resize(Point point)
         {
-            int Y = (int)(Main.Game.ScreenHeight / (Main.Game.MenuSize_Y * 2));
+            float Y = (Main.Game.ScreenHeight / 2) - (Main.Game.MenuSize_Y / 2);
+            float X = (Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2);
 
             Button back = GetButton("Back");
-            back.Region = new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2), Main.Game.MenuSize_Y * Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+            back.Region = new Region(X, Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
 
-            Y += 2;
             Button play = GetButton("Play");
-            play.Region = new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2), Main.Game.MenuSize_Y * Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+            play.Region = new Region(X, Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
 
-            Button save = GetButton("Save");
-            save.Region = new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2), Main.Game.MenuSize_Y * Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+            Y += Main.Game.MenuSize_Y * 2;
+            GetButton("Options").Region = new Region(X, Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
 
-            Y += 1;
+            Y += Main.Game.MenuSize_Y;
             Button main = GetButton("Main");
-            main.Region = new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2), Main.Game.MenuSize_Y * Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-
-            Button options = GetButton("Options");
-            options.Region = new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2), GetButton("Play").Region.Y + (Main.Game.MenuSize_Y * 2), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+            main.Region = new Region(X, Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
 
             Button exit = GetButton("Exit");
-            exit.Region = new Region((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2), GetButton("Play").Region.Y + (Main.Game.MenuSize_Y * 3), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+            exit.Region = new Region(X, Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+
 
             Label version = GetLabel("Version");
             version.Region = new Region(Main.Game.ScreenWidth - (Main.Game.MenuSize_X * 2) - 16, Main.Game.ScreenHeight - Main.Game.MenuSize_X, Main.Game.MenuSize_X * 2, Main.Game.MenuSize_X);

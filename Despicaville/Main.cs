@@ -30,6 +30,7 @@ namespace Despicaville
         public static BlendState AmbientBlendState = new BlendState();
         public static LightingRenderer LightingRenderer;
 
+        public static bool LostFocus;
         public static string Version;
 
         public static int light_max_count = 32;
@@ -130,16 +131,20 @@ namespace Despicaville
                         if (!Game.Form.Focused)
                         {
                             if (Game.GameStarted &&
+                                !LostFocus &&
                                 !TimeManager.Paused)
                             {
-                                OpenMainMenu();
+                                LostFocus = true;
+                                MenuManager.GetMenu("Main").Open();
                             }
 
                             SoundManager.Paused = true;
                         }
                         else if (Game.Form.Focused)
                         {
+                            LostFocus = false;
                             SoundManager.Paused = false;
+
                             InputManager.Update();
                             MenuManager.Update(Game.Game, Content);
                             SceneManager.Update(Game.Game, Content);
@@ -147,9 +152,10 @@ namespace Despicaville
                             WeatherManager.Update(Game.Resolution, Color.White);
                         }
                     }
-                    else
+                    else if (!LostFocus)
                     {
-                        TimeManager.Paused = true;
+                        LostFocus = true;
+                        MenuManager.GetMenu("Main").Open();
                         SoundManager.Paused = true;
                     }
 
@@ -207,7 +213,6 @@ namespace Despicaville
 
         private void LoadMenus()
         {
-            MenuManager.Menus.Add(new Menu_UI(Content));
             MenuManager.Menus.Add(new Menu_Main(Content));
             MenuManager.Menus.Add(new Menu_Options(Content));
             MenuManager.Menus.Add(new Menu_Controls(Content));
@@ -216,34 +221,7 @@ namespace Despicaville
             MenuManager.Menus.Add(new Menu_Combat(Content));
             MenuManager.Menus.Add(new Menu_Health(Content));
             MenuManager.Menus.Add(new Menu_Wounds(Content));
-        }
-
-        public static void OpenMainMenu()
-        {
-            InputManager.Keyboard.Flush();
-
-            OP_Engine.Menus.Menu menu = MenuManager.GetMenu("Main");
-            if (menu != null)
-            {
-                OP_Engine.Menus.Menu menu_health = MenuManager.GetMenu("Health");
-                if (menu_health != null)
-                {
-                    if (Handler.Menu_Health)
-                    {
-                        menu_health.Active = false;
-                        menu_health.Visible = false;
-                    }
-                }
-
-                OP_Engine.Menus.Menu menu_ui = MenuManager.GetMenu("UI");
-                if (menu_ui != null)
-                {
-                    menu_ui.Active = false;
-                    menu_ui.Visible = false;
-                }
-
-                menu.Open();
-            }
+            MenuManager.Menus.Add(new Menu_UI(Content));
         }
 
         #endregion

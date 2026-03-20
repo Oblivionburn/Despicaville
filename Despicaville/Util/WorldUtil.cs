@@ -16,8 +16,6 @@ namespace Despicaville.Util
     {
         public static bool CanMove(Character character, Map map, Location destination)
         {
-            Something holding = character.GetStatusEffect("Holding");
-
             Layer bottom_tiles = map.GetLayer("BottomTiles");
             Layer middle_tiles = map.GetLayer("MiddleTiles");
 
@@ -46,7 +44,7 @@ namespace Despicaville.Util
             {
                 if (!furniture.Name.Contains("Open"))
                 {
-                    if (holding?.ID != furniture.ID &&
+                    if (Handler.Holding_ID != furniture.ID &&
                         furniture.BlocksMovement)
                     {
                         return false;
@@ -66,7 +64,7 @@ namespace Despicaville.Util
                 return false;
             }
 
-            if (holding != null)
+            if (Handler.Holding)
             {
                 //Check for held thing colliding when pushed
                 Something thing = GetHeldThing(character);
@@ -345,8 +343,7 @@ namespace Despicaville.Util
             Scene gameplay = SceneManager.GetScene("Gameplay");
             Army army = CharacterManager.GetArmy("Characters");
             
-            Something holding = character.GetStatusEffect("Holding");
-            if (holding != null)
+            if (Handler.Holding)
             {
                 int squadCount = army.Squads.Count;
                 for (int s = 0; s < squadCount; s++)
@@ -357,7 +354,7 @@ namespace Despicaville.Util
                     for (int c = 0; c < charCount; c++)
                     {
                         Character citizen = squad.Characters[c];
-                        if (citizen.ID == holding.ID)
+                        if (citizen.ID == Handler.Holding_ID)
                         {
                             return citizen;
                         }
@@ -372,7 +369,7 @@ namespace Despicaville.Util
                 for (int i = 0; i < tileCount; i++)
                 {
                     Tile tile = tiles[i];
-                    if (tile.ID == holding.ID)
+                    if (tile.ID == Handler.Holding_ID)
                     {
                         return tile;
                     }
@@ -384,8 +381,7 @@ namespace Despicaville.Util
 
         public static void MoveHeldThing(Character character, Direction direction, bool behind)
         {
-            Something holding = character.GetStatusEffect("Holding");
-            if (holding == null)
+            if (!Handler.Holding)
             {
                 return;
             }
@@ -405,7 +401,7 @@ namespace Despicaville.Util
             for (int i = 0; i < tileCount; i++)
             {
                 Tile tile = tiles[i];
-                if (tile.ID == holding.ID)
+                if (tile.ID == Handler.Holding_ID)
                 {
                     oldIndex = i;
                     thing = tile;
@@ -426,7 +422,7 @@ namespace Despicaville.Util
                     for (int c = 0; c < charCount; c++)
                     {
                         Character citizen = squad.Characters[c];
-                        if (citizen.ID == holding.ID)
+                        if (citizen.ID == Handler.Holding_ID)
                         {
                             thing = citizen;
                             Tasker.AbortTask(citizen);

@@ -390,7 +390,6 @@ namespace Despicaville.Scenes
         private void UpdatePlayerControls(Character player)
         {
             bool mouse_in_view = false;
-            bool turning = false;
 
             Menu ui = MenuManager.GetMenu("UI");
             Picture world_view = ui.GetPicture("Panel_Upper_Center");
@@ -399,38 +398,198 @@ namespace Despicaville.Scenes
                 mouse_in_view = true;
             }
 
-            Something holdingStatus = player.GetStatusEffect("Holding");
-
             if (player.Job.Tasks.Count == 0)
             {
-                #region Move
+                #region Holding
 
-                string speed = "Walk";
+                if (InputManager.Mouse_RB_Held &&
+                    !Handler.Holding &&
+                    !Handler.Combat &&
+                    InventoryUtil.HasEmptyHand(player))
+                {
+                    Vector3 location = new Vector3(-1, -1, -1);
+                    if (player.Direction == Direction.Up)
+                    {
+                        location = new Vector3(player.Location.X, player.Location.Y - 1, 0);
+                    }
+                    else if (player.Direction == Direction.Right)
+                    {
+                        location = new Vector3(player.Location.X + 1, player.Location.Y, 0);
+                    }
+                    else if (player.Direction == Direction.Down)
+                    {
+                        location = new Vector3(player.Location.X, player.Location.Y + 1, 0);
+                    }
+                    else if (player.Direction == Direction.Left)
+                    {
+                        location = new Vector3(player.Location.X - 1, player.Location.Y, 0);
+                    }
+
+                    bool holding = false;
+
+                    Army army = CharacterManager.GetArmy("Characters");
+                    Squad citizens = army.GetSquad("Citizens");
+
+                    Character character = WorldUtil.MouseGetCharacter(citizens.Characters, new Location(location.X, location.Y, 0));
+                    if (character != null)
+                    {
+                        Tasker.AbortTask(character);
+
+                        character.Moving = false;
+
+                        Map map = World.Maps[0];
+                        Layer bottom_tiles = map.GetLayer("BottomTiles");
+                        Tile tile = bottom_tiles.GetTile(new Vector2(character.Location.X, character.Location.Y));
+                        character.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width, tile.Region.Height);
+
+                        CharacterUtil.UpdateGear(character);
+
+                        Handler.Holding = true;
+                        Handler.Holding_ID = character.ID;
+
+                        Label label = ui.GetLabel("Holding");
+                        label.Opacity = 1;
+                        label.TextColor = Color.Lime;
+                    }
+
+                    if (!holding)
+                    {
+                        Map map = World.Maps[0];
+                        Layer middle_tiles = map.GetLayer("MiddleTiles");
+
+                        Tile middle_tile = WorldUtil.GetFurniture(middle_tiles, new Location(location.X, location.Y, 0), true);
+                        if (middle_tile != null)
+                        {
+                            if (middle_tile.Texture != null &&
+                                middle_tile.CanMove)
+                            {
+                                Handler.Holding = true;
+                                Handler.Holding_ID = middle_tile.ID;
+
+                                Label label = ui.GetLabel("Holding");
+                                label.Opacity = 1;
+                                label.TextColor = Color.Lime;
+                            }
+                        }
+                    }
+                }
+                else if (Handler.Holding)
+                {
+                    Handler.Holding = false;
+
+                    Label label = ui.GetLabel("Holding");
+                    label.Opacity = 0.6f;
+                    label.TextColor = Color.White;
+                }
+
+                #endregion
+
+                #region Run
+
                 if (InputManager.KeyDown("Run") &&
-                    holdingStatus == null)
+                    !Handler.Running &&
+                    !Handler.Holding)
                 {
-                    speed = "Run";
+                    Handler.Running = true;
+
+                    Label label = ui.GetLabel("Running");
+                    label.Opacity = 1;
+                    label.TextColor = Color.LimeGreen;
                 }
-                else if (InputManager.KeyDown("Crouch"))
+                else if (Handler.Running)
                 {
-                    speed = "Sneak";
+                    Handler.Running = false;
+
+                    Label label = ui.GetLabel("Running");
+                    label.Opacity = 0.6f;
+                    label.TextColor = Color.White;
                 }
+
+                #endregion
+
+                #region Crouch
+
+                if (InputManager.KeyDown("Crouch") &&
+                    !Handler.Crouching)
+                {
+                    Handler.Crouching = true;
+
+                    Label label = ui.GetLabel("Crouching");
+                    label.Opacity = 1;
+                    label.TextColor = Color.LimeGreen;
+                }
+                else if (Handler.Crouching)
+                {
+                    Handler.Crouching = false;
+
+                    Label label = ui.GetLabel("Crouching");
+                    label.Opacity = 0.6f;
+                    label.TextColor = Color.White;
+                }
+
+                #endregion
+
+                #region Move
 
                 if (InputManager.KeyDown("Up"))
                 {
-                    Tasker.AddTask(player, speed, true, false, null, null, Direction.Up);
+                    if (Handler.Running)
+                    {
+                        Tasker.AddTask(player, "Run", true, false, null, null, Direction.Up);
+                    }
+                    else if (Handler.Crouching)
+                    {
+                        Tasker.AddTask(player, "Sneak", true, false, null, null, Direction.Up);
+                    }
+                    else
+                    {
+                        Tasker.AddTask(player, "Walk", true, false, null, null, Direction.Up);
+                    }
                 }
                 else if (InputManager.KeyDown("Right"))
                 {
-                    Tasker.AddTask(player, speed, true, false, null, null, Direction.Right);
+                    if (Handler.Running)
+                    {
+                        Tasker.AddTask(player, "Run", true, false, null, null, Direction.Right);
+                    }
+                    else if (Handler.Crouching)
+                    {
+                        Tasker.AddTask(player, "Sneak", true, false, null, null, Direction.Right);
+                    }
+                    else
+                    {
+                        Tasker.AddTask(player, "Walk", true, false, null, null, Direction.Right);
+                    }
                 }
                 else if (InputManager.KeyDown("Down"))
                 {
-                    Tasker.AddTask(player, speed, true, false, null, null, Direction.Down);
+                    if (Handler.Running)
+                    {
+                        Tasker.AddTask(player, "Run", true, false, null, null, Direction.Down);
+                    }
+                    else if (Handler.Crouching)
+                    {
+                        Tasker.AddTask(player, "Sneak", true, false, null, null, Direction.Down);
+                    }
+                    else
+                    {
+                        Tasker.AddTask(player, "Walk", true, false, null, null, Direction.Down);
+                    }
                 }
                 else if (InputManager.KeyDown("Left"))
                 {
-                    Tasker.AddTask(player, speed, true, false, null, null, Direction.Left);
+                    if (Handler.Running)
+                    {
+                        Tasker.AddTask(player, "Run", true, false, null, null, Direction.Left);
+                    }
+                    else if (Handler.Crouching)
+                    {
+                        Tasker.AddTask(player, "Sneak", true, false, null, null, Direction.Left);
+                    }
+                    else
+                    {
+                        Tasker.AddTask(player, "Walk", true, false, null, null, Direction.Left);
+                    }
                 }
 
                 #endregion
@@ -439,6 +598,8 @@ namespace Despicaville.Scenes
                     InputManager.Mouse.LB_Pressed)
                 {
                     #region Turn
+
+                    bool turning = false;
 
                     Direction direction = Direction.Nowhere;
 
@@ -566,116 +727,83 @@ namespace Despicaville.Scenes
                     }
                 }
 
+                #region Wait
+
                 if (InputManager.KeyDown("Wait"))
                 {
-                    #region Wait
-
                     long time = Handler.ActionRate;
 
-                    if (InputManager.KeyDown("Run"))
+                    if (Handler.Running)
                     {
                         time = Handler.ActionRate * 5;
                     }
-                    else if (InputManager.KeyDown("Crouch"))
+                    else if (Handler.Crouching)
                     {
                         time = Handler.ActionRate / 5;
                     }
 
                     Tasker.AddTask(player, "Wait", true, false, TimeSpan.FromMilliseconds(time), default, 0);
                     TimeTracker.Tick(time);
-
-                    #endregion
                 }
 
-                if (InputManager.Mouse_RB_Held)
+                #endregion
+
+                #region Combat
+
+                if (InputManager.KeyPressed("Combat"))
                 {
-                    #region Holding
+                    InputManager.Keyboard.Flush();
+                    Handler.Combat = !Handler.Combat;
 
-                    if (holdingStatus == null &&
-                        InventoryUtil.HasEmptyHand(player))
+                    Label label = ui.GetLabel("Combat");
+
+                    if (Handler.Combat)
                     {
-                        Vector3 location = new Vector3(-1, -1, -1);
-                        if (player.Direction == Direction.Up)
-                        {
-                            location = new Vector3(player.Location.X, player.Location.Y - 1, 0);
-                        }
-                        else if (player.Direction == Direction.Right)
-                        {
-                            location = new Vector3(player.Location.X + 1, player.Location.Y, 0);
-                        }
-                        else if (player.Direction == Direction.Down)
-                        {
-                            location = new Vector3(player.Location.X, player.Location.Y + 1, 0);
-                        }
-                        else if (player.Direction == Direction.Left)
-                        {
-                            location = new Vector3(player.Location.X - 1, player.Location.Y, 0);
-                        }
-
-                        bool holding = false;
-
-                        Army army = CharacterManager.GetArmy("Characters");
-                        Squad citizens = army.GetSquad("Citizens");
-
-                        Character character = WorldUtil.MouseGetCharacter(citizens.Characters, new Location(location.X, location.Y, 0));
-                        if (character != null)
-                        {
-                            Tasker.AbortTask(character);
-
-                            character.Moving = false;
-
-                            Map map = World.Maps[0];
-                            Layer bottom_tiles = map.GetLayer("BottomTiles");
-                            Tile tile = bottom_tiles.GetTile(new Vector2(character.Location.X, character.Location.Y));
-                            character.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width, tile.Region.Height);
-
-                            CharacterUtil.UpdateGear(character);
-
-                            holding = true;
-                            player.StatusEffects.Add(new Something
-                            {
-                                ID = character.ID,
-                                Name = "Holding"
-                            });
-                        }
-
-                        if (!holding)
-                        {
-                            Map map = World.Maps[0];
-                            Layer middle_tiles = map.GetLayer("MiddleTiles");
-
-                            Tile middle_tile = WorldUtil.GetFurniture(middle_tiles, new Location(location.X, location.Y, 0), true);
-                            if (middle_tile != null)
-                            {
-                                if (middle_tile.Texture != null &&
-                                    middle_tile.CanMove)
-                                {
-                                    player.StatusEffects.Add(new Something
-                                    {
-                                        ID = middle_tile.ID,
-                                        Name = "Holding"
-                                    });
-                                }
-                            }
-                        }
+                        label.Opacity = 1;
+                        label.TextColor = Color.LimeGreen;
                     }
                     else
                     {
-                        Label label = ui.GetLabel("Holding");
-                        label.Opacity = 1;
-                        label.TextColor = Color.Lime;
+                        label.Opacity = 0.6f;
+                        label.TextColor = Color.White;
                     }
-
-                    #endregion
                 }
-                else if (holdingStatus != null)
+
+                #endregion
+
+                #region MainMenu
+
+                if (InputManager.KeyPressed("Cancel"))
                 {
-                    Label label = ui.GetLabel("Holding");
-                    label.Opacity = 0.6f;
-                    label.TextColor = Color.White;
-
-                    player.StatusEffects.Remove(holdingStatus);
+                    InputManager.Keyboard.Flush();
+                    MenuManager.GetMenu("Main").Open();
                 }
+
+                #endregion
+
+                #region Inventory
+
+                if (InputManager.KeyPressed("Inventory"))
+                {
+                    InputManager.Keyboard.Flush();
+
+                    Handler.Trading = false;
+                    Handler.Trading_InventoryID.Clear();
+
+                    MenuManager.GetMenu("Inventory").Open();
+                }
+
+                #endregion
+
+                #region Debug
+
+                if (InputManager.KeyPressed("Debug"))
+                {
+                    InputManager.Keyboard.Flush();
+                    Main.Game.Debugging = !Main.Game.Debugging;
+                }
+
+                #endregion
             }
         }
 

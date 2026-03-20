@@ -35,6 +35,11 @@ namespace Despicaville
 
         public static bool Menu_Health;
         public static bool WorldMap_Visible;
+        public static bool Crouching;
+        public static bool Running;
+        public static bool Holding;
+        public static long Holding_ID;
+        public static bool Combat;
 
         public static bool Trading;
         public static List<long> Trading_InventoryID = new List<long>();
@@ -95,29 +100,35 @@ namespace Despicaville
 
             Load_Init();
 
-            string config = AssetManager.Files["Config"];
+            string saves = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Despicaville");
+            AssetManager.Directories.Add("Saves", saves);
+            if (!Directory.Exists(saves))
+            {
+                Directory.CreateDirectory(saves);
+            }
+
+            string config = Path.Combine(AssetManager.Directories["Saves"], "config.ini");
+            AssetManager.Files.Add("Config", config);
             if (!File.Exists(config))
             {
                 File.Create(config).Close();
+                SaveUtil.ExportINI();
             }
             else
             {
-                Load.ParseINI(config);
+                LoadUtil.ParseINI(config);
             }
+
+            AssetManager.Directories.Add("Maps", Path.Combine(AssetManager.Directories["Content"], "Maps"));
         }
 
         public static void Load_Init()
         {
-            AssetManager.Directories.Add("Maps", string.Concat(AssetManager.Directories["Content"], @"\Maps"));
-
-            AssetManager.Files.Add("Config", Environment.CurrentDirectory + @"\config.ini");
-            AssetManager.Files.Add("Save", Environment.CurrentDirectory + @"\save.dat");
-
             AssetManager.LoadFonts();
 
             //Textures
-            string[] textures = 
-            { 
+            string[] textures =
+            {
                 "Controls",
                 "Hairs",
                 "Hats",
@@ -137,7 +148,7 @@ namespace Despicaville
             //Sounds
             AssetManager.LoadSounds();
 
-            string[] sounds = 
+            string[] sounds =
             {
                 "Bow",
                 "Click",
@@ -217,22 +228,10 @@ namespace Despicaville
             InputManager.Keyboard.KeysMapped.Add("Left", Keys.A);
             InputManager.Keyboard.KeysMapped.Add("Crouch", Keys.LeftControl);
             InputManager.Keyboard.KeysMapped.Add("Run", Keys.LeftShift);
-            InputManager.Keyboard.KeysMapped.Add("Interact", Keys.E);
+            InputManager.Keyboard.KeysMapped.Add("Combat", Keys.Tab);
             InputManager.Keyboard.KeysMapped.Add("Inventory", Keys.I);
-            InputManager.Keyboard.KeysMapped.Add("Stats", Keys.C);
-            InputManager.Keyboard.KeysMapped.Add("Skills", Keys.K);
             InputManager.Keyboard.KeysMapped.Add("Map", Keys.M);
             InputManager.Keyboard.KeysMapped.Add("Wait", Keys.Space);
-            InputManager.Keyboard.KeysMapped.Add("Fullscreen", Keys.F2);
-            InputManager.Keyboard.KeysMapped.Add("Save", Keys.F5);
-            InputManager.Keyboard.KeysMapped.Add("Space", Keys.Space);
-            InputManager.Keyboard.KeysMapped.Add("Backspace", Keys.Back);
-
-            //for (char c = 'A'; c <= 'Z'; c++)
-            //{
-            //    Keys key = InputManager.GetKey(c.ToString());
-            //    InputManager.Keyboard.KeysMapped.Add(c.ToString(), key);
-            //}
         }
 
         public static void LoadWorldTextures()

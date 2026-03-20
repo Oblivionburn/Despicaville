@@ -188,12 +188,13 @@ namespace Despicaville.Menus
         public override void Resize(Point point)
         {
             GetLabel("Examine").Region = new Region(0, 0, 0, 0);
-            GetPicture("Panel").Region = new Region(0, 0, Main.Game.MenuSize_X * 5, Main.Game.MenuSize_Y * 12);
+            GetPicture("Panel").Region = new Region(0, Main.Game.MenuSize_Y, Main.Game.MenuSize_X * 5, Main.Game.MenuSize_Y * 12);
 
-            int paperdoll_x = 0;
-            int paperdoll_y = 0;
-            int paperdoll_width = (int)(Main.Game.MenuSize_X * 5);
-            int paperdoll_height = (int)(Main.Game.MenuSize_X * 10);
+            float paperdoll_x = 0;
+            float paperdoll_y = Main.Game.MenuSize_Y;
+            float paperdoll_width = Main.Game.MenuSize_X * 5;
+            float paperdoll_height = Main.Game.MenuSize_X * 10;
+
             GetPicture("Paperdoll_Head").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);
             GetPicture("Paperdoll_Neck").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);
             GetPicture("Paperdoll_Torso").Region = new Region(paperdoll_x, paperdoll_y, paperdoll_width, paperdoll_height);

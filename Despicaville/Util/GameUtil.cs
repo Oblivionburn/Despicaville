@@ -676,34 +676,16 @@ namespace Despicaville.Util
                 menu.GetButton("Back").Visible = true;
                 menu.GetButton("Play").Visible = false;
 
-                Button save = menu.GetButton("Save");
-                save.Visible = true;
-
-                Button options = menu.GetButton("Options");
-                options.Region = new Region(options.Region.X, save.Region.Y + Main.Game.MenuSize_Y, options.Region.Width, options.Region.Height);
-
-                Button main = menu.GetButton("Main");
-                main.Visible = true;
-                main.Region = new Region(main.Region.X, options.Region.Y + Main.Game.MenuSize_Y, main.Region.Width, main.Region.Height);
-
+                menu.GetButton("Main").Visible = true;
                 menu.GetButton("Exit").Visible = false;
             }
             else
             {
                 menu.GetButton("Back").Visible = false;
+                menu.GetButton("Play").Visible = true;
 
-                Button play = menu.GetButton("Play");
-                play.Visible = true;
-
-                menu.GetButton("Save").Visible = false;
                 menu.GetButton("Main").Visible = false;
-
-                Button options = menu.GetButton("Options");
-                options.Region = new Region(options.Region.X, play.Region.Y + (Main.Game.MenuSize_Y * 2), options.Region.Width, options.Region.Height);
-
-                Button exit = menu.GetButton("Exit");
-                exit.Visible = true;
-                exit.Region = new Region(exit.Region.X, options.Region.Y + Main.Game.MenuSize_Y, exit.Region.Width, exit.Region.Height);
+                menu.GetButton("Exit").Visible = true;
             }
         }
 

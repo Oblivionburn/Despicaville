@@ -1,17 +1,15 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Windows.Forms;
 using System.Xml;
-
 using OP_Engine.Inputs;
 using OP_Engine.Sounds;
 using OP_Engine.Enums;
 
 namespace Despicaville.Util
 {
-    public static class Load
+    public static class LoadUtil
     {
-        #region Parse INI for Options
+        #region Parse INI
 
         public static void ParseINI(string file)
         {
@@ -47,6 +45,10 @@ namespace Despicaville.Util
                 {
                     case "Options":
                         VisitOptions(reader);
+                        break;
+
+                    case "Controls":
+                        VisitControls(reader);
                         break;
                 }
             }
@@ -124,63 +126,7 @@ namespace Despicaville.Util
             }
         }
 
-        #endregion
-
-        #region Parse INI for Controls
-
-        public static void ParseControls(string file)
-        {
-            string error = "";
-
-            using (XmlTextReader reader = new XmlTextReader(File.OpenRead(file)))
-            {
-                try
-                {
-                    while (reader.Read())
-                    {
-                        switch (reader.Name)
-                        {
-                            case "Game":
-                                VisitGame_Controls(reader);
-                                break;
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    error = e.Message;
-                }
-            }
-        }
-
-        private static void VisitGame_Controls(XmlTextReader reader)
-        {
-            while (reader.Read())
-            {
-                if (reader.Name == "Game" && reader.NodeType == XmlNodeType.EndElement)
-                    break;
-
-                switch (reader.Name)
-                {
-                    case "Controls":
-                        VisitControls(reader);
-                        break;
-                }
-            }
-        }
-
         private static void VisitControls(XmlTextReader reader)
-        {
-            while (reader.Read())
-            {
-                if (reader.Name == "Controls" && reader.NodeType == XmlNodeType.EndElement)
-                    break;
-
-                VisitControl(reader);
-            }
-        }
-
-        private static void VisitControl(XmlTextReader reader)
         {
             while (reader.MoveToNextAttribute())
             {

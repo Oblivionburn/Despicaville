@@ -53,7 +53,23 @@ namespace Despicaville.Menus
 
         private void UpdateControls()
         {
-            bool found = false;
+            bool hoveringButton = HoveringButton();
+            bool hoveringLabel = HoveringLabel();
+
+            if (!hoveringButton &&
+                !hoveringLabel)
+            {
+                GetLabel("Examine").Visible = false;
+            }
+        }
+
+        private bool HoveringButton()
+        {
+            foreach (Button button in Buttons)
+            {
+                button.Opacity = 0.8f;
+                button.Selected = false;
+            }
 
             foreach (Button button in Buttons)
             {
@@ -62,7 +78,6 @@ namespace Despicaville.Menus
                 {
                     if (InputManager.MouseWithin(button.Region.ToRectangle))
                     {
-                        found = true;
                         if (button.HoverText != null)
                         {
                             GameUtil.Examine(this, button.HoverText);
@@ -73,107 +88,50 @@ namespace Despicaville.Menus
 
                         if (InputManager.Mouse_LB_Pressed)
                         {
-                            found = false;
                             CheckClick(button);
 
                             button.Opacity = 0.8f;
                             button.Selected = false;
-
-                            break;
                         }
-                    }
-                    else if (InputManager.Mouse_Moved)
-                    {
-                        button.Opacity = 0.8f;
-                        button.Selected = false;
+
+                        return true;
                     }
                 }
             }
 
+            return false;
+        }
+
+        private bool HoveringLabel()
+        {
             foreach (Label label in Labels)
             {
                 if (label.Visible)
                 {
-                    if (label.Name == "Crouching")
-                    {
-                        if (InputManager.KeyDown("Crouch"))
-                        {
-                            label.Opacity = 1;
-                            label.TextColor = Color.LimeGreen;
-                        }
-                        else
-                        {
-                            label.Opacity = 0.6f;
-                            label.TextColor = Color.White;
-                        }
-                    }
-                    else if (label.Name == "Running")
-                    {
-                        Something holdingStatus = Handler.GetPlayer().GetStatusEffect("Holding");
-                        if (InputManager.KeyDown("Run") &&
-                            holdingStatus == null)
-                        {
-                            label.Opacity = 1;
-                            label.TextColor = Color.LimeGreen;
-                        }
-                        else
-                        {
-                            label.Opacity = 0.6f;
-                            label.TextColor = Color.White;
-                        }
-                    }
-
                     if (InputManager.MouseWithin(label.Region.ToRectangle))
                     {
                         if (label.HoverText != null)
                         {
-                            found = true;
                             Examine(label.HoverText);
                         }
 
-                        break;
+                        return true;
                     }
                 }
             }
 
-            if (!found)
-            {
-                GetLabel("Examine").Visible = false;
-            }
-
-            if (InputManager.KeyPressed("Cancel"))
-            {
-                Main.OpenMainMenu();
-            }
-            else if (InputManager.KeyPressed("Inventory"))
-            {
-                InputManager.Keyboard.Flush();
-
-                Handler.Trading = false;
-                Handler.Trading_InventoryID.Clear();
-
-                MenuManager.GetMenu("Inventory").Open();
-            }
-            else if (InputManager.KeyPressed("Debug"))
-            {
-                if (!Main.Game.Debugging)
-                {
-                    Main.Game.Debugging = true;
-                }
-                else if (Main.Game.Debugging)
-                {
-                    Main.Game.Debugging = false;
-                }
-            }
+            return false;
         }
 
         private void CheckClick(Button button)
         {
             AssetManager.PlaySound_Random("Click");
+            InputManager.Mouse.Flush();
+            GetLabel("Examine").Visible = false;
 
             if (button.Name == "Main")
             {
-                Main.OpenMainMenu();
+                MenuManager.GetMenu("Main").Open();
             }
             else if (button.Name == "Inventory")
             {
@@ -303,6 +261,7 @@ namespace Despicaville.Menus
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Crouching", "Quiet | Crouch", Color.White, new Region(0, 0, 0, 0), true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Running", "Loud | Run", Color.White, new Region(0, 0, 0, 0), true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Holding", "Holding", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Combat", "Combat", Color.White, new Region(0, 0, 0, 0), true);
 
             AddProgressBar(Handler.GetID(), "Blood", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
                 new Region(0, 0, 0, 0), new Color(100, 0, 0), true);
@@ -383,6 +342,11 @@ namespace Despicaville.Menus
                 Y += message_height;
             }
 
+            //Upper Left
+            GetButton("Main").Region = new Region(0, 0, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+            GetButton("Inventory").Region = new Region(Main.Game.MenuSize_X, 0, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+            GetButton("Health").Region = new Region(Main.Game.MenuSize_X * 2, 0, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+
             //Upper Center
             GetLabel("Time").Region = new Region(Main.Game.ScreenWidth - panel_width, 0, panel_width, Main.Game.MenuSize_Y * 2);
 
@@ -412,25 +376,19 @@ namespace Despicaville.Menus
             GetLabel("Crouching").Region = new Region(x, y + (height * 6), panel_width, height);
             GetLabel("Running").Region = new Region(x, y + (height * 7), panel_width, height);
             GetLabel("Holding").Region = new Region(x, y + (height * 8), panel_width, height);
+            GetLabel("Combat").Region = new Region(x, y + (height * 9), panel_width, height);
 
-            GetProgressBar("Blood").Base_Region = new Region(x, y + (height * 9), panel_width, height);
-            GetLabel("Blood").Region = new Region(x, y + (height * 9), panel_width, height);
+            GetProgressBar("Blood").Base_Region = new Region(x, y + (height * 10), panel_width, height);
+            GetLabel("Blood").Region = new Region(x, y + (height * 10), panel_width, height);
 
-            GetProgressBar("Consciousness").Base_Region = new Region(x, y + (height * 10), panel_width, height);
-            GetLabel("Consciousness").Region = new Region(x, y + (height * 10), panel_width, height);
+            GetProgressBar("Consciousness").Base_Region = new Region(x, y + (height * 11), panel_width, height);
+            GetLabel("Consciousness").Region = new Region(x, y + (height * 11), panel_width, height);
 
-            GetProgressBar("Stamina").Base_Region = new Region(x, y + (height * 11), panel_width, height);
-            GetLabel("Stamina").Region = new Region(x, y + (height * 11), panel_width, height);
+            GetProgressBar("Stamina").Base_Region = new Region(x, y + (height * 12), panel_width, height);
+            GetLabel("Stamina").Region = new Region(x, y + (height * 12), panel_width, height);
 
-            GetProgressBar("Comfort").Base_Region = new Region(x, y + (height * 12), panel_width, height);
-            GetLabel("Comfort").Region = new Region(x, y + (height * 12), panel_width, height);
-
-            //Lower Right
-            GetButton("Main").Region = new Region(Main.Game.ScreenWidth - Main.Game.MenuSize_X, Main.Game.ScreenHeight - Main.Game.MenuSize_Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-            GetButton("Inventory").Region = new Region(Main.Game.ScreenWidth - Main.Game.MenuSize_X, Main.Game.ScreenHeight - (Main.Game.MenuSize_Y * 2), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-            GetButton("Health").Region = new Region(Main.Game.ScreenWidth - Main.Game.MenuSize_X, Main.Game.ScreenHeight - (Main.Game.MenuSize_Y * 3), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-            GetButton("Stats").Region = new Region(Main.Game.ScreenWidth - Main.Game.MenuSize_X, Main.Game.ScreenHeight - (Main.Game.MenuSize_Y * 4), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-            GetButton("Skills").Region = new Region(Main.Game.ScreenWidth - Main.Game.MenuSize_X, Main.Game.ScreenHeight - (Main.Game.MenuSize_Y * 5), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+            GetProgressBar("Comfort").Base_Region = new Region(x, y + (height * 13), panel_width, height);
+            GetLabel("Comfort").Region = new Region(x, y + (height * 13), panel_width, height);
         }
 
         private void Examine(string text)

@@ -1370,8 +1370,8 @@ namespace Despicaville.Util
 
         public static bool HeldByPlayer(Character character)
         {
-            Something holding = Handler.GetPlayer().GetStatusEffect("Holding");
-            if (holding?.ID == character.ID)
+            if (Handler.Holding &&
+                Handler.Holding_ID == character.ID)
             {
                 return true;
             }

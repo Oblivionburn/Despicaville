@@ -8,7 +8,7 @@ using OP_Engine.Utility;
 
 namespace Despicaville.Util
 {
-    public static class Save
+    public static class SaveUtil
     {
         #region Variables
 
@@ -106,55 +106,17 @@ namespace Despicaville.Util
             #region Controls
 
             EnterNode("Controls");
-
-            EnterNode("Cancel");
-            Writer.WriteAttributeString("Key_Cancel", InputManager.GetMappedKey("Cancel").ToString());
-            ExitNode();
-
-            EnterNode("Up");
             Writer.WriteAttributeString("Key_Up", InputManager.GetMappedKey("Up").ToString());
-            ExitNode();
-
-            EnterNode("Right");
             Writer.WriteAttributeString("Key_Right", InputManager.GetMappedKey("Right").ToString());
-            ExitNode();
-
-            EnterNode("Down");
             Writer.WriteAttributeString("Key_Down", InputManager.GetMappedKey("Down").ToString());
-            ExitNode();
-
-            EnterNode("Left");
             Writer.WriteAttributeString("Key_Left", InputManager.GetMappedKey("Left").ToString());
-            ExitNode();
-
-            EnterNode("Interact");
-            Writer.WriteAttributeString("Key_Interact", InputManager.GetMappedKey("Interact").ToString());
-            ExitNode();
-
-            EnterNode("Turn");
-            Writer.WriteAttributeString("Key_Turn", InputManager.GetMappedKey("Turn").ToString());
-            ExitNode();
-
-            EnterNode("Inventory");
+            Writer.WriteAttributeString("Key_Crouch", InputManager.GetMappedKey("Crouch").ToString());
+            Writer.WriteAttributeString("Key_Run", InputManager.GetMappedKey("Run").ToString());
+            Writer.WriteAttributeString("Key_Combat", InputManager.GetMappedKey("Combat").ToString());
+            Writer.WriteAttributeString("Key_Cancel", InputManager.GetMappedKey("Cancel").ToString());
             Writer.WriteAttributeString("Key_Inventory", InputManager.GetMappedKey("Inventory").ToString());
-            ExitNode();
-
-            EnterNode("Stats");
-            Writer.WriteAttributeString("Key_Stats", InputManager.GetMappedKey("Stats").ToString());
-            ExitNode();
-
-            EnterNode("Skills");
-            Writer.WriteAttributeString("Key_Skills", InputManager.GetMappedKey("Skills").ToString());
-            ExitNode();
-
-            EnterNode("Map");
             Writer.WriteAttributeString("Key_Map", InputManager.GetMappedKey("Map").ToString());
-            ExitNode();
-
-            EnterNode("Wait");
             Writer.WriteAttributeString("Key_Wait", InputManager.GetMappedKey("Wait").ToString());
-            ExitNode();
-
             ExitNode();
 
             #endregion
