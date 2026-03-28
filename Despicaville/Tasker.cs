@@ -1710,11 +1710,9 @@ namespace Despicaville
 
             Map map = world.Maps[0];
             Layer bottom_tiles = map.GetLayer("BottomTiles");
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
 
-            Tile tile = WorldUtil.GetFurniture(middle_tiles, new Location(location.X, location.Y, 0), false);
-            if ((tile != null && tile.Texture == null) ||
-                tile == null)
+            Tile tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, new Location(location.X, location.Y, 0));
+            if (tile == null)
             {
                 tile = bottom_tiles.GetTile(location);
             }
@@ -1991,10 +1989,7 @@ namespace Despicaville
 
             Vector2 location = new Vector2(task.Location.X, task.Location.Y);
 
-            Map map = world.Maps[0];
-            Layer top_tiles = map.GetLayer("TopTiles");
-
-            Tile sink = WorldUtil.GetFurniture(top_tiles, new Location(location.X, location.Y, 0), false);
+            Tile sink = WorldUtil.GetFurniture(Handler.TopFurniture, new Location(location.X, location.Y, 0));
             if (sink != null)
             {
                 if (sink.Name.Contains("Sink"))
@@ -2052,10 +2047,7 @@ namespace Despicaville
 
             Vector2 location = new Vector2(task.Location.X, task.Location.Y);
 
-            Map map = world.Maps[0];
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
-
-            Tile toilet = WorldUtil.GetFurniture(middle_tiles, new Location(location.X, location.Y, 0), false);
+            Tile toilet = WorldUtil.GetFurniture(Handler.MiddleFurniture, new Location(location.X, location.Y, 0));
             if (toilet != null)
             {
                 if (toilet.Name.Contains("Toilet"))

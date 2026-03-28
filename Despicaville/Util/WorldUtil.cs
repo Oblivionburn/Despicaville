@@ -17,7 +17,6 @@ namespace Despicaville.Util
         public static bool CanMove(Character character, Map map, Location destination)
         {
             Layer bottom_tiles = map.GetLayer("BottomTiles");
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
 
             //Check bottom tiles
             if (destination.X < bottom_tiles.Columns && destination.X >= 0 &&
@@ -39,7 +38,7 @@ namespace Despicaville.Util
             }
 
             //Check middle tiles
-            Tile furniture = GetFurniture(middle_tiles, destination, false);
+            Tile furniture = GetFurniture(Handler.MiddleFurniture, destination);
             if (furniture != null)
             {
                 if (!furniture.Name.Contains("Open"))
@@ -67,7 +66,7 @@ namespace Despicaville.Util
             if (Handler.Holding)
             {
                 //Check for held thing colliding when pushed
-                Something thing = GetHeldThing(character);
+                Something thing = GetHeldThing();
                 Region size = GetSize(thing);
 
                 Location newLocation = new Location(thing.Location.X, thing.Location.Y, 0);
@@ -155,7 +154,7 @@ namespace Despicaville.Util
                             return false;
                         }
 
-                        Tile middle = GetFurniture(middle_tiles, new Location(X, Y, 0));
+                        Tile middle = GetFurniture(Handler.MiddleFurniture, new Location(X, Y, 0));
                         if (middle != null &&
                             middle.ID != thing.ID)
                         {
@@ -338,9 +337,8 @@ namespace Despicaville.Util
             return false;
         }
 
-        public static Something GetHeldThing(Character character)
+        public static Something GetHeldThing()
         {
-            Scene gameplay = SceneManager.GetScene("Gameplay");
             Army army = CharacterManager.GetArmy("Characters");
             
             if (Handler.Holding)
@@ -361,10 +359,7 @@ namespace Despicaville.Util
                     }
                 }
 
-                Map map = gameplay.World.Maps[0];
-                Layer middle_tiles = map.GetLayer("MiddleTiles");
-
-                Tile[] tiles = middle_tiles.Tiles.ToArray();
+                Tile[] tiles = Handler.MiddleFurniture.ToArray();
                 int tileCount = tiles.Length;
                 for (int i = 0; i < tileCount; i++)
                 {
@@ -881,13 +876,13 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static Tile GetFurniture(Layer layer, Location destination)
+        public static Tile GetFurniture(List<Tile> furniture, Location destination)
         {
             int width = (int)Main.Game.TileSize_X;
             int width_double = width * 2;
             int width_triple = width * 3;
 
-            Tile[] tiles = layer.Tiles.ToArray();
+            Tile[] tiles = furniture.ToArray();
             int count = tiles.Length;
             for (int i = 0; i < count; i++)
             {
@@ -1007,20 +1002,20 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static Tile GetFurniture(Layer layer, Location destination, bool movable)
+        public static Tile GetFurniture_Movable(Location destination)
         {
             int width = (int)Main.Game.TileSize_X;
             int width_double = width * 2;
             int width_triple = width * 3;
 
-            Tile[] tiles = layer.Tiles.ToArray();
+            Tile[] tiles = Handler.MiddleFurniture.ToArray();
             int count = tiles.Length;
             for (int i = 0; i < count; i++)
             {
                 Tile existing = tiles[i];
 
                 if (existing.Texture == null ||
-                    (movable && !existing.CanMove))
+                    !existing.CanMove)
                 {
                     continue;
                 }

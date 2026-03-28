@@ -108,11 +108,17 @@ namespace Despicaville.Menus
                 SceneManager.GetScene("CharGen").Load();
                 SceneManager.ChangeScene("CharGen");
             }
-            else if (button.Name == "Save")
+            else if (button.Name == "MapEditor")
             {
-                //TimeManager.Paused = false;
-                //Handler.Save();
-                //GameUtil.ShowAlert("Your progress has been saved!");
+                Visible = false;
+                Active = false;
+
+                SceneManager.GetScene("Title").Menu.GetPicture("Title").Visible = false;
+
+                Menu mapEditor = MenuManager.GetMenu("MapEditor");
+                mapEditor.Load();
+                mapEditor.Visible = true;
+                mapEditor.Active = true;
             }
             else if (button.Name == "Main")
             {
@@ -182,13 +188,17 @@ namespace Despicaville.Menus
                 new Region(0, 0, 0, 0), Color.White, true);
             GetButton("Play").HoverText = "Play";
 
-            AddButton(Handler.GetID(), "Main", AssetManager.Textures["Button_Main"], AssetManager.Textures["Button_Main_Hover"], null,
-                new Region(0, 0, 0, 0), Color.White, false);
-            GetButton("Main").HoverText = "Back to Title";
+            AddButton(Handler.GetID(), "MapEditor", AssetManager.Textures["Button_Map"], AssetManager.Textures["Button_Map_Hover"], null,
+                new Region(0, 0, 0, 0), Color.White, true);
+            GetButton("MapEditor").HoverText = "Map Editor";
 
             AddButton(Handler.GetID(), "Options", AssetManager.Textures["Button_Options"], AssetManager.Textures["Button_Options_Hover"], null,
                 new Region(0, 0, 0, 0), Color.White, true);
             GetButton("Options").HoverText = "Options";
+
+            AddButton(Handler.GetID(), "Main", AssetManager.Textures["Button_Main"], AssetManager.Textures["Button_Main_Hover"], null,
+                new Region(0, 0, 0, 0), Color.White, false);
+            GetButton("Main").HoverText = "Back to Title";
 
             AddButton(Handler.GetID(), "Exit", AssetManager.Textures["Button_Exit"], AssetManager.Textures["Button_Exit_Hover"], null,
                 new Region(0, 0, 0, 0), Color.White, true);
@@ -213,7 +223,10 @@ namespace Despicaville.Menus
             Button play = GetButton("Play");
             play.Region = new Region(X, Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
 
-            Y += Main.Game.MenuSize_Y * 2;
+            Y += Main.Game.MenuSize_Y;
+            GetButton("MapEditor").Region = new Region(X, Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+
+            Y += Main.Game.MenuSize_Y;
             GetButton("Options").Region = new Region(X, Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
 
             Y += Main.Game.MenuSize_Y;

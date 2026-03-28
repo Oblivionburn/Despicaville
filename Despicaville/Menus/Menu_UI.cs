@@ -258,10 +258,49 @@ namespace Despicaville.Menus
                 new Region(0, 0, 0, 0), new Color(60, 0, 100), true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Paranoia", "Paranoia: 0%", Color.White, new Region(0, 0, 0, 0), true);
 
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Crouching", "Quiet | Crouch", Color.White, new Region(0, 0, 0, 0), true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Running", "Loud | Run", Color.White, new Region(0, 0, 0, 0), true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Holding", "Holding", Color.White, new Region(0, 0, 0, 0), true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Combat", "Combat", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(new LabelOptions
+            {
+                font = AssetManager.Fonts["ControlFont"],
+                id = Handler.GetID(),
+                name = "Crouching",
+                text = "Quiet | Crouch",
+                text_color = Color.White,
+                opacity = 0.6f,
+                visible = true
+            });
+
+            AddLabel(new LabelOptions
+            {
+                font = AssetManager.Fonts["ControlFont"],
+                id = Handler.GetID(),
+                name = "Running",
+                text = "Loud | Run",
+                text_color = Color.White,
+                opacity = 0.6f,
+                visible = true
+            });
+
+            AddLabel(new LabelOptions
+            {
+                font = AssetManager.Fonts["ControlFont"],
+                id = Handler.GetID(),
+                name = "Holding",
+                text = "Holding",
+                text_color = Color.White,
+                opacity = 0.6f,
+                visible = true
+            });
+
+            AddLabel(new LabelOptions
+            {
+                font = AssetManager.Fonts["ControlFont"],
+                id = Handler.GetID(),
+                name = "Combat",
+                text = "Combat",
+                text_color = Color.White,
+                opacity = 0.6f,
+                visible = true
+            });
 
             AddProgressBar(Handler.GetID(), "Blood", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
                 new Region(0, 0, 0, 0), new Color(100, 0, 0), true);

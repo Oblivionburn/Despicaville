@@ -675,7 +675,7 @@ namespace Despicaville.Util
             {
                 menu.GetButton("Back").Visible = true;
                 menu.GetButton("Play").Visible = false;
-
+                menu.GetButton("MapEditor").Visible = false;
                 menu.GetButton("Main").Visible = true;
                 menu.GetButton("Exit").Visible = false;
             }
@@ -683,7 +683,7 @@ namespace Despicaville.Util
             {
                 menu.GetButton("Back").Visible = false;
                 menu.GetButton("Play").Visible = true;
-
+                menu.GetButton("MapEditor").Visible = true;
                 menu.GetButton("Main").Visible = false;
                 menu.GetButton("Exit").Visible = true;
             }

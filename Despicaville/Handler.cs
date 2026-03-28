@@ -64,6 +64,7 @@ namespace Despicaville
         public static List<Point> light_sources = new List<Point>();
 
         public static List<Tile> TopFurniture = new List<Tile>();
+        public static List<Tile> MiddleFurniture = new List<Tile>();
         public static Dictionary<long, List<Tile>> VisibleTiles = new Dictionary<long, List<Tile>>();
         public static Dictionary<long, List<Tile>> OwnedFurniture = new Dictionary<long, List<Tile>>();
         public static Dictionary<string, string> Stats = new Dictionary<string, string>();
@@ -129,6 +130,7 @@ namespace Despicaville
             //Textures
             string[] textures =
             {
+                "Colors",
                 "Controls",
                 "Hairs",
                 "Hats",
@@ -241,7 +243,7 @@ namespace Despicaville
                 Loading_Percent = 0;
                 Loading_Message = "Loading textures...";
 
-                string[] dirs = { "Foliage", "Furniture", "Icons", "Particles", "Tiles", "Vehicles" };
+                string[] dirs = { "Effects", "Foliage", "Furniture", "Icons", "Particles", "Tiles", "Vehicles" };
 
                 int current = 0;
                 int total = 0;

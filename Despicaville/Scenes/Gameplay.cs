@@ -402,129 +402,141 @@ namespace Despicaville.Scenes
             {
                 #region Holding
 
-                if (InputManager.Mouse_RB_Held &&
-                    !Handler.Holding &&
-                    !Handler.Combat &&
-                    InventoryUtil.HasEmptyHand(player))
+                if (InputManager.Mouse_RB_Held)
                 {
-                    Vector3 location = new Vector3(-1, -1, -1);
-                    if (player.Direction == Direction.Up)
+                    if (!Handler.Holding &&
+                        !Handler.Combat &&
+                        InventoryUtil.HasEmptyHand(player))
                     {
-                        location = new Vector3(player.Location.X, player.Location.Y - 1, 0);
-                    }
-                    else if (player.Direction == Direction.Right)
-                    {
-                        location = new Vector3(player.Location.X + 1, player.Location.Y, 0);
-                    }
-                    else if (player.Direction == Direction.Down)
-                    {
-                        location = new Vector3(player.Location.X, player.Location.Y + 1, 0);
-                    }
-                    else if (player.Direction == Direction.Left)
-                    {
-                        location = new Vector3(player.Location.X - 1, player.Location.Y, 0);
-                    }
-
-                    bool holding = false;
-
-                    Army army = CharacterManager.GetArmy("Characters");
-                    Squad citizens = army.GetSquad("Citizens");
-
-                    Character character = WorldUtil.MouseGetCharacter(citizens.Characters, new Location(location.X, location.Y, 0));
-                    if (character != null)
-                    {
-                        Tasker.AbortTask(character);
-
-                        character.Moving = false;
-
-                        Map map = World.Maps[0];
-                        Layer bottom_tiles = map.GetLayer("BottomTiles");
-                        Tile tile = bottom_tiles.GetTile(new Vector2(character.Location.X, character.Location.Y));
-                        character.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width, tile.Region.Height);
-
-                        CharacterUtil.UpdateGear(character);
-
-                        Handler.Holding = true;
-                        Handler.Holding_ID = character.ID;
-
-                        Label label = ui.GetLabel("Holding");
-                        label.Opacity = 1;
-                        label.TextColor = Color.Lime;
-                    }
-
-                    if (!holding)
-                    {
-                        Map map = World.Maps[0];
-                        Layer middle_tiles = map.GetLayer("MiddleTiles");
-
-                        Tile middle_tile = WorldUtil.GetFurniture(middle_tiles, new Location(location.X, location.Y, 0), true);
-                        if (middle_tile != null)
+                        Vector3 location = new Vector3(-1, -1, -1);
+                        if (player.Direction == Direction.Up)
                         {
-                            if (middle_tile.Texture != null &&
-                                middle_tile.CanMove)
-                            {
-                                Handler.Holding = true;
-                                Handler.Holding_ID = middle_tile.ID;
+                            location = new Vector3(player.Location.X, player.Location.Y - 1, 0);
+                        }
+                        else if (player.Direction == Direction.Right)
+                        {
+                            location = new Vector3(player.Location.X + 1, player.Location.Y, 0);
+                        }
+                        else if (player.Direction == Direction.Down)
+                        {
+                            location = new Vector3(player.Location.X, player.Location.Y + 1, 0);
+                        }
+                        else if (player.Direction == Direction.Left)
+                        {
+                            location = new Vector3(player.Location.X - 1, player.Location.Y, 0);
+                        }
 
-                                Label label = ui.GetLabel("Holding");
-                                label.Opacity = 1;
-                                label.TextColor = Color.Lime;
+                        bool holding = false;
+
+                        Army army = CharacterManager.GetArmy("Characters");
+                        Squad citizens = army.GetSquad("Citizens");
+
+                        Character character = WorldUtil.MouseGetCharacter(citizens.Characters, new Location(location.X, location.Y, 0));
+                        if (character != null)
+                        {
+                            Tasker.AbortTask(character);
+
+                            character.Moving = false;
+
+                            Map map = World.Maps[0];
+                            Layer bottom_tiles = map.GetLayer("BottomTiles");
+                            Tile tile = bottom_tiles.GetTile(new Vector2(character.Location.X, character.Location.Y));
+                            character.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width, tile.Region.Height);
+
+                            CharacterUtil.UpdateGear(character);
+
+                            Handler.Holding = true;
+                            Handler.Holding_ID = character.ID;
+
+                            Label label = ui.GetLabel("Holding");
+                            label.Opacity = 1;
+                            label.TextColor = Color.Lime;
+                        }
+
+                        if (!holding)
+                        {
+                            Tile middle_tile = WorldUtil.GetFurniture_Movable(new Location(location.X, location.Y, 0));
+                            if (middle_tile != null)
+                            {
+                                if (middle_tile.Texture != null &&
+                                    middle_tile.CanMove)
+                                {
+                                    Handler.Holding = true;
+                                    Handler.Holding_ID = middle_tile.ID;
+
+                                    Label label = ui.GetLabel("Holding");
+                                    label.Opacity = 1;
+                                    label.TextColor = Color.Lime;
+                                }
                             }
                         }
                     }
                 }
-                else if (Handler.Holding)
+                else
                 {
-                    Handler.Holding = false;
+                    if (Handler.Holding)
+                    {
+                        Handler.Holding = false;
 
-                    Label label = ui.GetLabel("Holding");
-                    label.Opacity = 0.6f;
-                    label.TextColor = Color.White;
+                        Label label = ui.GetLabel("Holding");
+                        label.Opacity = 0.6f;
+                        label.TextColor = Color.White;
+                    }
                 }
 
                 #endregion
 
                 #region Run
 
-                if (InputManager.KeyDown("Run") &&
-                    !Handler.Running &&
-                    !Handler.Holding)
+                if (InputManager.KeyDown("Run"))
                 {
-                    Handler.Running = true;
+                    if (!Handler.Running &&
+                        !Handler.Holding)
+                    {
+                        Handler.Running = true;
 
-                    Label label = ui.GetLabel("Running");
-                    label.Opacity = 1;
-                    label.TextColor = Color.LimeGreen;
+                        Label label = ui.GetLabel("Running");
+                        label.Opacity = 1;
+                        label.TextColor = Color.LimeGreen;
+                    }
                 }
-                else if (Handler.Running)
+                else
                 {
-                    Handler.Running = false;
+                    if (Handler.Running)
+                    {
+                        Handler.Running = false;
 
-                    Label label = ui.GetLabel("Running");
-                    label.Opacity = 0.6f;
-                    label.TextColor = Color.White;
+                        Label label = ui.GetLabel("Running");
+                        label.Opacity = 0.6f;
+                        label.TextColor = Color.White;
+                    }
                 }
 
                 #endregion
 
                 #region Crouch
 
-                if (InputManager.KeyDown("Crouch") &&
-                    !Handler.Crouching)
+                if (InputManager.KeyDown("Crouch"))
                 {
-                    Handler.Crouching = true;
+                    if (!Handler.Crouching)
+                    {
+                        Handler.Crouching = true;
 
-                    Label label = ui.GetLabel("Crouching");
-                    label.Opacity = 1;
-                    label.TextColor = Color.LimeGreen;
+                        Label label = ui.GetLabel("Crouching");
+                        label.Opacity = 1;
+                        label.TextColor = Color.LimeGreen;
+                    }
                 }
-                else if (Handler.Crouching)
+                else
                 {
-                    Handler.Crouching = false;
+                    if (Handler.Crouching)
+                    {
+                        Handler.Crouching = false;
 
-                    Label label = ui.GetLabel("Crouching");
-                    label.Opacity = 0.6f;
-                    label.TextColor = Color.White;
+                        Label label = ui.GetLabel("Crouching");
+                        label.Opacity = 0.6f;
+                        label.TextColor = Color.White;
+                    }
                 }
 
                 #endregion
@@ -694,12 +706,11 @@ namespace Despicaville.Scenes
                         Map map = World.Maps[0];
 
                         Layer bottom_tiles = map.GetLayer("BottomTiles");
-                        Layer middle_tiles = map.GetLayer("MiddleTiles");
                         Layer top_tiles = map.GetLayer("TopTiles");
                         Layer effect_tiles = map.GetLayer("EffectTiles");
 
                         Tile bottom_tile = bottom_tiles.GetTile(location);
-                        Tile middle_tile = WorldUtil.GetFurniture(middle_tiles, new Location(location.X, location.Y, 0), false);
+                        Tile middle_tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, new Location(location.X, location.Y, 0));
                         Tile top_tile = top_tiles.GetTile(location);
                         Tile effect_tile = effect_tiles.GetTile(location);
 

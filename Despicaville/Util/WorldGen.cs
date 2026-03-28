@@ -218,7 +218,11 @@ namespace Despicaville.Util
                 {
                     case "Texture":
                         tile.Name = reader.Value;
-                        tile.Texture = AssetManager.Textures[tile.Name];
+
+                        if (!string.IsNullOrEmpty(tile.Name))
+                        {
+                            tile.Texture = AssetManager.Textures[tile.Name];
+                        }
                         break;
 
                     case "Location":
@@ -258,7 +262,11 @@ namespace Despicaville.Util
                 {
                     case "RoomType":
                         tile.Name = reader.Value;
-                        tile.Texture = AssetManager.Textures[tile.Name];
+
+                        if (!string.IsNullOrEmpty(tile.Name))
+                        {
+                            tile.Texture = AssetManager.Textures[tile.Name];
+                        }
                         break;
 
                     case "Location":
@@ -1619,18 +1627,20 @@ namespace Despicaville.Util
             int x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
             int y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
 
-            Tile new_tile = new Tile();
-            new_tile.ID = Handler.GetID();
-            new_tile.Map = map;
-            new_tile.Layer = layer;
-            new_tile.World = layer.World;
-            new_tile.Name = tile.Name;
-            new_tile.Type = tile.Type;
-            new_tile.Texture = AssetManager.Textures[tile.Texture.Name];
+            Tile new_tile = new Tile
+            {
+                ID = Handler.GetID(),
+                Map = map,
+                Layer = layer,
+                World = layer.World,
+                Name = tile.Name,
+                Type = tile.Type,
+                Texture = AssetManager.Textures[tile.Texture.Name],
+                Location = new Location(x, y, 0),
+                Visible = true
+            };
             new_tile.Image = new Rectangle(0, 0, new_tile.Texture.Width, new_tile.Texture.Height);
-            new_tile.Location = new Location(x, y, 0);
             new_tile.Region = new Region((int)new_tile.Location.X * Main.Game.TileSize.X, (int)new_tile.Location.Y * Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
-            new_tile.Visible = true;
 
             if (new_tile.Name.Contains("North"))
             {
@@ -1743,6 +1753,11 @@ namespace Despicaville.Util
             if (layer.Name == "BottomTiles" ||
                 layer.Name == "MiddleTiles")
             {
+                if (layer.Name == "MiddleTiles")
+                {
+                    Handler.MiddleFurniture.Add(new_tile);
+                }
+
                 new_tile.Inventory.ID = Handler.GetID();
                 new_tile.Inventory.Location = new Location(x, y, 0);
                 InventoryManager.Inventories.Add(new_tile.Inventory);

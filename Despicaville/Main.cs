@@ -216,6 +216,7 @@ namespace Despicaville
             MenuManager.Menus.Add(new Menu_Main(Content));
             MenuManager.Menus.Add(new Menu_Options(Content));
             MenuManager.Menus.Add(new Menu_Controls(Content));
+            MenuManager.Menus.Add(new Menu_MapEditor(Content));
             MenuManager.Menus.Add(new Menu_Inventory(Content));
             MenuManager.Menus.Add(new Menu_Interact(Content));
             MenuManager.Menus.Add(new Menu_Combat(Content));

@@ -862,7 +862,7 @@ namespace Despicaville.Util
         public static void MovePlayer(Task task)
         {
             Character player = Handler.GetPlayer();
-            Something heldThing = WorldUtil.GetHeldThing(player);
+            Something heldThing = WorldUtil.GetHeldThing();
 
             if (player.Moving &&
                 player.Region != null)
@@ -1314,7 +1314,7 @@ namespace Despicaville.Util
             {
                 Tile new_tile = new Tile();
                 new_tile.Location = new Location(location.X, location.Y, 0);
-                new_tile.Texture = AssetManager.Textures["SelectionBox"];
+                new_tile.Texture = AssetManager.Textures["Selection"];
                 new_tile.Image = new Rectangle(0, 0, new_tile.Texture.Width, new_tile.Texture.Height);
 
                 Tile existing = bottom_tiles.GetTile(location);
