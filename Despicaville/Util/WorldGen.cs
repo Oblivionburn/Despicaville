@@ -82,7 +82,7 @@ namespace Despicaville.Util
                         switch (reader.Name)
                         {
                             case "Map":
-                                VisitBlock(reader);
+                                VisitBlock(reader, file);
                                 break;
                         }
                     }
@@ -94,7 +94,7 @@ namespace Despicaville.Util
             }
         }
 
-        private static void VisitBlock(XmlTextReader reader)
+        private static void VisitBlock(XmlTextReader reader, string file)
         {
             Map map = null;
             Layer layer = null;
@@ -108,7 +108,7 @@ namespace Despicaville.Util
                 {
                     case "Globals":
                         map = new Map();
-                        VisitGlobals(reader, map);
+                        VisitGlobals(reader, map, file);
                         Blocks.Add(map);
                         break;
 
@@ -147,7 +147,7 @@ namespace Despicaville.Util
             }
         }
 
-        private static void VisitGlobals(XmlTextReader reader, Map map)
+        private static void VisitGlobals(XmlTextReader reader, Map map, string file)
         {
             while (reader.MoveToNextAttribute())
             {
@@ -155,10 +155,12 @@ namespace Despicaville.Util
                 {
                     case "Type":
                         map.Type = reader.Value;
+                        map.Name = Path.GetFileNameWithoutExtension(file);
                         break;
 
                     case "Name":
                         map.Name = Path.GetFileNameWithoutExtension(reader.Value);
+                        map.Assignment = "Convert";
                         break;
 
                     case "Direction":
@@ -261,6 +263,7 @@ namespace Despicaville.Util
                 switch (reader.Name)
                 {
                     case "RoomType":
+                    case "Texture":
                         tile.Name = reader.Value;
 
                         if (!string.IsNullOrEmpty(tile.Name))
@@ -1350,17 +1353,33 @@ namespace Despicaville.Util
                             int choice = random.Next(0, CharacterManager.LastNames.Count);
                             last_name = CharacterManager.LastNames[choice];
 
+                            bool found = false;
+
                             Layer block_bottom_tiles = block.GetLayer("BottomTiles");
                             if (block_bottom_tiles != null)
                             {
                                 foreach (Tile tile in block_bottom_tiles.Tiles)
                                 {
-                                    int tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
-                                    int tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
+                                    int tile_x = -1;
+                                    int tile_y = -1;
+
+                                    if (block.Assignment == "Convert")
+                                    {
+                                        tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
+                                        tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
+                                    }
+                                    else
+                                    {
+                                        tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
+                                        tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
+                                    }
 
                                     if (tile_x == x &&
-                                        tile_y == y)
+                                        tile_y == y &&
+                                        tile.Texture != null)
                                     {
+                                        found = true;
+
                                         AddTile(block.Name, map, bottom_tiles, worldTile, tile);
 
                                         current++;
@@ -1368,9 +1387,17 @@ namespace Despicaville.Util
                                         break;
                                     }
                                 }
+
+                                if (!found)
+                                {
+                                    AddEmptyTile(map, bottom_tiles, worldTile, new Location(x, y, 0));
+
+                                    current++;
+                                    Handler.Loading_Percent = (current * 100) / total;
+                                }
                             }
 
-                            bool found = false;
+                            found = false;
 
                             Layer middle_tiles = map.GetLayer("MiddleTiles");
                             if (middle_tiles != null)
@@ -1380,11 +1407,23 @@ namespace Despicaville.Util
                                 {
                                     foreach (Tile tile in block_middle_tiles.Tiles)
                                     {
-                                        int tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
-                                        int tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
+                                        int tile_x = -1;
+                                        int tile_y = -1;
+
+                                        if (block.Assignment == "Convert")
+                                        {
+                                            tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
+                                            tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
+                                        }
+                                        else
+                                        {
+                                            tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
+                                            tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
+                                        }
 
                                         if (tile_x == x &&
-                                            tile_y == y)
+                                            tile_y == y &&
+                                            tile.Texture != null)
                                         {
                                             found = true;
 
@@ -1416,11 +1455,23 @@ namespace Despicaville.Util
                                 {
                                     foreach (Tile tile in block_top_tiles.Tiles)
                                     {
-                                        int tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
-                                        int tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
+                                        int tile_x = -1;
+                                        int tile_y = -1;
+
+                                        if (block.Assignment == "Convert")
+                                        {
+                                            tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
+                                            tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
+                                        }
+                                        else
+                                        {
+                                            tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
+                                            tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
+                                        }
 
                                         if (tile_x == x &&
-                                            tile_y == y)
+                                            tile_y == y &&
+                                            tile.Texture != null)
                                         {
                                             found = true;
 
@@ -1452,11 +1503,23 @@ namespace Despicaville.Util
                                 {
                                     foreach (Tile tile in block_room_tiles.Tiles)
                                     {
-                                        int tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
-                                        int tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
+                                        int tile_x = -1;
+                                        int tile_y = -1;
+
+                                        if (block.Assignment == "Convert")
+                                        {
+                                            tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
+                                            tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
+                                        }
+                                        else
+                                        {
+                                            tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
+                                            tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
+                                        }
 
                                         if (tile_x == x &&
-                                            tile_y == y)
+                                            tile_y == y &&
+                                            tile.Texture != null)
                                         {
                                             found = true;
 
@@ -1624,8 +1687,19 @@ namespace Despicaville.Util
 
         public static void AddTile(string blockName, Map map, Layer layer, Tile worldTile, Tile tile)
         {
-            int x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
-            int y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
+            int x = -1;
+            int y = -1;
+
+            if (map.Assignment == "Convert")
+            {
+                x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
+                y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
+            }
+            else
+            {
+                x = (int)(tile.Location.X + (worldTile.Location.X * 20));
+                y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
+            }
 
             Tile new_tile = new Tile
             {

@@ -986,7 +986,7 @@ namespace Despicaville.Menus
 
                 ParseTiles(openFile.FileName);
 
-                current_file = Path.GetFileNameWithoutExtension(current_file);
+                current_file = Path.GetFileNameWithoutExtension(openFile.FileName);
                 GetLabel("MapFile").Text = "Map File: " + current_file;
             }
         }
@@ -995,23 +995,16 @@ namespace Despicaville.Menus
         {
             string fileName = "";
 
-            if (!string.IsNullOrEmpty(current_file))
-            {
-                fileName = current_file;
-            }
-            else
-            {
-                System.Windows.Forms.SaveFileDialog saveFile = new System.Windows.Forms.SaveFileDialog();
-                saveFile.InitialDirectory = AssetManager.Directories["Maps"];
-                saveFile.Filter = "Despicaville Map | *.blockmap";
-                saveFile.DefaultExt = ".blockmap";
-                saveFile.Title = "Save Despicaville Map";
-                saveFile.FileName = "";
+            System.Windows.Forms.SaveFileDialog saveFile = new System.Windows.Forms.SaveFileDialog();
+            saveFile.InitialDirectory = AssetManager.Directories["Maps"];
+            saveFile.Filter = "Despicaville Map | *.blockmap";
+            saveFile.DefaultExt = ".blockmap";
+            saveFile.Title = "Save Despicaville Map";
+            saveFile.FileName = current_file + ".blockmap";
 
-                if (saveFile.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                {
-                    fileName = saveFile.FileName;
-                }
+            if (saveFile.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                fileName = saveFile.FileName;
             }
 
             if (!string.IsNullOrEmpty(fileName))
@@ -2233,6 +2226,7 @@ namespace Despicaville.Menus
                 switch (reader.Name)
                 {
                     case "RoomType":
+                    case "Texture":
                         tile.Name = reader.Value;
 
                         if (!string.IsNullOrEmpty(tile.Name))
