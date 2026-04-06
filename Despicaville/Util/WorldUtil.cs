@@ -603,30 +603,6 @@ namespace Despicaville.Util
             }
         }
 
-        public static Tile GetNearestExit_ToFurniture(Character character, Layer bottom_tiles, Layer middle_tiles, Layer room_tiles, Tile furniture)
-        {
-            List<Tile> exits = GetExits(bottom_tiles, middle_tiles, room_tiles, character.Location);
-            if (exits.Count > 0)
-            {
-                Tile nearest_exit = exits[0];
-                int distance = GetDistance(nearest_exit.Location, furniture.Location);
-
-                foreach (Tile exit in exits)
-                {
-                    int new_distance = GetDistance(exit.Location, furniture.Location);
-                    if (new_distance < distance)
-                    {
-                        nearest_exit = exit;
-                        distance = new_distance;
-                    }
-                }
-
-                return nearest_exit;
-            }
-
-            return null;
-        }
-
         public static Tile GetClosestTile(List<Tile> tiles, Character character)
         {
             if (tiles.Count > 0)
@@ -876,6 +852,50 @@ namespace Despicaville.Util
             return null;
         }
 
+        public static Map GetRoom(Character character)
+        {
+            if (character.Map == null)
+            {
+                SetCurrentMap(character);
+            }
+
+            if (WorldGen.Rooms.ContainsKey(character.Map.ID))
+            {
+                List<Map> rooms = WorldGen.Rooms[character.Map.ID];
+
+                int mapCount = rooms.Count;
+                for (int m = 0; m < mapCount; m++)
+                {
+                    Map room = rooms[m];
+
+                    int layerCount = room.Layers.Count;
+                    for (int l = 0; l < layerCount; l++)
+                    {
+                        Layer layer = room.Layers[l];
+                        if (layer.Name == "Tiles")
+                        {
+                            int tileCount = layer.Tiles.Count;
+                            for (int t = 0; t < tileCount; t++)
+                            {
+                                Tile tile = layer.Tiles[t];
+
+                                int world_x = (int)((room.Location.X * 20) + tile.Location.X);
+                                int world_y = (int)((room.Location.Y * 20) + tile.Location.Y);
+
+                                if (world_x == character.Location.X &&
+                                    world_y == character.Location.Y)
+                                {
+                                    return room;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
         public static Tile GetFurniture(List<Tile> furniture, Location destination)
         {
             int width = (int)Main.Game.TileSize_X;
@@ -893,8 +913,8 @@ namespace Despicaville.Util
                     continue;
                 }
 
-                if (destination.X.Equals(existing.Location.X) &&
-                    destination.Y.Equals(existing.Location.Y))
+                if (destination.X == existing.Location.X &&
+                    destination.Y == existing.Location.Y)
                 {
                     return existing;
                 }
@@ -1242,22 +1262,95 @@ namespace Despicaville.Util
             return Direction.Nowhere;
         }
 
-        public static bool Furniture_InRoom(Layer room_tiles, Tile furniture, Character character)
+        public static bool Furniture_InRoom(Tile furniture, Character character)
         {
-            Layer room = GetRoom(room_tiles, character.Location);
+            Map room = GetRoom(character);
             if (room != null)
             {
-                foreach (Tile tile in room.Tiles)
+                int layerCount = room.Layers.Count;
+                for (int l = 0; l < layerCount; l++)
                 {
-                    if (tile.Location.X == furniture.Location.X &&
-                        tile.Location.Y == furniture.Location.Y)
+                    Layer layer = room.Layers[l];
+                    if (layer.Name == "Tiles")
                     {
-                        return true;
+                        int tileCount = layer.Tiles.Count;
+                        for (int i = 0; i < tileCount; i++)
+                        {
+                            Tile tile = layer.Tiles[i];
+
+                            int world_x = (int)((room.Location.X * 20) + tile.Location.X);
+                            int world_y = (int)((room.Location.Y * 20) + tile.Location.Y);
+
+                            if (world_x == furniture.Location.X &&
+                                world_y == furniture.Location.Y)
+                            {
+                                return true;
+                            }
+                        }
+
+                        break;
                     }
                 }
             }
 
             return false;
+        }
+
+        public static Tile GetNearestExit_ToFurniture(Character character, Layer middle_tiles, Tile furniture)
+        {
+            Map room = GetRoom(character);
+            if (room != null)
+            {
+                int layerCount = room.Layers.Count;
+                for (int l = 0; l < layerCount; l++)
+                {
+                    Layer layer = room.Layers[l];
+                    if (layer.Name == "Exits")
+                    {
+                        Tile nearest_exit = layer.Tiles[0];
+
+                        int nearest_world_x = (int)((room.Location.X * 20) + nearest_exit.Location.X);
+                        int nearest_world_y = (int)((room.Location.Y * 20) + nearest_exit.Location.Y);
+
+                        int distance = GetDistance(new Location(nearest_world_x, nearest_world_y, 0), furniture.Location);
+
+                        int tileCount = layer.Tiles.Count;
+                        for (int t = 0; t < tileCount; t++)
+                        {
+                            Tile exit = layer.Tiles[t];
+
+                            int exit_world_x = (int)((room.Location.X * 20) + exit.Location.X);
+                            int exit_world_y = (int)((room.Location.Y * 20) + exit.Location.Y);
+
+                            int new_distance = GetDistance(new Location(exit_world_x, exit_world_y, 0), furniture.Location);
+                            if (new_distance < distance)
+                            {
+                                nearest_exit = exit;
+                                distance = new_distance;
+                            }
+                        }
+
+                        nearest_world_x = (int)((room.Location.X * 20) + nearest_exit.Location.X);
+                        nearest_world_y = (int)((room.Location.Y * 20) + nearest_exit.Location.Y);
+
+                        Tile door = middle_tiles.GetTile(new Vector2(nearest_world_x, nearest_world_y));
+                        if (door != null &&
+                            door.Name.Contains("Door"))
+                        {
+                            return door;
+                        }
+                        else
+                        {
+                            return new Tile
+                            {
+                                Location = new Location(nearest_world_x, nearest_world_y, 0)
+                            };
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
 
         public static string GetTile_Name(Tile tile)
@@ -1739,196 +1832,6 @@ namespace Despicaville.Util
             GameUtil.AddMessage(description);
         }
 
-        public static Layer GetRoom(Layer room_tiles, Location location)
-        {
-            Tile room_tile = room_tiles.GetTile(new Vector2(location.X, location.Y));
-            if (room_tile != null &&
-                room_tile.Texture != null)
-            {
-                Layer room = new Layer();
-
-                GetRoomTiles(room_tiles, room, room_tile);
-
-                if (room.Tiles.Count > 0)
-                {
-                    return room;
-                }
-            }
-
-            return null;
-        }
-
-        public static void GetRoomTiles(Layer room_tiles, Layer room, Tile room_tile)
-        {
-            room.Tiles.Add(room_tile);
-
-            Tile north = room_tiles.GetTile(new Vector2(room_tile.Location.X, room_tile.Location.Y - 1));
-            if (north != null &&
-                north.Texture != null &&
-                north.Name == room_tile.Name &&
-                !room.Tiles.Contains(north))
-            {
-                GetRoomTiles(room_tiles, room, north);
-            }
-
-            Tile east = room_tiles.GetTile(new Vector2(room_tile.Location.X + 1, room_tile.Location.Y));
-            if (east != null &&
-                east.Texture != null &&
-                east.Name == room_tile.Name &&
-                !room.Tiles.Contains(east))
-            {
-                GetRoomTiles(room_tiles, room, east);
-            }
-
-            Tile south = room_tiles.GetTile(new Vector2(room_tile.Location.X, room_tile.Location.Y + 1));
-            if (south != null &&
-                south.Texture != null &&
-                south.Name == room_tile.Name &&
-                !room.Tiles.Contains(south))
-            {
-                GetRoomTiles(room_tiles, room, south);
-            }
-
-            Tile west = room_tiles.GetTile(new Vector2(room_tile.Location.X - 1, room_tile.Location.Y));
-            if (west != null &&
-                west.Texture != null &&
-                west.Name == room_tile.Name &&
-                !room.Tiles.Contains(west))
-            {
-                GetRoomTiles(room_tiles, room, west);
-            }
-        }
-
-        public static List<Tile> GetExits(Layer bottom_tiles, Layer middle_tiles, Layer room_tiles, Location location)
-        {
-            List<Tile> exits = new List<Tile>();
-
-            Layer room = GetRoom(room_tiles, location);
-            if (room != null)
-            {
-                foreach (Tile tile in room.Tiles)
-                {
-                    Vector2 north = new Vector2(tile.Location.X, tile.Location.Y - 1);
-
-                    Tile north_bottom = bottom_tiles.GetTile(north);
-                    if (north_bottom != null &&
-                        !north_bottom.Name.Contains("Wall"))
-                    {
-                        Tile north_middle = middle_tiles.GetTile(north);
-                        if (north_middle.Name.Contains("Door"))
-                        {
-                            if (!exits.Contains(north_middle))
-                            {
-                                exits.Add(north_middle);
-                            }
-                        }
-                        else
-                        {
-                            Tile north_room = room_tiles.GetTile(north);
-                            if (north_room != null &&
-                                north_room.Texture != null &&
-                                north_room.Name != tile.Name)
-                            {
-                                if (!exits.Contains(north_room))
-                                {
-                                    exits.Add(north_room);
-                                }
-                            }
-                        }
-                    }
-
-                    Vector2 east = new Vector2(tile.Location.X + 1, tile.Location.Y);
-
-                    Tile east_bottom = bottom_tiles.GetTile(east);
-                    if (east_bottom != null &&
-                        !east_bottom.Name.Contains("Wall"))
-                    {
-                        Tile east_middle = middle_tiles.GetTile(east);
-                        if (east_middle.Name.Contains("Door"))
-                        {
-                            if (!exits.Contains(east_middle))
-                            {
-                                exits.Add(east_middle);
-                            }
-                        }
-                        else
-                        {
-                            Tile east_room = room_tiles.GetTile(east);
-                            if (east_room != null &&
-                                east_room.Texture != null &&
-                                east_room.Name != tile.Name)
-                            {
-                                if (!exits.Contains(east_room))
-                                {
-                                    exits.Add(east_room);
-                                }
-                            }
-                        }
-                    }
-
-                    Vector2 south = new Vector2(tile.Location.X, tile.Location.Y + 1);
-
-                    Tile south_bottom = bottom_tiles.GetTile(south);
-                    if (south_bottom != null &&
-                        !south_bottom.Name.Contains("Wall"))
-                    {
-                        Tile south_middle = middle_tiles.GetTile(south);
-                        if (south_middle.Name.Contains("Door"))
-                        {
-                            if (!exits.Contains(south_middle))
-                            {
-                                exits.Add(south_middle);
-                            }
-                        }
-                        else
-                        {
-                            Tile south_room = room_tiles.GetTile(south);
-                            if (south_room != null &&
-                                south_room.Texture != null &&
-                                south_room.Name != tile.Name)
-                            {
-                                if (!exits.Contains(south_room))
-                                {
-                                    exits.Add(south_room);
-                                }
-                            }
-                        }
-                    }
-
-                    Vector2 west = new Vector2(tile.Location.X - 1, tile.Location.Y);
-
-                    Tile west_bottom = bottom_tiles.GetTile(west);
-                    if (west_bottom != null &&
-                        !west_bottom.Name.Contains("Wall"))
-                    {
-                        Tile west_middle = middle_tiles.GetTile(west);
-                        if (west_middle.Name.Contains("Door"))
-                        {
-                            if (!exits.Contains(west_middle))
-                            {
-                                exits.Add(west_middle);
-                            }
-                        }
-                        else
-                        {
-                            Tile west_room = room_tiles.GetTile(west);
-                            if (west_room != null &&
-                                west_room.Texture != null &&
-                                west_room.Name != tile.Name)
-                            {
-                                if (!exits.Contains(west_room))
-                                {
-                                    exits.Add(west_room);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return exits;
-        }
-
         public static void AssignPlayerBed(World world, Character player)
         {
             player.Relationships.Clear();
@@ -2368,8 +2271,10 @@ namespace Despicaville.Util
             int block_x = (int)character.Location.X / 20;
             int block_y = (int)character.Location.Y / 20;
 
-            foreach (Map map in WorldGen.Residential)
+            int count = WorldGen.Residential.Count;
+            for (int i = 0; i < count; ++i)
             {
+                Map map = WorldGen.Residential[i];
                 if (map.Location.X == block_x &&
                     map.Location.Y == block_y)
                 {
@@ -2378,8 +2283,10 @@ namespace Despicaville.Util
                 }
             }
 
-            foreach (Map map in WorldGen.Commercial)
+            count = WorldGen.Commercial.Count;
+            for (int i = 0; i < count; ++i)
             {
+                Map map = WorldGen.Commercial[i];
                 if (map.Location.X == block_x &&
                     map.Location.Y == block_y)
                 {
@@ -2388,8 +2295,10 @@ namespace Despicaville.Util
                 }
             }
 
-            foreach (Map map in WorldGen.Parks)
+            count = WorldGen.Parks.Count;
+            for (int i = 0; i < count; ++i)
             {
+                Map map = WorldGen.Parks[i];
                 if (map.Location.X == block_x &&
                     map.Location.Y == block_y)
                 {
@@ -2398,8 +2307,10 @@ namespace Despicaville.Util
                 }
             }
 
-            foreach (Map map in WorldGen.Roads)
+            count = WorldGen.Roads.Count;
+            for (int i = 0; i < count; ++i)
             {
+                Map map = WorldGen.Roads[i];
                 if (map.Location.X == block_x &&
                     map.Location.Y == block_y)
                 {

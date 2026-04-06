@@ -25,17 +25,17 @@ namespace Despicaville.Menus
         bool TileToggle;
         bool RemovingTiles;
 
-        List<Tile> BottomTiles = new List<Tile>();
-        List<Tile> MiddleTiles = new List<Tile>();
-        List<Tile> TopTiles = new List<Tile>();
-        List<Tile> RoomTiles = new List<Tile>();
+        Layer BottomTiles = new Layer();
+        Layer MiddleTiles = new Layer();
+        Layer TopTiles = new Layer();
+        Layer RoomTiles = new Layer();
 
         bool Selecting_Layer;
         string[] Layers = { "Bottom", "Middle", "Top", "Room" };
         List<Button> Buttons_Layer = new List<Button>();
         
         bool Selecting_RoomType;
-        string[] RoomTypes = { "Bathroom", "Bedroom", "Driveway", "GroceryStore", "Hallway", "Kitchen", "Lounge", "Office", "Outdoors", "StoreCounter", "WeaponStore" };
+        List<string> RoomTypes;
         List<Button> Buttons_RoomType = new List<Button>();
 
         bool Selecting_MapType;
@@ -118,7 +118,7 @@ namespace Despicaville.Menus
                     }
                 }
 
-                foreach (Tile tile in BottomTiles)
+                foreach (Tile tile in BottomTiles.Tiles)
                 {
                     tile.Draw(spriteBatch, Main.Game.Resolution);
                 }
@@ -126,26 +126,31 @@ namespace Despicaville.Menus
                 switch (GetButton("Layer").Text)
                 {
                     case "Middle":
-                        foreach (Tile tile in MiddleTiles)
+                        foreach (Tile tile in MiddleTiles.Tiles)
                         {
                             tile.Draw(spriteBatch, Main.Game.Resolution);
                         }
                         break;
 
                     case "Top":
-                        foreach (Tile tile in MiddleTiles)
+                        foreach (Tile tile in MiddleTiles.Tiles)
                         {
                             tile.Draw(spriteBatch, Main.Game.Resolution);
                         }
 
-                        foreach (Tile tile in TopTiles)
+                        foreach (Tile tile in TopTiles.Tiles)
                         {
                             tile.Draw(spriteBatch, Main.Game.Resolution);
                         }
                         break;
 
                     case "Room":
-                        foreach (Tile tile in RoomTiles)
+                        foreach (Tile tile in MiddleTiles.Tiles)
+                        {
+                            tile.Draw(spriteBatch, Main.Game.Resolution);
+                        }
+
+                        foreach (Tile tile in RoomTiles.Tiles)
                         {
                             tile.Draw(spriteBatch, Main.Game.Resolution);
                         }
@@ -658,7 +663,7 @@ namespace Despicaville.Menus
             switch (layer.Text)
             {
                 case "Bottom":
-                    foreach (Tile existing in BottomTiles)
+                    foreach (Tile existing in BottomTiles.Tiles)
                     {
                         if (InputManager.MouseWithin(existing.Region.ToRectangle))
                         {
@@ -669,7 +674,7 @@ namespace Despicaville.Menus
                     break;
 
                 case "Middle":
-                    foreach (Tile existing in MiddleTiles)
+                    foreach (Tile existing in MiddleTiles.Tiles)
                     {
                         if (InputManager.MouseWithin(existing.Region.ToRectangle))
                         {
@@ -680,7 +685,7 @@ namespace Despicaville.Menus
                     break;
 
                 case "Top":
-                    foreach (Tile existing in TopTiles)
+                    foreach (Tile existing in TopTiles.Tiles)
                     {
                         if (InputManager.MouseWithin(existing.Region.ToRectangle))
                         {
@@ -691,7 +696,7 @@ namespace Despicaville.Menus
                     break;
 
                 case "Room":
-                    foreach (Tile existing in RoomTiles)
+                    foreach (Tile existing in RoomTiles.Tiles)
                     {
                         if (InputManager.MouseWithin(existing.Region.ToRectangle))
                         {
@@ -898,18 +903,18 @@ namespace Despicaville.Menus
                     tile.Region = new Region(tile.Region.X, tile.Region.Y, width, height);
                 }
             }
-            else if (SelectedTile != null)
+            else
             {
                 bool okay = false;
 
                 if (layer == "Bottom")
                 {
-                    if (SelectedTile.Type == "Tile")
+                    if (SelectedTile?.Type == "Tile")
                     {
                         okay = true;
                     }
                 }
-                else if (SelectedTile.Type == "Furniture")
+                else if (SelectedTile?.Type == "Furniture")
                 {
                     okay = true;
                 }
@@ -920,19 +925,24 @@ namespace Despicaville.Menus
 
                 if (okay)
                 {
-                    tile.Name = SelectedTile.Name;
-
                     if (layer != "Room")
                     {
-                        tile.Texture = SelectedTile.Texture;
+                        tile.Name = SelectedTile?.Name;
+                        tile.Texture = SelectedTile?.Texture;
                     }
                     else
                     {
-                        tile.Texture = AssetManager.Textures["RoomType_" + GetButton("RoomType").Text];
+                        string name = "RoomType_" + GetButton("RoomType").Text;
+                        tile.Name = name;
+                        tile.Texture = AssetManager.Textures[name];
                     }
 
                     tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
-                    tile.Region = new Region(tile.Region.X, tile.Region.Y, width * SelectedTile.Dimensions.Width, height * SelectedTile.Dimensions.Height);
+
+                    if (SelectedTile != null)
+                    {
+                        tile.Region = new Region(tile.Region.X, tile.Region.Y, width * SelectedTile.Dimensions.Width, height * SelectedTile.Dimensions.Height);
+                    }
                 }
             }
         }
@@ -979,10 +989,10 @@ namespace Despicaville.Menus
 
             if (openFile.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
-                BottomTiles = new List<Tile>();
-                MiddleTiles = new List<Tile>();
-                TopTiles = new List<Tile>();
-                RoomTiles = new List<Tile>();
+                BottomTiles = new Layer();
+                MiddleTiles = new Layer();
+                TopTiles = new Layer();
+                RoomTiles = new Layer();
 
                 ParseTiles(openFile.FileName);
 
@@ -1011,7 +1021,7 @@ namespace Despicaville.Menus
             {
                 WriteStream(fileName);
 
-                if (BottomTiles.Count > 0)
+                if (BottomTiles.Tiles.Count > 0)
                 {
                     EnterNode("Map");
 
@@ -1021,7 +1031,7 @@ namespace Despicaville.Menus
                     ExitNode();
 
                     EnterNode("BottomTiles");
-                    foreach (Tile tile in BottomTiles)
+                    foreach (Tile tile in BottomTiles.Tiles)
                     {
                         EnterNode("BottomTile");
                         Writer.WriteAttributeString("Texture", tile.Name);
@@ -1031,7 +1041,7 @@ namespace Despicaville.Menus
                     ExitNode();
 
                     EnterNode("MiddleTiles");
-                    foreach (Tile tile in MiddleTiles)
+                    foreach (Tile tile in MiddleTiles.Tiles)
                     {
                         EnterNode("MiddleTile");
                         Writer.WriteAttributeString("Texture", tile.Name);
@@ -1041,7 +1051,7 @@ namespace Despicaville.Menus
                     ExitNode();
 
                     EnterNode("TopTiles");
-                    foreach (Tile tile in TopTiles)
+                    foreach (Tile tile in TopTiles.Tiles)
                     {
                         EnterNode("TopTile");
                         Writer.WriteAttributeString("Texture", tile.Name);
@@ -1051,7 +1061,7 @@ namespace Despicaville.Menus
                     ExitNode();
 
                     EnterNode("RoomTiles");
-                    foreach (Tile tile in RoomTiles)
+                    foreach (Tile tile in RoomTiles.Tiles)
                     {
                         EnterNode("RoomTile");
                         Writer.WriteAttributeString("Texture", tile.Name);
@@ -1059,6 +1069,72 @@ namespace Despicaville.Menus
                         ExitNode();
                     }
                     ExitNode();
+
+                    Map rooms = new Map
+                    {
+                        Name = "Rooms"
+                    };
+
+                    int roomCount = RoomTiles.Tiles.Count;
+                    for (int i = 0; i < roomCount; i++)
+                    {
+                        Tile tile = RoomTiles.Tiles[i];
+                        if (!string.IsNullOrEmpty(tile.Name))
+                        {
+                            bool hasRoom = HasRoom(rooms, tile);
+                            if (!hasRoom)
+                            {
+                                Layer room = new Layer
+                                {
+                                    Name = tile.Name,
+                                    Columns = 20,
+                                    Rows = 20
+                                };
+
+                                GetRoomTiles(RoomTiles, room, tile);
+                                rooms.Layers.Add(room);
+                            }
+                        }
+                    }
+
+                    if (rooms.Layers.Count > 0)
+                    {
+                        EnterNode("Rooms");
+                        foreach (Layer layer in rooms.Layers)
+                        {
+                            EnterNode("Room");
+
+                            EnterNode("RoomProperties");
+                            Writer.WriteAttributeString("Name", layer.Name);
+                            ExitNode();
+
+                            EnterNode("Tiles");
+                            foreach (Tile tile in layer.Tiles)
+                            {
+                                EnterNode("Tile");
+                                Writer.WriteAttributeString("Texture", tile.Name);
+                                Writer.WriteAttributeString("Location", tile.Location.X.ToString() + "," + tile.Location.Y.ToString());
+                                ExitNode();
+                            }
+                            ExitNode();
+
+                            List<Tile> exits = GetExits(layer, BottomTiles, MiddleTiles, RoomTiles);
+                            if (exits.Count > 0)
+                            {
+                                EnterNode("Exits");
+                                foreach (Tile tile in exits)
+                                {
+                                    EnterNode("Exit");
+                                    Writer.WriteAttributeString("Location", tile.Location.X.ToString() + "," + tile.Location.Y.ToString());
+                                    ExitNode();
+                                }
+                                ExitNode();
+                            }
+
+                            ExitNode();
+                        }
+                        ExitNode();
+                    }
                 }
 
                 FinalizeWriting();
@@ -1107,7 +1183,7 @@ namespace Despicaville.Menus
 
             Texture2D frame = AssetManager.Textures["ButtonFrame"];
 
-            for (int i = 0; i < RoomTypes.Length; i++)
+            for (int i = 0; i < RoomTypes.Count; i++)
             {
                 Buttons_RoomType.Add(new Button
                 {
@@ -1345,10 +1421,30 @@ namespace Despicaville.Menus
             float width = mapWindow.Region.Width / 20;
             float height = mapWindow.Region.Height / 20;
 
-            BottomTiles = new List<Tile>();
-            MiddleTiles = new List<Tile>();
-            TopTiles = new List<Tile>();
-            RoomTiles = new List<Tile>();
+            BottomTiles = new Layer
+            {
+                Name = "BottomTiles",
+                Columns = 20,
+                Rows = 20
+            };
+            MiddleTiles = new Layer
+            {
+                Name = "MiddleTiles",
+                Columns = 20,
+                Rows = 20
+            };
+            TopTiles = new Layer
+            {
+                Name = "TopTiles",
+                Columns = 20,
+                Rows = 20
+            };
+            RoomTiles = new Layer
+            {
+                Name = "RoomTiles",
+                Columns = 20,
+                Rows = 20
+            };
 
             Texture2D texture = AssetManager.Textures["Grass"];
 
@@ -1356,7 +1452,7 @@ namespace Despicaville.Menus
             {
                 for (int x = 0; x < 20; x++)
                 {
-                    BottomTiles.Add(new Tile
+                    BottomTiles.Tiles.Add(new Tile
                     {
                         Name = "Grass",
                         Location = new Location(x, y, 0),
@@ -1367,7 +1463,7 @@ namespace Despicaville.Menus
                         Visible = true
                     });
 
-                    MiddleTiles.Add(new Tile
+                    MiddleTiles.Tiles.Add(new Tile
                     {
                         Location = new Location(x, y, 0),
                         Region = new Region(X + (x * width), Y + (y * height), width, height),
@@ -1375,7 +1471,7 @@ namespace Despicaville.Menus
                         Visible = true
                     });
 
-                    TopTiles.Add(new Tile
+                    TopTiles.Tiles.Add(new Tile
                     {
                         Location = new Location(x, y, 0),
                         Region = new Region(X + (x * width), Y + (y * height), width, height),
@@ -1383,7 +1479,7 @@ namespace Despicaville.Menus
                         Visible = true
                     });
 
-                    RoomTiles.Add(new Tile
+                    RoomTiles.Tiles.Add(new Tile
                     {
                         Location = new Location(x, y, 0),
                         Region = new Region(X + (x * width), Y + (y * height), width, height),
@@ -1401,6 +1497,7 @@ namespace Despicaville.Menus
             NewMap();
             LoadTiles(dir);
             LoadFurniture(dir);
+            LoadRoomTypes(dir);
         }
 
         private void LoadTiles(DirectoryInfo TexturesDir)
@@ -1591,6 +1688,21 @@ namespace Despicaville.Menus
                             Visible = true
                         };
 
+                        if (tile.Name.Contains("Wall") ||
+                            tile.Name.Contains("Fence") ||
+                            tile.Name.Contains("Fridge") ||
+                            tile.Name.Contains("Lamp") ||
+                            tile.Name.Contains("StreetLight") ||
+                            tile.Name.Contains("TV") ||
+                            tile.Name.Contains("Tree") ||
+                            tile.Name.Contains("Counter") ||
+                            tile.Name.Contains("Table") ||
+                            tile.Name.Contains("Stove") ||
+                            tile.Name.Contains("Door"))
+                        {
+                            tile.BlocksMovement = true;
+                        }
+
                         if (Y + tileWidth > objectWindow.Region.Y + objectWindow.Region.Height)
                         {
                             tile.Visible = false;
@@ -1605,6 +1717,29 @@ namespace Despicaville.Menus
             if (Furniture_BottomY < 0)
             {
                 GetPicture("ObjectWindow_ArrowDown").Visible = false;
+            }
+        }
+
+        private void LoadRoomTypes(DirectoryInfo TexturesDir)
+        {
+            RoomTypes = new List<string>();
+
+            foreach (DirectoryInfo sub_dir in TexturesDir.GetDirectories())
+            {
+                if (sub_dir.Name == "RoomTypes")
+                {
+                    FileInfo[] files = sub_dir.GetFiles("*.png");
+                    for (int i = 0; i < files.Length; i++)
+                    {
+                        FileInfo file = files[i];
+                        string name = Path.GetFileNameWithoutExtension(file.FullName);
+
+                        string[] nameParts = name.Split('_');
+                        RoomTypes.Add(nameParts[1]);
+                    }
+
+                    break;
+                }
             }
         }
 
@@ -2019,13 +2154,13 @@ namespace Despicaville.Menus
                         tile.Region = new Region(X + (tile.Location.X * width), Y + (tile.Location.Y * height), width, height);
                         tile.Visible = true;
 
-                        for (int i = 0; i < BottomTiles.Count; i++)
+                        for (int i = 0; i < BottomTiles.Tiles.Count; i++)
                         {
-                            Tile existing = BottomTiles[i];
+                            Tile existing = BottomTiles.Tiles[i];
                             if (existing.Location.X == tile.Location.X &&
                                 existing.Location.Y == tile.Location.Y)
                             {
-                                BottomTiles[i] = tile;
+                                BottomTiles.Tiles[i] = tile;
                                 break;
                             }
                         }
@@ -2066,6 +2201,21 @@ namespace Despicaville.Menus
                         {
                             tile.Texture = AssetManager.Textures[reader.Value];
                             tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+
+                            if (tile.Name.Contains("Wall") ||
+                                tile.Name.Contains("Fence") ||
+                                tile.Name.Contains("Fridge") ||
+                                tile.Name.Contains("Lamp") ||
+                                tile.Name.Contains("StreetLight") ||
+                                tile.Name.Contains("TV") ||
+                                tile.Name.Contains("Tree") ||
+                                tile.Name.Contains("Counter") ||
+                                tile.Name.Contains("Table") ||
+                                tile.Name.Contains("Stove") ||
+                                tile.Name.Contains("Door"))
+                            {
+                                tile.BlocksMovement = true;
+                            }
                         }
 
                         tile.DrawColor = Color.White;
@@ -2107,13 +2257,13 @@ namespace Despicaville.Menus
                             }
                         }
 
-                        for (int i = 0; i < MiddleTiles.Count; i++)
+                        for (int i = 0; i < MiddleTiles.Tiles.Count; i++)
                         {
-                            Tile existing = MiddleTiles[i];
+                            Tile existing = MiddleTiles.Tiles[i];
                             if (existing.Location.X == tile.Location.X &&
                                 existing.Location.Y == tile.Location.Y)
                             {
-                                MiddleTiles[i] = tile;
+                                MiddleTiles.Tiles[i] = tile;
                                 break;
                             }
                         }
@@ -2185,13 +2335,13 @@ namespace Despicaville.Menus
                         tile.Region = new Region(X + (tile.Location.X * width), Y + (tile.Location.Y * height), width, height);
                         tile.Visible = true;
 
-                        for (int i = 0; i < TopTiles.Count; i++)
+                        for (int i = 0; i < TopTiles.Tiles.Count; i++)
                         {
-                            Tile existing = TopTiles[i];
+                            Tile existing = TopTiles.Tiles[i];
                             if (existing.Location.X == tile.Location.X &&
                                 existing.Location.Y == tile.Location.Y)
                             {
-                                TopTiles[i] = tile;
+                                TopTiles.Tiles[i] = tile;
                                 break;
                             }
                         }
@@ -2264,19 +2414,265 @@ namespace Despicaville.Menus
                         tile.Region = new Region(X + (tile.Location.X * width), Y + (tile.Location.Y * height), width, height);
                         tile.Visible = true;
 
-                        for (int i = 0; i < RoomTiles.Count; i++)
+                        for (int i = 0; i < RoomTiles.Tiles.Count; i++)
                         {
-                            Tile existing = RoomTiles[i];
+                            Tile existing = RoomTiles.Tiles[i];
                             if (existing.Location.X == tile.Location.X &&
                                 existing.Location.Y == tile.Location.Y)
                             {
-                                RoomTiles[i] = tile;
+                                RoomTiles.Tiles[i] = tile;
                                 break;
                             }
                         }
                         break;
                 }
             }
+        }
+
+        #endregion
+
+        #region Rooms Methods
+
+        private bool HasRoom(Map rooms, Tile tile)
+        {
+            int layerCount = rooms.Layers.Count;
+            for (int l = 0; l < layerCount; l++)
+            {
+                Layer layer = rooms.Layers[l];
+
+                int tileCount = layer.Tiles.Count;
+                for (int t = 0; t < tileCount; t++)
+                {
+                    Tile existing = layer.Tiles[t];
+
+                    if (existing.Name == tile.Name &&
+                        existing.Location.X == tile.Location.X &&
+                        existing.Location.Y == tile.Location.Y)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private bool HasTile(Layer room, Tile tile)
+        {
+            int tileCount = room.Tiles.Count;
+            for (int t = 0; t < tileCount; t++)
+            {
+                Tile existing = room.Tiles[t];
+
+                if (existing.Location.X == tile.Location.X &&
+                    existing.Location.Y == tile.Location.Y)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void GetRoomTiles(Layer room_tiles, Layer room, Tile room_tile)
+        {
+            room.Tiles.Add(room_tile);
+
+            Tile north = room_tiles.GetTile(new Vector2(room_tile.Location.X, room_tile.Location.Y - 1));
+            if (north != null &&
+                !string.IsNullOrEmpty(north.Name) &&
+                north.Name == room_tile.Name)
+            {
+                bool hasTile = HasTile(room, north);
+                if (!hasTile)
+                {
+                    GetRoomTiles(room_tiles, room, north);
+                }
+            }
+
+            Tile east = room_tiles.GetTile(new Vector2(room_tile.Location.X + 1, room_tile.Location.Y));
+            if (east != null &&
+                !string.IsNullOrEmpty(east.Name) &&
+                east.Name == room_tile.Name &&
+                !HasTile(room, east))
+            {
+                bool hasTile = HasTile(room, east);
+                if (!hasTile)
+                {
+                    GetRoomTiles(room_tiles, room, east);
+                }
+            }
+
+            Tile south = room_tiles.GetTile(new Vector2(room_tile.Location.X, room_tile.Location.Y + 1));
+            if (south != null &&
+                !string.IsNullOrEmpty(south.Name) &&
+                south.Name == room_tile.Name &&
+                !HasTile(room, south))
+            {
+                bool hasTile = HasTile(room, south);
+                if (!hasTile)
+                {
+                    GetRoomTiles(room_tiles, room, south);
+                }
+            }
+
+            Tile west = room_tiles.GetTile(new Vector2(room_tile.Location.X - 1, room_tile.Location.Y));
+            if (west != null &&
+                !string.IsNullOrEmpty(west.Name) &&
+                west.Name == room_tile.Name &&
+                !HasTile(room, west))
+            {
+                bool hasTile = HasTile(room, west);
+                if (!hasTile)
+                {
+                    GetRoomTiles(room_tiles, room, west);
+                }
+            }
+        }
+
+        private List<Tile> GetExits(Layer room, Layer bottom_tiles, Layer middle_tiles, Layer room_tiles)
+        {
+            Layer exits = new Layer();
+
+            if (room != null)
+            {
+                foreach (Tile tile in room.Tiles)
+                {
+                    Tile middle = middle_tiles.GetTile(new Vector2(tile.Location.X, tile.Location.Y));
+                    if (!middle.BlocksMovement)
+                    {
+                        Vector3 north = new Vector3(tile.Location.X, tile.Location.Y - 1, 0);
+
+                        Tile north_bottom = bottom_tiles.GetTile(north);
+                        if (north_bottom != null &&
+                            !north_bottom.Name.Contains("Wall"))
+                        {
+                            Tile north_middle = middle_tiles.GetTile(north);
+                            if (north_middle.Name.Contains("Door"))
+                            {
+                                bool hasTile = HasTile(exits, north_middle);
+                                if (!hasTile)
+                                {
+                                    exits.Tiles.Add(north_middle);
+                                }
+                            }
+                            else
+                            {
+                                Tile north_room = room_tiles.GetTile(north);
+                                if (north_room != null &&
+                                    !string.IsNullOrEmpty(north_room.Name) &&
+                                    north_room.Name != tile.Name &&
+                                    !north_middle.BlocksMovement)
+                                {
+                                    bool hasTile = HasTile(exits, north_room);
+                                    if (!hasTile)
+                                    {
+                                        exits.Tiles.Add(north_room);
+                                    }
+                                }
+                            }
+                        }
+
+                        Vector3 east = new Vector3(tile.Location.X + 1, tile.Location.Y, 0);
+
+                        Tile east_bottom = bottom_tiles.GetTile(east);
+                        if (east_bottom != null &&
+                            !east_bottom.Name.Contains("Wall"))
+                        {
+                            Tile east_middle = middle_tiles.GetTile(east);
+                            if (east_middle.Name.Contains("Door"))
+                            {
+                                bool hasTile = HasTile(exits, east_middle);
+                                if (!hasTile)
+                                {
+                                    exits.Tiles.Add(east_middle);
+                                }
+                            }
+                            else
+                            {
+                                Tile east_room = room_tiles.GetTile(east);
+                                if (east_room != null &&
+                                    !string.IsNullOrEmpty(east_room.Name) &&
+                                    east_room.Name != tile.Name &&
+                                    !east_middle.BlocksMovement)
+                                {
+                                    bool hasTile = HasTile(exits, east_room);
+                                    if (!hasTile)
+                                    {
+                                        exits.Tiles.Add(east_room);
+                                    }
+                                }
+                            }
+                        }
+
+                        Vector3 south = new Vector3(tile.Location.X, tile.Location.Y + 1, 0);
+
+                        Tile south_bottom = bottom_tiles.GetTile(south);
+                        if (south_bottom != null &&
+                            !south_bottom.Name.Contains("Wall"))
+                        {
+                            Tile south_middle = middle_tiles.GetTile(south);
+                            if (south_middle.Name.Contains("Door"))
+                            {
+                                bool hasTile = HasTile(exits, south_middle);
+                                if (!hasTile)
+                                {
+                                    exits.Tiles.Add(south_middle);
+                                }
+                            }
+                            else
+                            {
+                                Tile south_room = room_tiles.GetTile(south);
+                                if (south_room != null &&
+                                    !string.IsNullOrEmpty(south_room.Name) &&
+                                    south_room.Name != tile.Name &&
+                                    !south_middle.BlocksMovement)
+                                {
+                                    bool hasTile = HasTile(exits, south_room);
+                                    if (!hasTile)
+                                    {
+                                        exits.Tiles.Add(south_room);
+                                    }
+                                }
+                            }
+                        }
+
+                        Vector3 west = new Vector3(tile.Location.X - 1, tile.Location.Y, 0);
+
+                        Tile west_bottom = bottom_tiles.GetTile(west);
+                        if (west_bottom != null &&
+                            !west_bottom.Name.Contains("Wall"))
+                        {
+                            Tile west_middle = middle_tiles.GetTile(west);
+                            if (west_middle.Name.Contains("Door"))
+                            {
+                                bool hasTile = HasTile(exits, west_middle);
+                                if (!hasTile)
+                                {
+                                    exits.Tiles.Add(west_middle);
+                                }
+                            }
+                            else
+                            {
+                                Tile west_room = room_tiles.GetTile(west);
+                                if (west_room != null &&
+                                    !string.IsNullOrEmpty(west_room.Name) &&
+                                    west_room.Name != tile.Name &&
+                                    !west_middle.BlocksMovement)
+                                {
+                                    bool hasTile = HasTile(exits, west_room);
+                                    if (!hasTile)
+                                    {
+                                        exits.Tiles.Add(west_room);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return exits.Tiles;
         }
 
         #endregion

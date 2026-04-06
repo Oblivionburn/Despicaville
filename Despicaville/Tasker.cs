@@ -296,6 +296,42 @@ namespace Despicaville
                 }
             }
 
+            //Is there a sink nearby to drink from?
+            if (!found)
+            {
+                Map map = world.Maps[0];
+                Layer bottom_tiles = map.GetLayer("BottomTiles");
+                Layer middle_tiles = map.GetLayer("MiddleTiles");
+                Layer room_tiles = map.GetLayer("RoomTiles");
+
+                List<Tile> sinks = WorldUtil.GetOwned_Furniture(character, "Sink");
+                if (sinks.Count > 0)
+                {
+                    Tile sink = WorldUtil.GetClosestTile(sinks, character);
+                    if (sink != null)
+                    {
+                        found = true;
+
+                        if (WorldUtil.NextTo(sink.Location, character.Location))
+                        {
+                            Direction direction = WorldUtil.GetFurnitureDirection(sink, character);
+                            if (direction != character.Direction)
+                            {
+                                AddTask(character, "Turn", false, true, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character)), default, direction);
+                            }
+                            else
+                            {
+                                AddTask(character, "UseSink_Start_Drink", true, false, null, default, 0);
+                            }
+                        }
+                        else
+                        {
+                            PathTo(bottom_tiles, middle_tiles, room_tiles, sink, character, desperate);
+                        }
+                    }
+                }
+            }
+
             //Does a nearby fridge have something to drink?
             if (!found)
             {
@@ -348,42 +384,6 @@ namespace Despicaville
                             {
                                 PathTo(bottom_tiles, middle_tiles, room_tiles, fridge, character, desperate);
                             }
-                        }
-                    }
-                }
-            }
-
-            //Is there a sink nearby to drink from?
-            if (!found)
-            {
-                Map map = world.Maps[0];
-                Layer bottom_tiles = map.GetLayer("BottomTiles");
-                Layer middle_tiles = map.GetLayer("MiddleTiles");
-                Layer room_tiles = map.GetLayer("RoomTiles");
-
-                List<Tile> sinks = WorldUtil.GetOwned_Furniture(character, "Sink");
-                if (sinks.Count > 0)
-                {
-                    Tile sink = WorldUtil.GetClosestTile(sinks, character);
-                    if (sink != null)
-                    {
-                        found = true;
-
-                        if (WorldUtil.NextTo(sink.Location, character.Location))
-                        {
-                            Direction direction = WorldUtil.GetFurnitureDirection(sink, character);
-                            if (direction != character.Direction)
-                            {
-                                AddTask(character, "Turn", false, true, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character)), default, direction);
-                            }
-                            else
-                            {
-                                AddTask(character, "UseSink_Start_Drink", true, false, null, default, 0);
-                            }
-                        }
-                        else
-                        {
-                            PathTo(bottom_tiles, middle_tiles, room_tiles, sink, character, desperate);
                         }
                     }
                 }
@@ -1193,6 +1193,7 @@ namespace Despicaville
             }
 
             tile.BlocksMovement = false;
+            CharacterUtil.UpdateSight(character);
 
             if (character.Type == "Player")
             {
@@ -1282,6 +1283,7 @@ namespace Despicaville
             }
 
             tile.BlocksMovement = true;
+            CharacterUtil.UpdateSight(character);
 
             if (character.Type == "Player")
             {
@@ -2492,44 +2494,51 @@ namespace Despicaville
                 List<ALocation> path = new List<ALocation>();
                 character.Path = new List<ALocation>();
 
-                if (WorldUtil.Furniture_InRoom(room_tiles, furniture, character))
+                if (WorldUtil.Furniture_InRoom(furniture, character))
                 {
                     int distance = WorldUtil.GetDistance(furniture.Location, character.Location) * 4;
                     path = DPathing.GetPath(bottom_tiles, middle_tiles, character, furniture, distance, true);
                 }
                 else
                 {
-                    Tile door = WorldUtil.GetNearestExit_ToFurniture(character, bottom_tiles, middle_tiles, room_tiles, furniture);
-                    if (door != null)
+                    Tile exit = WorldUtil.GetNearestExit_ToFurniture(character, middle_tiles, furniture);
+                    if (exit != null)
                     {
-                        int distance = WorldUtil.GetDistance(door.Location, character.Location) * 4;
                         Tile tile = null;
 
-                        if (door.Name.Contains("NorthSouth"))
+                        if (!string.IsNullOrEmpty(exit.Name))
                         {
-                            if (door.Location.X < character.Location.X)
+                            if (exit.Name.Contains("NorthSouth"))
                             {
-                                tile = bottom_tiles.GetTile(new Vector2(door.Location.X - 1, door.Location.Y));
+                                if (exit.Location.X < character.Location.X)
+                                {
+                                    tile = bottom_tiles.GetTile(new Vector2(exit.Location.X - 1, exit.Location.Y));
+                                }
+                                else if (exit.Location.X > character.Location.X)
+                                {
+                                    tile = bottom_tiles.GetTile(new Vector2(exit.Location.X + 1, exit.Location.Y));
+                                }
                             }
-                            else if (door.Location.X > character.Location.X)
+                            else if (exit.Name.Contains("WestEast"))
                             {
-                                tile = bottom_tiles.GetTile(new Vector2(door.Location.X + 1, door.Location.Y));
+                                if (exit.Location.Y < character.Location.Y)
+                                {
+                                    tile = bottom_tiles.GetTile(new Vector2(exit.Location.X, exit.Location.Y - 1));
+                                }
+                                else if (exit.Location.Y > character.Location.Y)
+                                {
+                                    tile = bottom_tiles.GetTile(new Vector2(exit.Location.X, exit.Location.Y + 1));
+                                }
                             }
                         }
-                        else if (door.Name.Contains("WestEast"))
+                        else
                         {
-                            if (door.Location.Y < character.Location.Y)
-                            {
-                                tile = bottom_tiles.GetTile(new Vector2(door.Location.X, door.Location.Y - 1));
-                            }
-                            else if (door.Location.Y > character.Location.Y)
-                            {
-                                tile = bottom_tiles.GetTile(new Vector2(door.Location.X, door.Location.Y + 1));
-                            }
+                            tile = bottom_tiles.GetTile(new Vector2(exit.Location.X, exit.Location.Y));
                         }
 
                         if (tile != null)
                         {
+                            int distance = WorldUtil.GetDistance(tile.Location, character.Location) * 4;
                             path = DPathing.GetPath(bottom_tiles, middle_tiles, character, tile, distance, false);
                         }
                     }

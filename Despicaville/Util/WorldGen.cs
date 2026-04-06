@@ -31,8 +31,7 @@ namespace Despicaville.Util
         public static List<Map> Commercial = new List<Map>();
         public static List<Map> Parks = new List<Map>();
         public static List<Map> Roads = new List<Map>();
-
-        public static Dictionary<int, List<Layer>> Rooms = new Dictionary<int, List<Layer>>();
+        public static Dictionary<long, List<Map>> Rooms = new Dictionary<long, List<Map>>();
 
         private static int column;
         private static int row;
@@ -97,7 +96,6 @@ namespace Despicaville.Util
         private static void VisitBlock(XmlTextReader reader, string file)
         {
             Map map = null;
-            Layer layer = null;
 
             while (reader.Read())
             {
@@ -107,41 +105,57 @@ namespace Despicaville.Util
                 switch (reader.Name)
                 {
                     case "Globals":
-                        map = new Map();
+                        map = new Map
+                        {
+                            ID = Handler.GetID()
+                        };
+
                         VisitGlobals(reader, map, file);
                         Blocks.Add(map);
                         break;
 
                     case "BottomTiles":
-                        layer = new Layer();
-                        layer.Name = "BottomTiles";
+                        Layer bottomTiles = new Layer
+                        {
+                            Name = "BottomTiles"
+                        };
 
-                        VisitBottomTiles(reader, layer);
-                        map.Layers.Add(layer);
+                        VisitBottomTiles(reader, bottomTiles);
+                        map.Layers.Add(bottomTiles);
                         break;
 
                     case "RoomTiles":
-                        layer = new Layer();
-                        layer.Name = "RoomTiles";
+                        Layer roomTiles = new Layer
+                        {
+                            Name = "RoomTiles"
+                        };
 
-                        VisitRoomTiles(reader, layer);
-                        map.Layers.Add(layer);
+                        VisitRoomTiles(reader, roomTiles);
+                        map.Layers.Add(roomTiles);
                         break;
 
                     case "MiddleTiles":
-                        layer = new Layer();
-                        layer.Name = "MiddleTiles";
+                        Layer middleTiles = new Layer
+                        {
+                            Name = "MiddleTiles"
+                        };
 
-                        VisitMiddleTiles(reader, layer);
-                        map.Layers.Add(layer);
+                        VisitMiddleTiles(reader, middleTiles);
+                        map.Layers.Add(middleTiles);
                         break;
 
                     case "TopTiles":
-                        layer = new Layer();
-                        layer.Name = "TopTiles";
+                        Layer topTiles = new Layer
+                        {
+                            Name = "TopTiles"
+                        };
 
-                        VisitTopTiles(reader, layer);
-                        map.Layers.Add(layer);
+                        VisitTopTiles(reader, topTiles);
+                        map.Layers.Add(topTiles);
+                        break;
+
+                    case "Rooms":
+                        VisitRooms(reader, map);
                         break;
                 }
             }
@@ -194,8 +208,6 @@ namespace Despicaville.Util
 
         private static void VisitBottomTiles(XmlTextReader reader, Layer layer)
         {
-            Tile tile = null;
-
             while (reader.Read())
             {
                 if (reader.Name == "BottomTiles" && reader.NodeType == XmlNodeType.EndElement)
@@ -204,7 +216,7 @@ namespace Despicaville.Util
                 switch (reader.Name)
                 {
                     case "BottomTile":
-                        tile = new Tile();
+                        Tile tile = new Tile();
                         VisitBottomTile(reader, tile);
                         layer.Tiles.Add(tile);
                         break;
@@ -238,8 +250,6 @@ namespace Despicaville.Util
 
         private static void VisitRoomTiles(XmlTextReader reader, Layer layer)
         {
-            Tile tile = null;
-
             while (reader.Read())
             {
                 if (reader.Name == "RoomTiles" && reader.NodeType == XmlNodeType.EndElement)
@@ -248,7 +258,7 @@ namespace Despicaville.Util
                 switch (reader.Name)
                 {
                     case "RoomTile":
-                        tile = new Tile();
+                        Tile tile = new Tile();
                         VisitRoomTile(reader, tile);
                         layer.Tiles.Add(tile);
                         break;
@@ -283,8 +293,6 @@ namespace Despicaville.Util
 
         private static void VisitMiddleTiles(XmlTextReader reader, Layer layer)
         {
-            Tile tile = null;
-
             while (reader.Read())
             {
                 if (reader.Name == "MiddleTiles" && reader.NodeType == XmlNodeType.EndElement)
@@ -293,7 +301,7 @@ namespace Despicaville.Util
                 switch (reader.Name)
                 {
                     case "MiddleTile":
-                        tile = new Tile();
+                        Tile tile = new Tile();
                         VisitBottomTile(reader, tile);
                         layer.Tiles.Add(tile);
                         break;
@@ -316,6 +324,152 @@ namespace Despicaville.Util
                         tile = new Tile();
                         VisitBottomTile(reader, tile);
                         layer.Tiles.Add(tile);
+                        break;
+                }
+            }
+        }
+
+        private static void VisitRooms(XmlTextReader reader, Map blockMap)
+        {
+            Rooms.Add(blockMap.ID, new List<Map>());
+
+            while (reader.Read())
+            {
+                if (reader.Name == "Rooms" && reader.NodeType == XmlNodeType.EndElement)
+                    break;
+
+                switch (reader.Name)
+                {
+                    case "Room":
+                        Map map = new Map
+                        {
+                            ID = blockMap.ID
+                        };
+
+                        VisitRoom(reader, map);
+
+                        Rooms[blockMap.ID].Add(map);
+                        break;
+                }
+            }
+        }
+
+        private static void VisitRoom(XmlTextReader reader, Map map)
+        {
+            while (reader.Read())
+            {
+                if (reader.Name == "Room" && reader.NodeType == XmlNodeType.EndElement)
+                    break;
+
+                switch (reader.Name)
+                {
+                    case "RoomProperties":
+                        VisitRoomProperties(reader, map);
+                        break;
+
+                    case "Tiles":
+                        Layer tiles = new Layer
+                        {
+                            Name = "Tiles"
+                        };
+                        VisitTiles(reader, tiles);
+                        map.Layers.Add(tiles);
+                        break;
+
+                    case "Exits":
+                        Layer exits = new Layer
+                        {
+                            Name = "Exits"
+                        };
+                        VisitExits(reader, exits);
+                        map.Layers.Add(exits);
+                        break;
+                }
+            }
+        }
+
+        private static void VisitRoomProperties(XmlTextReader reader, Map map)
+        {
+            while (reader.MoveToNextAttribute())
+            {
+                switch (reader.Name)
+                {
+                    case "Name":
+                        map.Name = reader.Value;
+                        break;
+                }
+            }
+        }
+
+        private static void VisitTiles(XmlTextReader reader, Layer layer)
+        {
+            while (reader.Read())
+            {
+                if (reader.Name == "Tiles" && reader.NodeType == XmlNodeType.EndElement)
+                    break;
+
+                switch (reader.Name)
+                {
+                    case "Tile":
+                        Tile tile = new Tile();
+                        VisitTile(reader, tile);
+                        layer.Tiles.Add(tile);
+                        break;
+                }
+            }
+        }
+
+        private static void VisitTile(XmlTextReader reader, Tile tile)
+        {
+            while (reader.MoveToNextAttribute())
+            {
+                switch (reader.Name)
+                {
+                    case "Texture":
+                        tile.Name = reader.Value;
+                        break;
+
+                    case "Location":
+                        var parts = reader.Value.Split(',');
+                        float x = float.Parse(parts[0]);
+                        float y = float.Parse(parts[1]);
+
+                        tile.Location = new Location(x, y, 0);
+                        break;
+                }
+            }
+        }
+
+        private static void VisitExits(XmlTextReader reader, Layer layer)
+        {
+            while (reader.Read())
+            {
+                if (reader.Name == "Exits" && reader.NodeType == XmlNodeType.EndElement)
+                    break;
+
+                switch (reader.Name)
+                {
+                    case "Exit":
+                        Tile tile = new Tile();
+                        VisitExit(reader, tile);
+                        layer.Tiles.Add(tile);
+                        break;
+                }
+            }
+        }
+
+        private static void VisitExit(XmlTextReader reader, Tile tile)
+        {
+            while (reader.MoveToNextAttribute())
+            {
+                switch (reader.Name)
+                {
+                    case "Location":
+                        var parts = reader.Value.Split(',');
+                        float x = float.Parse(parts[0]);
+                        float y = float.Parse(parts[1]);
+
+                        tile.Location = new Location(x, y, 0);
                         break;
                 }
             }
@@ -948,15 +1102,16 @@ namespace Despicaville.Util
 
         private static string AddToWorldmap(string name, string type, int column, int row)
         {
-            Tile tile = new Tile();
-            tile.ID = Handler.GetID();
-            tile.Name = name;
-            tile.Type = type;
-            tile.Texture = AssetManager.Textures[type];
+            Tile tile = new Tile
+            {
+                Name = name,
+                Type = type,
+                Texture = AssetManager.Textures[type],
+                Location = new Location(column, row, 0),
+                Region = new Region(column * Main.Game.TileSize.X, row * Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y),
+                Visible = true
+            };
             tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
-            tile.Location = new Location(column, row, 0);
-            tile.Region = new Region(column * Main.Game.TileSize.X, row * Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
-            tile.Visible = true;
             Worldmap.Add(tile);
 
             return name;
@@ -987,9 +1142,10 @@ namespace Despicaville.Util
 
             foreach (Tile tile in Worldmap)
             {
-                Map map = new Map();
-                map.ID = tile.ID;
-                map.Location = new Location(tile.Location.X, tile.Location.Y, 0);
+                Map map = new Map
+                {
+                    Location = new Location(tile.Location.X, tile.Location.Y, 0)
+                };
 
                 if (tile.Name == "Open")
                 {
@@ -1005,8 +1161,7 @@ namespace Despicaville.Util
                         //Force commercial
                         if (PoliceBlocks.Count > 0)
                         {
-                            random = new CryptoRandom();
-                            block = GetBlock(PoliceBlocks, tile.Location);
+                            block = GetRandomBlock(PoliceBlocks, tile.Location);
                             if (block != null)
                             {
                                 map.Name = block.Name;
@@ -1015,8 +1170,7 @@ namespace Despicaville.Util
                         }
                         else if (GroceryBlocks.Count > 0)
                         {
-                            random = new CryptoRandom();
-                            block = GetBlock(GroceryBlocks, tile.Location);
+                            block = GetRandomBlock(GroceryBlocks, tile.Location);
                             if (block != null)
                             {
                                 map.Name = block.Name;
@@ -1025,8 +1179,7 @@ namespace Despicaville.Util
                         }
                         else if (DinerBlocks.Count > 0)
                         {
-                            random = new CryptoRandom();
-                            block = GetBlock(DinerBlocks, tile.Location);
+                            block = GetRandomBlock(DinerBlocks, tile.Location);
                             if (block != null)
                             {
                                 map.Name = block.Name;
@@ -1036,6 +1189,8 @@ namespace Despicaville.Util
 
                         if (block != null)
                         {
+                            tile.ID = block.ID;
+                            map.ID = block.ID;
                             map.Type = "Map_Commercial";
                             map.Texture = AssetManager.Textures[map.Type];
                             map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
@@ -1051,9 +1206,11 @@ namespace Despicaville.Util
                              residential_count < 3)
                     {
                         //Force residential
-                        Map block = GetBlock(ResidentialBlocks, tile.Location);
+                        Map block = GetRandomBlock(ResidentialBlocks, tile.Location);
                         if (block != null)
                         {
+                            tile.ID = block.ID;
+                            map.ID = block.ID;
                             map.Name = block.Name;
                             map.Type = "Map_Residential";
                             map.Texture = AssetManager.Textures[map.Type];
@@ -1077,10 +1234,11 @@ namespace Despicaville.Util
                             if (PoliceBlocks.Count > 0)
                             {
                                 //Police
-                                random = new CryptoRandom();
-                                Map block = GetBlock(PoliceBlocks, tile.Location);
+                                Map block = GetRandomBlock(PoliceBlocks, tile.Location);
                                 if (block != null)
                                 {
+                                    tile.ID = block.ID;
+                                    map.ID = block.ID;
                                     map.Name = block.Name;
                                     map.Type = "Map_Commercial";
                                     map.Texture = AssetManager.Textures[map.Type];
@@ -1098,10 +1256,11 @@ namespace Despicaville.Util
                             else if (GroceryBlocks.Count > 0)
                             {
                                 //Grocery
-                                random = new CryptoRandom();
-                                Map block = GetBlock(GroceryBlocks, tile.Location);
+                                Map block = GetRandomBlock(GroceryBlocks, tile.Location);
                                 if (block != null)
                                 {
+                                    tile.ID = block.ID;
+                                    map.ID = block.ID;
                                     map.Name = block.Name;
                                     map.Type = "Map_Commercial";
                                     map.Texture = AssetManager.Textures[map.Type];
@@ -1119,10 +1278,11 @@ namespace Despicaville.Util
                             else if (DinerBlocks.Count > 0)
                             {
                                 //Diner
-                                random = new CryptoRandom();
-                                Map block = GetBlock(DinerBlocks, tile.Location);
+                                Map block = GetRandomBlock(DinerBlocks, tile.Location);
                                 if (block != null)
                                 {
+                                    tile.ID = block.ID;
+                                    map.ID = block.ID;
                                     map.Name = block.Name;
                                     map.Type = "Map_Commercial";
                                     map.Texture = AssetManager.Textures[map.Type];
@@ -1145,10 +1305,11 @@ namespace Despicaville.Util
                         else if (block_choice == 1)
                         {
                             //Residential
-                            random = new CryptoRandom();
-                            Map block = GetBlock(ResidentialBlocks, tile.Location);
+                            Map block = GetRandomBlock(ResidentialBlocks, tile.Location);
                             if (block != null)
                             {
+                                tile.ID = block.ID;
+                                map.ID = block.ID;
                                 map.Name = block.Name;
                                 map.Type = "Map_Residential";
                                 map.Texture = AssetManager.Textures[map.Type];
@@ -1171,9 +1332,10 @@ namespace Despicaville.Util
                     if (force_park)
                     {
                         //Park
-                        random = new CryptoRandom();
-                        Map block = GetBlock(ParkBlocks, tile.Location);
+                        Map block = GetRandomBlock(ParkBlocks, tile.Location);
 
+                        tile.ID = block.ID;
+                        map.ID = block.ID;
                         map.Name = block.Name;
                         map.Type = "Map_Park";
                         map.Texture = AssetManager.Textures[map.Type];
@@ -1184,12 +1346,31 @@ namespace Despicaville.Util
                 }
                 else if (tile.Type.Contains("Road"))
                 {
-                    map.Name = tile.Name;
-                    map.Type = tile.Type;
-                    Roads.Add(map);
+                    foreach (Map block in Blocks)
+                    {
+                        if (block.Name == tile.Name)
+                        {
+                            tile.ID = block.ID;
+                            map.ID = block.ID;
+                            map.Name = block.Name;
+                            map.Type = tile.Type;
+                            map.Texture = AssetManager.Textures[map.Type];
+                            map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
+                            Roads.Add(map);
+                            break;
+                        }
+                    }
                 }
 
                 UpdateWorldmap(tile, map.Name, map.Type);
+
+                if (Rooms.ContainsKey(map.ID))
+                {
+                    foreach (Map room in Rooms[map.ID])
+                    {
+                        room.Location = map.Location;
+                    }
+                }
 
                 Layer bottom_tiles = NewLayer(map, "BottomTiles");
                 map.Layers.Add(bottom_tiles);
@@ -1208,7 +1389,7 @@ namespace Despicaville.Util
             }
         }
 
-        private static Map GetBlock(List<Map> Blocks, Location location)
+        private static Map GetRandomBlock(List<Map> Blocks, Location location)
         {
             List<Map> possible = new List<Map>();
             List<Direction> blocked_directions = new List<Direction>();
@@ -1271,6 +1452,7 @@ namespace Despicaville.Util
 
         public static void GenTown()
         {
+            Handler.MiddleFurniture.Clear();
             Handler.TopFurniture.Clear();
             Handler.OwnedFurniture.Clear();
             Handler.light_sources.Clear();
@@ -1278,9 +1460,11 @@ namespace Despicaville.Util
             Handler.Loading_Percent = 0;
             Handler.Loading_Message = "Generating new town...";
 
-            World world = new World();
-            world.ID = Handler.GetID();
-            world.Visible = true;
+            World world = new World
+            {
+                ID = Handler.GetID(),
+                Visible = true
+            };
 
             Map map = NewMap(world, "Despicaville");
             world.Maps.Add(map);
@@ -1309,351 +1493,15 @@ namespace Despicaville.Util
             total += (bottom_tiles.Columns * bottom_tiles.Rows) * 6;
 
             AddNewTiles(map, bottom_tiles);
-            AssignOwners(middle_tiles);
             UpdateMiddleTiles(middle_tiles);
+
+            AssignOwners(middle_tiles);
             AssignOwners(top_tiles);
+
             AddRoofTiles(bottom_tiles, middle_tiles, room_tiles, roof_tiles);
             AddEffectTiles(bottom_tiles, effect_tiles);
 
             SceneManager.GetScene("Gameplay").World = world;
-        }
-
-        private static void AddNewTiles(Map map, Layer bottom_tiles)
-        {
-            for (int y = 0; y < bottom_tiles.Rows; y++)
-            {
-                for (int x = 0; x < bottom_tiles.Columns; x++)
-                {
-                    Tile worldTile = null;
-                    foreach (Tile existing in Worldmap)
-                    {
-                        if (existing.Location.X == x / 20 &&
-                            existing.Location.Y == y / 20)
-                        {
-                            worldTile = existing;
-                            break;
-                        }
-                    }
-
-                    if (worldTile != null)
-                    {
-                        Map block = null;
-                        foreach (Map existing in Blocks)
-                        {
-                            if (existing.Name == worldTile.Name)
-                            {
-                                block = existing;
-                                break;
-                            }
-                        }
-
-                        if (block != null)
-                        {
-                            CryptoRandom random = new CryptoRandom();
-                            int choice = random.Next(0, CharacterManager.LastNames.Count);
-                            last_name = CharacterManager.LastNames[choice];
-
-                            bool found = false;
-
-                            Layer block_bottom_tiles = block.GetLayer("BottomTiles");
-                            if (block_bottom_tiles != null)
-                            {
-                                foreach (Tile tile in block_bottom_tiles.Tiles)
-                                {
-                                    int tile_x = -1;
-                                    int tile_y = -1;
-
-                                    if (block.Assignment == "Convert")
-                                    {
-                                        tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
-                                        tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
-                                    }
-                                    else
-                                    {
-                                        tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
-                                        tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
-                                    }
-
-                                    if (tile_x == x &&
-                                        tile_y == y &&
-                                        tile.Texture != null)
-                                    {
-                                        found = true;
-
-                                        AddTile(block.Name, map, bottom_tiles, worldTile, tile);
-
-                                        current++;
-                                        Handler.Loading_Percent = (current * 100) / total;
-                                        break;
-                                    }
-                                }
-
-                                if (!found)
-                                {
-                                    AddEmptyTile(map, bottom_tiles, worldTile, new Location(x, y, 0));
-
-                                    current++;
-                                    Handler.Loading_Percent = (current * 100) / total;
-                                }
-                            }
-
-                            found = false;
-
-                            Layer middle_tiles = map.GetLayer("MiddleTiles");
-                            if (middle_tiles != null)
-                            {
-                                Layer block_middle_tiles = block.GetLayer("MiddleTiles");
-                                if (block_middle_tiles != null)
-                                {
-                                    foreach (Tile tile in block_middle_tiles.Tiles)
-                                    {
-                                        int tile_x = -1;
-                                        int tile_y = -1;
-
-                                        if (block.Assignment == "Convert")
-                                        {
-                                            tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
-                                            tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
-                                        }
-                                        else
-                                        {
-                                            tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
-                                            tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
-                                        }
-
-                                        if (tile_x == x &&
-                                            tile_y == y &&
-                                            tile.Texture != null)
-                                        {
-                                            found = true;
-
-                                            AddTile(block.Name, map, middle_tiles, worldTile, tile);
-
-                                            current++;
-                                            Handler.Loading_Percent = (current * 100) / total;
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                if (!found)
-                                {
-                                    AddEmptyTile(map, middle_tiles, worldTile, new Location(x, y, 0));
-
-                                    current++;
-                                    Handler.Loading_Percent = (current * 100) / total;
-                                }
-                            }
-
-                            found = false;
-
-                            Layer top_tiles = map.GetLayer("TopTiles");
-                            if (top_tiles != null)
-                            {
-                                Layer block_top_tiles = block.GetLayer("TopTiles");
-                                if (block_top_tiles != null)
-                                {
-                                    foreach (Tile tile in block_top_tiles.Tiles)
-                                    {
-                                        int tile_x = -1;
-                                        int tile_y = -1;
-
-                                        if (block.Assignment == "Convert")
-                                        {
-                                            tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
-                                            tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
-                                        }
-                                        else
-                                        {
-                                            tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
-                                            tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
-                                        }
-
-                                        if (tile_x == x &&
-                                            tile_y == y &&
-                                            tile.Texture != null)
-                                        {
-                                            found = true;
-
-                                            AddTile(block.Name, map, top_tiles, worldTile, tile);
-
-                                            current++;
-                                            Handler.Loading_Percent = (current * 100) / total;
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                if (!found)
-                                {
-                                    AddEmptyTile(map, top_tiles, worldTile, new Location(x, y, 0));
-
-                                    current++;
-                                    Handler.Loading_Percent = (current * 100) / total;
-                                }
-                            }
-
-                            found = false;
-
-                            Layer room_tiles = map.GetLayer("RoomTiles");
-                            if (room_tiles != null)
-                            {
-                                Layer block_room_tiles = block.GetLayer("RoomTiles");
-                                if (block_room_tiles != null)
-                                {
-                                    foreach (Tile tile in block_room_tiles.Tiles)
-                                    {
-                                        int tile_x = -1;
-                                        int tile_y = -1;
-
-                                        if (block.Assignment == "Convert")
-                                        {
-                                            tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
-                                            tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
-                                        }
-                                        else
-                                        {
-                                            tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
-                                            tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
-                                        }
-
-                                        if (tile_x == x &&
-                                            tile_y == y &&
-                                            tile.Texture != null)
-                                        {
-                                            found = true;
-
-                                            AddTile(block.Name, map, room_tiles, worldTile, tile);
-
-                                            current++;
-                                            Handler.Loading_Percent = (current * 100) / total;
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                if (!found)
-                                {
-                                    AddEmptyTile(map, room_tiles, worldTile, new Location(x, y, 0));
-
-                                    current++;
-                                    Handler.Loading_Percent = (current * 100) / total;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        private static void UpdateMiddleTiles(Layer middle_tiles)
-        {
-            for (int i = middle_tiles.Tiles.Count - 1; i >= 0; i--)
-            {
-                Tile middle_tile = middle_tiles.Tiles[i];
-                if (!string.IsNullOrEmpty(middle_tile.Name))
-                {
-                    if (middle_tile.Name.Contains("Tree"))
-                    {
-                        int x = (int)middle_tile.Location.X + 1;
-                        int y = (int)middle_tile.Location.Y + 1;
-
-                        int index = (y * middle_tiles.Columns) + x;
-                        Tile existing = middle_tiles.Tiles[index];
-                        if (existing != null)
-                        {
-                            //Swap tree with tile at X+1/Y+1
-                            middle_tiles.Tiles[index] = middle_tile;
-                            middle_tiles.Tiles[i] = existing;
-
-                            existing.Location.X--;
-                            existing.Location.Y--;
-
-                            middle_tile.Location.X++;
-                            middle_tile.Location.Y++;
-                        }
-                    }
-                }
-            }
-        }
-
-        private static void AddRoofTiles(Layer bottom_tiles, Layer middle_tiles, Layer room_tiles, Layer roof_tiles)
-        {
-            foreach (Tile bottom_tile in bottom_tiles.Tiles)
-            {
-                Tile roof_tile = new Tile();
-                roof_tile.Location = new Location(bottom_tile.Location.X, bottom_tile.Location.Y, 0);
-                roof_tile.Region = new Region((int)roof_tile.Location.X * Main.Game.TileSize.X, (int)roof_tile.Location.Y * Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
-                roof_tiles.Tiles.Add(roof_tile);
-
-                if (bottom_tile.Name.Contains("Wall"))
-                {
-                    roof_tile.Texture = AssetManager.Textures["Roof"];
-                    roof_tile.Image = new Rectangle(0, 0, roof_tile.Texture.Width, roof_tile.Texture.Height);
-                    roof_tile.Visible = true;
-                }
-
-                current++;
-                Handler.Loading_Percent = (current * 100) / total;
-            }
-
-            foreach (Tile middle_tile in middle_tiles.Tiles)
-            {
-                Tile roof_tile = roof_tiles.GetTile(new Vector2(middle_tile.Location.X, middle_tile.Location.Y));
-                if (roof_tile != null)
-                {
-                    if (roof_tile.Texture == null)
-                    {
-                        if ((middle_tile.Name.Contains("Door") && !WorldUtil.NextToFence(middle_tiles, middle_tile.Location)) ||
-                             middle_tile.Name.Contains("Window"))
-                        {
-                            roof_tile.Texture = AssetManager.Textures["Roof"];
-                            roof_tile.Image = new Rectangle(0, 0, roof_tile.Texture.Width, roof_tile.Texture.Height);
-                            roof_tile.Visible = true;
-                        }
-                    }
-                }
-            }
-
-            foreach (Tile room_tile in room_tiles.Tiles)
-            {
-                Tile roof_tile = roof_tiles.GetTile(new Vector2(room_tile.Location.X, room_tile.Location.Y));
-                if (roof_tile != null)
-                {
-                    if (roof_tile.Texture == null)
-                    {
-                        if (room_tile.Name == "RoomType_Bathroom" ||
-                            room_tile.Name == "RoomType_Bedroom" ||
-                            room_tile.Name == "RoomType_GroceryStore" ||
-                            room_tile.Name == "RoomType_Hallway" ||
-                            room_tile.Name == "RoomType_Kitchen" ||
-                            room_tile.Name == "RoomType_Lounge" ||
-                            room_tile.Name == "RoomType_Office" ||
-                            room_tile.Name == "RoomType_StoreCounter" ||
-                            room_tile.Name == "RoomType_WeaponStore")
-                        {
-                            roof_tile.Texture = AssetManager.Textures["Roof"];
-                            roof_tile.Image = new Rectangle(0, 0, roof_tile.Texture.Width, roof_tile.Texture.Height);
-                            roof_tile.Visible = true;
-                        }
-                    }
-                }
-            }
-        }
-
-        private static void AddEffectTiles(Layer bottom_tiles, Layer effect_tiles)
-        {
-            foreach (Tile bottom_tile in bottom_tiles.Tiles)
-            {
-                Tile effect_tile = new Tile();
-                effect_tile.Location = new Location(bottom_tile.Location.X, bottom_tile.Location.Y, 0);
-                effect_tile.Region = new Region((int)effect_tile.Location.X * Main.Game.TileSize.X, (int)effect_tile.Location.Y * Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
-                effect_tile.Visible = false;
-                effect_tiles.Tiles.Add(effect_tile);
-
-                current++;
-                Handler.Loading_Percent = (current * 100) / total;
-            }
         }
 
         #region GenTown
@@ -1662,7 +1510,6 @@ namespace Despicaville.Util
         {
             return new Map
             {
-                ID = Handler.GetID(),
                 World = world,
                 Visible = true,
                 DrawColor = Color.White,
@@ -1993,7 +1840,345 @@ namespace Despicaville.Util
             }
         }
 
-        #endregion
+        private static void AddNewTiles(Map map, Layer bottom_tiles)
+        {
+            for (int y = 0; y < bottom_tiles.Rows; y++)
+            {
+                for (int x = 0; x < bottom_tiles.Columns; x++)
+                {
+                    Tile worldTile = null;
+                    foreach (Tile existing in Worldmap)
+                    {
+                        if (existing.Location.X == x / 20 &&
+                            existing.Location.Y == y / 20)
+                        {
+                            worldTile = existing;
+                            break;
+                        }
+                    }
+
+                    if (worldTile != null)
+                    {
+                        Map block = null;
+                        foreach (Map existing in Blocks)
+                        {
+                            if (existing.Name == worldTile.Name)
+                            {
+                                block = existing;
+                                break;
+                            }
+                        }
+
+                        if (block != null)
+                        {
+                            map.ID = block.ID;
+
+                            CryptoRandom random = new CryptoRandom();
+                            int choice = random.Next(0, CharacterManager.LastNames.Count);
+                            last_name = CharacterManager.LastNames[choice];
+
+                            bool found = false;
+
+                            Layer block_bottom_tiles = block.GetLayer("BottomTiles");
+                            if (block_bottom_tiles != null)
+                            {
+                                foreach (Tile tile in block_bottom_tiles.Tiles)
+                                {
+                                    int tile_x = -1;
+                                    int tile_y = -1;
+
+                                    if (block.Assignment == "Convert")
+                                    {
+                                        tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
+                                        tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
+                                    }
+                                    else
+                                    {
+                                        tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
+                                        tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
+                                    }
+
+                                    if (tile_x == x &&
+                                        tile_y == y &&
+                                        tile.Texture != null)
+                                    {
+                                        found = true;
+
+                                        AddTile(block.Name, map, bottom_tiles, worldTile, tile);
+
+                                        current++;
+                                        Handler.Loading_Percent = (current * 100) / total;
+                                        break;
+                                    }
+                                }
+
+                                if (!found)
+                                {
+                                    AddEmptyTile(map, bottom_tiles, worldTile, new Location(x, y, 0));
+
+                                    current++;
+                                    Handler.Loading_Percent = (current * 100) / total;
+                                }
+                            }
+
+                            found = false;
+
+                            Layer middle_tiles = map.GetLayer("MiddleTiles");
+                            if (middle_tiles != null)
+                            {
+                                Layer block_middle_tiles = block.GetLayer("MiddleTiles");
+                                if (block_middle_tiles != null)
+                                {
+                                    foreach (Tile tile in block_middle_tiles.Tiles)
+                                    {
+                                        int tile_x = -1;
+                                        int tile_y = -1;
+
+                                        if (block.Assignment == "Convert")
+                                        {
+                                            tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
+                                            tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
+                                        }
+                                        else
+                                        {
+                                            tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
+                                            tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
+                                        }
+
+                                        if (tile_x == x &&
+                                            tile_y == y &&
+                                            tile.Texture != null)
+                                        {
+                                            found = true;
+
+                                            AddTile(block.Name, map, middle_tiles, worldTile, tile);
+
+                                            current++;
+                                            Handler.Loading_Percent = (current * 100) / total;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (!found)
+                                {
+                                    AddEmptyTile(map, middle_tiles, worldTile, new Location(x, y, 0));
+
+                                    current++;
+                                    Handler.Loading_Percent = (current * 100) / total;
+                                }
+                            }
+
+                            found = false;
+
+                            Layer top_tiles = map.GetLayer("TopTiles");
+                            if (top_tiles != null)
+                            {
+                                Layer block_top_tiles = block.GetLayer("TopTiles");
+                                if (block_top_tiles != null)
+                                {
+                                    foreach (Tile tile in block_top_tiles.Tiles)
+                                    {
+                                        int tile_x = -1;
+                                        int tile_y = -1;
+
+                                        if (block.Assignment == "Convert")
+                                        {
+                                            tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
+                                            tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
+                                        }
+                                        else
+                                        {
+                                            tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
+                                            tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
+                                        }
+
+                                        if (tile_x == x &&
+                                            tile_y == y &&
+                                            tile.Texture != null)
+                                        {
+                                            found = true;
+
+                                            AddTile(block.Name, map, top_tiles, worldTile, tile);
+
+                                            current++;
+                                            Handler.Loading_Percent = (current * 100) / total;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (!found)
+                                {
+                                    AddEmptyTile(map, top_tiles, worldTile, new Location(x, y, 0));
+
+                                    current++;
+                                    Handler.Loading_Percent = (current * 100) / total;
+                                }
+                            }
+
+                            found = false;
+
+                            Layer room_tiles = map.GetLayer("RoomTiles");
+                            if (room_tiles != null)
+                            {
+                                Layer block_room_tiles = block.GetLayer("RoomTiles");
+                                if (block_room_tiles != null)
+                                {
+                                    foreach (Tile tile in block_room_tiles.Tiles)
+                                    {
+                                        int tile_x = -1;
+                                        int tile_y = -1;
+
+                                        if (block.Assignment == "Convert")
+                                        {
+                                            tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
+                                            tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
+                                        }
+                                        else
+                                        {
+                                            tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
+                                            tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
+                                        }
+
+                                        if (tile_x == x &&
+                                            tile_y == y &&
+                                            tile.Texture != null)
+                                        {
+                                            found = true;
+
+                                            AddTile(block.Name, map, room_tiles, worldTile, tile);
+
+                                            current++;
+                                            Handler.Loading_Percent = (current * 100) / total;
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                if (!found)
+                                {
+                                    AddEmptyTile(map, room_tiles, worldTile, new Location(x, y, 0));
+
+                                    current++;
+                                    Handler.Loading_Percent = (current * 100) / total;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void UpdateMiddleTiles(Layer middle_tiles)
+        {
+            for (int i = middle_tiles.Tiles.Count - 1; i >= 0; i--)
+            {
+                Tile middle_tile = middle_tiles.Tiles[i];
+                if (!string.IsNullOrEmpty(middle_tile.Name))
+                {
+                    if (middle_tile.Name.Contains("Tree"))
+                    {
+                        int x = (int)middle_tile.Location.X + 1;
+                        int y = (int)middle_tile.Location.Y + 1;
+
+                        int index = (y * middle_tiles.Columns) + x;
+                        Tile existing = middle_tiles.Tiles[index];
+                        if (existing != null)
+                        {
+                            //Swap tree with tile at X+1/Y+1
+                            middle_tiles.Tiles[index] = middle_tile;
+                            middle_tiles.Tiles[i] = existing;
+
+                            existing.Location.X--;
+                            existing.Location.Y--;
+
+                            middle_tile.Location.X++;
+                            middle_tile.Location.Y++;
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void AddRoofTiles(Layer bottom_tiles, Layer middle_tiles, Layer room_tiles, Layer roof_tiles)
+        {
+            foreach (Tile bottom_tile in bottom_tiles.Tiles)
+            {
+                Tile roof_tile = new Tile();
+                roof_tile.Location = new Location(bottom_tile.Location.X, bottom_tile.Location.Y, 0);
+                roof_tile.Region = new Region((int)roof_tile.Location.X * Main.Game.TileSize.X, (int)roof_tile.Location.Y * Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
+                roof_tiles.Tiles.Add(roof_tile);
+
+                if (bottom_tile.Name.Contains("Wall"))
+                {
+                    roof_tile.Texture = AssetManager.Textures["Roof"];
+                    roof_tile.Image = new Rectangle(0, 0, roof_tile.Texture.Width, roof_tile.Texture.Height);
+                    roof_tile.Visible = true;
+                }
+
+                current++;
+                Handler.Loading_Percent = (current * 100) / total;
+            }
+
+            foreach (Tile middle_tile in middle_tiles.Tiles)
+            {
+                Tile roof_tile = roof_tiles.GetTile(new Vector2(middle_tile.Location.X, middle_tile.Location.Y));
+                if (roof_tile != null)
+                {
+                    if (roof_tile.Texture == null)
+                    {
+                        if ((middle_tile.Name.Contains("Door") && !WorldUtil.NextToFence(middle_tiles, middle_tile.Location)) ||
+                             middle_tile.Name.Contains("Window"))
+                        {
+                            roof_tile.Texture = AssetManager.Textures["Roof"];
+                            roof_tile.Image = new Rectangle(0, 0, roof_tile.Texture.Width, roof_tile.Texture.Height);
+                            roof_tile.Visible = true;
+                        }
+                    }
+                }
+            }
+
+            foreach (Tile room_tile in room_tiles.Tiles)
+            {
+                Tile roof_tile = roof_tiles.GetTile(new Vector2(room_tile.Location.X, room_tile.Location.Y));
+                if (roof_tile != null)
+                {
+                    if (roof_tile.Texture == null)
+                    {
+                        if (room_tile.Name == "RoomType_Bathroom" ||
+                            room_tile.Name == "RoomType_Bedroom" ||
+                            room_tile.Name == "RoomType_GroceryStore" ||
+                            room_tile.Name == "RoomType_Hallway" ||
+                            room_tile.Name == "RoomType_Kitchen" ||
+                            room_tile.Name == "RoomType_Lounge" ||
+                            room_tile.Name == "RoomType_Office" ||
+                            room_tile.Name == "RoomType_StoreCounter" ||
+                            room_tile.Name == "RoomType_WeaponStore")
+                        {
+                            roof_tile.Texture = AssetManager.Textures["Roof"];
+                            roof_tile.Image = new Rectangle(0, 0, roof_tile.Texture.Width, roof_tile.Texture.Height);
+                            roof_tile.Visible = true;
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void AddEffectTiles(Layer bottom_tiles, Layer effect_tiles)
+        {
+            foreach (Tile bottom_tile in bottom_tiles.Tiles)
+            {
+                Tile effect_tile = new Tile();
+                effect_tile.Location = new Location(bottom_tile.Location.X, bottom_tile.Location.Y, 0);
+                effect_tile.Region = new Region((int)effect_tile.Location.X * Main.Game.TileSize.X, (int)effect_tile.Location.Y * Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
+                effect_tile.Visible = false;
+                effect_tiles.Tiles.Add(effect_tile);
+
+                current++;
+                Handler.Loading_Percent = (current * 100) / total;
+            }
+        }
 
         private static void AssignOwners(Layer tiles)
         {
@@ -2024,6 +2209,8 @@ namespace Despicaville.Util
                 }
             }
         }
+
+        #endregion
 
         public static void GenLoot()
         {
