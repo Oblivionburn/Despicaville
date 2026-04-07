@@ -9,6 +9,9 @@ using OP_Engine.Tiles;
 using OP_Engine.Utility;
 using OP_Engine.Scenes;
 using OP_Engine.Enums;
+using System;
+using OP_Engine.Time;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Despicaville.Util
 {
@@ -605,16 +608,19 @@ namespace Despicaville.Util
 
         public static Tile GetClosestTile(List<Tile> tiles, Character character)
         {
-            if (tiles.Count > 0)
+            Tile[] tilesArray = tiles.ToArray();
+            int count = tilesArray.Length;
+
+            if (count > 0)
             {
-                if (tiles.Count > 1)
+                if (count > 1)
                 {
-                    Tile closest = tiles[0];
+                    Tile closest = tilesArray[0];
                     int nearest = GetDistance(character.Location, closest.Location);
 
-                    for (int i = 1; i < tiles.Count; i++)
+                    for (int i = 1; i < count; i++)
                     {
-                        Tile tile = tiles[i];
+                        Tile tile = tilesArray[i];
 
                         int distance = GetDistance(character.Location, tile.Location);
                         if (distance < nearest)
@@ -628,7 +634,7 @@ namespace Despicaville.Util
                 }
                 else
                 {
-                    return tiles[0];
+                    return tilesArray[0];
                 }
             }
 
@@ -665,50 +671,6 @@ namespace Despicaville.Util
             }
 
             return result;
-        }
-
-        public static Character GetCharacter(List<Character> characters, Location destination)
-        {
-            for (int i = 0; i < characters.Count; i++)
-            {
-                Character existing = characters[i];
-                if (existing.Moving)
-                {
-                    if (existing.Destination.X == destination.X &&
-                        existing.Destination.Y == destination.Y)
-                    {
-                        return existing;
-                    }
-                }
-                else
-                {
-                    if (existing.Location.X == destination.X &&
-                        existing.Location.Y == destination.Y)
-                    {
-                        return existing;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        public static Character MouseGetCharacter(List<Character> characters, Location destination)
-        {
-            for (int i = 0; i < characters.Count; i++)
-            {
-                Character existing = characters[i];
-                if ((existing.Destination != null &&
-                     existing.Destination.X == destination.X &&
-                     existing.Destination.Y == destination.Y) ||
-                    (existing.Location.X == destination.X &&
-                     existing.Location.Y == destination.Y))
-                {
-                    return existing;
-                }
-            }
-
-            return null;
         }
 
         public static Character GetCharacter(Location destination)
@@ -762,55 +724,48 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static bool IsCharacter_AtLocation(long ID, Location location)
+        public static Character GetCharacter(List<Character> characters, Location destination)
         {
-            Character player = Handler.GetPlayer();
-            if (ID == player.ID)
+            for (int i = 0; i < characters.Count; i++)
             {
-                if (player.Moving)
+                Character existing = characters[i];
+                if (existing.Moving)
                 {
-                    if (player.Destination.X == location.X &&
-                        player.Destination.Y == location.Y)
+                    if (existing.Destination.X == destination.X &&
+                        existing.Destination.Y == destination.Y)
                     {
-                        return true;
+                        return existing;
                     }
                 }
                 else
                 {
-                    if (player.Location.X == location.X &&
-                        player.Location.Y == location.Y)
+                    if (existing.Location.X == destination.X &&
+                        existing.Location.Y == destination.Y)
                     {
-                        return true;
-                    }
-                }
-            }
-            else
-            {
-                Army army = CharacterManager.GetArmy("Characters");
-                Squad citizens = army.GetSquad("Citizens");
-                Character existing = citizens.GetCharacter(ID);
-                if (existing != null)
-                {
-                    if (existing.Moving)
-                    {
-                        if (existing.Destination.X == location.X &&
-                            existing.Destination.Y == location.Y)
-                        {
-                            return true;
-                        }
-                    }
-                    else
-                    {
-                        if (existing.Location.X == location.X &&
-                            existing.Location.Y == location.Y)
-                        {
-                            return true;
-                        }
+                        return existing;
                     }
                 }
             }
 
-            return false;
+            return null;
+        }
+
+        public static Character MouseGetCharacter(List<Character> characters, Location destination)
+        {
+            for (int i = 0; i < characters.Count; i++)
+            {
+                Character existing = characters[i];
+                if ((existing.Destination != null &&
+                     existing.Destination.X == destination.X &&
+                     existing.Destination.Y == destination.Y) ||
+                    (existing.Location.X == destination.X &&
+                     existing.Location.Y == destination.Y))
+                {
+                    return existing;
+                }
+            }
+
+            return null;
         }
 
         public static List<Character> GetAllCharacters(Point map_coords)
@@ -1228,7 +1183,7 @@ namespace Despicaville.Util
             for (int i = 0; i < count; i++)
             {
                 Tile tile = furniture[i];
-                if (tile.Name.IndexOf(name, System.StringComparison.OrdinalIgnoreCase) != -1)
+                if (tile.Name.Contains(name))
                 {
                     tiles.Add(tile);
                 }
@@ -2101,43 +2056,6 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static bool FacingFurniture(Tile tile, Character character)
-        {
-            if (tile.Location.X > character.Location.X)
-            {
-                if (character.Direction == Direction.Right)
-                {
-                    return true;
-                }
-            }
-            else if (tile.Location.X < character.Location.X)
-            {
-                if (character.Direction == Direction.Left)
-                {
-                    return true;
-                }
-            }
-            else if (tile.Location.X == character.Location.X)
-            {
-                if (tile.Location.Y > character.Location.Y)
-                {
-                    if (character.Direction == Direction.Down)
-                    {
-                        return true;
-                    }
-                }
-                else if (tile.Location.Y < character.Location.Y)
-                {
-                    if (character.Direction == Direction.Up)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
         public static bool NextToFence(Layer middle_tiles, Location location)
         {
             foreach (Tile tile in middle_tiles.Tiles)
@@ -2392,35 +2310,115 @@ namespace Despicaville.Util
             }
         }
 
-        public static void AddEffect(Layer bottom_tiles, Vector2 location, string name, string texture)
+        public static void AddEffect(Vector2 location, string name, string texture)
         {
             Scene scene = SceneManager.GetScene("Gameplay");
             Map map = scene.World.Maps[0];
             if (map != null)
             {
+                Layer bottom_tiles = map.GetLayer("BottomTiles");
+
                 Tile bottom_tile = bottom_tiles.GetTile(location);
                 if (bottom_tile != null)
                 {
                     Layer effect_tiles = map.GetLayer("EffectTiles");
-                    if (effect_tiles != null)
-                    {
-                        Tile new_tile = new Tile();
-                        new_tile.ID = Handler.GetID();
-                        new_tile.Map.ID = map.ID;
-                        new_tile.Layer.ID = effect_tiles.ID;
-                        new_tile.Name = name;
-                        new_tile.Location = new Location(location.X, location.Y, 0);
-                        new_tile.Region = bottom_tile.Region;
-                        new_tile.Visible = true;
-                        effect_tiles.Tiles.Add(new_tile);
 
-                        if (!string.IsNullOrEmpty(texture))
-                        {
-                            new_tile.Texture = AssetManager.Textures[texture];
-                            new_tile.Image = new Rectangle(0, 0, new_tile.Texture.Width, new_tile.Texture.Height);
-                        }
-                    }
+                    Tile new_tile = new Tile
+                    {
+                        ID = Handler.GetID(),
+                        Map = map,
+                        Layer = effect_tiles,
+                        Name = name,
+                        Location = new Location(location.X, location.Y, 0),
+                        Region = bottom_tile.Region,
+                        Texture = AssetManager.Textures[texture],
+                        Visible = true
+                    };
+                    new_tile.Image = new Rectangle(0, 0, new_tile.Texture.Width, new_tile.Texture.Height);
+
+                    effect_tiles.Tiles.Add(new_tile);
                 }
+            }
+        }
+
+        public static void AddEffect_Animated(Vector2 location, Direction direction, string texture, TimeSpan start_time, int duration)
+        {
+            Scene scene = SceneManager.GetScene("Gameplay");
+            Map map = scene.World.Maps[0];
+            if (map != null)
+            {
+                Layer bottom_tiles = map.GetLayer("BottomTiles");
+
+                Tile bottom_tile = bottom_tiles.GetTile(location);
+                if (bottom_tile != null)
+                {
+                    Layer effect_tiles = map.GetLayer("EffectTiles");
+
+                    Texture2D texture2D = AssetManager.Textures[texture];
+
+                    effect_tiles.Tiles.Add(new Tile
+                    {
+                        ID = Handler.GetID(),
+                        Map = map,
+                        Layer = effect_tiles,
+                        Name = texture,
+                        Direction = direction,
+                        Location = new Location(location.X, location.Y, 0),
+                        Region = bottom_tile.Region,
+                        Texture = texture2D,
+                        Image = new Rectangle(0, 0, texture2D.Height, texture2D.Height),
+                        Animated = true,
+                        Time = start_time,
+                        Duration = duration,
+                        Visible = true
+                    });
+                }
+            }
+        }
+
+        public static void Animate_Effect(SpriteBatch spriteBatch, Tile tile)
+        {
+            int frames = tile.Texture.Width / tile.Texture.Height;
+            float frame_duration = tile.Duration / frames;
+
+            int time = (int)(TimeManager.Now.TotalMilliseconds - tile.Time.TotalMilliseconds);
+            if (time > 0)
+            {
+                int frame = (int)(time / frame_duration);
+                tile.Image = new Rectangle(tile.Texture.Height * frame, tile.Image.Y, tile.Image.Width, tile.Image.Height);
+            }
+
+            if (tile.Image.X >= tile.Texture.Width - tile.Texture.Height)
+            {
+                tile.Visible = false;
+            }
+
+            if (tile.Visible)
+            {
+                float rotation;
+
+                switch (tile.Direction)
+                {
+                    case Direction.Up:
+                    default:
+                        rotation = 0f;
+                        break;
+
+                    case Direction.Right:
+                        rotation = 1.5f;
+                        break;
+
+                    case Direction.Down:
+                        rotation = 3f;
+                        break;
+
+                    case Direction.Left:
+                        rotation = 4.5f;
+                        break;
+                }
+
+                Rectangle region = new Rectangle((int)(tile.Region.X + (tile.Region.Width / 2)), (int)(tile.Region.Y + (tile.Region.Height / 2)), (int)tile.Region.Width, (int)tile.Region.Height);
+                spriteBatch.Draw(tile.Texture, region, tile.Image, Color.White, rotation, new Vector2(tile.Texture.Height / 2, tile.Texture.Height / 2), SpriteEffects.None, 0);
             }
         }
     }

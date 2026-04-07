@@ -134,7 +134,6 @@ namespace Despicaville
                 "Controls",
                 "Hairs",
                 "Hats",
-                "MapTiles",
                 "Pants",
                 "Paperdoll",
                 "RoomTypes",
@@ -245,7 +244,7 @@ namespace Despicaville
                 Loading_Percent = 0;
                 Loading_Message = "Loading textures...";
 
-                string[] dirs = { "Effects", "Foliage", "Furniture", "Icons", "Particles", "Tiles", "Vehicles" };
+                string[] dirs = { "Animations", "Effects", "Foliage", "Furniture", "Icons", "MapTiles", "Particles", "Tiles", "Vehicles" };
 
                 int current = 0;
                 int total = 0;

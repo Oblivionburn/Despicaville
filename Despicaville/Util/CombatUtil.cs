@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-
 using OP_Engine.Characters;
 using OP_Engine.Controls;
 using OP_Engine.Inventories;
@@ -477,7 +476,7 @@ namespace Despicaville.Util
 
         public static void DoDamage(Character attacker, Character defender, string weapon, string action, string body_part)
         {
-            BodyPart bodyPart = defender.GetBodyPart(CharacterUtil.BodyPartFromName(body_part));
+            BodyPart bodyPart = defender.GetBodyPart(body_part);
             Something strength = attacker.GetStat("Strength");
 
             string wound = "";
@@ -737,7 +736,7 @@ namespace Despicaville.Util
 
             if (wound_type == "Break")
             {
-                wound.Value = 7257600; //3 months
+                wound.Value = 604800; //7 days
 
                 if (defender.Type == "Player")
                 {
@@ -747,29 +746,37 @@ namespace Despicaville.Util
                          !defender.Dead &&
                          !defender.Unconscious)
                 {
-                    CryptoRandom random = new CryptoRandom();
-                    int reaction = random.Next(0, 4);
-                    if (reaction == 0)
+                    if (!defender.Dead &&
+                        !defender.Unconscious)
                     {
-                        GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " breaks.");
+                        CryptoRandom random = new CryptoRandom();
+                        int reaction = random.Next(0, 4);
+                        if (reaction == 0)
+                        {
+                            GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " breaks.");
+                        }
+                        else if (reaction == 1)
+                        {
+                            GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " breaks.");
+                        }
+                        else if (reaction == 2)
+                        {
+                            GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " breaks.");
+                        }
+                        else if (reaction == 3)
+                        {
+                            GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " breaks.");
+                        }
                     }
-                    else if (reaction == 1)
+                    else
                     {
-                        GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " breaks.");
-                    }
-                    else if (reaction == 2)
-                    {
-                        GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " breaks.");
-                    }
-                    else if (reaction == 3)
-                    {
-                        GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " breaks.");
+                        GameUtil.AddMessage("You broke the " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " of " + defender.Name + ".");
                     }
                 }
             }
             else if (wound_type == "Fracture")
             {
-                wound.Value = 2419200; //1 month
+                wound.Value = 432000; //5 days
 
                 if (defender.Type == "Player")
                 {
@@ -779,183 +786,221 @@ namespace Despicaville.Util
                          !defender.Dead &&
                          !defender.Unconscious)
                 {
-                    CryptoRandom random = new CryptoRandom();
-                    int reaction = random.Next(0, 4);
-                    if (reaction == 0)
+                    if (!defender.Dead &&
+                        !defender.Unconscious)
                     {
-                        GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " fractures.");
+                        CryptoRandom random = new CryptoRandom();
+                        int reaction = random.Next(0, 4);
+                        if (reaction == 0)
+                        {
+                            GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " fractures.");
+                        }
+                        else if (reaction == 1)
+                        {
+                            GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " fractures.");
+                        }
+                        else if (reaction == 2)
+                        {
+                            GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " fractures.");
+                        }
+                        else if (reaction == 3)
+                        {
+                            GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " fractures.");
+                        }
                     }
-                    else if (reaction == 1)
+                    else
                     {
-                        GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " fractures.");
-                    }
-                    else if (reaction == 2)
-                    {
-                        GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " fractures.");
-                    }
-                    else if (reaction == 3)
-                    {
-                        GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " fractures.");
+                        GameUtil.AddMessage("You fractured the " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " of " + defender.Name + ".");
                     }
                 }
             }
             else if (wound_type == "Gunshot")
             {
-                wound.Value = 2419200; //1 month
+                wound.Value = 259200; //3 days
 
                 if (defender.Type == "Player")
                 {
                     GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " has been shot.");
                 }
-                else if (attacker.Type == "Player" &&
-                         !defender.Dead &&
-                         !defender.Unconscious)
+                else if (attacker.Type == "Player")
                 {
-                    CryptoRandom random = new CryptoRandom();
-                    int reaction = random.Next(0, 4);
-                    if (reaction == 0)
+                    if (!defender.Dead &&
+                        !defender.Unconscious)
                     {
-                        GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is shot.");
+                        CryptoRandom random = new CryptoRandom();
+                        int reaction = random.Next(0, 4);
+                        if (reaction == 0)
+                        {
+                            GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is shot.");
+                        }
+                        else if (reaction == 1)
+                        {
+                            GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is shot.");
+                        }
+                        else if (reaction == 2)
+                        {
+                            GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is shot.");
+                        }
+                        else if (reaction == 3)
+                        {
+                            GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is shot.");
+                        }
                     }
-                    else if (reaction == 1)
+                    else
                     {
-                        GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is shot.");
-                    }
-                    else if (reaction == 2)
-                    {
-                        GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is shot.");
-                    }
-                    else if (reaction == 3)
-                    {
-                        GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is shot.");
+                        GameUtil.AddMessage("You shot the " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " of " + defender.Name + ".");
                     }
                 }
             }
             else if (wound_type == "Stab")
             {
-                wound.Value = 604800; //7 days
+                wound.Value = 86400; //1 day
 
                 if (defender.Type == "Player")
                 {
                     GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " has been stabbed.");
                 }
-                else if (attacker.Type == "Player" &&
-                         !defender.Dead &&
-                         !defender.Unconscious)
+                else if (attacker.Type == "Player")
                 {
-                    CryptoRandom random = new CryptoRandom();
-                    int reaction = random.Next(0, 4);
-                    if (reaction == 0)
+                    if (!defender.Dead &&
+                        !defender.Unconscious)
                     {
-                        GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is stabbed.");
+                        CryptoRandom random = new CryptoRandom();
+                        int reaction = random.Next(0, 4);
+                        if (reaction == 0)
+                        {
+                            GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is stabbed.");
+                        }
+                        else if (reaction == 1)
+                        {
+                            GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is stabbed.");
+                        }
+                        else if (reaction == 2)
+                        {
+                            GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is stabbed.");
+                        }
+                        else if (reaction == 3)
+                        {
+                            GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is stabbed.");
+                        }
                     }
-                    else if (reaction == 1)
+                    else
                     {
-                        GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is stabbed.");
-                    }
-                    else if (reaction == 2)
-                    {
-                        GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is stabbed.");
-                    }
-                    else if (reaction == 3)
-                    {
-                        GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is stabbed.");
-                    }
-                }
-            }
-            else if (wound_type == "Cut")
-            {
-                wound.Value = 259200; //3 days
-
-                if (defender.Type == "Player")
-                {
-                    GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " has been cut.");
-                }
-                else if (attacker.Type == "Player" &&
-                         !defender.Dead &&
-                         !defender.Unconscious)
-                {
-                    CryptoRandom random = new CryptoRandom();
-                    int reaction = random.Next(0, 4);
-                    if (reaction == 0)
-                    {
-                        GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is cut.");
-                    }
-                    else if (reaction == 1)
-                    {
-                        GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is cut.");
-                    }
-                    else if (reaction == 2)
-                    {
-                        GameUtil.AddMessage(defender.Name + " gasps as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is cut.");
-                    }
-                    else if (reaction == 3)
-                    {
-                        GameUtil.AddMessage(defender.Name + " groans as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is cut.");
+                        GameUtil.AddMessage("You stabbed the " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " of " + defender.Name + ".");
                     }
                 }
             }
             else if (wound_type == "Burn")
             {
-                wound.Value = 86400; //1 day
+                wound.Value = 21600; //6 hours
 
                 if (defender.Type == "Player")
                 {
                     GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " has been burned.");
                 }
-                else if (attacker.Type == "Player" &&
-                         !defender.Dead &&
-                         !defender.Unconscious)
+                else if (attacker.Type == "Player")
                 {
-                    CryptoRandom random = new CryptoRandom();
-                    int reaction = random.Next(0, 4);
-                    if (reaction == 0)
+                    if (!defender.Dead &&
+                        !defender.Unconscious)
                     {
-                        GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is burned.");
+                        CryptoRandom random = new CryptoRandom();
+                        int reaction = random.Next(0, 4);
+                        if (reaction == 0)
+                        {
+                            GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is burned.");
+                        }
+                        else if (reaction == 1)
+                        {
+                            GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is burned.");
+                        }
+                        else if (reaction == 2)
+                        {
+                            GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is burned.");
+                        }
+                        else if (reaction == 3)
+                        {
+                            GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is burned.");
+                        }
                     }
-                    else if (reaction == 1)
+                    else
                     {
-                        GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is burned.");
+                        GameUtil.AddMessage("You burned the " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " of " + defender.Name + ".");
                     }
-                    else if (reaction == 2)
+                }
+            }
+            else if (wound_type == "Cut")
+            {
+                wound.Value = 10800; //3 hours
+
+                if (defender.Type == "Player")
+                {
+                    GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " has been cut.");
+                }
+                else if (attacker.Type == "Player")
+                {
+                    if (!defender.Dead &&
+                        !defender.Unconscious)
                     {
-                        GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is burned.");
+                        CryptoRandom random = new CryptoRandom();
+                        int reaction = random.Next(0, 4);
+                        if (reaction == 0)
+                        {
+                            GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is cut.");
+                        }
+                        else if (reaction == 1)
+                        {
+                            GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is cut.");
+                        }
+                        else if (reaction == 2)
+                        {
+                            GameUtil.AddMessage(defender.Name + " gasps as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is cut.");
+                        }
+                        else if (reaction == 3)
+                        {
+                            GameUtil.AddMessage(defender.Name + " groans as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is cut.");
+                        }
                     }
-                    else if (reaction == 3)
+                    else
                     {
-                        GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is burned.");
+                        GameUtil.AddMessage("You cut the " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " of " + defender.Name + ".");
                     }
                 }
             }
             else if (wound_type == "Bruise")
             {
-                wound.Value = 86400; //1 day
+                wound.Value = 3600; //1 hour
 
                 if (defender.Type == "Player")
                 {
                     GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " has been bruised.");
                 }
-                else if (attacker.Type == "Player" &&
-                         !defender.Dead &&
-                         !defender.Unconscious)
+                else if (attacker.Type == "Player")
                 {
-                    CryptoRandom random = new CryptoRandom();
-                    int reaction = random.Next(0, 4);
-                    if (reaction == 0)
+                    if (!defender.Dead &&
+                        !defender.Unconscious)
                     {
-                        GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is bruised.");
+                        CryptoRandom random = new CryptoRandom();
+                        int reaction = random.Next(0, 4);
+                        if (reaction == 0)
+                        {
+                            GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is bruised.");
+                        }
+                        else if (reaction == 1)
+                        {
+                            GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is bruised.");
+                        }
+                        else if (reaction == 2)
+                        {
+                            GameUtil.AddMessage(defender.Name + " gasps as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is bruised.");
+                        }
+                        else if (reaction == 3)
+                        {
+                            GameUtil.AddMessage(defender.Name + " groans as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is bruised.");
+                        }
                     }
-                    else if (reaction == 1)
+                    else
                     {
-                        GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is bruised.");
-                    }
-                    else if (reaction == 2)
-                    {
-                        GameUtil.AddMessage(defender.Name + " gasps as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is bruised.");
-                    }
-                    else if (reaction == 3)
-                    {
-                        GameUtil.AddMessage(defender.Name + " groans as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is bruised.");
+                        GameUtil.AddMessage("You hit the " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " of " + defender.Name + ".");
                     }
                 }
             }

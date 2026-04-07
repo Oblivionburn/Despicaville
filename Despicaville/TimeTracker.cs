@@ -74,7 +74,7 @@ namespace Despicaville
                                 }
                                 else
                                 {
-                                    Tasker.Character_DoAction(scene.World, character);
+                                    Tasker.Character_DoAction(character);
                                 }
                             }
 
@@ -86,7 +86,11 @@ namespace Despicaville
                                         task.Name == "Walk" ||
                                         task.Name == "Run")
                                     {
-                                        if (character.Path.Count > 0)
+                                        if (character.InCombat)
+                                        {
+                                            character.Path.Clear();
+                                        }
+                                        else if (character.Path.Count > 0)
                                         {
                                             ALocation first_path = character.Path[0];
                                             character.Path.Remove(first_path);
@@ -127,7 +131,7 @@ namespace Despicaville
                 {
                     if (!player.Moving)
                     {
-                        Tasker.Character_DoAction(scene.World, player);
+                        Tasker.Character_DoAction(player);
                     }
                 }
             }
@@ -172,49 +176,19 @@ namespace Despicaville
                             }
                         }
 
-                        CharacterUtil.UpdateWounds(character);
-                        CharacterUtil.UpdateBloodLoss(character);
-
-                        character.GetStat("Thirst").IncreaseValueByRate();
-                        character.GetStat("Hunger").IncreaseValueByRate();
-
                         if (character.Type == "Citizen" &&
                             !sleeping)
                         {
                             character.GetStat("Boredom").IncreaseValueByRate();
                         }
 
-                        Something consciousness = character.GetStat("Consciousness");
+                        character.GetStat("Thirst").IncreaseValueByRate();
+                        character.GetStat("Hunger").IncreaseValueByRate();
 
-                        Something stamina = character.GetStat("Stamina");
-                        if (stamina.Value <= 0)
-                        {
-                            consciousness.DecreaseValue(1);
-                        }
-
-                        Something pain = character.GetStat("Pain");
-                        if (pain.Value >= 100)
-                        {
-                            consciousness.DecreaseValue(5);
-                        }
-
-                        if (consciousness.Value <= 0)
-                        {
-                            character.Unconscious = true;
-                        }
-                        else if (consciousness.Value < 100)
-                        {
-                            if (pain.Value < 100 &&
-                                stamina.Value > 0)
-                            {
-                                consciousness.IncreaseValue(1);
-
-                                if (consciousness.Value >= 20)
-                                {
-                                    character.Unconscious = false;
-                                }
-                            }
-                        }
+                        CharacterUtil.UpdateWounds(character);
+                        CharacterUtil.UpdatePain(character);
+                        CharacterUtil.UpdateBloodLoss(character);
+                        CharacterUtil.UpdateConsciousness(character);
                     }
                 }
             }

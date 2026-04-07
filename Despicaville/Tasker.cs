@@ -42,7 +42,11 @@ namespace Despicaville
             Something stamina = character.GetStat("Stamina");
             Something boredom = character.GetStat("Boredom");
 
-            if (WorldUtil.PassedOpenDoor(world.Maps[0].GetLayer("MiddleTiles"), character))
+            if (character.InCombat)
+            {
+                Attacking(character);
+            }
+            else if (WorldUtil.PassedOpenDoor(world.Maps[0].GetLayer("MiddleTiles"), character))
             {
                 CloseDoor_Behind(character);
             }
@@ -103,9 +107,9 @@ namespace Despicaville
                         string[] task_parts = task.Name.Split('_');
                         GoTo(world, character, task_parts[1]);
                     }
-                    else if (task.Name == "Attacking")
+                    else if (task.Name == "Attack")
                     {
-                        Attacking(character);
+                        Attack_Start(character);
                     }
                     else if (task.Name.Contains("UseSink_Start"))
                     {
@@ -126,7 +130,7 @@ namespace Despicaville
             }
         }
 
-        public static void Character_DoAction(World world, Character character)
+        public static void Character_DoAction(Character character)
         {
             if (character.Job.Tasks.Count > 0)
             {
@@ -177,9 +181,9 @@ namespace Despicaville
                         {
                             Turn_End(character);
                         }
-                        else if (CombatUtil.IsAttack(task.Name))
+                        else if (task.Name == "Attack_End")
                         {
-                            Attack(character);
+                            Attack_End(character);
                         }
                         else if (task.Name.Contains("OpenDoor"))
                         {
@@ -221,20 +225,20 @@ namespace Despicaville
                         {
                             if (task.Name.Contains("Drink"))
                             {
-                                UseSink_End(world, character, false);
+                                UseSink_End(character, false);
                             }
                             else
                             {
-                                UseSink_End(world, character, true);
+                                UseSink_End(character, true);
                             }
                         }
                         else if (task.Name.Contains("UseToilet_End"))
                         {
-                            UseToilet_End(world, character);
+                            UseToilet_End(character);
                         }
                         else if (task.Name.Contains("UseItem"))
                         {
-                            UseItem(world, character);
+                            UseItem(character);
                         }
                         else if (task.Name.Contains("Examine"))
                         {
@@ -246,6 +250,51 @@ namespace Despicaville
         }
 
         #region New Task
+
+        public static void Attacking(Character character)
+        {
+            Character target = WorldUtil.GetCharacter_Target(character);
+            if (target != null)
+            {
+                Direction direction = WorldUtil.GetDirection(target.Location, character.Location, false);
+
+                if (direction != character.Direction)
+                {
+                    AbortTask(character);
+                    Turn(character, direction);
+                }
+                else if (!WorldUtil.InRange(target.Location, character.Location, 1))
+                {
+                    AddTask(character, "Walk", true, false, null, null, character.Direction);
+                }
+                else
+                {
+                    Location location = new Location();
+                    if (character.Direction == Direction.Up)
+                    {
+                        location = new Location(character.Location.X, character.Location.Y - 1, 0);
+                    }
+                    else if (character.Direction == Direction.Right)
+                    {
+                        location = new Location(character.Location.X + 1, character.Location.Y, 0);
+                    }
+                    else if (character.Direction == Direction.Down)
+                    {
+                        location = new Location(character.Location.X, character.Location.Y + 1, 0);
+                    }
+                    else if (character.Direction == Direction.Left)
+                    {
+                        location = new Location(character.Location.X - 1, character.Location.Y, 0);
+                    }
+
+                    AddTask(character, "Attack", true, false, null, location, character.Direction);
+                }
+            }
+            else
+            {
+                AbortTask(character);
+            }
+        }
 
         public static void Turn(Character character, Direction direction)
         {
@@ -270,8 +319,11 @@ namespace Despicaville
             Inventory inventory = character.Inventory;
 
             //Do we already have something to drink?
-            foreach (Item existing in inventory.Items)
+            int itemCount = inventory.Items.Count;
+            for (int i = 0; i < itemCount; i++)
             {
+                Item existing = inventory.Items[i];
+
                 Something thirst = existing.GetProperty("Thirst");
                 if (thirst != null)
                 {
@@ -347,8 +399,12 @@ namespace Despicaville
                     if (fridge != null)
                     {
                         Item item = null;
-                        foreach (Item existing in fridge.Inventory.Items)
+
+                        int fridgeCount = fridge.Inventory.Items.Count;
+                        for (int i = 0; i < fridgeCount; i++)
                         {
+                            Item existing = fridge.Inventory.Items[i];
+
                             Something thirst = existing.GetProperty("Thirst");
                             if (thirst != null)
                             {
@@ -402,8 +458,12 @@ namespace Despicaville
             Inventory inventory = character.Inventory;
 
             //Do we already have something to eat?
-            foreach (Item existing in inventory.Items)
+
+            int itemCount = inventory.Items.Count;
+            for (int i = 0; i < itemCount; i++)
             {
+                Item existing = inventory.Items[i];
+
                 Something hunger = existing.GetProperty("Hunger");
                 if (hunger != null)
                 {
@@ -443,8 +503,12 @@ namespace Despicaville
                     if (fridge != null)
                     {
                         Item item = null;
-                        foreach (Item existing in fridge.Inventory.Items)
+
+                        int fridgeCount = fridge.Inventory.Items.Count;
+                        for (int i = 0; i < fridgeCount; i++)
                         {
+                            Item existing = fridge.Inventory.Items[i];
+
                             Something hunger = existing.GetProperty("Hunger");
                             if (hunger != null)
                             {
@@ -1011,35 +1075,25 @@ namespace Despicaville
             }
         }
 
-        public static void Attacking(Character attacker)
+        public static void Attack_Start(Character character)
         {
-            Task task = attacker.Job.CurrentTask;
+            Task task = character.Job.CurrentTask;
             task.Completed = true;
-            attacker.Job.Update(TimeManager.Now);
+            character.Job.Update(TimeManager.Now);
 
-            Character target = WorldUtil.GetCharacter_Target(attacker);
-            if (target != null)
-            {
-                Dictionary<string, string> attackChoice = CombatUtil.AttackChoice(attacker);
-                string attackType = attackChoice.ElementAt(0).Value;
+            Character player = Handler.GetPlayer();
 
-                if (CombatUtil.InRange(attacker, target, attackType))
-                {
-                    AddAttack(attacker, target, attackChoice);
-                }
-                else
-                {
-                    Direction direction = WorldUtil.GetDirection(target.Location, attacker.Location, false);
-                    if (attacker.Direction != direction)
-                    {
-                        AddTask(attacker, "Turn", true, true, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(attacker)), default, direction);
-                    }
-                    else
-                    {
-                        AddTask(attacker, "Walk", true, false, null, default, direction);
-                    }
-                }
-            }
+            Vector2 player_loc = new Vector2(player.Location.X, player.Location.Y);
+            Vector2 character_loc = new Vector2(character.Location.X, character.Location.Y);
+
+            AssetManager.PlaySound_Random_AtDistance("Swing", player_loc, character_loc, 2);
+
+            TimeSpan startTime = TimeSpan.FromMilliseconds(TimeManager.Now.TotalMilliseconds);
+            int duration = 1000;
+
+            WorldUtil.AddEffect_Animated(new Vector2(task.Location.X, task.Location.Y), task.Direction, "Swing", startTime, duration);
+
+            AddTask(character, "Attack_End", true, true, TimeSpan.FromMilliseconds(duration), task.Location, task.Direction);
         }
 
         #endregion
@@ -1086,6 +1140,11 @@ namespace Despicaville
 
             CharacterUtil.UpdateGear(character);
             CharacterUtil.UpdateSight(character);
+
+            if (character.Target_ID > 0)
+            {
+                character.InCombat = true;
+            }
         }
 
         public static void ToggleLight(World world, Character character)
@@ -1751,7 +1810,7 @@ namespace Despicaville
             }
         }
 
-        public static void UseItem(World world, Character character)
+        public static void UseItem(Character character)
         {
             Task task = character.Job.Get_CurrentTask();
 
@@ -1985,7 +2044,7 @@ namespace Despicaville
             }
         }
 
-        public static void UseSink_End(World world, Character character, bool fill)
+        public static void UseSink_End(Character character, bool fill)
         {
             Task task = character.Job.Get_CurrentTask();
 
@@ -2043,7 +2102,7 @@ namespace Despicaville
             SoundManager.StopSound("WaterRunning");
         }
 
-        public static void UseToilet_End(World world, Character character)
+        public static void UseToilet_End(Character character)
         {
             Task task = character.Job.Get_CurrentTask();
 
@@ -2081,101 +2140,140 @@ namespace Despicaville
             }
         }
 
-        public static void Attack(Character attacker)
+        public static void Attack_End(Character character)
         {
-            Task task = attacker.Job.CurrentTask;
+            Task task = character.Job.Get_CurrentTask();
 
             Character player = Handler.GetPlayer();
-            Character defender = WorldUtil.GetCharacter_Target(attacker);
 
-            bool attacker_visible = WorldUtil.Location_IsVisible(defender.ID, attacker.Location);
-            bool attacker_visible_to_player = WorldUtil.Location_IsVisible(player.ID, attacker.Location);
+            Vector2 player_loc = new Vector2(player.Location.X, player.Location.Y);
+            Vector2 character_loc = new Vector2(character.Location.X, character.Location.Y);
 
-            bool hit = false;
+            Dictionary<string, string> AttackingWith = CombatUtil.AttackChoice(character);
+            string weapon = AttackingWith.ElementAt(0).Key;
+            string action = AttackingWith.ElementAt(0).Value;
 
-            bool CharacterAtLocation = WorldUtil.IsCharacter_AtLocation(defender.ID, task.Location);
-            if (CharacterAtLocation)
+            string bodyPart = "";
+
+            int waitTime = 0;
+
+            CryptoRandom random = new CryptoRandom();
+            int choice = random.Next(0, 12);
+            switch (choice)
             {
-                float chance = CombatUtil.ChanceToHitBodyPart(attacker, defender, task.Assignment, task.Name);
-                if (task.Location.X == defender.Location.X &&
-                    task.Location.Y == defender.Location.Y)
-                {
-                    if (Utility.RandomPercent(chance))
-                    {
-                        hit = true;
-                    }
-                }
+                case 0:
+                    bodyPart = "Torso";
+                    waitTime = 1;
+                    break;
+
+                case 1:
+                    bodyPart = "Right_Arm";
+                    waitTime = 2;
+                    break;
+
+                case 2:
+                    bodyPart = "Left_Arm";
+                    waitTime = 2;
+                    break;
+
+                case 3:
+                    bodyPart = "Right_Leg";
+                    waitTime = 2;
+                    break;
+
+                case 4:
+                    bodyPart = "Left_Leg";
+                    waitTime = 2;
+                    break;
+
+                case 5:
+                    bodyPart = "Head";
+                    waitTime = 3;
+                    break;
+
+                case 6:
+                    bodyPart = "Groin";
+                    waitTime = 5;
+                    break;
+
+                case 7:
+                    bodyPart = "Right_Hand";
+                    waitTime = 1;
+                    break;
+
+                case 8:
+                    bodyPart = "Left_Hand";
+                    waitTime = 1;
+                    break;
+
+                case 9:
+                    bodyPart = "Right_Foot";
+                    waitTime = 1;
+                    break;
+
+                case 10:
+                    bodyPart = "Left_Foot";
+                    waitTime = 1;
+                    break;
+
+                case 11:
+                    bodyPart = "Neck";
+                    waitTime = 4;
+                    break;
             }
 
-            int sound_distance;
-            if (hit)
+            Character target = WorldUtil.GetCharacter(task.Location);
+            if (target != null)
             {
-                sound_distance = CombatUtil.AttackSound_Hit(attacker, task.Name);
+                AssetManager.PlaySound_Random_AtDistance("Punch", player_loc, character_loc, 2);
+                CombatUtil.DoDamage(character, target, weapon, action, bodyPart);
+
+                if (target.Unconscious)
+                {
+                    if (character.Type != "Player")
+                    {
+                        character.InCombat = false;
+                        character.Target_ID = -1;
+                    }
+
+                    target.InCombat = false;
+                    target.Target_ID = -1;
+                }
+                else if (target.Type != "Player")
+                {
+                    target.Target_ID = character.ID;
+                    target.InCombat = true;
+                }
             }
             else
             {
-                sound_distance = CombatUtil.AttackSound_Miss(attacker, task.Name);
-            }
+                Tile tile = null;
 
-            if (attacker.Type != "Player" &&
-                !attacker_visible_to_player &&
-                sound_distance > 0)
-            {
-                Direction direction = WorldUtil.GetDirection(task.Location, player.Location, true);
-                if (WorldUtil.InRange(player.Location, attacker.Location, sound_distance))
+                Tile top_tile = WorldUtil.GetFurniture(Handler.TopFurniture, task.Location);
+                if (top_tile?.Texture != null)
                 {
-                    if (task.Name == "Shoot")
+                    tile = top_tile;
+                }
+
+                if (tile == null)
+                {
+                    Tile middle_tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, task.Location);
+                    if (middle_tile?.Texture != null)
                     {
-                        GameUtil.AddMessage("You hear a gunshot to the " + direction.ToString() + ".");
+                        tile = middle_tile;
                     }
                 }
-            }
 
-            bool react = false;
-            if (hit)
-            {
-                if (defender.Type == "Player")
+                if (tile != null)
                 {
-                    GameUtil.AddMessage(attacker.Name + " hit your " + task.Assignment.ToLower() + " with their " + task.Type.ToLower() + ".");
-                    CombatUtil.Update_Player_BodyStat(player, CharacterUtil.BodyPartFromName(task.Assignment));
-                }
-                else if (attacker.Type == "Player")
-                {
-                    GameUtil.AddMessage("You hit " + defender.Name + " in the " + task.Assignment.ToLower() + " with your " + task.Type.ToLower() + ".");
-                }
-
-                CombatUtil.DoDamage(attacker, defender, task.Type, task.Name, task.Assignment);
-
-                if (defender.Type != "Player")
-                {
-                    react = true;
-                }
-            }
-            else
-            {
-                if (defender.Type == "Player")
-                {
-                    GameUtil.AddMessage(attacker.Name + " missed your " + task.Assignment.ToLower() + " with their " + task.Type.ToLower() + ".");
-                }
-                else if (attacker.Type == "Player")
-                {
-                    GameUtil.AddMessage("You missed hitting " + defender.Name + " in the " + task.Assignment.ToLower() + " with your " + task.Type.ToLower() + ".");
-                }
-
-                if (attacker_visible ||
-                    WorldUtil.InRange(defender.Location, attacker.Location, sound_distance))
-                {
-                    if (defender.Type != "Player")
-                    {
-                        react = true;
-                    }
+                    AssetManager.PlaySound_Random_AtDistance("Punch", player_loc, character_loc, 2);
+                    GameUtil.AddMessage("You hit a " + WorldUtil.GetTile_Name(tile) + ".");
                 }
             }
 
-            if (react)
+            if (character.Type != "Player")
             {
-                string reaction = CharacterUtil.ReactToAttack(attacker, defender);
-                AddTask(defender, reaction, true, false, null, default, 0);
+                AddTask(character, "Wait", true, false, TimeSpan.FromSeconds(waitTime), task.Location, task.Direction);
             }
         }
 
@@ -2188,60 +2286,6 @@ namespace Despicaville
         }
 
         #endregion
-
-        public static void AddAttack(Character attacker, Character defender, Dictionary<string, string> attackChoice)
-        {
-            Character player = Handler.GetPlayer();
-            attacker.Target_ID = defender.ID;
-
-            CryptoRandom random = new CryptoRandom();
-            string part_target = CharacterUtil.BodyPartToName(Handler.BodyParts[random.Next(0, Handler.BodyParts.Length)]);
-
-            string attackingWith = attackChoice.ElementAt(0).Key;
-            string attackType = attackChoice.ElementAt(0).Value;
-
-            Task task = new Task();
-            task.Name = attackType;
-            task.Assignment = part_target;
-            task.Type = attackingWith;
-            task.OwnerIDs.Add(attacker.ID);
-            task.Keep_On_Completed = true;
-            task.StartTime = new TimeHandler(TimeManager.Now);
-            task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CombatUtil.AttackTime(attacker, attackType)));
-            task.Location = new Location(defender.Location.X, defender.Location.Y, 0);
-
-            bool attacker_visible_to_player = WorldUtil.Location_IsVisible(player.ID, attacker.Location);
-            bool defender_visible_to_player = WorldUtil.Location_IsVisible(player.ID, defender.Location);
-
-            if (attacker_visible_to_player)
-            {
-                if (defender.Type != "Player" &&
-                    defender_visible_to_player)
-                {
-                    if (GameUtil.NameStartsWithVowel(task.Type))
-                    {
-                        GameUtil.AddMessage("You see " + attacker.Name + " " + task.Name.ToLower() + " an " + task.Type.ToLower() + " at " + defender.Name + ".");
-                    }
-                    else
-                    {
-                        GameUtil.AddMessage("You see " + attacker.Name + " " + task.Name.ToLower() + " a " + task.Type.ToLower() + " at " + defender.Name + ".");
-                    }
-                }
-                else if (defender.Type == "Player")
-                {
-                    if (GameUtil.NameStartsWithVowel(task.Type))
-                    {
-                        GameUtil.AddMessage("You see " + attacker.Name + " " + task.Name.ToLower() + " an " + task.Type.ToLower() + " at your " + task.Assignment.ToLower() + ".");
-                    }
-                    else
-                    {
-                        GameUtil.AddMessage("You see " + attacker.Name + " " + task.Name.ToLower() + " a " + task.Type.ToLower() + " at your " + task.Assignment.ToLower() + ".");
-                    }
-                }
-            }
-
-            attacker.Job.Tasks.Add(task);
-        }
 
         public static void AddTask(Character character, string name, bool started, bool keep_on_completed, TimeSpan? time_span, Location location, Direction direction)
         {
@@ -2277,14 +2321,6 @@ namespace Despicaville
             character.Job.Tasks.Clear();
 
             character.InCombat = false;
-            character.Interacting = false;
-
-            if (character.Type == "Player")
-            {
-                //MenuManager.GetMenu("UI").GetPicture("Interact").Visible = false;
-            }
-
-            character.Target_ID = -1;
         }
 
         public static void Interact(Tile tile, Character player)
@@ -2489,11 +2525,11 @@ namespace Despicaville
                 in_room = true;
             }
 
+            List<ALocation> path = new List<ALocation>();
+            character.Path = new List<ALocation>();
+
             if (in_room)
             {
-                List<ALocation> path = new List<ALocation>();
-                character.Path = new List<ALocation>();
-
                 if (WorldUtil.Furniture_InRoom(furniture, character))
                 {
                     int distance = WorldUtil.GetDistance(furniture.Location, character.Location) * 4;
@@ -2543,43 +2579,53 @@ namespace Despicaville
                         }
                     }
                 }
-
-                if (path != null &&
-                    path.Count > 0)
+            }
+            else
+            {
+                Tile middle_tile = middle_tiles.GetTile(new Vector2(character.Location.X, character.Location.Y));
+                if (middle_tile != null &&
+                    middle_tile.Name.Contains("Door"))
                 {
-                    path.Reverse();
-                    if (path[0].X == character.Location.X &&
-                        path[0].Y == character.Location.Y)
-                    {
-                        path.Remove(path[0]);
-                    }
-
-                    character.Path.AddRange(path);
-
                     if (desperate)
                     {
-                        AddTask(character, "GoTo_Run", true, false, null, default, 0);
+                        AddTask(character, "Run", true, false, null, default, character.Direction);
                     }
                     else
                     {
-                        AddTask(character, "GoTo_Walk", true, false, null, default, 0);
+                        AddTask(character, "Walk", true, false, null, default, character.Direction);
                     }
                 }
                 else
                 {
-                    Wander(character);
+                    int distance = WorldUtil.GetDistance(furniture.Location, character.Location) * 4;
+                    path = DPathing.GetPath(bottom_tiles, middle_tiles, character, furniture, distance, true);
+                }
+            }
+
+            if (path != null &&
+                path.Count > 0)
+            {
+                path.Reverse();
+                if (path[0].X == character.Location.X &&
+                    path[0].Y == character.Location.Y)
+                {
+                    path.Remove(path[0]);
+                }
+
+                character.Path.AddRange(path);
+
+                if (desperate)
+                {
+                    AddTask(character, "GoTo_Run", true, false, null, default, 0);
+                }
+                else
+                {
+                    AddTask(character, "GoTo_Walk", true, false, null, default, 0);
                 }
             }
             else
             {
-                if (desperate)
-                {
-                    AddTask(character, "Run", true, false, null, default, character.Direction);
-                }
-                else
-                {
-                    AddTask(character, "Walk", true, false, null, default, character.Direction);
-                }
+                Wander(character);
             }
         }
 

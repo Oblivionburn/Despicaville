@@ -73,6 +73,15 @@ namespace Despicaville.Util
             ui.Visible = false;
             ui.Active = false;
 
+            for (int i = 0; i < Handler.MessageMax; i++)
+            {
+                Label label = ui.GetLabel("Message" + i.ToString());
+                if (label != null)
+                {
+                    label.Text = "";
+                }
+            }
+
             Menu main = MenuManager.GetMenu("Main");
             main.Visible = true;
             main.Active = true;

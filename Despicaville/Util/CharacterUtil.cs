@@ -1385,24 +1385,55 @@ namespace Despicaville.Util
             Something pain = character.GetStat("Pain");
             Something stamina = character.GetStat("Stamina");
 
+            if (stamina.Value <= 0)
+            {
+                consciousness.DecreaseValue(1);
+            }
+            if (pain.Value >= 100)
+            {
+                consciousness.DecreaseValue(5);
+            }
+
             if (pain.Value < 100 &&
                 stamina.Value > 0)
             {
-                consciousness.IncreaseValue(0.001f);
-
-                if (consciousness.Value >= 20)
-                {
-                    character.Unconscious = false;
-                }
+                consciousness.IncreaseValue(1);
             }
 
-            if (consciousness.Value <= 0)
+            if (consciousness.Value <= 0 &&
+                !character.Unconscious)
             {
                 character.Unconscious = true;
+
+                if (character.Type == "Player")
+                {
+                    GameUtil.AddMessage("You fell unconscious.");
+
+                    List<Tile> visible = new List<Tile>();
+                    if (Handler.VisibleTiles.ContainsKey(character.ID))
+                    {
+                        visible = Handler.VisibleTiles[character.ID];
+                    }
+
+                    foreach (Tile tile in visible)
+                    {
+                        tile.Visible = false;
+                    }
+                }
+            }
+            else if (consciousness.Value >= 20 &&
+                     character.Unconscious)
+            {
+                character.Unconscious = false;
+
+                if (character.Type == "Player")
+                {
+                    GameUtil.AddMessage("You regained consciousness.");
+                }
             }
         }
 
-        public static float UpdatePain(Character character)
+        public static void UpdatePain(Character character)
         {
             float total = 0;
 
@@ -1521,8 +1552,6 @@ namespace Despicaville.Util
             Something stat = character.GetStat("Pain");
             stat.Value = 0;
             stat.IncreaseValue(total);
-
-            return total;
         }
 
         public static void UpdateWounds(Character character)
@@ -1709,7 +1738,7 @@ namespace Despicaville.Util
                         }
                         else
                         {
-                            WorldUtil.AddEffect(bottom_tiles, new Vector2(character.Location.X, character.Location.Y), "Tiny Blood", null);
+                            WorldUtil.AddEffect(new Vector2(character.Location.X, character.Location.Y), "Tiny Blood", null);
                         }
 
                         if (character.Moving &&
@@ -1718,22 +1747,22 @@ namespace Despicaville.Util
                             if (character.Direction == Direction.Up &&
                                 !trail_north_found)
                             {
-                                WorldUtil.AddEffect(bottom_tiles, new Vector2(character.Location.X, character.Location.Y), "Trail of Blood North", "Blood_Trail_Up");
+                                WorldUtil.AddEffect(new Vector2(character.Location.X, character.Location.Y), "Trail of Blood North", "Blood_Trail_Up");
                             }
                             else if (character.Direction == Direction.Right &&
                                      !trail_east_found)
                             {
-                                WorldUtil.AddEffect(bottom_tiles, new Vector2(character.Location.X, character.Location.Y), "Trail of Blood East", "Blood_Trail_Right");
+                                WorldUtil.AddEffect(new Vector2(character.Location.X, character.Location.Y), "Trail of Blood East", "Blood_Trail_Right");
                             }
                             else if (character.Direction == Direction.Down &&
                                      !trail_south_found)
                             {
-                                WorldUtil.AddEffect(bottom_tiles, new Vector2(character.Location.X, character.Location.Y), "Trail of Blood South", "Blood_Trail_Down");
+                                WorldUtil.AddEffect(new Vector2(character.Location.X, character.Location.Y), "Trail of Blood South", "Blood_Trail_Down");
                             }
                             else if (character.Direction == Direction.Left &&
                                      !trail_west_found)
                             {
-                                WorldUtil.AddEffect(bottom_tiles, new Vector2(character.Location.X, character.Location.Y), "Trail of Blood West", "Blood_Trail_Left");
+                                WorldUtil.AddEffect(new Vector2(character.Location.X, character.Location.Y), "Trail of Blood West", "Blood_Trail_Left");
                             }
                         }
                     }

@@ -82,13 +82,12 @@ namespace Despicaville.Scenes
                                 }
                                 else
                                 {
-                                    TimeTracker.Tick(Handler.ActionRate);
+                                    TimeTracker.Tick(Handler.ActionRate * 5);
                                     CharacterUtil.Sleep(player);
                                 }
                             }
 
                             UpdatePlayer(player);
-                            UpdateCitizens();
                         }
                     }
                 }
@@ -211,9 +210,14 @@ namespace Despicaville.Scenes
                         {
                             effect_tile.Update(resolution);
 
-                            if (effect_tile.InView)
+                            if (effect_tile.InView &&
+                                effect_tile.Visible)
                             {
-                                if (effect_tile.InSight)
+                                if (effect_tile.Animated)
+                                {
+                                    WorldUtil.Animate_Effect(spriteBatch, effect_tile);
+                                }
+                                else if (effect_tile.InSight)
                                 {
                                     effect_tile.Draw(spriteBatch, resolution, color);
                                 }
@@ -663,78 +667,108 @@ namespace Despicaville.Scenes
 
                     if (!turning)
                     {
-                        #region Interact
-
-                        Vector2 location = new Vector2(-1, -1);
-
-                        List<Tile> visible = Handler.VisibleTiles[player.ID];
-                        foreach (Tile tile in visible)
+                        if (Handler.Combat)
                         {
-                            if (tile.Visible)
-                            {
-                                if (tile.Location.X >= player.Location.X - 1 && tile.Location.X <= player.Location.X + 1 &&
-                                    tile.Location.Y >= player.Location.Y - 1 && tile.Location.Y <= player.Location.Y + 1)
-                                {
-                                    location = new Vector2(tile.Location.X, tile.Location.Y);
-                                }
+                            #region Attack
 
-                                break;
-                            }
-                        }
-
-                        if (location.X == -1 &&
-                            location.Y == -1)
-                        {
+                            Location location = new Location();
                             if (player.Direction == Direction.Up)
                             {
-                                location = new Vector2(player.Location.X, player.Location.Y - 1);
+                                location = new Location(player.Location.X, player.Location.Y - 1, 0);
                             }
                             else if (player.Direction == Direction.Right)
                             {
-                                location = new Vector2(player.Location.X + 1, player.Location.Y);
+                                location = new Location(player.Location.X + 1, player.Location.Y, 0);
                             }
                             else if (player.Direction == Direction.Down)
                             {
-                                location = new Vector2(player.Location.X, player.Location.Y + 1);
+                                location = new Location(player.Location.X, player.Location.Y + 1, 0);
                             }
                             else if (player.Direction == Direction.Left)
                             {
-                                location = new Vector2(player.Location.X - 1, player.Location.Y);
+                                location = new Location(player.Location.X - 1, player.Location.Y, 0);
                             }
+
+                            Tasker.AddTask(player, "Attack", true, false, null, location, player.Direction);
+
+                            #endregion
                         }
-
-                        Map map = World.Maps[0];
-
-                        Layer bottom_tiles = map.GetLayer("BottomTiles");
-                        Layer top_tiles = map.GetLayer("TopTiles");
-                        Layer effect_tiles = map.GetLayer("EffectTiles");
-
-                        Tile bottom_tile = bottom_tiles.GetTile(location);
-                        Tile middle_tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, new Location(location.X, location.Y, 0));
-                        Tile top_tile = top_tiles.GetTile(location);
-                        Tile effect_tile = effect_tiles.GetTile(location);
-
-                        Tile interaction_tile = null;
-                        if (effect_tile?.Texture != null)
+                        else
                         {
-                            interaction_tile = effect_tile;
-                        }
-                        else if (top_tile?.Texture != null)
-                        {
-                            interaction_tile = top_tile;
-                        }
-                        else if (middle_tile?.Texture != null)
-                        {
-                            interaction_tile = middle_tile;
-                        }
-                        else if (bottom_tile != null)
-                        {
-                            interaction_tile = bottom_tile;
+                            #region Interact
+
+                            Vector2 location = new Vector2(-1, -1);
+
+                            List<Tile> visible = Handler.VisibleTiles[player.ID];
+                            foreach (Tile tile in visible)
+                            {
+                                if (tile.Visible)
+                                {
+                                    if (tile.Location.X >= player.Location.X - 1 && tile.Location.X <= player.Location.X + 1 &&
+                                        tile.Location.Y >= player.Location.Y - 1 && tile.Location.Y <= player.Location.Y + 1)
+                                    {
+                                        location = new Vector2(tile.Location.X, tile.Location.Y);
+                                    }
+
+                                    break;
+                                }
+                            }
+
+                            if (location.X == -1 &&
+                                location.Y == -1)
+                            {
+                                if (player.Direction == Direction.Up)
+                                {
+                                    location = new Vector2(player.Location.X, player.Location.Y - 1);
+                                }
+                                else if (player.Direction == Direction.Right)
+                                {
+                                    location = new Vector2(player.Location.X + 1, player.Location.Y);
+                                }
+                                else if (player.Direction == Direction.Down)
+                                {
+                                    location = new Vector2(player.Location.X, player.Location.Y + 1);
+                                }
+                                else if (player.Direction == Direction.Left)
+                                {
+                                    location = new Vector2(player.Location.X - 1, player.Location.Y);
+                                }
+                            }
+
+                            Map map = World.Maps[0];
+
+                            Layer bottom_tiles = map.GetLayer("BottomTiles");
+                            Layer top_tiles = map.GetLayer("TopTiles");
+                            Layer effect_tiles = map.GetLayer("EffectTiles");
+
+                            Tile bottom_tile = bottom_tiles.GetTile(location);
+                            Tile middle_tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, new Location(location.X, location.Y, 0));
+                            Tile top_tile = top_tiles.GetTile(location);
+                            Tile effect_tile = effect_tiles.GetTile(location);
+
+                            Tile interaction_tile = null;
+                            if (effect_tile?.Texture != null)
+                            {
+                                interaction_tile = effect_tile;
+                            }
+                            else if (top_tile?.Texture != null)
+                            {
+                                interaction_tile = top_tile;
+                            }
+                            else if (middle_tile?.Texture != null)
+                            {
+                                interaction_tile = middle_tile;
+                            }
+                            else if (bottom_tile != null)
+                            {
+                                interaction_tile = bottom_tile;
+                            }
+
+                            Tasker.Interact(interaction_tile, player);
+
+                            #endregion
                         }
 
-                        Tasker.Interact(interaction_tile, player);
-
-                        #endregion
                     }
                 }
 
@@ -831,9 +865,6 @@ namespace Despicaville.Scenes
                     //Game Over
                 }
 
-                CharacterUtil.UpdatePain(player);
-                CharacterUtil.UpdateConsciousness(player);
-
                 if (!player.Dead &&
                     !player.Unconscious)
                 {
@@ -896,20 +927,6 @@ namespace Despicaville.Scenes
                     }
 
                     GameUtil.UpdateWorld(World, player);
-                }
-            }
-        }
-
-        private void UpdateCitizens()
-        {
-            Squad citizens = CharacterManager.GetArmy("Characters").GetSquad("Citizens");
-            for (int i = 0; i < citizens.Characters.Count; i++)
-            {
-                Character character = citizens.Characters[i];
-                if (!character.Dead)
-                {
-                    CharacterUtil.UpdatePain(character);
-                    CharacterUtil.UpdateConsciousness(character);
                 }
             }
         }
