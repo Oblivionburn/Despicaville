@@ -1368,7 +1368,7 @@ namespace Despicaville.Util
                 {
                     foreach (Map room in Rooms[map.ID])
                     {
-                        room.Location = map.Location;
+                        room.Location = new Location(tile.Location.X, tile.Location.Y, 0);
                     }
                 }
 
@@ -1630,45 +1630,49 @@ namespace Despicaville.Util
                      !new_tile.Name.Contains("RoomType") &&
                      !blockName.Contains("Police"))
             {
-                Character character = CharacterUtil.GenCharacter(last_name);
-                character.Direction = new_tile.Direction;
+                Squad citizens = CharacterManager.GetArmy("Characters").GetSquad("Citizens");
+                if (citizens.Characters.Count < Handler.MaxPop)
+                {
+                    Character character = CharacterUtil.GenCharacter(last_name);
+                    character.Direction = new_tile.Direction;
 
-                if (new_tile.Direction == Direction.Up)
-                {
-                    character.Animator.FaceNorth(character);
-                }
-                else if (new_tile.Direction == Direction.Right)
-                {
-                    character.Animator.FaceEast(character);
-                }
-                else if (new_tile.Direction == Direction.Down)
-                {
-                    character.Animator.FaceSouth(character);
-                }
-                else if (new_tile.Direction == Direction.Left)
-                {
-                    character.Animator.FaceWest(character);
-                }
+                    if (new_tile.Direction == Direction.Up)
+                    {
+                        character.Animator.FaceNorth(character);
+                    }
+                    else if (new_tile.Direction == Direction.Right)
+                    {
+                        character.Animator.FaceEast(character);
+                    }
+                    else if (new_tile.Direction == Direction.Down)
+                    {
+                        character.Animator.FaceSouth(character);
+                    }
+                    else if (new_tile.Direction == Direction.Left)
+                    {
+                        character.Animator.FaceWest(character);
+                    }
 
-                if (new_tile.Direction == Direction.Up)
-                {
-                    character.Location = new Location(new_tile.Location.X, new_tile.Location.Y + 1, new_tile.Location.Z);
-                    character.Region = new Region(new_tile.Region.X, new_tile.Region.Y + Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
-                }
-                else if (new_tile.Direction == Direction.Left)
-                {
-                    character.Location = new Location(new_tile.Location.X + 1, new_tile.Location.Y, new_tile.Location.Z);
-                    character.Region = new Region(new_tile.Region.X + Main.Game.TileSize.X, new_tile.Region.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
-                }
-                else
-                {
-                    character.Location = new Location(new_tile.Location.X, new_tile.Location.Y, new_tile.Location.Z);
-                    character.Region = new Region(new_tile.Region.X, new_tile.Region.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
-                }
+                    if (new_tile.Direction == Direction.Up)
+                    {
+                        character.Location = new Location(new_tile.Location.X, new_tile.Location.Y + 1, new_tile.Location.Z);
+                        character.Region = new Region(new_tile.Region.X, new_tile.Region.Y + Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
+                    }
+                    else if (new_tile.Direction == Direction.Left)
+                    {
+                        character.Location = new Location(new_tile.Location.X + 1, new_tile.Location.Y, new_tile.Location.Z);
+                        character.Region = new Region(new_tile.Region.X + Main.Game.TileSize.X, new_tile.Region.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
+                    }
+                    else
+                    {
+                        character.Location = new Location(new_tile.Location.X, new_tile.Location.Y, new_tile.Location.Z);
+                        character.Region = new Region(new_tile.Region.X, new_tile.Region.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
+                    }
 
-                CharacterUtil.UpdateGear(character);
+                    CharacterUtil.UpdateGear(character);
 
-                CharacterManager.GetArmy("Characters").GetSquad("Citizens").Characters.Add(character);
+                    citizens.Characters.Add(character);
+                }
             }
 
             if (layer.Name == "BottomTiles" ||

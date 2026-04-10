@@ -498,44 +498,85 @@ namespace Despicaville.Util
                 int start_x = (int)player.Location.X - Handler.SightDistance - 1;
                 int end_x = (int)player.Location.X + Handler.SightDistance + 1;
 
-                for (int y = start_y; y <= end_y; y++)
+                if (!player.Unconscious)
                 {
-                    for (int x = start_x; x <= end_x; x++)
+                    for (int y = start_y; y <= end_y; y++)
                     {
-                        Vector2 location = new Vector2(x, y);
-
-                        Tile tile = bottom_tiles.GetTile(location);
-                        if (tile != null)
+                        for (int x = start_x; x <= end_x; x++)
                         {
-                            tile.InSight = WorldUtil.Location_IsVisible(player.ID, tile.Location);
+                            Vector2 location = new Vector2(x, y);
 
-                            Tile middle_tile = middle_tiles.GetTile(location);
-                            middle_tile.InSight = tile.InSight;
+                            Tile tile = bottom_tiles.GetTile(location);
+                            if (tile != null)
+                            {
+                                tile.InSight = WorldUtil.Location_IsVisible(player.ID, tile.Location);
 
-                            Tile top_tile = top_tiles.GetTile(location);
-                            top_tile.InSight = tile.InSight;
+                                Tile middle_tile = middle_tiles.GetTile(location);
+                                middle_tile.InSight = tile.InSight;
 
-                            Tile roof_tile = roof_tiles.GetTile(location);
-                            roof_tile.InSight = tile.InSight;
+                                Tile top_tile = top_tiles.GetTile(location);
+                                top_tile.InSight = tile.InSight;
+
+                                Tile roof_tile = roof_tiles.GetTile(location);
+                                roof_tile.InSight = tile.InSight;
+                            }
+                        }
+                    }
+
+                    foreach (Tile tile in visible)
+                    {
+                        tile.Visible = InputManager.MouseWithin(tile.Region.ToRectangle);
+                    }
+
+                    foreach (Squad squad in characters.Squads)
+                    {
+                        foreach (Character character in squad.Characters)
+                        {
+                            if (WorldUtil.Location_IsVisible(player.ID, character.Location) ||
+                                WorldUtil.Location_IsVisible(player.ID, character.Destination))
+                            {
+                                character.InSight = true;
+                            }
+                            else
+                            {
+                                character.InSight = false;
+                            }
                         }
                     }
                 }
-
-                foreach (Tile tile in visible)
+                else
                 {
-                    tile.Visible = InputManager.MouseWithin(tile.Region.ToRectangle);
-                }
-
-                foreach (Squad squad in characters.Squads)
-                {
-                    foreach (Character character in squad.Characters)
+                    for (int y = start_y; y <= end_y; y++)
                     {
-                        if (WorldUtil.Location_IsVisible(player.ID, character.Location) ||
-                            WorldUtil.Location_IsVisible(player.ID, character.Destination))
+                        for (int x = start_x; x <= end_x; x++)
                         {
-                            character.InSight = true;
+                            Vector2 location = new Vector2(x, y);
+
+                            Tile tile = bottom_tiles.GetTile(location);
+                            if (tile != null)
+                            {
+                                tile.InSight = false;
+
+                                Tile middle_tile = middle_tiles.GetTile(location);
+                                middle_tile.InSight = false;
+
+                                Tile top_tile = top_tiles.GetTile(location);
+                                top_tile.InSight = false;
+
+                                Tile roof_tile = roof_tiles.GetTile(location);
+                                roof_tile.InSight = false;
+                            }
                         }
-                        else
+                    }
+
+                    foreach (Tile tile in visible)
+                    {
+                        tile.Visible = false;
+                    }
+
+                    foreach (Squad squad in characters.Squads)
+                    {
+                        foreach (Character character in squad.Characters)
                         {
                             character.InSight = false;
                         }
@@ -765,33 +806,6 @@ namespace Despicaville.Util
             picture.Value = 0;
         }
 
-        public static string GetPixel(Picture picture)
-        {
-            Texture2D texture = picture.Texture;
-            Color[] colors = new Color[texture.Width * texture.Height];
-            texture.GetData(colors);
-
-            int x = (int)((InputManager.Mouse.X - picture.Region.X) / ((float)picture.Region.Width / picture.Texture.Width));
-            int y = (int)((InputManager.Mouse.Y - picture.Region.Y) / ((float)picture.Region.Height / picture.Texture.Height));
-
-            int index = (texture.Width * y) + x;
-            if (index >= 0 && index < colors.Length)
-            {
-                Color color = colors[index];
-
-                if (color != new Color(0, 0, 0, 0))
-                {
-                    return "Color: (" + color.R + ", " + color.G + ", " + color.B + ", " + color.A + ")";
-                }
-                else
-                {
-                    return "Color: (0, 0, 0, 0)";
-                }
-            }
-
-            return "";
-        }
-
         public static void Texture_ChangeColor(Picture picture, Color new_color)
         {
             Texture2D texture = picture.Texture;
@@ -966,22 +980,6 @@ namespace Despicaville.Util
             {
                 return Color.Transparent;
             }
-        }
-
-        public static Vector3 ColorToVector3(Color color)
-        {
-            Vector3 result = new Vector3();
-
-            result.X = (((float)color.R * 100) / 255) / 100;
-            result.Y = (((float)color.G * 100) / 255) / 100;
-            result.Z = (((float)color.B * 100) / 255) / 100;
-
-            return result;
-        }
-
-        public static List<long> OwnerIDs(Character character)
-        {
-            return new List<long> { character.ID };
         }
 
         public static bool NameStartsWithVowel(string name)

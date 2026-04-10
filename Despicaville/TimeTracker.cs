@@ -1,12 +1,11 @@
 ﻿using System;
-
+using System.Collections.Generic;
 using OP_Engine.Characters;
 using OP_Engine.Jobs;
 using OP_Engine.Scenes;
 using OP_Engine.Time;
 using OP_Engine.Utility;
 using OP_Engine.Rendering;
-
 using Despicaville.Util;
 
 namespace Despicaville
@@ -27,16 +26,14 @@ namespace Despicaville
 
         public static void MillisecondsChanged(object sender, EventArgs e)
         {
-            bool action = false;
+            Handler.Action = false;
 
-            TimeToAction++;
-            if (TimeToAction >= Handler.ActionRate)
+            Handler.TimeToAction++;
+            if (Handler.TimeToAction >= Handler.ActionRate)
             {
-                action = true;
-                TimeToAction = 0;
+                Handler.Action = true;
+                Handler.TimeToAction = 0;
             }
-
-            Scene scene = SceneManager.GetScene("Gameplay");
 
             Squad citizens = CharacterManager.GetArmy("Characters").GetSquad("Citizens");
 
@@ -45,102 +42,46 @@ namespace Despicaville
             for (int i = 0; i < count; i++)
             {
                 Character character = citizens_array[i];
-                if (!character.Dead)
+                if (character.Dead)
                 {
-                    bool sleeping = false;
-                    Task task = character.Job.CurrentTask;
-                    if (task != null)
-                    {
-                        if (task.Name == "Sleep")
-                        {
-                            sleeping = true;
-                        }
-                    }
+                    continue;
+                }
 
-                    if (!sleeping)
-                    {
-                        if (!character.Unconscious)
-                        {
-                            Tasker.Character_StartAction(scene.World, character);
+                character.Job.Update(TimeManager.Now);
 
-                            if (action)
-                            {
-                                if (character.Moving)
-                                {
-                                    if (task != null)
-                                    {
-                                        CharacterUtil.MoveCharacter(character, task); 
-                                    }
-                                }
-                                else
-                                {
-                                    Tasker.Character_DoAction(character);
-                                }
-                            }
+                if (character.Moving)
+                {
+                    continue;
+                }
 
-                            if (!character.Moving)
-                            {
-                                if (task != null)
-                                {
-                                    if (task.Name == "Sneak" ||
-                                        task.Name == "Walk" ||
-                                        task.Name == "Run")
-                                    {
-                                        if (character.InCombat)
-                                        {
-                                            character.Path.Clear();
-                                        }
-                                        else if (character.Path.Count > 0)
-                                        {
-                                            ALocation first_path = character.Path[0];
-                                            character.Path.Remove(first_path);
+                Task task = character.Job.CurrentTask;
+                if (task?.Name == "Sleep")
+                {
+                    continue;
+                }
 
-                                            character.Job.Tasks.Add(new Task
-                                            {
-                                                Name = "GoTo_" + task.Name,
-                                                OwnerIDs = GameUtil.OwnerIDs(character),
-                                                StartTime = new TimeHandler(TimeManager.Now)
-                                            });
-                                        }
-                                    }
-                                    else
-                                    {
-                                        Tasker.Character_EndAction(scene.World, character);
-                                    }
-                                }
-                                else
-                                {
-                                    Tasker.GiveTask_Citizen(scene.World, character);
-                                }
-                            }
+                if (character.Unconscious)
+                {
+                    CharacterUtil.Rest(character);
+                    continue;
+                }
 
-                            character.Job.Update(TimeManager.Now);
-                        }
-                        else
-                        {
-                            CharacterUtil.Rest(character);
-                        }
-                    }
+                if (task == null)
+                {
+                    Tasker.GiveTask_Citizen(character);
                 }
             }
 
             Character player = Handler.GetPlayer();
-            if (!player.Unconscious)
-            {
-                if (action)
-                {
-                    if (!player.Moving)
-                    {
-                        Tasker.Character_DoAction(player);
-                    }
-                }
-            }
-            else
+            if (player.Unconscious)
             {
                 CharacterUtil.Rest(player);
             }
 
-            player.Job.Update(TimeManager.Now);
+            if (!player.Moving)
+            {
+                player.Job.Update(TimeManager.Now);
+            }
         }
 
         public static void SecondsChanged(object sender, EventArgs e)
@@ -150,8 +91,7 @@ namespace Despicaville
             {
                 Character[] characters = squad.Characters.ToArray();
 
-                int count = characters.Length;
-                for (int i = 0; i < count; i++)
+                for (int i = 0; i < characters.Length; i++)
                 {
                     Character character = characters[i];
 
@@ -163,33 +103,28 @@ namespace Despicaville
                         i--;
                     }
 
-                    if (!character.Dead)
+                    if (character.Dead)
                     {
-                        bool sleeping = false;
-                        Task task = character.Job.CurrentTask;
-                        if (task != null)
-                        {
-                            if (task.Name == "Sleep")
-                            {
-                                sleeping = true;
-                                CharacterUtil.Sleep(character);
-                            }
-                        }
-
-                        if (character.Type == "Citizen" &&
-                            !sleeping)
-                        {
-                            character.GetStat("Boredom").IncreaseValueByRate();
-                        }
-
-                        character.GetStat("Thirst").IncreaseValueByRate();
-                        character.GetStat("Hunger").IncreaseValueByRate();
-
-                        CharacterUtil.UpdateWounds(character);
-                        CharacterUtil.UpdatePain(character);
-                        CharacterUtil.UpdateBloodLoss(character);
-                        CharacterUtil.UpdateConsciousness(character);
+                        continue;
                     }
+
+                    Task task = character.Job.CurrentTask;
+                    if (task?.Name == "Sleep")
+                    {
+                        CharacterUtil.Sleep(character);
+                    }
+                    else if (character.Type == "Citizen")
+                    {
+                        character.GetStat("Boredom").IncreaseValueByRate();
+                    }
+
+                    character.GetStat("Thirst").IncreaseValueByRate();
+                    character.GetStat("Hunger").IncreaseValueByRate();
+
+                    CharacterUtil.UpdateWounds(character);
+                    CharacterUtil.UpdatePain(character);
+                    CharacterUtil.UpdateBloodLoss(character);
+                    CharacterUtil.UpdateConsciousness(character);
                 }
             }
         }
@@ -207,35 +142,21 @@ namespace Despicaville
             {
                 foreach (Character character in squad.Characters)
                 {
-                    if (!character.Dead)
+                    if (character.Dead)
                     {
-                        Something poisoned = character.GetStatusEffect("Poisoned");
-                        if (poisoned != null)
-                        {
-                            character.GetStat("Blood").DecreaseValue(1);
-
-                            poisoned.DecreaseValue(1);
-                            if (poisoned.Value <= 0)
-                            {
-                                character.StatusEffects.Remove(poisoned);
-                            }
-                        }
+                        continue;
                     }
-                }
-            }
 
-            Character player = Handler.GetPlayer();
-            if (!player.Dead)
-            {
-                Something poisoned = player.GetStatusEffect("Poisoned");
-                if (poisoned != null)
-                {
-                    player.GetStat("Blood").DecreaseValue(1);
-
-                    poisoned.DecreaseValue(1);
-                    if (poisoned.Value <= 0)
+                    Something poisoned = character.GetStatusEffect("Poisoned");
+                    if (poisoned != null)
                     {
-                        player.StatusEffects.Remove(poisoned);
+                        character.GetStat("Blood").DecreaseValue(1);
+
+                        poisoned.DecreaseValue(1);
+                        if (poisoned.Value <= 0)
+                        {
+                            character.StatusEffects.Remove(poisoned);
+                        }
                     }
                 }
             }

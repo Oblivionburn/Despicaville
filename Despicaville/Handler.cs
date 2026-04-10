@@ -4,18 +4,15 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
-
 using OP_Engine.Utility;
 using OP_Engine.Sounds;
 using OP_Engine.Inputs;
 using OP_Engine.Characters;
 using OP_Engine.Inventories;
 using OP_Engine.Tiles;
-
 using Despicaville.Util;
 
 namespace Despicaville
@@ -29,9 +26,13 @@ namespace Despicaville
         public static int SightDistance = 10;
         public static int HearingDistance = 5;
         public static int SmellDistance = 3;
-        public static int ActionRate = 320;
         public static int MapSize_X = 10;
         public static int MapSize_Y = 10;
+        public static int MaxPop = 1000;
+
+        public static int ActionRate = 320;
+        public static int TimeToAction;
+        public static bool Action;
 
         public static bool Menu_Health;
         public static bool WorldMap_Visible;

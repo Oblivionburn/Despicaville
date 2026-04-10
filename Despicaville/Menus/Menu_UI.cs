@@ -39,15 +39,15 @@ namespace Despicaville.Menus
             if (Visible ||
                 Active)
             {
+                UpdateTime();
+                UpdateStats();
+
                 if (!TimeManager.Paused)
                 {
                     UpdateControls();
-                    UpdateTime();
-
-                    UpdateStats();
-
-                    base.Update(gameRef, content);
                 }
+
+                base.Update(gameRef, content);
             }
         }
 
@@ -198,23 +198,6 @@ namespace Despicaville.Menus
                         {
                             label.HoverText = stat.Description;
                             label.Text = stat_name + ": " + stat.Value.ToString("0.##") + "/" + stat.Max_Value + "%";
-                        }
-                    }
-                }
-
-                foreach (string body_part in Handler.BodyParts)
-                {
-                    Picture picture = GetPicture("Paperdoll_" + body_part);
-                    if (picture != null)
-                    {
-                        BodyPart bodyPart = player.GetBodyPart(body_part);
-                        if (bodyPart != null)
-                        {
-                            Something hp = bodyPart.GetStat("HP");
-                            if (hp != null)
-                            {
-                                picture.HoverText = hp.Name + ": " + hp.Value.ToString("0.##") + "/" + (int)hp.Max_Value + "%";
-                            }
                         }
                     }
                 }

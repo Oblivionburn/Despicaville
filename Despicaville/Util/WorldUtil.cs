@@ -1,22 +1,26 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Collections.Generic;
-
 using Microsoft.Xna.Framework;
-
+using Microsoft.Xna.Framework.Graphics;
 using OP_Engine.Characters;
 using OP_Engine.Inventories;
 using OP_Engine.Tiles;
 using OP_Engine.Utility;
 using OP_Engine.Scenes;
 using OP_Engine.Enums;
-using System;
 using OP_Engine.Time;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace Despicaville.Util
 {
     public static class WorldUtil
     {
+        public static Map GetMap()
+        {
+            Scene scene = SceneManager.GetScene("Gameplay");
+            return scene.World.Maps[0];
+        }
+
         public static bool CanMove(Character character, Map map, Location destination)
         {
             Layer bottom_tiles = map.GetLayer("BottomTiles");
@@ -1793,30 +1797,37 @@ namespace Despicaville.Util
 
             Army army = CharacterManager.GetArmy("Characters");
             Squad squad = army.GetSquad("Citizens");
-            bool found_bed = false;
 
             Map map = world.Maps[0];
+
+            Layer middle_tiles = map.GetLayer("MiddleTiles");
+            Layer top_tiles = map.GetLayer("TopTiles");
 
             CryptoRandom random = new CryptoRandom();
             List<Map> homes = WorldGen.Residential.OrderBy(a => random.Next()).ToList();
 
+            Tile bed = null;
+            Map newHome = null;
+            Character replacement = null;
+            Character mate = null;
+
+            List<Tile> middle_furniture = new List<Tile>();
+
+            //Start player in single home
             foreach (Map home in homes)
             {
                 Point map_coords = new Point((int)home.Location.X, (int)home.Location.Y);
 
-                Layer middle_tiles = map.GetLayer("MiddleTiles");
-                Layer top_tiles = map.GetLayer("TopTiles");
-
-                List<Tile> middle_furniture = GetAllFurniture(middle_tiles, map_coords);
-                List<Tile> top_furniture = GetAllFurniture(top_tiles, map_coords);
-
+                middle_furniture = GetAllFurniture(middle_tiles, map_coords);
+                
                 int bed_count = 0;
-                Tile bed = null;
+                Tile possibleBed = null;
+
                 foreach (Tile tile in middle_furniture)
                 {
                     if (tile.Name.Contains("Bed"))
                     {
-                        bed = tile;
+                        possibleBed = tile;
                         bed_count++;
                     }
                 }
@@ -1824,81 +1835,116 @@ namespace Despicaville.Util
                 if (bed_count == 1)
                 {
                     Location bed_location = null;
-                    if (bed.Direction == Direction.Up)
+                    if (possibleBed.Direction == Direction.Up)
                     {
-                        bed_location = new Location(bed.Location.X, bed.Location.Y + 1, 0);
+                        bed_location = new Location(possibleBed.Location.X, possibleBed.Location.Y + 1, 0);
                     }
-                    else if (bed.Direction == Direction.Right ||
-                             bed.Direction == Direction.Down)
+                    else if (possibleBed.Direction == Direction.Right ||
+                             possibleBed.Direction == Direction.Down)
                     {
-                        bed_location = new Location(bed.Location.X, bed.Location.Y, 0);
+                        bed_location = new Location(possibleBed.Location.X, possibleBed.Location.Y, 0);
                     }
-                    else if (bed.Direction == Direction.Left)
+                    else if (possibleBed.Direction == Direction.Left)
                     {
-                        bed_location = new Location(bed.Location.X + 1, bed.Location.Y, 0);
+                        bed_location = new Location(possibleBed.Location.X + 1, possibleBed.Location.Y, 0);
                     }
 
                     Character character = GetCharacter(bed_location);
                     if (character != null)
                     {
-                        found_bed = true;
-
-                        player.Location = new Location(character.Location.X, character.Location.Y, 0);
-
-                        if (!Handler.OwnedFurniture.ContainsKey(player.ID))
-                        {
-                            Handler.OwnedFurniture.Add(player.ID, new List<Tile>());
-                        }
-
-                        foreach (Tile tile in middle_furniture)
-                        {
-                            tile.OwnerIDs.Add(player.ID);
-                            tile.OwnerIDs.Remove(character.ID);
-
-                            Handler.OwnedFurniture[player.ID].Add(tile);
-                        }
-
-                        foreach (Tile tile in top_furniture)
-                        {
-                            tile.OwnerIDs.Add(player.ID);
-                            tile.OwnerIDs.Remove(character.ID);
-
-                            Handler.OwnedFurniture[player.ID].Add(tile);
-                        }
-
-                        Handler.OwnedFurniture.Remove(character.ID);
-                        squad.Characters.Remove(character);
-
+                        replacement = character;
+                        bed = possibleBed;
+                        newHome = home;
                         break;
                     }
                 }
             }
 
-            if (!found_bed)
+            if (bed == null)
             {
+                //Start player next to an NPC
                 foreach (Map home in homes)
                 {
                     Point map_coords = new Point((int)home.Location.X, (int)home.Location.Y);
 
-                    Layer middle_tiles = map.GetLayer("MiddleTiles");
-                    Layer top_tiles = map.GetLayer("TopTiles");
-
-                    List<Tile> middle_furniture = GetAllFurniture(middle_tiles, map_coords);
+                    middle_furniture = GetAllFurniture(middle_tiles, map_coords);
                     List<Tile> top_furniture = GetAllFurniture(top_tiles, map_coords);
 
                     int bed_count = 0;
-                    Tile bed = null;
+                    Tile possibleBed = null;
+
                     foreach (Tile tile in middle_furniture)
                     {
                         if (tile.Name.Contains("DoubleBed"))
                         {
-                            bed = tile;
+                            possibleBed = tile;
                             bed_count++;
                         }
                     }
 
                     if (bed_count >= 1)
                     {
+                        Location bed_location = default;
+                        if (possibleBed.Direction == Direction.Up)
+                        {
+                            bed_location = new Location(possibleBed.Location.X, possibleBed.Location.Y + 1, 0);
+                        }
+                        else if (possibleBed.Direction == Direction.Right ||
+                                 possibleBed.Direction == Direction.Down)
+                        {
+                            bed_location = new Location(possibleBed.Location.X, possibleBed.Location.Y, 0);
+                        }
+                        else if (possibleBed.Direction == Direction.Left)
+                        {
+                            bed_location = new Location(possibleBed.Location.X + 1, possibleBed.Location.Y, 0);
+                        }
+
+                        Character character = GetCharacter(bed_location);
+                        if (character != null)
+                        {
+                            bed = possibleBed;
+                            newHome = home;
+                            mate = character;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (bed == null)
+            {
+                //Start player in any open bed
+                foreach (Map home in homes)
+                {
+                    Point map_coords = new Point((int)home.Location.X, (int)home.Location.Y);
+
+                    middle_furniture = GetAllFurniture(middle_tiles, map_coords);
+
+                    foreach (Tile tile in middle_furniture)
+                    {
+                        if (tile.Name.Contains("DoubleBed"))
+                        {
+                            bed = tile;
+                            break;
+                        }
+                    }
+
+                    if (bed == null)
+                    {
+                        foreach (Tile tile in middle_furniture)
+                        {
+                            if (tile.Name.Contains("Bed"))
+                            {
+                                bed = tile;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (bed != null)
+                    {
+                        newHome = home;
+
                         Location bed_location = default;
                         if (bed.Direction == Direction.Up)
                         {
@@ -1917,101 +1963,145 @@ namespace Despicaville.Util
                         Character character = GetCharacter(bed_location);
                         if (character != null)
                         {
-                            if (character.Direction == Direction.Up ||
-                                character.Direction == Direction.Down)
-                            {
-                                player.Location = new Location(character.Location.X + 1, character.Location.Y, 0);
-                            }
-                            else if (character.Direction == Direction.Right ||
-                                     character.Direction == Direction.Left)
-                            {
-                                player.Location = new Location(character.Location.X, character.Location.Y + 1, 0);
-                            }
+                            replacement = character;
+                            break;
+                        }
+                    }
+                }
+            }
 
-                            if (!Handler.OwnedFurniture.ContainsKey(player.ID))
-                            {
-                                Handler.OwnedFurniture.Add(player.ID, new List<Tile>());
-                            }
+            if (bed != null)
+            {
+                Point map_coords = new Point((int)newHome.Location.X, (int)newHome.Location.Y);
 
-                            foreach (Tile tile in middle_furniture)
-                            {
-                                tile.OwnerIDs.Add(player.ID);
-                                Handler.OwnedFurniture[player.ID].Add(tile);
-                            }
+                List<Tile> top_furniture = GetAllFurniture(top_tiles, map_coords);
 
-                            foreach (Tile tile in top_furniture)
-                            {
-                                tile.OwnerIDs.Add(player.ID);
-                                Handler.OwnedFurniture[player.ID].Add(tile);
-                            }
+                if (replacement != null)
+                {
+                    Handler.OwnedFurniture.Remove(replacement.ID);
+                    squad.Characters.Remove(replacement);
 
-                            string last_name = player.Name.Split(' ')[1].Trim();
+                    player.Location = new Location(replacement.Location.X, replacement.Location.Y, 0);
 
-                            List<Character> characters = GetAllCharacters(map_coords);
-                            foreach (Character existing in characters)
+                    foreach (Tile tile in middle_furniture)
+                    {
+                        tile.OwnerIDs.Remove(replacement.ID);
+                    }
+
+                    foreach (Tile tile in top_furniture)
+                    {
+                        tile.OwnerIDs.Remove(replacement.ID);
+                    }
+                }
+                else if (mate != null)
+                {
+                    if (mate.Direction == Direction.Up ||
+                        mate.Direction == Direction.Down)
+                    {
+                        player.Location = new Location(mate.Location.X + 1, mate.Location.Y, 0);
+                    }
+                    else if (mate.Direction == Direction.Right ||
+                             mate.Direction == Direction.Left)
+                    {
+                        player.Location = new Location(mate.Location.X, mate.Location.Y + 1, 0);
+                    }
+                }
+                else
+                {
+                    if (bed.Direction == Direction.Up)
+                    {
+                        player.Location = new Location(bed.Location.X, bed.Location.Y + 1, 0);
+                    }
+                    else if (bed.Direction == Direction.Right ||
+                             bed.Direction == Direction.Down)
+                    {
+                        player.Location = new Location(bed.Location.X, bed.Location.Y, 0);
+                    }
+                    else if (bed.Direction == Direction.Left)
+                    {
+                        player.Location = new Location(bed.Location.X + 1, bed.Location.Y, 0);
+                    }
+                }
+
+                if (!Handler.OwnedFurniture.ContainsKey(player.ID))
+                {
+                    Handler.OwnedFurniture.Add(player.ID, new List<Tile>());
+                }
+
+                foreach (Tile tile in middle_furniture)
+                {
+                    tile.OwnerIDs.Add(player.ID);
+                    Handler.OwnedFurniture[player.ID].Add(tile);
+                }
+
+                foreach (Tile tile in top_furniture)
+                {
+                    tile.OwnerIDs.Add(player.ID);
+                    Handler.OwnedFurniture[player.ID].Add(tile);
+                }
+
+                string last_name = player.Name.Split(' ')[1].Trim();
+
+                List<Character> characters = GetAllCharacters(map_coords);
+                foreach (Character existing in characters)
+                {
+                    if (!player.Relationships.ContainsKey(existing.ID))
+                    {
+                        string first_name = existing.Name.Split(' ')[0].Trim();
+                        existing.Name = first_name + " " + last_name;
+
+                        random = new CryptoRandom();
+                        int relative = random.Next(0, 2);
+
+                        if (existing.ID == mate?.ID)
+                        {
+                            if (existing.Gender == "Male")
                             {
-                                if (!player.Relationships.ContainsKey(existing.ID))
+                                if (relative == 0)
                                 {
-                                    string first_name = existing.Name.Split(' ')[0].Trim();
-                                    existing.Name = first_name + " " + last_name;
-
-                                    random = new CryptoRandom();
-                                    int relative = random.Next(0, 2);
-
-                                    if (existing.ID == character.ID)
-                                    {
-                                        if (existing.Gender == "Male")
-                                        {
-                                            if (relative == 0)
-                                            {
-                                                player.Relationships.Add(existing.ID, "Husband");
-                                            }
-                                            else
-                                            {
-                                                player.Relationships.Add(existing.ID, "Boyfriend");
-                                            }
-                                        }
-                                        else
-                                        {
-                                            if (relative == 0)
-                                            {
-                                                player.Relationships.Add(existing.ID, "Wife");
-                                            }
-                                            else
-                                            {
-                                                player.Relationships.Add(existing.ID, "Girlfriend");
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (existing.Gender == "Male")
-                                        {
-                                            if (relative == 0)
-                                            {
-                                                player.Relationships.Add(existing.ID, "Father");
-                                            }
-                                            else
-                                            {
-                                                player.Relationships.Add(existing.ID, "Brother");
-                                            }
-                                        }
-                                        else
-                                        {
-                                            if (relative == 0)
-                                            {
-                                                player.Relationships.Add(existing.ID, "Mother");
-                                            }
-                                            else
-                                            {
-                                                player.Relationships.Add(existing.ID, "Sister");
-                                            }
-                                        }
-                                    }
+                                    player.Relationships.Add(existing.ID, "Husband");
+                                }
+                                else
+                                {
+                                    player.Relationships.Add(existing.ID, "Boyfriend");
                                 }
                             }
-
-                            break;
+                            else
+                            {
+                                if (relative == 0)
+                                {
+                                    player.Relationships.Add(existing.ID, "Wife");
+                                }
+                                else
+                                {
+                                    player.Relationships.Add(existing.ID, "Girlfriend");
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (existing.Gender == "Male")
+                            {
+                                if (relative == 0)
+                                {
+                                    player.Relationships.Add(existing.ID, "Father");
+                                }
+                                else
+                                {
+                                    player.Relationships.Add(existing.ID, "Brother");
+                                }
+                            }
+                            else
+                            {
+                                if (relative == 0)
+                                {
+                                    player.Relationships.Add(existing.ID, "Mother");
+                                }
+                                else
+                                {
+                                    player.Relationships.Add(existing.ID, "Sister");
+                                }
+                            }
                         }
                     }
                 }

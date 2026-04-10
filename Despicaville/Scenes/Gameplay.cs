@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-
 using OP_Engine.Scenes;
 using OP_Engine.Sounds;
 using OP_Engine.Characters;
@@ -18,8 +16,8 @@ using OP_Engine.Time;
 using OP_Engine.Inventories;
 using OP_Engine.Rendering;
 using OP_Engine.Enums;
-
 using Despicaville.Util;
+using Despicaville.Tasks;
 
 namespace Despicaville.Scenes
 {
@@ -74,17 +72,10 @@ namespace Despicaville.Scenes
 
                         if (!player.Dead)
                         {
-                            if (!player.Moving)
+                            if (!player.Moving &&
+                                !player.Unconscious)
                             {
-                                if (!player.Unconscious)
-                                {
-                                    UpdatePlayerControls(player);
-                                }
-                                else
-                                {
-                                    TimeTracker.Tick(Handler.ActionRate * 5);
-                                    CharacterUtil.Sleep(player);
-                                }
+                                UpdatePlayerControls(player);
                             }
 
                             UpdatePlayer(player);
@@ -551,60 +542,132 @@ namespace Despicaville.Scenes
                 {
                     if (Handler.Running)
                     {
-                        Tasker.AddTask(player, "Run", true, false, null, null, Direction.Up);
+                        player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Run",
+                            OwnerIDs = new List<long> { player.ID },
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.Up
+                        });
                     }
                     else if (Handler.Crouching)
                     {
-                        Tasker.AddTask(player, "Sneak", true, false, null, null, Direction.Up);
+                        player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Sneak",
+                            OwnerIDs = new List<long> { player.ID },
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.Up
+                        });
                     }
                     else
                     {
-                        Tasker.AddTask(player, "Walk", true, false, null, null, Direction.Up);
+                        player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Walk",
+                            OwnerIDs = new List<long> { player.ID },
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.Up
+                        });
                     }
                 }
                 else if (InputManager.KeyDown("Right"))
                 {
                     if (Handler.Running)
                     {
-                        Tasker.AddTask(player, "Run", true, false, null, null, Direction.Right);
+                        player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Run",
+                            OwnerIDs = new List<long> { player.ID },
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.Right
+                        });
                     }
                     else if (Handler.Crouching)
                     {
-                        Tasker.AddTask(player, "Sneak", true, false, null, null, Direction.Right);
+                        player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Sneak",
+                            OwnerIDs = new List<long> { player.ID },
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.Right
+                        });
                     }
                     else
                     {
-                        Tasker.AddTask(player, "Walk", true, false, null, null, Direction.Right);
+                        player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Walk",
+                            OwnerIDs = new List<long> { player.ID },
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.Right
+                        });
                     }
                 }
                 else if (InputManager.KeyDown("Down"))
                 {
                     if (Handler.Running)
                     {
-                        Tasker.AddTask(player, "Run", true, false, null, null, Direction.Down);
+                        player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Run",
+                            OwnerIDs = new List<long> { player.ID },
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.Down
+                        });
                     }
                     else if (Handler.Crouching)
                     {
-                        Tasker.AddTask(player, "Sneak", true, false, null, null, Direction.Down);
+                        player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Sneak",
+                            OwnerIDs = new List<long> { player.ID },
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.Down
+                        });
                     }
                     else
                     {
-                        Tasker.AddTask(player, "Walk", true, false, null, null, Direction.Down);
+                        player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Walk",
+                            OwnerIDs = new List<long> { player.ID },
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.Down
+                        });
                     }
                 }
                 else if (InputManager.KeyDown("Left"))
                 {
                     if (Handler.Running)
                     {
-                        Tasker.AddTask(player, "Run", true, false, null, null, Direction.Left);
+                        player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Run",
+                            OwnerIDs = new List<long> { player.ID },
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.Left
+                        });
                     }
                     else if (Handler.Crouching)
                     {
-                        Tasker.AddTask(player, "Sneak", true, false, null, null, Direction.Left);
+                        player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Sneak",
+                            OwnerIDs = new List<long> { player.ID },
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.Left
+                        });
                     }
                     else
                     {
-                        Tasker.AddTask(player, "Walk", true, false, null, null, Direction.Left);
+                        player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Walk",
+                            OwnerIDs = new List<long> { player.ID },
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.Left
+                        });
                     }
                 }
 
@@ -659,7 +722,15 @@ namespace Despicaville.Scenes
 
                     if (direction != Direction.Nowhere)
                     {
-                        Tasker.Turn(player, direction);
+                        player.Job.Tasks.Add(new Turn
+                        {
+                            Name = "Turn",
+                            OwnerIDs = new List<long> { player.ID },
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(player))),
+                            Direction = direction
+                        });
+
                         turning = true;
                     }
 
@@ -689,7 +760,16 @@ namespace Despicaville.Scenes
                                 location = new Location(player.Location.X - 1, player.Location.Y, 0);
                             }
 
-                            Tasker.AddTask(player, "Attack", true, false, null, location, player.Direction);
+                            player.Job.Tasks.Add(new Attack
+                            {
+                                Name = "Attack",
+                                OwnerIDs = new List<long> { player.ID },
+                                Location = location,
+                                Direction = player.Direction,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
+                                TaskBar = CharacterUtil.GenTaskbar(player, 1000)
+                            });
 
                             #endregion
                         }
@@ -787,7 +867,14 @@ namespace Despicaville.Scenes
                         time = Handler.ActionRate / 5;
                     }
 
-                    Tasker.AddTask(player, "Wait", true, false, TimeSpan.FromMilliseconds(time), default, 0);
+                    player.Job.Tasks.Add(new Wait
+                    {
+                        Name = "Wait",
+                        OwnerIDs = new List<long> { player.ID },
+                        StartTime = new TimeHandler(TimeManager.Now),
+                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(time))
+                    });
+
                     TimeTracker.Tick(time);
                 }
 
@@ -865,65 +952,64 @@ namespace Despicaville.Scenes
                     //Game Over
                 }
 
-                if (!player.Dead &&
-                    !player.Unconscious)
+                if (!player.Dead)
                 {
                     Task task = player.Job.CurrentTask;
                     if (task != null)
                     {
-                        Tasker.Character_StartAction(World, player);
-                        Tasker.Character_EndAction(World, player);
-
                         if (task.Name == "Sneak" ||
                             task.Name == "Walk" ||
                             task.Name == "Run")
                         {
-                            CharacterUtil.MovePlayer(task);
-                            CharacterUtil.UpdateGear(player);
-
-                            WorldUtil.SetCurrentMap(player);
-
                             player.Job.Update(TimeManager.Now);
                         }
-                        else if (!task.Completed)
+                        else if (!player.Unconscious)
                         {
-                            long milliseconds = task.EndTime.TotalMilliseconds - TimeManager.Now.TotalMilliseconds;
+                            if (!task.Completed)
+                            {
+                                long milliseconds = task.EndTime.TotalMilliseconds - TimeManager.Now.TotalMilliseconds;
 
-                            if (milliseconds > 60000)
-                            {
-                                //1m
-                                TimeTracker.Tick(60000);
+                                if (milliseconds >= 60000)
+                                {
+                                    //1m
+                                    TimeTracker.Tick(60000);
+                                }
+                                else if (milliseconds >= 10000)
+                                {
+                                    //10s
+                                    TimeTracker.Tick(10000);
+                                }
+                                else if (milliseconds >= 1000)
+                                {
+                                    //1s
+                                    TimeTracker.Tick(1000);
+                                }
+                                else if (milliseconds >= 100)
+                                {
+                                    //100ms
+                                    TimeTracker.Tick(100);
+                                }
+                                else if (milliseconds >= 10)
+                                {
+                                    //10ms
+                                    TimeTracker.Tick(10);
+                                }
+                                else if (milliseconds > 0)
+                                {
+                                    //1ms
+                                    TimeTracker.Tick(milliseconds);
+                                }
                             }
-                            else if (milliseconds > 10000)
+                            else
                             {
-                                //10s
-                                TimeTracker.Tick(10000);
-                            }
-                            else if (milliseconds > 1000)
-                            {
-                                //1s
-                                TimeTracker.Tick(1000);
-                            }
-                            else if (milliseconds > 100)
-                            {
-                                //100ms
-                                TimeTracker.Tick(100);
-                            }
-                            else if (milliseconds > 10)
-                            {
-                                //10ms
-                                TimeTracker.Tick(10);
-                            }
-                            else if (milliseconds > 0)
-                            {
-                                //1ms
-                                TimeTracker.Tick(1);
+                                player.Job.Update(TimeManager.Now);
                             }
                         }
-                        else
-                        {
-                            player.Job.Update(TimeManager.Now);
-                        }
+                    }
+                    else if (player.Unconscious)
+                    {
+                        TimeTracker.Tick(Handler.ActionRate * 5);
+                        CharacterUtil.Sleep(player);
                     }
 
                     GameUtil.UpdateWorld(World, player);

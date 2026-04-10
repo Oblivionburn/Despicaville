@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-
 using OP_Engine.Controls;
 using OP_Engine.Inputs;
 using OP_Engine.Menus;
@@ -12,8 +10,8 @@ using OP_Engine.Utility;
 using OP_Engine.Inventories;
 using OP_Engine.Characters;
 using OP_Engine.Time;
-
 using Despicaville.Util;
+using Despicaville.Tasks;
 
 namespace Despicaville.Menus
 {
@@ -1017,7 +1015,14 @@ namespace Despicaville.Menus
                     if (player.GetStat("Hunger").Value < 100)
                     {
                         okay = true;
-                        Tasker.AddTask(player, "UseItem_" + item.ID, false, true, TimeSpan.FromSeconds(hunger.Value * -1), default, 0);
+
+                        player.Job.Tasks.Add(new UseItem
+                        {
+                            Name = "UseItem_" + item.ID,
+                            OwnerIDs = new List<long> { player.ID },
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(hunger.Value * -1)),
+                        });
                     }
                 }
 
@@ -1029,7 +1034,14 @@ namespace Despicaville.Menus
                         if (player.GetStat("Thirst").Value < 100)
                         {
                             okay = true;
-                            Tasker.AddTask(player, "UseItem_" + item.ID, false, true, TimeSpan.FromSeconds(thirst.Value * -1), default, 0);
+
+                            player.Job.Tasks.Add(new UseItem
+                            {
+                                Name = "UseItem_" + item.ID,
+                                OwnerIDs = new List<long> { player.ID },
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(thirst.Value * -1)),
+                            });
                         }
                     }
                 }
@@ -1037,7 +1049,14 @@ namespace Despicaville.Menus
             else if (item.Task == "Inject")
             {
                 okay = true;
-                Tasker.AddTask(player, "UseItem_" + item.ID, false, true, TimeSpan.FromSeconds(1), default, 0);
+
+                player.Job.Tasks.Add(new UseItem
+                {
+                    Name = "UseItem_" + item.ID,
+                    OwnerIDs = new List<long> { player.ID },
+                    StartTime = new TimeHandler(TimeManager.Now),
+                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
+                });
             }
 
             if (!okay)

@@ -1,0 +1,107 @@
+﻿using Microsoft.Xna.Framework;
+using OP_Engine.Characters;
+using OP_Engine.Jobs;
+using OP_Engine.Utility;
+using OP_Engine.Tiles;
+using OP_Engine.Scenes;
+using OP_Engine.Time;
+using OP_Engine.Menus;
+using Despicaville.Util;
+
+namespace Despicaville.Tasks
+{
+    public class Search : Task
+    {
+        public override void Action_End()
+        {
+            Character character = GetOwner();
+            if (character == null)
+            {
+                return;
+            }
+
+            Vector2 location = new Vector2(Location.X, Location.Y);
+
+            Scene scene = SceneManager.GetScene("Gameplay");
+            Map map = scene.World.Maps[0];
+            Layer bottom_tiles = map.GetLayer("BottomTiles");
+
+            Tile tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, new Location(location.X, location.Y, 0));
+            if (tile == null)
+            {
+                tile = bottom_tiles.GetTile(location);
+            }
+
+            if (tile.Texture != null)
+            {
+                if (tile.Inventory.Items.Count > 0)
+                {
+                    TimeManager.Paused = true;
+
+                    Handler.Trading = true;
+                    Handler.Trading_InventoryID.Add(tile.Inventory.ID);
+
+                    Menu main = MenuManager.GetMenu("Inventory");
+                    main.Load();
+                    main.Active = true;
+                    main.Visible = true;
+                }
+                else
+                {
+                    int loudness = 2;
+                    if (Name.Contains("Quiet"))
+                    {
+                        loudness = 1;
+                    }
+                    else if (Name.Contains("Loud"))
+                    {
+                        loudness = 3;
+                    }
+
+                    if (loudness == 1)
+                    {
+                        GameUtil.AddMessage("You quietly searched the " + WorldUtil.GetTile_Name(tile) + ", but found nothing.");
+                    }
+                    else if (loudness == 2)
+                    {
+                        GameUtil.AddMessage("You searched the " + WorldUtil.GetTile_Name(tile) + ", but found nothing.");
+                    }
+                    else if (loudness == 3)
+                    {
+                        GameUtil.AddMessage("You loudly searched the " + WorldUtil.GetTile_Name(tile) + ", but found nothing.");
+                    }
+                }
+            }
+        }
+
+        public Character GetOwner()
+        {
+            if (OwnerIDs.Count > 0)
+            {
+                long id = OwnerIDs[0];
+
+                Army army = CharacterManager.GetArmy("Characters");
+                if (army != null)
+                {
+                    int squadCount = army.Squads.Count;
+                    for (int s = 0; s < squadCount; s++)
+                    {
+                        Squad squad = army.Squads[s];
+
+                        int charCount = squad.Characters.Count;
+                        for (int c = 0; c < charCount; c++)
+                        {
+                            Character existing = squad.Characters[c];
+                            if (existing.ID == id)
+                            {
+                                return existing;
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+    }
+}

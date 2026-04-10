@@ -5,14 +5,12 @@ using Microsoft.Xna.Framework;
 using OP_Engine.Characters;
 using OP_Engine.Tiles;
 using OP_Engine.Utility;
-using OP_Engine.Jobs;
-using OP_Engine.Menus;
 using OP_Engine.Time;
 using OP_Engine.Inventories;
-using OP_Engine.Sounds;
 using OP_Engine.Inputs;
 using OP_Engine.Enums;
 using Despicaville.Util;
+using Despicaville.Tasks;
 
 namespace Despicaville
 {
@@ -35,221 +33,44 @@ namespace Despicaville
         
         #region Methods
 
-        public static void GiveTask_Citizen(World world, Character character)
+        public static void GiveTask_Citizen(Character character)
         {
-            Something thirst = character.GetStat("Thirst");
-            Something hunger = character.GetStat("Hunger");
-            Something stamina = character.GetStat("Stamina");
-            Something boredom = character.GetStat("Boredom");
-
             if (character.InCombat)
             {
                 Attacking(character);
+                return;
             }
-            else if (WorldUtil.PassedOpenDoor(world.Maps[0].GetLayer("MiddleTiles"), character))
+
+            Something thirst = character.GetStat("Thirst");
+            if (thirst.Value >= 60)
             {
-                CloseDoor_Behind(character);
-            }
-            else if (WorldUtil.PassedOpenWindow(world.Maps[0].GetLayer("MiddleTiles"), character))
-            {
-                CloseWindow_Behind(character);
-            }
-            else if (thirst.Value >= 60)
-            {
-                FindWater(world, character, true);
+                FindWater(character, true);
+                return;
             }
             else if (thirst.Value >= 30)
             {
-                FindWater(world, character, false);
+                FindWater(character, false);
+                return;
             }
-            else if (hunger.Value >= 60)
+
+            Something hunger = character.GetStat("Hunger");
+            if (hunger.Value >= 60)
             {
-                FindFood(world, character, true);
+                FindFood(character, true);
+                return;
             }
             else if (hunger.Value >= 30)
             {
-                FindFood(world, character, false);
+                FindFood(character, false);
+                return;
             }
-            else if (stamina.Value <= 30)
-            {
-                GoToSleep(world, character);
-            }
-            else if (boredom.Value >= 30)
-            {
-                FindEntertainment(world, character);
-            }
-            else if (stamina.Value <= 60)
-            {
-                FindRest(world, character);
-            }
-            else
+
+            if (thirst.Value < 30 &&
+                hunger.Value < 30)
             {
                 Wander(character);
             }
         }
-
-        public static void Character_StartAction(World world, Character character)
-        {
-            Task task = character.Job.CurrentTask;
-            if (task != null)
-            {
-                if (task.Started &&
-                    !character.Moving)
-                {
-                    if (task.Name == "Sneak" ||
-                        task.Name == "Walk" ||
-                        task.Name == "Run")
-                    {
-                        Move(world, character);
-                    }
-                    else if (task.Name.Contains("GoTo"))
-                    {
-                        string[] task_parts = task.Name.Split('_');
-                        GoTo(world, character, task_parts[1]);
-                    }
-                    else if (task.Name == "Attack")
-                    {
-                        Attack_Start(character);
-                    }
-                    else if (task.Name.Contains("UseSink_Start"))
-                    {
-                        if (task.Name.Contains("Drink"))
-                        {
-                            UseSink_Start(character, false);
-                        }
-                        else
-                        {
-                            UseSink_Start(character, true);
-                        }
-                    }
-                    else if (task.Name.Contains("UseToilet_Start"))
-                    {
-                        UseToilet_Start(character);
-                    }
-                }
-            }
-        }
-
-        public static void Character_DoAction(Character character)
-        {
-            if (character.Job.Tasks.Count > 0)
-            {
-                Task task = character.Job.CurrentTask;
-                if (task != null)
-                {
-                    if (task.Started)
-                    {
-                        if (!task.Completed)
-                        {
-                            if (task.Name == "Wait")
-                            {
-                                Wait(character);
-                            }
-                            else if (task.Name == "Sleep")
-                            {
-                                Sleep(character);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        public static void Character_EndAction(World world, Character character)
-        {
-            if (character.Job.Tasks.Count > 0)
-            {
-                Task task = character.Job.CurrentTask;
-                if (task != null)
-                {
-                    if (task.Completed &&
-                        task.Keep_On_Completed)
-                    {
-                        task.Keep_On_Completed = false;
-
-                        int loudness = 2;
-                        if (task.Name.Contains("Quiet"))
-                        {
-                            loudness = 1;
-                        }
-                        else if (task.Name.Contains("Loud"))
-                        {
-                            loudness = 3;
-                        }
-
-                        if (task.Name == "Turn")
-                        {
-                            Turn_End(character);
-                        }
-                        else if (task.Name == "Attack_End")
-                        {
-                            Attack_End(character);
-                        }
-                        else if (task.Name.Contains("OpenDoor"))
-                        {
-                            OpenDoor(world, character, loudness);
-                        }
-                        else if (task.Name.Contains("CloseDoor"))
-                        {
-                            CloseDoor(world, character, loudness);
-                        }
-                        else if (task.Name.Contains("OpenWindow"))
-                        {
-                            OpenWindow(world, character, loudness);
-                        }
-                        else if (task.Name.Contains("CloseWindow"))
-                        {
-                            CloseWindow(world, character, loudness);
-                        }
-                        else if (task.Name.Contains("OpenFridge"))
-                        {
-                            OpenFridge(world, character, loudness);
-                        }
-                        else if (task.Name.Contains("CloseFridge"))
-                        {
-                            CloseFridge(world, character, loudness);
-                        }
-                        else if (task.Name == "ToggleLight")
-                        {
-                            ToggleLight(world, character);
-                        }
-                        else if (task.Name == "ToggleTV")
-                        {
-                            ToggleTV(world, character);
-                        }
-                        else if (task.Name.Contains("Search"))
-                        {
-                            EndSearch(world, character, loudness);
-                        }
-                        else if (task.Name.Contains("UseSink_End"))
-                        {
-                            if (task.Name.Contains("Drink"))
-                            {
-                                UseSink_End(character, false);
-                            }
-                            else
-                            {
-                                UseSink_End(character, true);
-                            }
-                        }
-                        else if (task.Name.Contains("UseToilet_End"))
-                        {
-                            UseToilet_End(character);
-                        }
-                        else if (task.Name.Contains("UseItem"))
-                        {
-                            UseItem(character);
-                        }
-                        else if (task.Name.Contains("Examine"))
-                        {
-                            Examine(character);
-                        }
-                    }
-                }
-            }
-        }
-
-        #region New Task
 
         public static void Attacking(Character character)
         {
@@ -260,12 +81,24 @@ namespace Despicaville
 
                 if (direction != character.Direction)
                 {
-                    AbortTask(character);
-                    Turn(character, direction);
+                    character.Job.Tasks.Add(new Turn
+                    {
+                        Name = "Turn",
+                        OwnerIDs = new List<long> { character.ID },
+                        StartTime = new TimeHandler(TimeManager.Now),
+                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
+                        Direction = direction
+                    });
                 }
                 else if (!WorldUtil.InRange(target.Location, character.Location, 1))
                 {
-                    AddTask(character, "Walk", true, false, null, null, character.Direction);
+                    character.Job.Tasks.Add(new Move
+                    {
+                        Name = "Walk",
+                        OwnerIDs = new List<long> { character.ID },
+                        StartTime = new TimeHandler(TimeManager.Now),
+                        Direction = character.Direction
+                    });
                 }
                 else
                 {
@@ -287,7 +120,20 @@ namespace Despicaville
                         location = new Location(character.Location.X - 1, character.Location.Y, 0);
                     }
 
-                    AddTask(character, "Attack", true, false, null, location, character.Direction);
+                    Dictionary<string, string> AttackingWith = CombatUtil.AttackChoice(character);
+                    string action = AttackingWith.ElementAt(0).Value;
+
+                    int attackTime = CombatUtil.AttackTime(character, action);
+                    character.Job.Tasks.Add(new Attack
+                    {
+                        Name = "Attack",
+                        OwnerIDs = new List<long> { character.ID },
+                        Location = location,
+                        Direction = character.Direction,
+                        StartTime = new TimeHandler(TimeManager.Now),
+                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(attackTime)),
+                        TaskBar = CharacterUtil.GenTaskbar(character, attackTime)
+                    });
                 }
             }
             else
@@ -296,26 +142,8 @@ namespace Despicaville
             }
         }
 
-        public static void Turn(Character character, Direction direction)
+        public static void FindWater(Character character, bool desperate)
         {
-            if (direction != Direction.Nowhere)
-            {
-                float turnTime = CharacterUtil.GetTurnTime(character);
-                TimeSpan timeSpan = TimeSpan.FromMilliseconds(turnTime);
-
-                AddTask(character, "Turn", true, true, timeSpan, null, direction);
-
-                if (character.Type == "Player")
-                {
-                    TimeTracker.Tick((long)turnTime);
-                }
-            }
-        }
-
-        public static void FindWater(World world, Character character, bool desperate)
-        {
-            bool found = false;
-
             Inventory inventory = character.Inventory;
 
             //Do we already have something to drink?
@@ -327,138 +155,167 @@ namespace Despicaville
                 Something thirst = existing.GetProperty("Thirst");
                 if (thirst != null)
                 {
-                    found = true;
-                    AddTask(character, "UseItem_" + existing.ID, false, true, TimeSpan.FromSeconds(thirst.Value * -10), default, 0);
-                    break;
+                    character.Job.Tasks.Add(new UseItem
+                    {
+                        Name = "UseItem_" + existing.ID,
+                        OwnerIDs = new List<long> { character.ID },
+                        StartTime = new TimeHandler(TimeManager.Now),
+                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(thirst.Value * -10)),
+                    });
+
+                    return;
                 }
             }
 
             //Are we already pathing to something?
             if (character.Path.Count > 0)
             {
-                found = true;
-
-                if (desperate)
-                {
-                    AddTask(character, "GoTo_Run", true, false, null, default, 0);
-                }
-                else
-                {
-                    AddTask(character, "GoTo_Walk", true, false, null, default, 0);
-                }
+                ContinuePathing(character, desperate);
+                return;
             }
 
             //Is there a sink nearby to drink from?
-            if (!found)
+            List<Tile> sinks = WorldUtil.GetOwned_Furniture(character, "Sink");
+            if (sinks.Count > 0)
             {
-                Map map = world.Maps[0];
-                Layer bottom_tiles = map.GetLayer("BottomTiles");
-                Layer middle_tiles = map.GetLayer("MiddleTiles");
-                Layer room_tiles = map.GetLayer("RoomTiles");
-
-                List<Tile> sinks = WorldUtil.GetOwned_Furniture(character, "Sink");
-                if (sinks.Count > 0)
+                Tile sink = WorldUtil.GetClosestTile(sinks, character);
+                if (sink != null)
                 {
-                    Tile sink = WorldUtil.GetClosestTile(sinks, character);
-                    if (sink != null)
+                    if (WorldUtil.NextTo(sink.Location, character.Location))
                     {
-                        found = true;
-
-                        if (WorldUtil.NextTo(sink.Location, character.Location))
+                        Direction direction = WorldUtil.GetFurnitureDirection(sink, character);
+                        if (direction != character.Direction)
                         {
-                            Direction direction = WorldUtil.GetFurnitureDirection(sink, character);
-                            if (direction != character.Direction)
+                            character.Job.Tasks.Add(new Turn
                             {
-                                AddTask(character, "Turn", false, true, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character)), default, direction);
-                            }
-                            else
-                            {
-                                AddTask(character, "UseSink_Start_Drink", true, false, null, default, 0);
-                            }
+                                Name = "Turn",
+                                OwnerIDs = new List<long> { character.ID },
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
+                                Direction = direction
+                            });
                         }
-                        else
+                        else if (!sink.Texture.Name.Contains("Used"))
                         {
-                            PathTo(bottom_tiles, middle_tiles, room_tiles, sink, character, desperate);
+                            Something thirst = character.GetStat("Thirst");
+                            TimeSpan duration = TimeSpan.FromSeconds(thirst.Value);
+
+                            character.Job.Tasks.Add(new UseSink
+                            {
+                                Name = "UseSink",
+                                OwnerIDs = new List<long> { character.ID },
+                                Location = sink.Location,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, duration),
+                                TaskBar = CharacterUtil.GenTaskbar(character, (int)duration.TotalMilliseconds)
+                            });
                         }
                     }
+                    else
+                    {
+                        Map map = WorldUtil.GetMap();
+                        Layer bottom_tiles = map.GetLayer("BottomTiles");
+                        Layer middle_tiles = map.GetLayer("MiddleTiles");
+                        Layer room_tiles = map.GetLayer("RoomTiles");
+
+                        PathTo(bottom_tiles, middle_tiles, room_tiles, sink, character, desperate);
+                    }
+
+                    return;
                 }
             }
 
             //Does a nearby fridge have something to drink?
-            if (!found)
+            List<Tile> fridges = WorldUtil.GetOwned_Furniture(character, "Fridge");
+            if (fridges.Count > 0)
             {
-                Map map = world.Maps[0];
-                Layer bottom_tiles = map.GetLayer("BottomTiles");
-                Layer middle_tiles = map.GetLayer("MiddleTiles");
-                Layer room_tiles = map.GetLayer("RoomTiles");
-
-                List<Tile> fridges = WorldUtil.GetOwned_Furniture(character, "Fridge");
-                if (fridges.Count > 0)
+                Tile fridge = WorldUtil.GetClosestTile(fridges, character);
+                if (fridge != null)
                 {
-                    Tile fridge = WorldUtil.GetClosestTile(fridges, character);
-                    if (fridge != null)
+                    Item item = null;
+
+                    int fridgeCount = fridge.Inventory.Items.Count;
+                    for (int i = 0; i < fridgeCount; i++)
                     {
-                        Item item = null;
+                        Item existing = fridge.Inventory.Items[i];
 
-                        int fridgeCount = fridge.Inventory.Items.Count;
-                        for (int i = 0; i < fridgeCount; i++)
+                        Something thirst = existing.GetProperty("Thirst");
+                        if (thirst != null)
                         {
-                            Item existing = fridge.Inventory.Items[i];
-
-                            Something thirst = existing.GetProperty("Thirst");
-                            if (thirst != null)
-                            {
-                                found = true;
-                                item = existing;
-                                break;
-                            }
+                            item = existing;
+                            break;
                         }
+                    }
 
-                        if (found)
+                    if (item != null)
+                    {
+                        if (WorldUtil.NextTo(fridge.Location, character.Location))
                         {
-                            if (WorldUtil.NextTo(fridge.Location, character.Location))
+                            Direction direction = WorldUtil.GetFurnitureDirection(fridge, character);
+                            if (direction != character.Direction)
                             {
-                                Direction direction = WorldUtil.GetFurnitureDirection(fridge, character);
-                                if (direction != character.Direction)
+                                character.Job.Tasks.Add(new Turn
                                 {
-                                    AddTask(character, "Turn", false, true, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character)), default, direction);
-                                }
-                                else
-                                {
-                                    if (fridge.Texture.Name.Contains("Used"))
-                                    {
-                                        InventoryUtil.TransferItem(fridge.Inventory, character.Inventory, item);
-                                        AddTask(character, "CloseFridge", false, true, TimeSpan.FromMilliseconds(2000), fridge.Location, direction);
-                                    }
-                                    else
-                                    {
-                                        AddTask(character, "OpenFridge", false, true, TimeSpan.FromMilliseconds(2000), fridge.Location, direction);
-                                    }
-                                }
+                                    Name = "Turn",
+                                    OwnerIDs = new List<long> { character.ID },
+                                    StartTime = new TimeHandler(TimeManager.Now),
+                                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
+                                    Direction = direction
+                                });
                             }
                             else
                             {
-                                PathTo(bottom_tiles, middle_tiles, room_tiles, fridge, character, desperate);
+                                if (fridge.Texture.Name.Contains("Used"))
+                                {
+                                    InventoryUtil.TransferItem(fridge.Inventory, character.Inventory, item);
+
+                                    character.Job.Tasks.Add(new CloseFridge
+                                    {
+                                        Name = "CloseFridge",
+                                        OwnerIDs = new List<long> { character.ID },
+                                        StartTime = new TimeHandler(TimeManager.Now),
+                                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
+                                        Location = fridge.Location,
+                                        Direction = direction
+                                    });
+                                }
+                                else
+                                {
+                                    character.Job.Tasks.Add(new OpenFridge
+                                    {
+                                        Name = "OpenFridge",
+                                        OwnerIDs = new List<long> { character.ID },
+                                        StartTime = new TimeHandler(TimeManager.Now),
+                                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
+                                        Location = fridge.Location,
+                                        Direction = direction
+                                    });
+                                }
                             }
                         }
+                        else
+                        {
+                            Map map = WorldUtil.GetMap();
+                            Layer bottom_tiles = map.GetLayer("BottomTiles");
+                            Layer middle_tiles = map.GetLayer("MiddleTiles");
+                            Layer room_tiles = map.GetLayer("RoomTiles");
+
+                            PathTo(bottom_tiles, middle_tiles, room_tiles, fridge, character, desperate);
+                        }
+
+                        return;
                     }
                 }
             }
 
-            if (!found)
-            {
-                Wander(character);
-            }
+            Wander(character);
         }
 
-        public static void FindFood(World world, Character character, bool desperate)
+        public static void FindFood(Character character, bool desperate)
         {
-            bool found = false;
-
             Inventory inventory = character.Inventory;
 
             //Do we already have something to eat?
-
             int itemCount = inventory.Items.Count;
             for (int i = 0; i < itemCount; i++)
             {
@@ -467,107 +324,109 @@ namespace Despicaville
                 Something hunger = existing.GetProperty("Hunger");
                 if (hunger != null)
                 {
-                    found = true;
-                    AddTask(character, "UseItem_" + existing.ID, false, true, TimeSpan.FromSeconds(hunger.Value * -10), default, 0);
-                    break;
+                    character.Job.Tasks.Add(new UseItem
+                    {
+                        Name = "UseItem_" + existing.ID,
+                        OwnerIDs = new List<long> { character.ID },
+                        StartTime = new TimeHandler(TimeManager.Now),
+                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(hunger.Value * -10)),
+                    });
+
+                    return;
                 }
             }
 
             //Are we already pathing to something?
             if (character.Path.Count > 0)
             {
-                found = true;
-
-                if (desperate)
-                {
-                    AddTask(character, "GoTo_Run", true, false, null, default, 0);
-                }
-                else
-                {
-                    AddTask(character, "GoTo_Walk", true, false, null, default, 0);
-                }
+                ContinuePathing(character, desperate);
+                return;
             }
 
             //Does a nearby fridge have something to eat?
-            if (!found)
+            List<Tile> fridges = WorldUtil.GetOwned_Furniture(character, "Fridge");
+            if (fridges.Count > 0)
             {
-                Map map = world.Maps[0];
-                Layer bottom_tiles = map.GetLayer("BottomTiles");
-                Layer middle_tiles = map.GetLayer("MiddleTiles");
-                Layer room_tiles = map.GetLayer("RoomTiles");
-
-                List<Tile> fridges = WorldUtil.GetOwned_Furniture(character, "Fridge");
-                if (fridges.Count > 0)
+                Tile fridge = WorldUtil.GetClosestTile(fridges, character);
+                if (fridge != null)
                 {
-                    Tile fridge = WorldUtil.GetClosestTile(fridges, character);
-                    if (fridge != null)
+                    Item item = null;
+
+                    int fridgeCount = fridge.Inventory.Items.Count;
+                    for (int i = 0; i < fridgeCount; i++)
                     {
-                        Item item = null;
+                        Item existing = fridge.Inventory.Items[i];
 
-                        int fridgeCount = fridge.Inventory.Items.Count;
-                        for (int i = 0; i < fridgeCount; i++)
+                        Something hunger = existing.GetProperty("Hunger");
+                        if (hunger != null)
                         {
-                            Item existing = fridge.Inventory.Items[i];
-
-                            Something hunger = existing.GetProperty("Hunger");
-                            if (hunger != null)
-                            {
-                                found = true;
-                                item = existing;
-                                break;
-                            }
+                            item = existing;
+                            break;
                         }
+                    }
 
-                        if (found)
+                    if (item != null)
+                    {
+                        if (WorldUtil.NextTo(fridge.Location, character.Location))
                         {
-                            if (WorldUtil.NextTo(fridge.Location, character.Location))
+                            Direction direction = WorldUtil.GetFurnitureDirection(fridge, character);
+                            if (direction != character.Direction)
                             {
-                                Direction direction = WorldUtil.GetFurnitureDirection(fridge, character);
-                                if (direction != character.Direction)
+                                character.Job.Tasks.Add(new Turn
                                 {
-                                    AddTask(character, "Turn", false, true, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character)), default, direction);
-                                }
-                                else
-                                {
-                                    if (fridge.Texture.Name.Contains("Used"))
-                                    {
-                                        InventoryUtil.TransferItem(fridge.Inventory, character.Inventory, item);
-                                        AddTask(character, "CloseFridge", false, true, TimeSpan.FromMilliseconds(2000), fridge.Location, direction);
-                                    }
-                                    else
-                                    {
-                                        AddTask(character, "OpenFridge", false, true, TimeSpan.FromMilliseconds(2000), fridge.Location, direction);
-                                    }
-                                }
+                                    Name = "Turn",
+                                    OwnerIDs = new List<long> { character.ID },
+                                    StartTime = new TimeHandler(TimeManager.Now),
+                                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
+                                    Direction = direction
+                                });
                             }
                             else
                             {
-                                PathTo(bottom_tiles, middle_tiles, room_tiles, fridge, character, desperate);
+                                if (fridge.Texture.Name.Contains("Used"))
+                                {
+                                    InventoryUtil.TransferItem(fridge.Inventory, character.Inventory, item);
+
+                                    character.Job.Tasks.Add(new CloseFridge
+                                    {
+                                        Name = "CloseFridge",
+                                        OwnerIDs = new List<long> { character.ID },
+                                        StartTime = new TimeHandler(TimeManager.Now),
+                                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
+                                        Location = fridge.Location,
+                                        Direction = direction
+                                    });
+                                }
+                                else
+                                {
+                                    character.Job.Tasks.Add(new OpenFridge
+                                    {
+                                        Name = "OpenFridge",
+                                        OwnerIDs = new List<long> { character.ID },
+                                        StartTime = new TimeHandler(TimeManager.Now),
+                                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
+                                        Location = fridge.Location,
+                                        Direction = direction
+                                    });
+                                }
                             }
                         }
+                        else
+                        {
+                            Map map = WorldUtil.GetMap();
+                            Layer bottom_tiles = map.GetLayer("BottomTiles");
+                            Layer middle_tiles = map.GetLayer("MiddleTiles");
+                            Layer room_tiles = map.GetLayer("RoomTiles");
+
+                            PathTo(bottom_tiles, middle_tiles, room_tiles, fridge, character, desperate);
+                        }
+
+                        return;
                     }
                 }
             }
 
-            if (!found)
-            {
-                Wander(character);
-            }
-        }
-
-        public static void FindEntertainment(World world, Character character)
-        {
-
-        }
-
-        public static void FindRest(World world, Character character)
-        {
-
-        }
-
-        public static void GoToSleep(World world, Character character)
-        {
-
+            Wander(character);
         }
 
         public static void CloseDoor_Behind(Character character)
@@ -596,7 +455,15 @@ namespace Despicaville
                 location = new Location(character.Location.X + 1, character.Location.Y, 0);
             }
 
-            AddTask(character, "CloseDoor", true, true, TimeSpan.FromSeconds(10), location, direction);
+            character.Job.Tasks.Add(new CloseDoor
+            {
+                Name = "CloseDoor",
+                OwnerIDs = new List<long> { character.ID },
+                StartTime = new TimeHandler(TimeManager.Now),
+                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
+                Location = location,
+                Direction = direction
+            });
         }
 
         public static void CloseWindow_Behind(Character character)
@@ -625,7 +492,15 @@ namespace Despicaville
                 location = new Location(character.Location.X + 1, character.Location.Y, 0);
             }
 
-            AddTask(character, "CloseWindow", true, true, TimeSpan.FromSeconds(10), location, direction);
+            character.Job.Tasks.Add(new CloseWindow
+            {
+                Name = "CloseWindow",
+                OwnerIDs = new List<long> { character.ID },
+                StartTime = new TimeHandler(TimeManager.Now),
+                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
+                Location = location,
+                Direction = direction
+            });
         }
 
         public static void Wander(Character character)
@@ -655,1065 +530,46 @@ namespace Despicaville
             choice = random.Next(1, 11);
             if (choice <= 5)
             {
-                AddTask(character, "Wait", true, false, TimeSpan.FromSeconds(10), default, direction);
+                character.Job.Tasks.Add(new Wait
+                {
+                    Name = "Wait",
+                    OwnerIDs = new List<long> { character.ID },
+                    StartTime = new TimeHandler(TimeManager.Now),
+                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(10))
+                });
             }
             else if (choice > 5 &&
                      choice <= 8)
             {
-                AddTask(character, "Walk", true, false, null, default, direction);
+                character.Job.Tasks.Add(new Move
+                {
+                    Name = "Walk",
+                    OwnerIDs = new List<long> { character.ID },
+                    StartTime = new TimeHandler(TimeManager.Now),
+                    Direction = direction
+                });
             }
             else if (choice > 8)
             {
-                AddTask(character, "Turn", true, true, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character)), default, direction);
+                character.Job.Tasks.Add(new Turn
+                {
+                    Name = "Turn",
+                    OwnerIDs = new List<long> { character.ID },
+                    StartTime = new TimeHandler(TimeManager.Now),
+                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
+                    Direction = direction
+                });
             }
         }
 
-        #endregion
-
-        #region Start Task
-
-        public static void Move(World world, Character character)
+        public static void BreakWindow(Character character)
         {
-            if (CharacterUtil.HeldByPlayer(character))
-            {
-                Direction direction = WorldUtil.GetDirection(Handler.GetPlayer().Location, character.Location, false);
-                if (direction == Direction.Up)
-                {
-                    character.Animator.FaceNorth(character);
-                }
-                else if (direction == Direction.Right)
-                {
-                    character.Animator.FaceEast(character);
-                }
-                else if (direction == Direction.Down)
-                {
-                    character.Animator.FaceSouth(character);
-                }
-                else if (direction == Direction.Left)
-                {
-                    character.Animator.FaceWest(character);
-                }
-                return;
-            }
+            Map map = WorldUtil.GetMap();
 
-            Task task = character.Job.CurrentTask;
-
-            if (task.Name == "Sneak")
-            {
-                character.Speed = 0.5f;
-            }
-            else if (task.Name == "Walk")
-            {
-                character.Speed = 1;
-            }
-            else if (task.Name == "Run")
-            {
-                character.Speed = 2;
-            }
-
-            if (task.Direction == Direction.Up)
-            {
-                character.Destination = new Location(character.Location.X, character.Location.Y - 1, character.Location.Z);
-            }
-            else if (task.Direction == Direction.Right)
-            {
-                character.Destination = new Location(character.Location.X + 1, character.Location.Y, character.Location.Z);
-            }
-            else if (task.Direction == Direction.Down)
-            {
-                character.Destination = new Location(character.Location.X, character.Location.Y + 1, character.Location.Z);
-            }
-            else if (task.Direction == Direction.Left)
-            {
-                character.Destination = new Location(character.Location.X - 1, character.Location.Y, character.Location.Z);
-            }
-
-            Map map = world.Maps[0];
-            if (WorldUtil.CanMove(character, map, character.Destination))
-            {
-                if (task.Direction != character.Direction)
-                {
-                    AbortTask(character);
-                    Turn(character, task.Direction);
-                }
-                else
-                {
-                    character.Moving = true;
-
-                    Layer effect_tiles = map.GetLayer("EffectTiles");
-                    Layer middle_tiles = map.GetLayer("MiddleTiles");
-                    Tile tile = middle_tiles.GetTile(new Vector2(character.Destination.X, character.Destination.Y));
-                    if (tile != null)
-                    {
-                        if (tile.Name.Contains("Window") &&
-                            tile.Name.Contains("Closed"))
-                        {
-                            BreakWindow(effect_tiles, tile, character);
-                        }
-                    }
-                } 
-            }
-            else
-            {
-                task.EndTime = new TimeHandler(TimeManager.Now);
-
-                if (task.Direction != character.Direction)
-                {
-                    AbortTask(character);
-                    Turn(character, task.Direction);
-                }
-                else if (character.Type != "Player")
-                {
-                    Layer middle_tiles = map.GetLayer("MiddleTiles");
-                    Tile tile = middle_tiles.GetTile(new Vector2(character.Destination.X, character.Destination.Y));
-                    if (tile != null)
-                    {
-                        if (tile.Name.Contains("Window") &&
-                            tile.Name.Contains("Closed"))
-                        {
-                            AbortTask(character);
-
-                            AddTask(character, "OpenWindow", false, true, TimeSpan.FromSeconds(10), character.Destination, task.Direction);
-                            AddTask(character, task.Name, false, false, null, character.Destination, task.Direction);
-
-                            Location nextMove = null;
-
-                            if (character.Direction == Direction.Up)
-                            {
-                                nextMove = new Location(character.Destination.X, character.Destination.Y - 1, character.Destination.Z);
-                            }
-                            else if (character.Direction == Direction.Right)
-                            {
-                                nextMove = new Location(character.Destination.X + 1, character.Destination.Y, character.Destination.Z);
-                            }
-                            else if (character.Direction == Direction.Down)
-                            {
-                                nextMove = new Location(character.Destination.X, character.Destination.Y + 1, character.Destination.Z);
-                            }
-                            else if (character.Direction == Direction.Left)
-                            {
-                                nextMove = new Location(character.Destination.X - 1, character.Destination.Y, character.Destination.Z);
-                            }
-
-                            AddTask(character, task.Name, false, false, null, nextMove, task.Direction);
-                        }
-                        else if (tile.Name.Contains("Door") &&
-                                 tile.Name.Contains("Closed"))
-                        {
-                            AbortTask(character);
-
-                            AddTask(character, "OpenDoor", false, true, TimeSpan.FromSeconds(10), character.Destination, task.Direction);
-                            AddTask(character, task.Name, false, false, null, character.Destination, task.Direction);
-
-                            Location nextMove = null;
-
-                            if (character.Direction == Direction.Up)
-                            {
-                                nextMove = new Location(character.Destination.X, character.Destination.Y - 1, character.Destination.Z);
-                            }
-                            else if (character.Direction == Direction.Right)
-                            {
-                                nextMove = new Location(character.Destination.X + 1, character.Destination.Y, character.Destination.Z);
-                            }
-                            else if (character.Direction == Direction.Down)
-                            {
-                                nextMove = new Location(character.Destination.X, character.Destination.Y + 1, character.Destination.Z);
-                            }
-                            else if (character.Direction == Direction.Left)
-                            {
-                                nextMove = new Location(character.Destination.X - 1, character.Destination.Y, character.Destination.Z);
-                            }
-
-                            AddTask(character, task.Name, false, false, null, nextMove, task.Direction);
-                        }
-                    }
-                    else
-                    {
-                        AbortTask(character);
-                        AddTask(character, "Wait", true, false, TimeSpan.FromSeconds(21), default, task.Direction);
-                    }
-                }
-            }
-        }
-
-        public static void GoTo(World world, Character character, string speed)
-        {
-            Task task = character.Job.CurrentTask;
-            task.Completed = true;
-            character.Job.Update(TimeManager.Now);
-
-            if (character.Path.Count > 0)
-            {
-                ALocation first_path = character.Path[0];
-                if (first_path.X == character.Location.X &&
-                    first_path.Y == character.Location.Y)
-                {
-                    character.Path.Remove(first_path);
-                    if (character.Path.Count > 0)
-                    {
-                        first_path = character.Path[0];
-                    }
-                }
-                Location destination = new Location(first_path.X, first_path.Y, 0);
-
-                bool reached_destination = false;
-                ALocation last_path = character.Path[character.Path.Count - 1];
-                if (last_path.X == character.Location.X &&
-                    last_path.Y == character.Location.Y)
-                {
-                    reached_destination = true;
-                    character.Path.Remove(last_path);
-                }
-
-                if (!reached_destination)
-                {
-                    Direction direction = WorldUtil.GetDirection(destination, character.Location, false);
-                    if (direction == character.Direction)
-                    {
-                        if (direction == Direction.Up)
-                        {
-                            character.Destination = new Location(character.Location.X, character.Location.Y - 1, character.Location.Z);
-                        }
-                        else if (direction == Direction.Right)
-                        {
-                            character.Destination = new Location(character.Location.X + 1, character.Location.Y, character.Location.Z);
-                        }
-                        else if (direction == Direction.Down)
-                        {
-                            character.Destination = new Location(character.Location.X, character.Location.Y + 1, character.Location.Z);
-                        }
-                        else if (direction == Direction.Left)
-                        {
-                            character.Destination = new Location(character.Location.X - 1, character.Location.Y, character.Location.Z);
-                        }
-
-                        if (WorldUtil.PassedOpenDoor(world.Maps[0].GetLayer("MiddleTiles"), character))
-                        {
-                            CloseDoor_Behind(character);
-                        }
-                        else if (WorldUtil.PassedOpenWindow(world.Maps[0].GetLayer("MiddleTiles"), character))
-                        {
-                            CloseWindow_Behind(character);
-                        }
-                        else
-                        {
-                            AddTask(character, speed, true, false, null, character.Destination, direction);
-                        }
-                    }
-                    else
-                    {
-                        AddTask(character, "Turn", false, true, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character)), character.Destination, direction);
-                    }
-                }
-            }
-        }
-
-        public static void UseSink_Start(Character character, bool fill)
-        {
-            Task task = character.Job.CurrentTask;
-            task.Completed = true;
-            character.Job.Update(TimeManager.Now);
-
-            Character player = Handler.GetPlayer();
-            Vector2 player_location = new Vector2(player.Location.X, player.Location.Y);
-
-            Map block_map = WorldUtil.GetCurrentMap(character);
-            Layer top_tiles = block_map.GetLayer("TopTiles");
-
-            Tile sink = WorldUtil.StandingByFurniture(top_tiles, character.Location, "Sink");
-            if (sink != null)
-            {
-                Direction furniture_direction = WorldUtil.GetDirection(sink.Location, character.Location, false);
-                if (character.Direction != furniture_direction)
-                {
-                    AddTask(character, "Turn", false, true, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character)), character.Destination, furniture_direction);
-                }
-                else
-                {
-                    if (!sink.Texture.Name.Contains("Used"))
-                    {
-                        if (fill)
-                        {
-                            sink.Texture = AssetManager.Textures[sink.Texture.Name + "_Used"];
-                            AssetManager.PlaySound_Random_AtDistance("WaterRunning", player_location, new Vector2(sink.Location.X, sink.Location.Y), 5);
-
-                            string[] task_parts = task.Name.Split('_');
-                            long item_id = long.Parse(task_parts[3]);
-
-                            AddTask(character, "UseSink_End_" + item_id, true, true, TimeSpan.FromSeconds(30), sink.Location, furniture_direction);
-                        }
-                        else
-                        {
-                            Something thirst = character.GetStat("Thirst");
-                            if (thirst.Value > 0)
-                            {
-                                sink.Texture = AssetManager.Textures[sink.Texture.Name + "_Used"];
-                                AssetManager.PlaySound_Random_AtDistance("WaterRunning", player_location, new Vector2(sink.Location.X, sink.Location.Y), 5);
-
-                                AddTask(character, "UseSink_End_Drink", true, true, TimeSpan.FromSeconds(thirst.Value), sink.Location, furniture_direction);
-                            }
-                            else if (character.Type == "Player")
-                            {
-                                GameUtil.AddMessage("You're not thirsty enough to drink from a sink.");
-                            }
-                        }
-
-                        if (character.Type != "Player")
-                        {
-                            Direction direction = WorldUtil.GetDirection(sink.Location, player.Location, true);
-                            if (WorldUtil.InRange(player.Location, sink.Location, 5))
-                            {
-                                GameUtil.AddMessage("You hear a sink running to the " + direction.ToString() + ".");
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        public static void UseToilet_Start(Character character)
-        {
-            Task task = character.Job.CurrentTask;
-            task.Completed = true;
-            character.Job.Update(TimeManager.Now);
-
-            Map block_map = WorldUtil.GetCurrentMap(character);
-            Layer middle_tiles = block_map.GetLayer("MiddleTiles");
-
-            bool nextTo = false;
-
-            Tile toilet = null;
-
-            foreach (Tile tile in middle_tiles.Tiles)
-            {
-                if (tile.Name.Contains("Toilet"))
-                {
-                    if (WorldUtil.NextTo(tile.Location, character.Location) &&
-                        character.Gender == "Male")
-                    {
-                        nextTo = true;
-                        toilet = tile;
-                        break;
-                    }
-                    else if (tile.Location.X == character.Location.X &&
-                             tile.Location.Y == character.Location.Y)
-                    {
-                        toilet = tile;
-                        break;
-                    }
-                }
-            }
-
-            if (toilet != null)
-            {
-                bool use = true;
-
-                if (nextTo)
-                {
-                    Direction furniture_direction = WorldUtil.GetDirection(toilet.Location, character.Location, false);
-                    if (character.Direction != furniture_direction)
-                    {
-                        if (furniture_direction == Direction.Up)
-                        {
-                            character.Animator.FaceNorth(character);
-                        }
-                        else if (furniture_direction == Direction.Right)
-                        {
-                            character.Animator.FaceEast(character);
-                        }
-                        else if (furniture_direction == Direction.Down)
-                        {
-                            character.Animator.FaceSouth(character);
-                        }
-                        else if (furniture_direction == Direction.Left)
-                        {
-                            character.Animator.FaceWest(character);
-                        }
-                    }
-                }
-                else
-                {
-                    if (character.Direction != toilet.Direction)
-                    {
-                        if (toilet.Direction == Direction.Up)
-                        {
-                            character.Animator.FaceNorth(character);
-                        }
-                        else if (toilet.Direction == Direction.Right)
-                        {
-                            character.Animator.FaceEast(character);
-                        }
-                        else if (toilet.Direction == Direction.Down)
-                        {
-                            character.Animator.FaceSouth(character);
-                        }
-                        else if (toilet.Direction == Direction.Left)
-                        {
-                            character.Animator.FaceWest(character);
-                        }
-                    }
-                }
-
-                CharacterUtil.UpdateGear(character);
-
-                if (use)
-                {
-                    Something bladder = character.GetStat("Bladder");
-                    if (bladder.Value > 0)
-                    {
-                        if (!toilet.Texture.Name.Contains("Used"))
-                        {
-                            toilet.Texture = AssetManager.Textures[toilet.Texture.Name + "_Used"];
-                            AddTask(character, "UseToilet_End", true, true, TimeSpan.FromSeconds(bladder.Value), toilet.Location, toilet.Direction);
-                        }
-                    }
-                    else if(character.Type == "Player")
-                    {
-                        GameUtil.AddMessage("You don't need to use a toilet right now.");
-                    }
-                }
-            }
-        }
-
-        public static void Attack_Start(Character character)
-        {
-            Task task = character.Job.CurrentTask;
-            task.Completed = true;
-            character.Job.Update(TimeManager.Now);
-
-            Character player = Handler.GetPlayer();
-
-            Vector2 player_loc = new Vector2(player.Location.X, player.Location.Y);
-            Vector2 character_loc = new Vector2(character.Location.X, character.Location.Y);
-
-            AssetManager.PlaySound_Random_AtDistance("Swing", player_loc, character_loc, 2);
-
-            TimeSpan startTime = TimeSpan.FromMilliseconds(TimeManager.Now.TotalMilliseconds);
-            int duration = 1000;
-
-            WorldUtil.AddEffect_Animated(new Vector2(task.Location.X, task.Location.Y), task.Direction, "Swing", startTime, duration);
-
-            AddTask(character, "Attack_End", true, true, TimeSpan.FromMilliseconds(duration), task.Location, task.Direction);
-        }
-
-        #endregion
-
-        #region Do Task
-
-        public static void Wait(Character character)
-        {
-            CharacterUtil.Rest(character);
-        }
-
-        public static void Sleep(Character character)
-        {
-            CharacterUtil.Sleep(character);
-        }
-
-        #endregion
-
-        #region End Task
-
-        public static void Turn_End(Character character)
-        {
-            Task task = character.Job.Get_CurrentTask();
-
-            if (task.Direction != character.Direction)
-            {
-                if (task.Direction == Direction.Up)
-                {
-                    character.Animator.FaceNorth(character);
-                }
-                else if (task.Direction == Direction.Right)
-                {
-                    character.Animator.FaceEast(character);
-                }
-                else if (task.Direction == Direction.Down)
-                {
-                    character.Animator.FaceSouth(character);
-                }
-                else if (task.Direction == Direction.Left)
-                {
-                    character.Animator.FaceWest(character);
-                }
-            }
-
-            CharacterUtil.UpdateGear(character);
-            CharacterUtil.UpdateSight(character);
-
-            if (character.Target_ID > 0)
-            {
-                character.InCombat = true;
-            }
-        }
-
-        public static void ToggleLight(World world, Character character)
-        {
-            Task task = character.Job.Get_CurrentTask();
-
-            Vector2 location = new Vector2(task.Location.X, task.Location.Y);
-
-            Character player = Handler.GetPlayer();
-            AssetManager.PlaySound_Random_AtDistance("Click", new Vector2(player.Location.X, player.Location.Y), location, 2);
-
-            Map map = world.Maps[0];
+            Layer effect_tiles = map.GetLayer("EffectTiles");
             Layer middle_tiles = map.GetLayer("MiddleTiles");
-            Tile tile = middle_tiles.GetTile(location);
-            tile.IsLightSource = !tile.IsLightSource;
+            Tile tile = middle_tiles.GetTile(new Vector2(character.Destination.X, character.Destination.Y));
 
-            if (character.Type == "Player")
-            {
-                if (tile.IsLightSource)
-                {
-                    GameUtil.AddMessage("You turned on a light.");
-                }
-                else
-                {
-                    GameUtil.AddMessage("You turned off a light.");
-                }
-            }
-        }
-
-        public static void ToggleTV(World world, Character character)
-        {
-            Task task = character.Job.Get_CurrentTask();
-
-            Vector2 location = new Vector2(task.Location.X, task.Location.Y);
-
-            Character player = Handler.GetPlayer();
-            AssetManager.PlaySound_Random_AtDistance("Click", new Vector2(player.Location.X, player.Location.Y), location, 2);
-
-            Map map = world.Maps[0];
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
-            Tile tile = middle_tiles.GetTile(location);
-            tile.IsLightSource = !tile.IsLightSource;
-
-            if (character.Type == "Player")
-            {
-                if (tile.IsLightSource)
-                {
-                    GameUtil.AddMessage("You turned on a TV.");
-                }
-                else
-                {
-                    GameUtil.AddMessage("You turned off a TV.");
-                }
-            }
-        }
-
-        public static void OpenDoor(World world, Character character, int loudness)
-        {
-            Task task = character.Job.Get_CurrentTask();
-
-            Vector2 location = new Vector2(task.Location.X, task.Location.Y);
-
-            Character player = Handler.GetPlayer();
-
-            if (loudness == 1)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorOpen", new Vector2(player.Location.X, player.Location.Y), location, 2);
-            }
-            else if (loudness == 2)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorOpen", new Vector2(player.Location.X, player.Location.Y), location, 4);
-            }
-            else if (loudness == 3)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorOpen", new Vector2(player.Location.X, player.Location.Y), location, 8);
-            }
-
-            Map map = world.Maps[0];
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
-            Tile tile = middle_tiles.GetTile(location);
-
-            if (character.Direction == Direction.Up)
-            {
-                tile.Texture = AssetManager.Textures["Door_NorthSouth"];
-                tile.Region = new Region(tile.Region.X + (tile.Region.Width / 2), tile.Region.Y + (tile.Region.Height / 2), tile.Region.Width, tile.Region.Height);
-                tile.Name = "Door_WestEast_Open";
-            }
-            else if (character.Direction == Direction.Right)
-            {
-                tile.Texture = AssetManager.Textures["Door_WestEast"];
-                tile.Region = new Region(tile.Region.X + (tile.Region.Width / 2), tile.Region.Y - (tile.Region.Height / 2), tile.Region.Width, tile.Region.Height);
-                tile.Name = "Door_NorthSouth_Open";
-            }
-            else if (character.Direction == Direction.Down)
-            {
-                tile.Texture = AssetManager.Textures["Door_NorthSouth"];
-                tile.Region = new Region(tile.Region.X + (tile.Region.Width / 2), tile.Region.Y + (tile.Region.Height / 2), tile.Region.Width, tile.Region.Height);
-                tile.Name = "Door_WestEast_Open";
-            }
-            else if (character.Direction == Direction.Left)
-            {
-                tile.Texture = AssetManager.Textures["Door_WestEast"];
-                tile.Region = new Region(tile.Region.X + (tile.Region.Width / 2), tile.Region.Y - (tile.Region.Height / 2), tile.Region.Width, tile.Region.Height);
-                tile.Name = "Door_NorthSouth_Open";
-            }
-
-            tile.BlocksMovement = false;
-            CharacterUtil.UpdateSight(character);
-
-            if (character.Type == "Player")
-            {
-                if (loudness == 1)
-                {
-                    GameUtil.AddMessage("You quietly opened a door.");
-                }
-                else if (loudness == 2)
-                {
-                    GameUtil.AddMessage("You opened a door.");
-                }
-                else if (loudness == 3)
-                {
-                    GameUtil.AddMessage("You loudly opened a door.");
-                }
-            }
-            else
-            {
-                Direction direction = WorldUtil.GetDirection(task.Location, player.Location, true);
-
-                if (loudness == 1 &&
-                    WorldUtil.InRange(player.Location, task.Location, 2))
-                {
-                    GameUtil.AddMessage("You hear a door quietly open to the " + direction.ToString() + ".");
-                }
-                else if (loudness == 2 &&
-                         WorldUtil.InRange(player.Location, task.Location, 4))
-                {
-                    GameUtil.AddMessage("You hear a door open to the " + direction.ToString() + ".");
-                }
-                else if (loudness == 3 &&
-                         WorldUtil.InRange(player.Location, task.Location, 8))
-                {
-                    GameUtil.AddMessage("You hear a door loudly open to the " + direction.ToString() + ".");
-                }
-            }
-        }
-
-        public static void CloseDoor(World world, Character character, int loudness)
-        {
-            Task task = character.Job.Get_CurrentTask();
-
-            Vector2 location = new Vector2(task.Location.X, task.Location.Y);
-
-            Character player = Handler.GetPlayer();
-
-            if (loudness == 1)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorClose", new Vector2(player.Location.X, player.Location.Y), location, 2);
-            }
-            else if (loudness == 2)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorClose", new Vector2(player.Location.X, player.Location.Y), location, 4);
-            }
-            else if (loudness == 3)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorClose", new Vector2(player.Location.X, player.Location.Y), location, 8);
-            }
-
-            Map map = world.Maps[0];
-            Layer bottom_tiles = map.GetLayer("BottomTiles");
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
-            Tile tile = middle_tiles.GetTile(location);
-
-            Tile bottom_tile = bottom_tiles.GetTile(new Vector2(tile.Location.X, tile.Location.Y));
-            tile.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
-
-            if (character.Direction == Direction.Up)
-            {
-                tile.Texture = AssetManager.Textures["Door_WestEast"];
-                tile.Name = "Door_WestEast_Closed";
-            }
-            else if (character.Direction == Direction.Right)
-            {
-                tile.Texture = AssetManager.Textures["Door_NorthSouth"];
-                tile.Name = "Door_NorthSouth_Closed";
-            }
-            else if (character.Direction == Direction.Down)
-            {
-                tile.Texture = AssetManager.Textures["Door_WestEast"];
-                tile.Name = "Door_WestEast_Closed";
-            }
-            else if (character.Direction == Direction.Left)
-            {
-                tile.Texture = AssetManager.Textures["Door_NorthSouth"];
-                tile.Name = "Door_NorthSouth_Closed";
-            }
-
-            tile.BlocksMovement = true;
-            CharacterUtil.UpdateSight(character);
-
-            if (character.Type == "Player")
-            {
-                if (loudness == 1)
-                {
-                    GameUtil.AddMessage("You softly closed a door.");
-                }
-                else if (loudness == 2)
-                {
-                    GameUtil.AddMessage("You closed a door.");
-                }
-                else if (loudness == 3)
-                {
-                    GameUtil.AddMessage("You slammed a door shut.");
-                }
-            }
-            else
-            {
-                Direction direction = WorldUtil.GetDirection(task.Location, player.Location, true);
-
-                if (loudness == 1 &&
-                    WorldUtil.InRange(player.Location, task.Location, 2))
-                {
-                    GameUtil.AddMessage("You hear a door softly closed to the " + direction.ToString() + ".");
-                }
-                else if (loudness == 2 &&
-                         WorldUtil.InRange(player.Location, task.Location, 4))
-                {
-                    GameUtil.AddMessage("You hear a door close to the " + direction.ToString() + ".");
-                }
-                else if (loudness == 3 &&
-                         WorldUtil.InRange(player.Location, task.Location, 8))
-                {
-                    GameUtil.AddMessage("You hear a door slammed shut to the " + direction.ToString() + ".");
-                }
-            }
-        }
-
-        public static void OpenWindow(World world, Character character, int loudness)
-        {
-            Task task = character.Job.Get_CurrentTask();
-
-            Vector2 location = new Vector2(task.Location.X, task.Location.Y);
-
-            Character player = Handler.GetPlayer();
-
-            if (loudness == 1)
-            {
-                AssetManager.PlaySound_Random_AtDistance("WindowOpen", new Vector2(player.Location.X, player.Location.Y), location, 2);
-            }
-            else if (loudness == 2)
-            {
-                AssetManager.PlaySound_Random_AtDistance("WindowOpen", new Vector2(player.Location.X, player.Location.Y), location, 4);
-            }
-            else if (loudness == 3)
-            {
-                AssetManager.PlaySound_Random_AtDistance("WindowOpen", new Vector2(player.Location.X, player.Location.Y), location, 8);
-            }
-
-            Map map = world.Maps[0];
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
-            Tile tile = middle_tiles.GetTile(location);
-
-            if (character.Direction == Direction.Up ||
-                character.Direction == Direction.Down)
-            {
-                tile.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width / 8, tile.Region.Height);
-                tile.Name = "Window_WestEast_Open";
-            }
-            else if (character.Direction == Direction.Right ||
-                     character.Direction == Direction.Left)
-            {
-                tile.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width, tile.Region.Height / 8);
-                tile.Name = "Window_NorthSouth_Open";
-            }
-
-            if (character.Type == "Player")
-            {
-                if (loudness == 1)
-                {
-                    GameUtil.AddMessage("You quietly opened a window.");
-                }
-                else if (loudness == 2)
-                {
-                    GameUtil.AddMessage("You opened a window.");
-                }
-                else if (loudness == 3)
-                {
-                    GameUtil.AddMessage("You loudly opened a window.");
-                }
-            }
-            else
-            {
-                Direction direction = WorldUtil.GetDirection(task.Location, player.Location, true);
-
-                if (loudness == 1 &&
-                    WorldUtil.InRange(player.Location, task.Location, 2))
-                {
-                    GameUtil.AddMessage("You hear a window quietly open to the " + direction.ToString() + ".");
-                }
-                else if (loudness == 2 &&
-                         WorldUtil.InRange(player.Location, task.Location, 4))
-                {
-                    GameUtil.AddMessage("You hear a window open to the " + direction.ToString() + ".");
-                }
-                else if (loudness == 3 &&
-                         WorldUtil.InRange(player.Location, task.Location, 8))
-                {
-                    GameUtil.AddMessage("You hear a window loudly open to the " + direction.ToString() + ".");
-                }
-            }
-        }
-
-        public static void CloseWindow(World world, Character character, int loudness)
-        {
-            Task task = character.Job.Get_CurrentTask();
-
-            Vector2 location = new Vector2(task.Location.X, task.Location.Y);
-
-            Character player = Handler.GetPlayer();
-
-            if (loudness == 1)
-            {
-                AssetManager.PlaySound_Random_AtDistance("WindowClose", new Vector2(player.Location.X, player.Location.Y), location, 2);
-            }
-            else if (loudness == 2)
-            {
-                AssetManager.PlaySound_Random_AtDistance("WindowClose", new Vector2(player.Location.X, player.Location.Y), location, 4);
-            }
-            else if (loudness == 3)
-            {
-                AssetManager.PlaySound_Random_AtDistance("WindowClose", new Vector2(player.Location.X, player.Location.Y), location, 8);
-            }
-
-            Map map = world.Maps[0];
-            Layer bottom_tiles = map.GetLayer("BottomTiles");
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
-            Tile tile = middle_tiles.GetTile(location);
-
-            Tile bottom_tile = bottom_tiles.GetTile(new Vector2(tile.Location.X, tile.Location.Y));
-            tile.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
-
-            if (character.Direction == Direction.Up ||
-                character.Direction == Direction.Down)
-            {
-                tile.Name = "Window_WestEast_Closed";
-            }
-            else if (character.Direction == Direction.Right ||
-                     character.Direction == Direction.Left)
-            {
-                tile.Name = "Window_NorthSouth_Closed";
-            }
-
-            if (character.Type == "Player")
-            {
-                if (loudness == 1)
-                {
-                    GameUtil.AddMessage("You softly closed a window.");
-                }
-                else if (loudness == 2)
-                {
-                    GameUtil.AddMessage("You closed a window.");
-                }
-                else if (loudness == 3)
-                {
-                    GameUtil.AddMessage("You slammed a window shut.");
-                }
-            }
-            else
-            {
-                Direction direction = WorldUtil.GetDirection(task.Location, player.Location, true);
-
-                if (loudness == 1 &&
-                    WorldUtil.InRange(player.Location, task.Location, 2))
-                {
-                    GameUtil.AddMessage("You hear a window softly closed to the " + direction.ToString() + ".");
-                }
-                else if (loudness == 2 &&
-                         WorldUtil.InRange(player.Location, task.Location, 4))
-                {
-                    GameUtil.AddMessage("You hear a window close to the " + direction.ToString() + ".");
-                }
-                else if (loudness == 3 &&
-                         WorldUtil.InRange(player.Location, task.Location, 8))
-                {
-                    GameUtil.AddMessage("You hear a window slammed shut to the " + direction.ToString() + ".");
-                }
-            }
-        }
-
-        public static void OpenFridge(World world, Character character, int loudness)
-        {
-            Task task = character.Job.Get_CurrentTask();
-
-            Vector2 location = new Vector2(task.Location.X, task.Location.Y);
-
-            Character player = Handler.GetPlayer();
-
-            if (loudness == 1)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorOpen", new Vector2(player.Location.X, player.Location.Y), location, 2);
-            }
-            else if (loudness == 2)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorOpen", new Vector2(player.Location.X, player.Location.Y), location, 4);
-            }
-            else if (loudness == 3)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorOpen", new Vector2(player.Location.X, player.Location.Y), location, 8);
-            }
-
-            Map map = world.Maps[0];
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
-            Tile tile = middle_tiles.GetTile(location);
-
-            if (character.Direction == Direction.Up &&
-                tile.Direction == Direction.Down)
-            {
-                tile.Texture = AssetManager.Textures["Fridge_South_Used"];
-                tile.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width, Main.Game.TileSize.Y * 2);
-            }
-            else if (character.Direction == Direction.Right &&
-                     tile.Direction == Direction.Left)
-            {
-                tile.Texture = AssetManager.Textures["Fridge_West_Used"];
-                tile.Region = new Region(tile.Region.X - Main.Game.TileSize.X, tile.Region.Y, Main.Game.TileSize.X * 2, tile.Region.Height);
-            }
-            else if (character.Direction == Direction.Down &&
-                     tile.Direction == Direction.Up)
-            {
-                tile.Texture = AssetManager.Textures["Fridge_North_Used"];
-                tile.Region = new Region(tile.Region.X, tile.Region.Y - Main.Game.TileSize.Y, tile.Region.Width, Main.Game.TileSize.Y * 2);
-            }
-            else if (character.Direction == Direction.Left &&
-                     tile.Direction == Direction.Right)
-            {
-                tile.Texture = AssetManager.Textures["Fridge_East_Used"];
-                tile.Region = new Region(tile.Region.X, tile.Region.Y, Main.Game.TileSize.X * 2, tile.Region.Height);
-            }
-            tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
-
-            if (character.Type == "Player")
-            {
-                if (loudness == 1)
-                {
-                    GameUtil.AddMessage("You quietly opened a fridge.");
-                }
-                else if (loudness == 2)
-                {
-                    GameUtil.AddMessage("You opened a fridge.");
-                }
-                else if (loudness == 3)
-                {
-                    GameUtil.AddMessage("You loudly opened a fridge.");
-                }
-            }
-            else
-            {
-                Direction direction = WorldUtil.GetDirection(task.Location, player.Location, true);
-
-                if (loudness == 1 &&
-                    WorldUtil.InRange(player.Location, task.Location, 2))
-                {
-                    GameUtil.AddMessage("You hear a fridge quietly open to the " + direction.ToString() + ".");
-                }
-                else if (loudness == 2 &&
-                         WorldUtil.InRange(player.Location, task.Location, 4))
-                {
-                    GameUtil.AddMessage("You hear a fridge open to the " + direction.ToString() + ".");
-                }
-                else if (loudness == 3 &&
-                         WorldUtil.InRange(player.Location, task.Location, 8))
-                {
-                    GameUtil.AddMessage("You hear a fridge loudly open to the " + direction.ToString() + ".");
-                }
-            }
-        }
-
-        public static void CloseFridge(World world, Character character, int loudness)
-        {
-            Task task = character.Job.Get_CurrentTask();
-
-            Vector2 location = new Vector2(task.Location.X, task.Location.Y);
-
-            Character player = Handler.GetPlayer();
-
-            if (loudness == 1)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorClose", new Vector2(player.Location.X, player.Location.Y), location, 2);
-            }
-            else if (loudness == 2)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorClose", new Vector2(player.Location.X, player.Location.Y), location, 4);
-            }
-            else if (loudness == 3)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorClose", new Vector2(player.Location.X, player.Location.Y), location, 8);
-            }
-
-            Map map = world.Maps[0];
-            Layer bottom_tiles = map.GetLayer("BottomTiles");
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
-            Tile tile = middle_tiles.GetTile(location);
-
-            if (character.Direction == Direction.Up &&
-                tile.Direction == Direction.Down)
-            {
-                tile.Texture = AssetManager.Textures["Fridge_South"];
-                tile.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width, Main.Game.TileSize.Y);
-            }
-            else if (character.Direction == Direction.Right &&
-                     tile.Direction == Direction.Left)
-            {
-                tile.Texture = AssetManager.Textures["Fridge_West"];
-                tile.Region = new Region(tile.Region.X + Main.Game.TileSize.X, tile.Region.Y, Main.Game.TileSize.X, tile.Region.Height);
-            }
-            else if (character.Direction == Direction.Down &&
-                     tile.Direction == Direction.Up)
-            {
-                tile.Texture = AssetManager.Textures["Fridge_North"];
-                tile.Region = new Region(tile.Region.X, tile.Region.Y + Main.Game.TileSize.Y, tile.Region.Width, Main.Game.TileSize.Y);
-            }
-            else if (character.Direction == Direction.Left &&
-                     tile.Direction == Direction.Right)
-            {
-                tile.Texture = AssetManager.Textures["Fridge_East"];
-                tile.Region = new Region(tile.Region.X, tile.Region.Y, Main.Game.TileSize.X, tile.Region.Height);
-            }
-            tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
-
-            tile.BlocksMovement = true;
-
-            if (character.Type == "Player")
-            {
-                if (loudness == 1)
-                {
-                    GameUtil.AddMessage("You softly closed a fridge.");
-                }
-                else if (loudness == 2)
-                {
-                    GameUtil.AddMessage("You closed a fridge.");
-                }
-                else if (loudness == 3)
-                {
-                    GameUtil.AddMessage("You slammed a fridge shut.");
-                }
-            }
-            else
-            {
-                Direction direction = WorldUtil.GetDirection(task.Location, player.Location, true);
-
-                if (loudness == 1 &&
-                    WorldUtil.InRange(player.Location, task.Location, 2))
-                {
-                    GameUtil.AddMessage("You hear a fridge softly closed to the " + direction.ToString() + ".");
-                }
-                else if (loudness == 2 &&
-                         WorldUtil.InRange(player.Location, task.Location, 4))
-                {
-                    GameUtil.AddMessage("You hear a fridge close to the " + direction.ToString() + ".");
-                }
-                else if (loudness == 3 &&
-                         WorldUtil.InRange(player.Location, task.Location, 8))
-                {
-                    GameUtil.AddMessage("You hear a fridge slammed shut to the " + direction.ToString() + ".");
-                }
-            }
-        }
-
-        public static void BreakWindow(Layer effect_tiles, Tile tile, Character character)
-        {
             if (tile.Direction == Direction.Up)
             {
                 tile.Name = "Window_NorthSouth_Broken";
@@ -1745,7 +601,10 @@ namespace Despicaville
             }
 
             Character player = Handler.GetPlayer();
-            AssetManager.PlaySound_Random_AtDistance("GlassBreak", new Vector2(player.Location.X, player.Location.Y), location, 10);
+            if (!player.Unconscious)
+            {
+                AssetManager.PlaySound_Random_AtDistance("GlassBreak", new Vector2(player.Location.X, player.Location.Y), location, 10);
+            }
 
             Tile new_tile = effect_tiles.GetTile(location);
             if (new_tile != null)
@@ -1755,563 +614,6 @@ namespace Despicaville
                 new_tile.Image = new Rectangle(0, 0, new_tile.Texture.Width, new_tile.Texture.Height);
                 new_tile.Visible = true;
             }
-
-            if (character.Type == "Player")
-            {
-                TimeTracker.Tick(1000);
-                GameUtil.AddMessage("You broke a window.");
-            }
-        }
-
-        public static void EndSearch(World world, Character character, int loudness)
-        {
-            Task task = character.Job.Get_CurrentTask();
-
-            Vector2 location = new Vector2(task.Location.X, task.Location.Y);
-
-            Map map = world.Maps[0];
-            Layer bottom_tiles = map.GetLayer("BottomTiles");
-
-            Tile tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, new Location(location.X, location.Y, 0));
-            if (tile == null)
-            {
-                tile = bottom_tiles.GetTile(location);
-            }
-
-            if (tile.Texture != null)
-            {
-                if (tile.Inventory.Items.Count > 0)
-                {
-                    TimeManager.Paused = true;
-
-                    Handler.Trading = true;
-                    Handler.Trading_InventoryID.Add(tile.Inventory.ID);
-
-                    Menu main = MenuManager.GetMenu("Inventory");
-                    main.Load();
-                    main.Active = true;
-                    main.Visible = true;
-                }
-                else
-                {
-                    if (loudness == 1)
-                    {
-                        GameUtil.AddMessage("You quietly searched the " + WorldUtil.GetTile_Name(tile) + ", but found nothing.");
-                    }
-                    else if (loudness == 2)
-                    {
-                        GameUtil.AddMessage("You searched the " + WorldUtil.GetTile_Name(tile) + ", but found nothing.");
-                    }
-                    else if (loudness == 3)
-                    {
-                        GameUtil.AddMessage("You loudly searched the " + WorldUtil.GetTile_Name(tile) + ", but found nothing.");
-                    }
-                }
-            }
-        }
-
-        public static void UseItem(Character character)
-        {
-            Task task = character.Job.Get_CurrentTask();
-
-            Inventory inventory = null;
-            Item item = null;
-
-            foreach (Item existing in character.Inventory.Items)
-            {
-                if (InventoryUtil.IsContainer(existing))
-                {
-                    foreach (Item container_item in existing.Inventory.Items)
-                    {
-                        if (task.Name == "UseItem_" + container_item.ID)
-                        {
-                            item = container_item;
-                            inventory = existing.Inventory;
-                            break;
-                        }
-                    }
-
-                    if (item != null)
-                    {
-                        break;
-                    }
-                }
-                else if (task.Name == "UseItem_" + existing.ID)
-                {
-                    item = existing;
-                    inventory = character.Inventory;
-                    break;
-                }
-            }
-
-            if (item == null)
-            {
-                if (Handler.Trading)
-                {
-                    Inventory other_inventory = InventoryManager.GetInventory(Handler.Trading_InventoryID[Handler.Trading_InventoryID.Count - 1]);
-                    foreach (Item existing in other_inventory.Items)
-                    {
-                        if (InventoryUtil.IsContainer(existing))
-                        {
-                            foreach (Item container_item in existing.Inventory.Items)
-                            {
-                                if (task.Name == "UseItem_" + container_item.ID)
-                                {
-                                    item = container_item;
-                                    inventory = existing.Inventory;
-                                    break;
-                                }
-                            }
-
-                            if (item != null)
-                            {
-                                break;
-                            }
-                        }
-                        else if (task.Name == "UseItem_" + existing.ID)
-                        {
-                            item = existing;
-                            inventory = other_inventory;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (item != null)
-            {
-                int eat = 0;
-                int drink = 0;
-
-                if (InventoryUtil.IsFood(item) ||
-                    item.Task == "Inject")
-                {
-                    Something hunger = item.GetProperty("Hunger");
-                    if (hunger != null)
-                    {
-                        eat++;
-                        character.GetStat("Hunger").IncreaseValue(hunger.Value);
-                    }
-
-                    Something thirst = item.GetProperty("Thirst");
-                    if (thirst != null)
-                    {
-                        drink++;
-                        character.GetStat("Thirst").IncreaseValue(thirst.Value);
-                    }
-
-                    Something stamina = item.GetProperty("Stamina");
-                    if (stamina != null)
-                    {
-                        eat++;
-                        drink++;
-                        character.GetStat("Stamina").IncreaseValue(stamina.Value);
-                    }
-
-                    Something consciousness = item.GetProperty("Consciousness");
-                    if (consciousness != null)
-                    {
-                        eat++;
-                        character.GetStat("Consciousness").IncreaseValue(consciousness.Value);
-                    }
-
-                    Something paranoia = item.GetProperty("Paranoia");
-                    if (paranoia != null)
-                    {
-                        eat++;
-                        character.GetStat("Paranoia").IncreaseValue(paranoia.Value);
-                    }
-
-                    Something bladder = item.GetProperty("Bladder");
-                    if (bladder != null)
-                    {
-                        drink++;
-                        character.GetStat("Bladder").IncreaseValue(bladder.Value);
-                    }
-
-                    Something blood = item.GetProperty("Blood");
-                    if (blood != null)
-                    {
-                        drink++;
-                        character.GetStat("Blood").IncreaseValue(blood.Value);
-                    }
-
-                    Something pain = item.GetProperty("Pain");
-                    if (pain != null)
-                    {
-                        eat++;
-
-                        Something painKiller = character.GetStatusEffect("Painkiller");
-                        if (painKiller != null)
-                        {
-                            painKiller.IncreaseValue(pain.Value);
-                        }
-                        else
-                        {
-                            character.StatusEffects.Add(new Something
-                            {
-                                Name = "Painkiller",
-                                Value = pain.Value
-                            });
-                        }
-                    }
-
-                    Something poison = item.GetProperty("Poison");
-                    if (poison != null)
-                    {
-                        drink++;
-
-                        Something poisoned = character.GetStatusEffect("Poisoned");
-                        if (poisoned != null)
-                        {
-                            poisoned.IncreaseValue(poison.Value);
-                        }
-                        else
-                        {
-                            character.StatusEffects.Add(new Something
-                            {
-                                Name = "Poisoned",
-                                Value = poison.Value
-                            });
-                        }
-                    }
-
-                    inventory.Items.Remove(item);
-
-                    Inventory assets = InventoryManager.GetInventory("Assets");
-                    Item new_item = null;
-
-                    if (item.Name.Contains("Bottle"))
-                    {
-                        new_item = assets.GetItem("Bottle");
-                    }
-                    else if (item.Name.Contains("Bucket"))
-                    {
-                        new_item = assets.GetItem("Bucket");
-                    }
-                    else if (item.Name.Contains("Cannister"))
-                    {
-                        new_item = assets.GetItem("Cannister");
-                    }
-                    else if (item.Name.Contains("Syringe"))
-                    {
-                        new_item = assets.GetItem("Syringe");
-                    }
-
-                    if (new_item != null)
-                    {
-                        Item copy = InventoryUtil.CopyItem(new_item, true);
-                        character.Inventory.Items.Add(copy);
-                    }
-                }
-
-                if (character.Type == "Player")
-                {
-                    if (InventoryUtil.IsFood(item))
-                    {
-                        if (item.Task == "Inject")
-                        {
-                            GameUtil.AddMessage("You injected a " + item.Name + ".");
-                        }
-                        else if (eat >= drink)
-                        {
-                            if (GameUtil.NameStartsWithVowel(item.Name))
-                            {
-                                GameUtil.AddMessage("You ate an " + item.Name + ".");
-                            }
-                            else
-                            {
-                                GameUtil.AddMessage("You ate a " + item.Name + ".");
-                            }
-                        }
-                        else if (drink > eat)
-                        {
-                            if (GameUtil.NameStartsWithVowel(item.Name))
-                            {
-                                GameUtil.AddMessage("You drank an " + item.Name + ".");
-                            }
-                            else
-                            {
-                                GameUtil.AddMessage("You drank a " + item.Name + ".");
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                AbortTask(character);
-            }
-        }
-
-        public static void UseSink_End(Character character, bool fill)
-        {
-            Task task = character.Job.Get_CurrentTask();
-
-            Vector2 location = new Vector2(task.Location.X, task.Location.Y);
-
-            Tile sink = WorldUtil.GetFurniture(Handler.TopFurniture, new Location(location.X, location.Y, 0));
-            if (sink != null)
-            {
-                if (sink.Name.Contains("Sink"))
-                {
-                    string[] name_parts = sink.Texture.Name.Split('_');
-                    sink.Texture = AssetManager.Textures[name_parts[0] + "_" + name_parts[1]];
-                }
-            }
-
-            if (fill)
-            {
-                string[] task_parts = task.Name.Split('_');
-                long item_id = long.Parse(task_parts[3]);
-
-                Item container = character.Inventory.GetItem(item_id);
-                if (container != null)
-                {
-                    string name = container.Name + " of Water";
-
-                    Inventory assets = InventoryManager.GetInventory("Assets");
-                    Item asset_container = assets.GetItem(name);
-                    if (asset_container != null)
-                    {
-                        Item new_container = InventoryUtil.CopyItem(asset_container, true);
-                        character.Inventory.Items.Remove(container);
-                        character.Inventory.Items.Add(new_container);
-                    }
-
-                    if (character.Type == "Player")
-                    {
-                        GameUtil.AddMessage("You filled a " + container.Name + " from a sink.");
-                    }
-                }
-            }
-            else
-            {
-                Something thirst = character.GetStat("Thirst");
-                Something bladder = character.GetStat("Bladder");
-
-                bladder.IncreaseValue(thirst.Value / 2);
-                thirst.Value = 0;
-
-                if (character.Type == "Player")
-                {
-                    GameUtil.AddMessage("You drank water from a sink.");
-                }
-            }
-
-            SoundManager.StopSound("WaterRunning");
-        }
-
-        public static void UseToilet_End(Character character)
-        {
-            Task task = character.Job.Get_CurrentTask();
-
-            Vector2 location = new Vector2(task.Location.X, task.Location.Y);
-
-            Tile toilet = WorldUtil.GetFurniture(Handler.MiddleFurniture, new Location(location.X, location.Y, 0));
-            if (toilet != null)
-            {
-                if (toilet.Name.Contains("Toilet"))
-                {
-                    string[] name_parts = toilet.Texture.Name.Split('_');
-                    toilet.Texture = AssetManager.Textures[name_parts[0] + "_" + name_parts[1]];
-                }
-            }
-
-            Something bladder = character.GetStat("Bladder");
-            bladder.Value = 0;
-
-            Character player = Handler.GetPlayer();
-            Vector2 player_location = new Vector2(player.Location.X, player.Location.Y);
-
-            AssetManager.PlaySound_Random_AtDistance("Flush", player_location, new Vector2(toilet.Location.X, toilet.Location.Y), 5);
-
-            if (character.Type == "Player")
-            {
-                GameUtil.AddMessage("You used a toilet.");
-            }
-            else
-            {
-                Direction direction = WorldUtil.GetDirection(toilet.Location, player.Location, true);
-                if (WorldUtil.InRange(player.Location, toilet.Location, 5))
-                {
-                    GameUtil.AddMessage("You hear a toilet flush to the " + direction.ToString() + ".");
-                }
-            }
-        }
-
-        public static void Attack_End(Character character)
-        {
-            Task task = character.Job.Get_CurrentTask();
-
-            Character player = Handler.GetPlayer();
-
-            Vector2 player_loc = new Vector2(player.Location.X, player.Location.Y);
-            Vector2 character_loc = new Vector2(character.Location.X, character.Location.Y);
-
-            Dictionary<string, string> AttackingWith = CombatUtil.AttackChoice(character);
-            string weapon = AttackingWith.ElementAt(0).Key;
-            string action = AttackingWith.ElementAt(0).Value;
-
-            string bodyPart = "";
-
-            int waitTime = 0;
-
-            CryptoRandom random = new CryptoRandom();
-            int choice = random.Next(0, 12);
-            switch (choice)
-            {
-                case 0:
-                    bodyPart = "Torso";
-                    waitTime = 1;
-                    break;
-
-                case 1:
-                    bodyPart = "Right_Arm";
-                    waitTime = 2;
-                    break;
-
-                case 2:
-                    bodyPart = "Left_Arm";
-                    waitTime = 2;
-                    break;
-
-                case 3:
-                    bodyPart = "Right_Leg";
-                    waitTime = 2;
-                    break;
-
-                case 4:
-                    bodyPart = "Left_Leg";
-                    waitTime = 2;
-                    break;
-
-                case 5:
-                    bodyPart = "Head";
-                    waitTime = 3;
-                    break;
-
-                case 6:
-                    bodyPart = "Groin";
-                    waitTime = 5;
-                    break;
-
-                case 7:
-                    bodyPart = "Right_Hand";
-                    waitTime = 1;
-                    break;
-
-                case 8:
-                    bodyPart = "Left_Hand";
-                    waitTime = 1;
-                    break;
-
-                case 9:
-                    bodyPart = "Right_Foot";
-                    waitTime = 1;
-                    break;
-
-                case 10:
-                    bodyPart = "Left_Foot";
-                    waitTime = 1;
-                    break;
-
-                case 11:
-                    bodyPart = "Neck";
-                    waitTime = 4;
-                    break;
-            }
-
-            Character target = WorldUtil.GetCharacter(task.Location);
-            if (target != null)
-            {
-                AssetManager.PlaySound_Random_AtDistance("Punch", player_loc, character_loc, 2);
-                CombatUtil.DoDamage(character, target, weapon, action, bodyPart);
-
-                if (target.Unconscious)
-                {
-                    if (character.Type != "Player")
-                    {
-                        character.InCombat = false;
-                        character.Target_ID = -1;
-                    }
-
-                    target.InCombat = false;
-                    target.Target_ID = -1;
-                }
-                else if (target.Type != "Player")
-                {
-                    target.Target_ID = character.ID;
-                    target.InCombat = true;
-                }
-            }
-            else
-            {
-                Tile tile = null;
-
-                Tile top_tile = WorldUtil.GetFurniture(Handler.TopFurniture, task.Location);
-                if (top_tile?.Texture != null)
-                {
-                    tile = top_tile;
-                }
-
-                if (tile == null)
-                {
-                    Tile middle_tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, task.Location);
-                    if (middle_tile?.Texture != null)
-                    {
-                        tile = middle_tile;
-                    }
-                }
-
-                if (tile != null)
-                {
-                    AssetManager.PlaySound_Random_AtDistance("Punch", player_loc, character_loc, 2);
-                    GameUtil.AddMessage("You hit a " + WorldUtil.GetTile_Name(tile) + ".");
-                }
-            }
-
-            if (character.Type != "Player")
-            {
-                AddTask(character, "Wait", true, false, TimeSpan.FromSeconds(waitTime), task.Location, task.Direction);
-            }
-        }
-
-        public static void Examine(Character character)
-        {
-            if (character.Type == "Player")
-            {
-                WorldUtil.GenDescription();
-            }
-        }
-
-        #endregion
-
-        public static void AddTask(Character character, string name, bool started, bool keep_on_completed, TimeSpan? time_span, Location location, Direction direction)
-        {
-            Task task = new Task
-            {
-                Name = name,
-                OwnerIDs = GameUtil.OwnerIDs(character),
-                Started = started,
-                Keep_On_Completed = keep_on_completed,
-                StartTime = new TimeHandler(TimeManager.Now),
-                Location = location,
-                Direction = direction
-            };
-
-            if (time_span.HasValue)
-            {
-                task.EndTime = new TimeHandler(TimeManager.Now, (TimeSpan)time_span);
-
-                if (name != "Wait" &&
-                    name != "Turn")
-                {
-                    task.TaskBar = CharacterUtil.GenTaskbar(character, (int)time_span.Value.TotalMilliseconds);
-                }
-            }
-
-            character.Job.Tasks.Add(task);
         }
 
         public static void AbortTask(Character character)
@@ -2325,49 +627,75 @@ namespace Despicaville
 
         public static void Interact(Tile tile, Character player)
         {
-            Task task = new Task();
-            task.OwnerIDs.Add(player.ID);
-            task.Keep_On_Completed = true;
-            task.StartTime = new TimeHandler(TimeManager.Now);
-
-            if (player.Direction == Direction.Up)
-            {
-                task.Location = new Location(player.Location.X, player.Location.Y - 1, 0);
-            }
-            else if (player.Direction == Direction.Right)
-            {
-                task.Location = new Location(player.Location.X + 1, player.Location.Y, 0);
-            }
-            else if (player.Direction == Direction.Down)
-            {
-                task.Location = new Location(player.Location.X, player.Location.Y + 1, 0);
-            }
-            else if (player.Direction == Direction.Left)
-            {
-                task.Location = new Location(player.Location.X - 1, player.Location.Y, 0);
-            }
-
             if (tile != null)
             {
                 if (tile.Name.Contains("Sink"))
                 {
-                    task.Name = "UseSink_Start_Drink";
-                    task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(1));
+                    Something thirst = player.GetStat("Thirst");
+                    if (thirst.Value > 0)
+                    {
+                        TimeSpan duration = TimeSpan.FromSeconds(thirst.Value);
+
+                        player.Job.Tasks.Add(new UseSink
+                        {
+                            Name = "UseSink",
+                            OwnerIDs = new List<long> { player.ID },
+                            Location = tile.Location,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, duration),
+                            TaskBar = CharacterUtil.GenTaskbar(player, (int)duration.TotalMilliseconds)
+                        });
+                    }
+                    else
+                    {
+                        GameUtil.AddMessage("You're not thirsty enough to drink from a sink.");
+                    }
                 }
                 else if (tile.Name.Contains("Toilet"))
                 {
-                    task.Name = "UseToilet_Start";
-                    task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(1));
+                    Something bladder = player.GetStat("Bladder");
+                    if (bladder.Value > 0)
+                    {
+                        TimeSpan duration = TimeSpan.FromSeconds(bladder.Value);
+
+                        player.Job.Tasks.Add(new UseToilet
+                        {
+                            Name = "UseToilet",
+                            OwnerIDs = new List<long> { player.ID },
+                            Location = tile.Location,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, duration),
+                            TaskBar = CharacterUtil.GenTaskbar(player, (int)duration.TotalMilliseconds)
+                        });
+                    }
+                    else
+                    {
+                        GameUtil.AddMessage("You don't need to use a toilet right now.");
+                    }
                 }
                 else if (tile.Name.Contains("Lamp"))
                 {
-                    task.Name = "ToggleLight";
-                    task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1));
+                    player.Job.Tasks.Add(new ToggleLight
+                    {
+                        Name = "ToggleLight",
+                        OwnerIDs = new List<long> { player.ID },
+                        Location = tile.Location,
+                        StartTime = new TimeHandler(TimeManager.Now),
+                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
+                        TaskBar = CharacterUtil.GenTaskbar(player, 1000)
+                    });
                 }
                 else if (tile.Name.Contains("TV"))
                 {
-                    task.Name = "ToggleTV";
-                    task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1));
+                    player.Job.Tasks.Add(new ToggleTV
+                    {
+                        Name = "ToggleTV",
+                        OwnerIDs = new List<long> { player.ID },
+                        Location = tile.Location,
+                        StartTime = new TimeHandler(TimeManager.Now),
+                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
+                        TaskBar = CharacterUtil.GenTaskbar(player, 1000)
+                    });
                 }
                 else if (tile.Name.Contains("Door"))
                 {
@@ -2375,40 +703,78 @@ namespace Despicaville
                     {
                         if (InputManager.KeyDown("Crouch"))
                         {
-                            task.Name = "Quiet_OpenDoor";
-                            task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(4));
-                            task.TaskBar = CharacterUtil.GenTaskbar(player, 4000);
+                            player.Job.Tasks.Add(new OpenDoor
+                            {
+                                Name = "Quiet_OpenDoor",
+                                OwnerIDs = new List<long> { player.ID },
+                                Location = tile.Location,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(4)),
+                                TaskBar = CharacterUtil.GenTaskbar(player, 4000)
+                            });
                         }
                         else if (InputManager.KeyDown("Run"))
                         {
-                            task.Name = "Loud_OpenDoor";
-                            task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(250));
-                            task.TaskBar = CharacterUtil.GenTaskbar(player, 250);
+                            player.Job.Tasks.Add(new OpenDoor
+                            {
+                                Name = "Loud_OpenDoor",
+                                OwnerIDs = new List<long> { player.ID },
+                                Location = tile.Location,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
+                                TaskBar = CharacterUtil.GenTaskbar(player, 1000)
+                            });
                         }
                         else
                         {
-                            task.Name = "OpenDoor";
-                            task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1));
+                            player.Job.Tasks.Add(new OpenDoor
+                            {
+                                Name = "OpenDoor",
+                                OwnerIDs = new List<long> { player.ID },
+                                Location = tile.Location,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
+                                TaskBar = CharacterUtil.GenTaskbar(player, 2000)
+                            });
                         }
                     }
                     else if (tile.Name.Contains("Open"))
                     {
                         if (InputManager.KeyDown("Crouch"))
                         {
-                            task.Name = "Quiet_CloseDoor";
-                            task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(4));
-                            task.TaskBar = CharacterUtil.GenTaskbar(player, 4000);
+                            player.Job.Tasks.Add(new CloseDoor
+                            {
+                                Name = "Quiet_CloseDoor",
+                                OwnerIDs = new List<long> { player.ID },
+                                Location = tile.Location,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(4)),
+                                TaskBar = CharacterUtil.GenTaskbar(player, 4000)
+                            });
                         }
                         else if (InputManager.KeyDown("Run"))
                         {
-                            task.Name = "Loud_CloseDoor";
-                            task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(250));
-                            task.TaskBar = CharacterUtil.GenTaskbar(player, 250);
+                            player.Job.Tasks.Add(new CloseDoor
+                            {
+                                Name = "Loud_CloseDoor",
+                                OwnerIDs = new List<long> { player.ID },
+                                Location = tile.Location,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
+                                TaskBar = CharacterUtil.GenTaskbar(player, 1000)
+                            });
                         }
                         else
                         {
-                            task.Name = "CloseDoor";
-                            task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1));
+                            player.Job.Tasks.Add(new CloseDoor
+                            {
+                                Name = "CloseDoor",
+                                OwnerIDs = new List<long> { player.ID },
+                                Location = tile.Location,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
+                                TaskBar = CharacterUtil.GenTaskbar(player, 2000)
+                            });
                         }
                     }
                 }
@@ -2419,40 +785,78 @@ namespace Despicaville
                     {
                         if (InputManager.KeyDown("Crouch"))
                         {
-                            task.Name = "Quiet_OpenWindow";
-                            task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(4));
-                            task.TaskBar = CharacterUtil.GenTaskbar(player, 4000);
+                            player.Job.Tasks.Add(new OpenWindow
+                            {
+                                Name = "Quiet_OpenWindow",
+                                OwnerIDs = new List<long> { player.ID },
+                                Location = tile.Location,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(4)),
+                                TaskBar = CharacterUtil.GenTaskbar(player, 4000)
+                            });
                         }
                         else if (InputManager.KeyDown("Run"))
                         {
-                            task.Name = "Loud_OpenWindow";
-                            task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(250));
-                            task.TaskBar = CharacterUtil.GenTaskbar(player, 250);
+                            player.Job.Tasks.Add(new OpenWindow
+                            {
+                                Name = "Loud_OpenWindow",
+                                OwnerIDs = new List<long> { player.ID },
+                                Location = tile.Location,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
+                                TaskBar = CharacterUtil.GenTaskbar(player, 1000)
+                            });
                         }
                         else
                         {
-                            task.Name = "OpenWindow";
-                            task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1));
+                            player.Job.Tasks.Add(new OpenWindow
+                            {
+                                Name = "OpenWindow",
+                                OwnerIDs = new List<long> { player.ID },
+                                Location = tile.Location,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
+                                TaskBar = CharacterUtil.GenTaskbar(player, 2000)
+                            });
                         }
                     }
                     else if (tile.Name.Contains("Open"))
                     {
                         if (InputManager.KeyDown("Crouch"))
                         {
-                            task.Name = "Quiet_CloseWindow";
-                            task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(4));
-                            task.TaskBar = CharacterUtil.GenTaskbar(player, 4000);
+                            player.Job.Tasks.Add(new CloseWindow
+                            {
+                                Name = "Quiet_CloseWindow",
+                                OwnerIDs = new List<long> { player.ID },
+                                Location = tile.Location,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(4)),
+                                TaskBar = CharacterUtil.GenTaskbar(player, 4000)
+                            });
                         }
                         else if (InputManager.KeyDown("Run"))
                         {
-                            task.Name = "Loud_CloseWindow";
-                            task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(250));
-                            task.TaskBar = CharacterUtil.GenTaskbar(player, 250);
+                            player.Job.Tasks.Add(new CloseWindow
+                            {
+                                Name = "Loud_CloseWindow",
+                                OwnerIDs = new List<long> { player.ID },
+                                Location = tile.Location,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
+                                TaskBar = CharacterUtil.GenTaskbar(player, 1000)
+                            });
                         }
                         else
                         {
-                            task.Name = "CloseWindow";
-                            task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1));
+                            player.Job.Tasks.Add(new CloseWindow
+                            {
+                                Name = "CloseWindow",
+                                OwnerIDs = new List<long> { player.ID },
+                                Location = tile.Location,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
+                                TaskBar = CharacterUtil.GenTaskbar(player, 2000)
+                            });
                         }
                     }
                 }
@@ -2460,23 +864,44 @@ namespace Despicaville
                 {
                     if (InputManager.KeyDown("Crouch"))
                     {
-                        task.Name = "Quiet_Search";
-                        task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(100));
-                        task.TaskBar = CharacterUtil.GenTaskbar(player, 100000);
+                        player.Job.Tasks.Add(new Search
+                        {
+                            Name = "Quiet_Search",
+                            OwnerIDs = new List<long> { player.ID },
+                            Location = tile.Location,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(20)),
+                            TaskBar = CharacterUtil.GenTaskbar(player, 20000)
+                        });
+
                         GameUtil.AddMessage("You started quietly searching the " + WorldUtil.GetTile_Name(tile) + ".");
                     }
                     else if (InputManager.KeyDown("Run"))
                     {
-                        task.Name = "Loud_Search";
-                        task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1));
-                        task.TaskBar = CharacterUtil.GenTaskbar(player, 1000);
+                        player.Job.Tasks.Add(new Search
+                        {
+                            Name = "Loud_Search",
+                            OwnerIDs = new List<long> { player.ID },
+                            Location = tile.Location,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(5)),
+                            TaskBar = CharacterUtil.GenTaskbar(player, 5000)
+                        });
+
                         GameUtil.AddMessage("You started quickly searching the " + WorldUtil.GetTile_Name(tile) + ".");
                     }
                     else
                     {
-                        task.Name = "Search";
-                        task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(10));
-                        task.TaskBar = CharacterUtil.GenTaskbar(player, 10000);
+                        player.Job.Tasks.Add(new Search
+                        {
+                            Name = "Search",
+                            OwnerIDs = new List<long> { player.ID },
+                            Location = tile.Location,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(10)),
+                            TaskBar = CharacterUtil.GenTaskbar(player, 10000)
+                        });
+
                         GameUtil.AddMessage("You started searching the " + WorldUtil.GetTile_Name(tile) + ".");
                     }
                 }
@@ -2502,15 +927,6 @@ namespace Despicaville
                         GameUtil.AddMessage("You can't do anything with the " + WorldUtil.GetTile_Name(tile) + ".");
                     }
                 }
-            }
-
-            if (!string.IsNullOrEmpty(task.Name))
-            {
-                player.Job.Tasks.Add(task);
-            }
-            else
-            {
-                task.Dispose();
             }
         }
 
@@ -2588,11 +1004,23 @@ namespace Despicaville
                 {
                     if (desperate)
                     {
-                        AddTask(character, "Run", true, false, null, default, character.Direction);
+                        character.Job.Tasks.Add(new Move
+                        {
+                            Name = "Run",
+                            OwnerIDs = new List<long> { character.ID },
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = character.Direction
+                        });
                     }
                     else
                     {
-                        AddTask(character, "Walk", true, false, null, default, character.Direction);
+                        character.Job.Tasks.Add(new Move
+                        {
+                            Name = "Walk",
+                            OwnerIDs = new List<long> { character.ID },
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = character.Direction
+                        });
                     }
                 }
                 else
@@ -2614,18 +1042,55 @@ namespace Despicaville
 
                 character.Path.AddRange(path);
 
-                if (desperate)
-                {
-                    AddTask(character, "GoTo_Run", true, false, null, default, 0);
-                }
-                else
-                {
-                    AddTask(character, "GoTo_Walk", true, false, null, default, 0);
-                }
+                ContinuePathing(character, desperate);
             }
             else
             {
                 Wander(character);
+            }
+        }
+
+        private static void ContinuePathing(Character character, bool desperate)
+        {
+            Direction direction = WorldUtil.GetDirection(new Location(character.Path[0].X, character.Path[0].Y, 0), character.Location, false);
+            if (direction == Direction.Up)
+            {
+                character.Destination = new Location(character.Location.X, character.Location.Y - 1, character.Location.Z);
+            }
+            else if (direction == Direction.Right)
+            {
+                character.Destination = new Location(character.Location.X + 1, character.Location.Y, character.Location.Z);
+            }
+            else if (direction == Direction.Down)
+            {
+                character.Destination = new Location(character.Location.X, character.Location.Y + 1, character.Location.Z);
+            }
+            else if (direction == Direction.Left)
+            {
+                character.Destination = new Location(character.Location.X - 1, character.Location.Y, character.Location.Z);
+            }
+
+            if (desperate)
+            {
+                character.Job.Tasks.Add(new Move
+                {
+                    Name = "Run",
+                    OwnerIDs = new List<long> { character.ID },
+                    StartTime = new TimeHandler(TimeManager.Now),
+                    Location = character.Destination,
+                    Direction = direction
+                });
+            }
+            else
+            {
+                character.Job.Tasks.Add(new Move
+                {
+                    Name = "Walk",
+                    OwnerIDs = new List<long> { character.ID },
+                    StartTime = new TimeHandler(TimeManager.Now),
+                    Location = character.Destination,
+                    Direction = direction
+                });
             }
         }
 
