@@ -1527,7 +1527,7 @@ namespace Despicaville.Menus
                             Texture = texture,
                             Image = new Rectangle(0, 0, texture.Width, texture.Height),
                             Region = new Region(X, Y, tileWidth, tileWidth),
-                            Dimensions = new Dimension3(1, 1, 0),
+                            Dimensions = new Dimension2(1, 1),
                             DrawColor = Color.White,
                             Visible = true
                         };
@@ -1683,7 +1683,7 @@ namespace Despicaville.Menus
                             Texture = texture,
                             Image = new Rectangle(0, 0, texture.Width, texture.Height),
                             Region = region,
-                            Dimensions = new Dimension3((int)width_scale, (int)height_scale, 0),
+                            Dimensions = new Dimension2((int)width_scale, (int)height_scale),
                             DrawColor = Color.White,
                             Visible = true
                         };
@@ -2538,7 +2538,7 @@ namespace Despicaville.Menus
             {
                 foreach (Tile tile in room.Tiles)
                 {
-                    Tile middle = middle_tiles.GetTile(new Vector2(tile.Location.X, tile.Location.Y));
+                    Tile middle = middle_tiles.GetTile(tile.Location.ToVector2);
                     if (!middle.BlocksMovement)
                     {
                         Vector3 north = new Vector3(tile.Location.X, tile.Location.Y - 1, 0);

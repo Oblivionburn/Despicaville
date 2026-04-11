@@ -1,14 +1,11 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-
 using OP_Engine.Rendering;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
 using OP_Engine.Scenes;
-
 using Despicaville.Util;
 
 namespace Despicaville
@@ -245,7 +242,7 @@ namespace Despicaville
                 for (int i = 0; i < light_maps.Count; i++)
                 {
                     Something map = light_maps[i];
-                    Vector2 coord = new Vector2(map.Location.X, map.Location.Y);
+                    Vector2 coord = map.Location.ToVector2;
 
                     Rectangle region = new Rectangle((int)map.Region.X, (int)map.Region.Y, (int)Main.Game.TileSize.X, (int)Main.Game.TileSize.Y);
 

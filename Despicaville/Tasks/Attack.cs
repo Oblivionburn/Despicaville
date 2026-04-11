@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
-using Microsoft.Xna.Framework;
 using OP_Engine.Characters;
 using OP_Engine.Jobs;
 using OP_Engine.Utility;
@@ -21,17 +20,12 @@ namespace Despicaville.Tasks
                 return;
             }
 
-            Character player = Handler.GetPlayer();
-
-            Vector2 player_loc = new Vector2(player.Location.X, player.Location.Y);
-            Vector2 character_loc = new Vector2(character.Location.X, character.Location.Y);
-
-            AssetManager.PlaySound_Random_AtDistance("Swing", player_loc, character_loc, 2);
+            AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
 
             TimeSpan startTime = TimeSpan.FromMilliseconds(StartTime.TotalMilliseconds);
             int duration = (int)(EndTime.TotalMilliseconds - StartTime.TotalMilliseconds);
 
-            WorldUtil.AddEffect_Animated(new Vector2(Location.X, Location.Y), Direction, "Swing", startTime, duration);
+            WorldUtil.AddEffect_Animated(Location.ToVector2, Direction, "Swing", startTime, duration);
         }
 
         public override void Action_End()
@@ -41,11 +35,6 @@ namespace Despicaville.Tasks
             {
                 return;
             }
-
-            Character player = Handler.GetPlayer();
-
-            Vector2 player_loc = new Vector2(player.Location.X, player.Location.Y);
-            Vector2 character_loc = new Vector2(character.Location.X, character.Location.Y);
 
             Dictionary<string, string> AttackingWith = CombatUtil.AttackChoice(character);
             string weapon = AttackingWith.ElementAt(0).Key;
@@ -115,7 +104,7 @@ namespace Despicaville.Tasks
             Character target = WorldUtil.GetCharacter(Location);
             if (target != null)
             {
-                AssetManager.PlaySound_Random_AtDistance("Punch", player_loc, character_loc, 2);
+                AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
                 CombatUtil.DoDamage(character, target, weapon, action, bodyPart);
 
                 if (target.Unconscious)
@@ -167,7 +156,7 @@ namespace Despicaville.Tasks
 
                 if (tile != null)
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Punch", player_loc, character_loc, 2);
+                    AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
                     GameUtil.AddMessage("You hit a " + WorldUtil.GetTile_Name(tile) + ".");
                 }
             }

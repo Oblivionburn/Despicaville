@@ -23,7 +23,6 @@ namespace Despicaville.Menus
         private bool menu;
         private long selected_wound;
 
-        Character player;
         Item selected_item;
         List<Picture> GridList = new List<Picture>();
 
@@ -67,7 +66,7 @@ namespace Despicaville.Menus
                     }
                 }
 
-                foreach (BodyPart bodyPart in player.BodyParts)
+                foreach (BodyPart bodyPart in Handler.Player.BodyParts)
                 {
                     foreach (Something wound in bodyPart.Wounds)
                     {
@@ -186,7 +185,7 @@ namespace Despicaville.Menus
         {
             bool found = false;
 
-            foreach (BodyPart bodyPart in player.BodyParts)
+            foreach (BodyPart bodyPart in Handler.Player.BodyParts)
             {
                 foreach (Something wound in bodyPart.Wounds)
                 {
@@ -264,7 +263,7 @@ namespace Despicaville.Menus
 
             y += (int)Main.Game.MenuSize_Y;
             bool found = false;
-            foreach (Item item in player.Inventory.Items)
+            foreach (Item item in Handler.Player.Inventory.Items)
             {
                 if ((wound.Name == "Break" ||
                      wound.Name == "Fracture") &&
@@ -372,7 +371,7 @@ namespace Despicaville.Menus
 
         private void Heal()
         {
-            foreach (BodyPart bodyPart in player.BodyParts)
+            foreach (BodyPart bodyPart in Handler.Player.BodyParts)
             {
                 foreach (Something wound in bodyPart.Wounds)
                 {
@@ -401,7 +400,7 @@ namespace Despicaville.Menus
                         wound.Image = new Rectangle(0, 0, wound.Texture.Width, wound.Texture.Height);
                         wound.Value /= 2;
 
-                        player.Inventory.Items.Remove(selected_item);
+                        Handler.Player.Inventory.Items.Remove(selected_item);
                         selected_item = null;
 
                         break;
@@ -484,7 +483,7 @@ namespace Despicaville.Menus
                 int grid_x = 0;
                 int grid_y = 0;
 
-                foreach (BodyPart bodyPart in player.BodyParts)
+                foreach (BodyPart bodyPart in Handler.Player.BodyParts)
                 {
                     foreach (Something wound in bodyPart.Wounds)
                     {
@@ -509,27 +508,27 @@ namespace Despicaville.Menus
 
         private void ResizeGrid()
         {
-            if (player != null)
-            {
-                int starting_x = inventory_x;
-                int starting_y = (int)(inventory_y + Main.Game.MenuSize_Y);
+            int starting_x = inventory_x;
+            int starting_y = (int)(inventory_y + Main.Game.MenuSize_Y);
 
-                for (int y = 0; y < 10; y++)
+            for (int y = 0; y < 10; y++)
+            {
+                for (int x = 0; x < 10; x++)
                 {
-                    for (int x = 0; x < 10; x++)
+                    Picture existing = GetPicture("x:" + x.ToString() + ",y:" + y.ToString());
+                    if (existing != null)
                     {
-                        Picture existing = GetPicture("x:" + x.ToString() + ",y:" + y.ToString());
-                        if (existing != null)
-                        {
-                            existing.Region = new Region(starting_x + (Main.Game.MenuSize_X * x), starting_y + (Main.Game.MenuSize_Y * y), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-                        }
+                        existing.Region = new Region(starting_x + (Main.Game.MenuSize_X * x), starting_y + (Main.Game.MenuSize_Y * y), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
                     }
                 }
+            }
 
-                int grid_x = 0;
-                int grid_y = 0;
+            int grid_x = 0;
+            int grid_y = 0;
 
-                foreach (BodyPart bodyPart in player.BodyParts)
+            if (Handler.Player != null)
+            {
+                foreach (BodyPart bodyPart in Handler.Player.BodyParts)
                 {
                     foreach (Something wound in bodyPart.Wounds)
                     {
@@ -594,7 +593,6 @@ namespace Despicaville.Menus
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "", Color.White, AssetManager.Textures["Frame"], new Region(0, 0, 0, 0), false);
             AddPicture(Handler.GetID(), "Highlight", AssetManager.Textures["Grid_Hover"], new Region(0, 0, 0, 0), Color.White, false);
 
-            player = Handler.GetPlayer();
             LoadGrid();
 
             Resize(Main.Game.Resolution);

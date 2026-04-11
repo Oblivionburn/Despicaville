@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Xna.Framework;
 using OP_Engine.Characters;
 using OP_Engine.Jobs;
 using OP_Engine.Utility;
@@ -24,7 +23,7 @@ namespace Despicaville.Tasks
 
             if (CharacterUtil.HeldByPlayer(character))
             {
-                Direction direction = WorldUtil.GetDirection(Handler.GetPlayer().Location, character.Location, false);
+                Direction direction = WorldUtil.GetDirection(Handler.Player.Location, character.Location, false);
                 if (direction == Direction.Up)
                 {
                     character.Animator.FaceNorth(character);
@@ -97,7 +96,7 @@ namespace Despicaville.Tasks
                     character.Moving = true;
 
                     Layer middle_tiles = map.GetLayer("MiddleTiles");
-                    Tile tile = middle_tiles.GetTile(new Vector2(character.Destination.X, character.Destination.Y));
+                    Tile tile = middle_tiles.GetTile(character.Destination.ToVector2);
                     if (tile != null)
                     {
                         if (tile.Name.Contains("Window") &&
@@ -126,7 +125,7 @@ namespace Despicaville.Tasks
                 else if (character.Type != "Player")
                 {
                     Layer middle_tiles = map.GetLayer("MiddleTiles");
-                    Tile tile = middle_tiles.GetTile(new Vector2(character.Destination.X, character.Destination.Y));
+                    Tile tile = middle_tiles.GetTile(character.Destination.ToVector2);
                     if (tile != null)
                     {
                         if (tile.Name.Contains("Window") &&
@@ -273,25 +272,39 @@ namespace Despicaville.Tasks
 
                 if (character.Type == "Player")
                 {
-                    Something heldThing = WorldUtil.GetHeldThing();
-                    if (heldThing != null)
+                    if (Handler.Holding_Character != null)
                     {
-                        if (heldThing.Location.Y == character.Location.Y)
+                        if (Handler.Holding_Character.Location.Y == character.Location.Y)
                         {
-                            heldThing.Region.X += character.Speed;
+                            Handler.Holding_Character.Region.X += character.Speed;
                         }
-                        else if (heldThing.Location.Y < character.Location.Y)
+                        else if (Handler.Holding_Character.Location.Y < character.Location.Y)
                         {
-                            heldThing.Region.Y += character.Speed;
+                            Handler.Holding_Character.Region.Y += character.Speed;
                         }
-                        else if (heldThing.Location.Y > character.Location.Y)
+                        else if (Handler.Holding_Character.Location.Y > character.Location.Y)
                         {
-                            heldThing.Region.Y -= character.Speed;
+                            Handler.Holding_Character.Region.Y -= character.Speed;
                         }
 
-                        if (heldThing.Type == "Citizen")
+                        if (Handler.Holding_Character.Type == "Citizen")
                         {
-                            CharacterUtil.UpdateGear((Character)heldThing);
+                            CharacterUtil.UpdateGear(Handler.Holding_Character);
+                        }
+                    }
+                    else if (Handler.Holding_Tile != null)
+                    {
+                        if (Handler.Holding_Tile.Location.Y == character.Location.Y)
+                        {
+                            Handler.Holding_Tile.Region.X += character.Speed;
+                        }
+                        else if (Handler.Holding_Tile.Location.Y < character.Location.Y)
+                        {
+                            Handler.Holding_Tile.Region.Y += character.Speed;
+                        }
+                        else if (Handler.Holding_Tile.Location.Y > character.Location.Y)
+                        {
+                            Handler.Holding_Tile.Region.Y -= character.Speed;
                         }
                     }
                 }
@@ -302,10 +315,13 @@ namespace Despicaville.Tasks
 
                     if (character.Type == "Player")
                     {
-                        Something heldThing = WorldUtil.GetHeldThing();
-                        if (heldThing != null)
+                        if (Handler.Holding_Character != null)
                         {
-                            WorldUtil.MoveHeldThing(character, Direction.East, heldThing.Region.X < character.Region.X);
+                            WorldUtil.PullHeld_Character(character, Direction.East, Handler.Holding_Character.Region.X < character.Region.X);
+                        }
+                        else if (Handler.Holding_Tile != null)
+                        {
+                            WorldUtil.PullHeld_Tile(character, Direction.East, Handler.Holding_Tile.Region.X < character.Region.X);
                         }
                     }
 
@@ -331,25 +347,39 @@ namespace Despicaville.Tasks
 
                 if (character.Type == "Player")
                 {
-                    Something heldThing = WorldUtil.GetHeldThing();
-                    if (heldThing != null)
+                    if (Handler.Holding_Character != null)
                     {
-                        if (heldThing.Location.Y == character.Location.Y)
+                        if (Handler.Holding_Character.Location.Y == character.Location.Y)
                         {
-                            heldThing.Region.X -= character.Speed;
+                            Handler.Holding_Character.Region.X -= character.Speed;
                         }
-                        else if (heldThing.Location.Y < character.Location.Y)
+                        else if (Handler.Holding_Character.Location.Y < character.Location.Y)
                         {
-                            heldThing.Region.Y += character.Speed;
+                            Handler.Holding_Character.Region.Y += character.Speed;
                         }
-                        else if (heldThing.Location.Y > character.Location.Y)
+                        else if (Handler.Holding_Character.Location.Y > character.Location.Y)
                         {
-                            heldThing.Region.Y -= character.Speed;
+                            Handler.Holding_Character.Region.Y -= character.Speed;
                         }
 
-                        if (heldThing.Type == "Citizen")
+                        if (Handler.Holding_Character.Type == "Citizen")
                         {
-                            CharacterUtil.UpdateGear((Character)heldThing);
+                            CharacterUtil.UpdateGear(Handler.Holding_Character);
+                        }
+                    }
+                    else if (Handler.Holding_Tile != null)
+                    {
+                        if (Handler.Holding_Tile.Location.Y == character.Location.Y)
+                        {
+                            Handler.Holding_Tile.Region.X -= character.Speed;
+                        }
+                        else if (Handler.Holding_Tile.Location.Y < character.Location.Y)
+                        {
+                            Handler.Holding_Tile.Region.Y += character.Speed;
+                        }
+                        else if (Handler.Holding_Tile.Location.Y > character.Location.Y)
+                        {
+                            Handler.Holding_Tile.Region.Y -= character.Speed;
                         }
                     }
                 }
@@ -360,10 +390,13 @@ namespace Despicaville.Tasks
 
                     if (character.Type == "Player")
                     {
-                        Something heldThing = WorldUtil.GetHeldThing();
-                        if (heldThing != null)
+                        if (Handler.Holding_Character != null)
                         {
-                            WorldUtil.MoveHeldThing(character, Direction.West, heldThing.Region.X > character.Region.X);
+                            WorldUtil.PullHeld_Character(character, Direction.West, Handler.Holding_Character.Region.X > character.Region.X);
+                        }
+                        else if (Handler.Holding_Tile != null)
+                        {
+                            WorldUtil.PullHeld_Tile(character, Direction.West, Handler.Holding_Tile.Region.X > character.Region.X);
                         }
                     }
 
@@ -391,25 +424,39 @@ namespace Despicaville.Tasks
 
                     if (character.Type == "Player")
                     {
-                        Something heldThing = WorldUtil.GetHeldThing();
-                        if (heldThing != null)
+                        if (Handler.Holding_Character != null)
                         {
-                            if (heldThing.Location.X == character.Location.X)
+                            if (Handler.Holding_Character.Location.X == character.Location.X)
                             {
-                                heldThing.Region.Y += character.Speed;
+                                Handler.Holding_Character.Region.Y += character.Speed;
                             }
-                            else if (heldThing.Location.X < character.Location.X)
+                            else if (Handler.Holding_Character.Location.X < character.Location.X)
                             {
-                                heldThing.Region.X += character.Speed;
+                                Handler.Holding_Character.Region.X += character.Speed;
                             }
-                            else if (heldThing.Location.X > character.Location.X)
+                            else if (Handler.Holding_Character.Location.X > character.Location.X)
                             {
-                                heldThing.Region.X -= character.Speed;
+                                Handler.Holding_Character.Region.X -= character.Speed;
                             }
 
-                            if (heldThing.Type == "Citizen")
+                            if (Handler.Holding_Character.Type == "Citizen")
                             {
-                                CharacterUtil.UpdateGear((Character)heldThing);
+                                CharacterUtil.UpdateGear(Handler.Holding_Character);
+                            }
+                        }
+                        else if (Handler.Holding_Tile != null)
+                        {
+                            if (Handler.Holding_Tile.Location.X == character.Location.X)
+                            {
+                                Handler.Holding_Tile.Region.Y += character.Speed;
+                            }
+                            else if (Handler.Holding_Tile.Location.X < character.Location.X)
+                            {
+                                Handler.Holding_Tile.Region.X += character.Speed;
+                            }
+                            else if (Handler.Holding_Tile.Location.X > character.Location.X)
+                            {
+                                Handler.Holding_Tile.Region.X -= character.Speed;
                             }
                         }
                     }
@@ -420,10 +467,13 @@ namespace Despicaville.Tasks
 
                         if (character.Type == "Player")
                         {
-                            Something heldThing = WorldUtil.GetHeldThing();
-                            if (heldThing != null)
+                            if (Handler.Holding_Character != null)
                             {
-                                WorldUtil.MoveHeldThing(character, Direction.South, heldThing.Region.Y < character.Region.Y);
+                                WorldUtil.PullHeld_Character(character, Direction.South, Handler.Holding_Character.Region.Y < character.Region.Y);
+                            }
+                            else if (Handler.Holding_Tile != null)
+                            {
+                                WorldUtil.PullHeld_Tile(character, Direction.South, Handler.Holding_Tile.Region.Y < character.Region.Y);
                             }
                         }
 
@@ -449,25 +499,39 @@ namespace Despicaville.Tasks
 
                     if (character.Type == "Player")
                     {
-                        Something heldThing = WorldUtil.GetHeldThing();
-                        if (heldThing != null)
+                        if (Handler.Holding_Character != null)
                         {
-                            if (heldThing.Location.X == character.Location.X)
+                            if (Handler.Holding_Character.Location.X == character.Location.X)
                             {
-                                heldThing.Region.Y -= character.Speed;
+                                Handler.Holding_Character.Region.Y -= character.Speed;
                             }
-                            else if (heldThing.Location.X < character.Location.X)
+                            else if (Handler.Holding_Character.Location.X < character.Location.X)
                             {
-                                heldThing.Region.X += character.Speed;
+                                Handler.Holding_Character.Region.X += character.Speed;
                             }
-                            else if (heldThing.Location.X > character.Location.X)
+                            else if (Handler.Holding_Character.Location.X > character.Location.X)
                             {
-                                heldThing.Region.X -= character.Speed;
+                                Handler.Holding_Character.Region.X -= character.Speed;
                             }
 
-                            if (heldThing.Type == "Citizen")
+                            if (Handler.Holding_Character.Type == "Citizen")
                             {
-                                CharacterUtil.UpdateGear((Character)heldThing);
+                                CharacterUtil.UpdateGear(Handler.Holding_Character);
+                            }
+                        }
+                        else if (Handler.Holding_Tile != null)
+                        {
+                            if (Handler.Holding_Tile.Location.X == character.Location.X)
+                            {
+                                Handler.Holding_Tile.Region.Y -= character.Speed;
+                            }
+                            else if (Handler.Holding_Tile.Location.X < character.Location.X)
+                            {
+                                Handler.Holding_Tile.Region.X += character.Speed;
+                            }
+                            else if (Handler.Holding_Tile.Location.X > character.Location.X)
+                            {
+                                Handler.Holding_Tile.Region.X -= character.Speed;
                             }
                         }
                     }
@@ -478,10 +542,13 @@ namespace Despicaville.Tasks
 
                         if (character.Type == "Player")
                         {
-                            Something heldThing = WorldUtil.GetHeldThing();
-                            if (heldThing != null)
+                            if (Handler.Holding_Character != null)
                             {
-                                WorldUtil.MoveHeldThing(character, Direction.North, heldThing.Region.Y > character.Region.Y);
+                                WorldUtil.PullHeld_Character(character, Direction.North, Handler.Holding_Character.Region.Y > character.Region.Y);
+                            }
+                            else if (Handler.Holding_Tile != null)
+                            {
+                                WorldUtil.PullHeld_Tile(character, Direction.North, Handler.Holding_Tile.Region.Y > character.Region.Y);
                             }
                         }
 
@@ -511,7 +578,6 @@ namespace Despicaville.Tasks
             if (character.Type == "Player")
             {
                 TimeTracker.Tick(Handler.ActionRate);
-                GameUtil.CenterToPlayer_OnFrame();
             }
         }
 
@@ -523,35 +589,40 @@ namespace Despicaville.Tasks
                 return;
             }
 
+            if (character.Moving)
+            {
+                Something stamina = character.GetStat("Stamina");
+                Something endurance = character.GetStat("Endurance");
+
+                if (Name == "Sneak")
+                {
+                    stamina.DecreaseValue(0.0385f / endurance.Value);
+                }
+                else if (Name == "Walk")
+                {
+                    stamina.DecreaseValue(0.077f / endurance.Value);
+                }
+                else if (Name == "Run")
+                {
+                    stamina.DecreaseValue(0.154f / endurance.Value);
+                }
+
+                WorldUtil.SetCurrentMap(character);
+            }
+
             character.Moved = 0;
             character.Moving = false;
             character.Animator.Reset(character);
-
-            Something stamina = character.GetStat("Stamina");
-            Something endurance = character.GetStat("Endurance");
-
-            if (Name == "Sneak")
-            {
-                stamina.DecreaseValue(0.0385f / endurance.Value);
-            }
-            else if (Name == "Walk")
-            {
-                stamina.DecreaseValue(0.077f / endurance.Value);
-            }
-            else if (Name == "Run")
-            {
-                stamina.DecreaseValue(0.154f / endurance.Value);
-            }
-
-            WorldUtil.SetCurrentMap(character);
             CharacterUtil.UpdateGear(character);
 
             if (character.Unconscious)
             {
                 return;
             }
-
-            CharacterUtil.UpdateSight(character);
+            else
+            {
+                CharacterUtil.UpdateSight(character);
+            }
 
             if (character.InCombat)
             {

@@ -263,9 +263,8 @@ namespace Despicaville.Menus
 
         private void Attack()
         {
-            Character player = Handler.GetPlayer();
             Character target = Handler.Interaction_Character;
-            player.Target_ID = target.ID;
+            Handler.Player.Target_ID = target.ID;
 
             string attacking_with = GetButton("AttackingWith_Value").Text;
             string attack_type = GetButton("AttackType_Value").Text;
@@ -275,13 +274,13 @@ namespace Despicaville.Menus
             task.Name = attack_type;
             task.Assignment = part_target;
             task.Type = attacking_with;
-            task.OwnerIDs.Add(player.ID);
+            task.OwnerIDs.Add(Handler.Player.ID);
             task.Keep_On_Completed = true;
             task.StartTime = new TimeHandler(TimeManager.Now);
-            task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CombatUtil.AttackTime(player, attack_type)));
+            task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CombatUtil.AttackTime(Handler.Player, attack_type)));
             task.Location = new Location(target.Location.X, target.Location.Y, 0);
 
-            player.Job.Tasks.Add(task);
+            Handler.Player.Job.Tasks.Add(task);
 
             GameUtil.AddMessage("You " + task.Name.ToLower() + " your " + task.Type.ToLower() + " at the " + task.Assignment.ToLower() + " of " + target.Name + ".");
 
@@ -290,8 +289,6 @@ namespace Despicaville.Menus
 
         private bool EnableAttack()
         {
-            Character player = Handler.GetPlayer();
-
             string attack_type = GetButton("AttackType_Value").Text;
 
             if (GetLabel("PartTarget_Value").Text != "<Click Body>" &&
@@ -300,7 +297,7 @@ namespace Despicaville.Menus
                 !string.IsNullOrEmpty(attack_type))
             {
                 GetButton("Attack").Opacity = 1;
-                GetLabel("AttackTime_Value").Text = CombatUtil.AttackTime(player, attack_type) + "ms";
+                GetLabel("AttackTime_Value").Text = CombatUtil.AttackTime(Handler.Player, attack_type) + "ms";
                 return true;
             }
 
@@ -312,10 +309,9 @@ namespace Despicaville.Menus
 
         private void UpdateStats()
         {
-            Character player = Handler.GetPlayer();
             Character target = Handler.Interaction_Character;
 
-            if (player != null &&
+            if (Handler.Player != null &&
                 target != null)
             {
                 foreach (string body_part in Handler.BodyParts)
@@ -331,7 +327,7 @@ namespace Despicaville.Menus
                             {
                                 string hp_value = hp.Name + ": " + hp.Value.ToString("0.##") + "/" + (int)hp.Max_Value + "%";
                                 string attack_type = GetButton("AttackType_Value").Text;
-                                string hit_chance = "Hit Chance: " + CombatUtil.ChanceToHitBodyPart(player, target, body_part, attack_type).ToString("0.##") + "%";
+                                string hit_chance = "Hit Chance: " + CombatUtil.ChanceToHitBodyPart(Handler.Player, target, body_part, attack_type).ToString("0.##") + "%";
                                 picture.HoverText = hp_value + "\n" + hit_chance;
                             }
                         }
@@ -369,8 +365,7 @@ namespace Despicaville.Menus
             }
             else
             {
-                Character player = Handler.GetPlayer();
-                Inventory inventory = player.Inventory;
+                Inventory inventory = Handler.Player.Inventory;
                 Item item = inventory.GetItem(attackingWithValue.Text);
                 if (item != null)
                 {
@@ -429,25 +424,24 @@ namespace Despicaville.Menus
         {
             AttackingWith.Clear();
 
-            Character player = Handler.GetPlayer();
-            if (player != null)
+            if (Handler.Player != null)
             {
-                Item leftHandItem = InventoryUtil.Get_EquippedItem(player, "Left Weapon Slot");
+                Item leftHandItem = InventoryUtil.Get_EquippedItem(Handler.Player, "Left Weapon Slot");
                 if (leftHandItem != null)
                 {
                     AttackingWith.Add(leftHandItem.Name);
                 }
-                else if (CombatUtil.InRange(player, Handler.Interaction_Character, "Punch"))
+                else if (CombatUtil.InRange(Handler.Player, Handler.Interaction_Character, "Punch"))
                 {
                     AttackingWith.Add("Left Hand");
                 }
 
-                Item rightHandItem = InventoryUtil.Get_EquippedItem(player, "Right Weapon Slot");
+                Item rightHandItem = InventoryUtil.Get_EquippedItem(Handler.Player, "Right Weapon Slot");
                 if (rightHandItem != null)
                 {
                     AttackingWith.Add(rightHandItem.Name);
                 }
-                else if (CombatUtil.InRange(player, Handler.Interaction_Character, "Punch"))
+                else if (CombatUtil.InRange(Handler.Player, Handler.Interaction_Character, "Punch"))
                 {
                     AttackingWith.Add("Right Hand");
                 }

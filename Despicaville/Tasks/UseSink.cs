@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using OP_Engine.Characters;
+﻿using OP_Engine.Characters;
 using OP_Engine.Enums;
 using OP_Engine.Jobs;
 using OP_Engine.Tiles;
@@ -29,16 +28,14 @@ namespace Despicaville.Tasks
                 {
                     sink.Texture = AssetManager.Textures[sink.Texture.Name + "_Used"];
 
-                    Character player = Handler.GetPlayer();
-                    if (!player.Unconscious)
+                    if (!Handler.Player.Unconscious)
                     {
-                        Vector2 player_location = new Vector2(player.Location.X, player.Location.Y);
-                        AssetManager.PlaySound_Random_AtDistance("WaterRunning", player_location, new Vector2(sink.Location.X, sink.Location.Y), 5);
+                        AssetManager.PlaySound_Random_AtDistance("WaterRunning", Handler.Player.Location.ToVector2, sink.Location.ToVector2, 5);
 
                         if (character.Type != "Player")
                         {
-                            Direction direction = WorldUtil.GetDirection(sink.Location, player.Location, true);
-                            if (WorldUtil.InRange(player.Location, sink.Location, 5))
+                            Direction direction = WorldUtil.GetDirection(sink.Location, Handler.Player.Location, true);
+                            if (WorldUtil.InRange(Handler.Player.Location, sink.Location, 5))
                             {
                                 GameUtil.AddMessage("You hear a sink running to the " + direction.ToString() + ".");
                             }
@@ -56,9 +53,7 @@ namespace Despicaville.Tasks
                 return;
             }
 
-            Vector2 location = new Vector2(Location.X, Location.Y);
-
-            Tile sink = WorldUtil.GetFurniture(Handler.TopFurniture, new Location(location.X, location.Y, 0));
+            Tile sink = WorldUtil.GetFurniture(Handler.TopFurniture, Location);
             if (sink != null)
             {
                 if (sink.Name.Contains("Sink"))

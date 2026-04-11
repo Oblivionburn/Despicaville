@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using OP_Engine.Characters;
 using OP_Engine.Jobs;
-using OP_Engine.Scenes;
 using OP_Engine.Time;
 using OP_Engine.Utility;
 using OP_Engine.Rendering;
@@ -12,8 +10,6 @@ namespace Despicaville
 {
     public static class TimeTracker
     {
-        public static int TimeToAction;
-
         public static void Init()
         {
             Reset();
@@ -47,7 +43,10 @@ namespace Despicaville
                     continue;
                 }
 
-                character.Job.Update(TimeManager.Now);
+                if (Handler.Action)
+                {
+                    character.Job.Update(TimeManager.Now);
+                }
 
                 if (character.Moving)
                 {
@@ -60,7 +59,8 @@ namespace Despicaville
                     continue;
                 }
 
-                if (character.Unconscious)
+                if (character.Unconscious &&
+                    Handler.Action)
                 {
                     CharacterUtil.Rest(character);
                     continue;
@@ -70,17 +70,6 @@ namespace Despicaville
                 {
                     Tasker.GiveTask_Citizen(character);
                 }
-            }
-
-            Character player = Handler.GetPlayer();
-            if (player.Unconscious)
-            {
-                CharacterUtil.Rest(player);
-            }
-
-            if (!player.Moving)
-            {
-                player.Job.Update(TimeManager.Now);
             }
         }
 

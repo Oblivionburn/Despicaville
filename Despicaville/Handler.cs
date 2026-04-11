@@ -38,9 +38,12 @@ namespace Despicaville
         public static bool WorldMap_Visible;
         public static bool Crouching;
         public static bool Running;
+        public static bool Combat;
+
         public static bool Holding;
         public static long Holding_ID;
-        public static bool Combat;
+        public static Tile Holding_Tile;
+        public static Character Holding_Character;
 
         public static bool Trading;
         public static List<long> Trading_InventoryID = new List<long>();
@@ -56,6 +59,7 @@ namespace Despicaville
         public static int MessageMax = 6;
         public static List<string> Messages = new List<string>();
 
+        public static Character Player = null;
         public static Tile Interaction_Tile = null;
         public static Character Interaction_Character = null;
 
@@ -4642,33 +4646,11 @@ namespace Despicaville
 
         #endregion
 
-        #region Get Stuff
-
         public static long GetID()
         {
             ID++;
             return ID;
         }
-
-        public static Character GetPlayer()
-        {
-            Army army = CharacterManager.GetArmy("Characters");
-            if (army != null)
-            {
-                Squad squad = army.GetSquad("Players");
-                if (squad != null)
-                {
-                    if (squad.Characters.Count > 0)
-                    {
-                        return squad.Characters[0];
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        #endregion
 
         #endregion
     }

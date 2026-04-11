@@ -18,16 +18,13 @@ namespace Despicaville.Tasks
                 return;
             }
 
-            Vector2 location = new Vector2(Location.X, Location.Y);
-
-            Character player = Handler.GetPlayer();
-            AssetManager.PlaySound_Random_AtDistance("Click", new Vector2(player.Location.X, player.Location.Y), location, 2);
+            AssetManager.PlaySound_Random_AtDistance("Click", Handler.Player.Location.ToVector2, Location.ToVector2, 2);
 
             Scene scene = SceneManager.GetScene("Gameplay");
             Map map = scene.World.Maps[0];
 
             Layer middle_tiles = map.GetLayer("MiddleTiles");
-            Tile tile = middle_tiles.GetTile(location);
+            Tile tile = middle_tiles.GetTile(Location.ToVector2);
             tile.IsLightSource = !tile.IsLightSource;
 
             if (character.Type == "Player")

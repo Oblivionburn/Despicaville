@@ -29,7 +29,7 @@ namespace Despicaville.Util
             if (destination.X < bottom_tiles.Columns && destination.X >= 0 &&
                 destination.Y < bottom_tiles.Rows && destination.Y >= 0)
             {
-                Tile current = bottom_tiles.GetTile(new Vector2(destination.X, destination.Y));
+                Tile current = bottom_tiles.GetTile(destination.ToVector2);
                 if (current != null)
                 {
                     if (current.BlocksMovement)
@@ -72,113 +72,231 @@ namespace Despicaville.Util
 
             if (Handler.Holding)
             {
+                Location newLocation = null;
+                Region size = null;
+
                 //Check for held thing colliding when pushed
-                Something thing = GetHeldThing();
-                Region size = GetSize(thing);
-
-                Location newLocation = new Location(thing.Location.X, thing.Location.Y, 0);
-
-                Direction direction = GetDirection(character.Destination, character.Location, false);
-                if (direction == Direction.Up)
+                if (Handler.Holding_Character != null)
                 {
-                    if (thing.Location.X == character.Location.X)
-                    {
-                        newLocation.Y--;
-                    }
-                    else if (thing.Location.X < character.Location.X)
-                    {
-                        newLocation.X++;
-                    }
-                    else if (thing.Location.X > character.Location.X)
-                    {
-                        newLocation.X--;
-                    }
-                }
-                else if (direction == Direction.Right)
-                {
-                    if (thing.Location.Y == character.Location.Y)
-                    {
-                        newLocation.X++;
-                    }
-                    else if (thing.Location.Y < character.Location.Y)
-                    {
-                        newLocation.Y++;
-                    }
-                    else if (thing.Location.Y > character.Location.Y)
-                    {
-                        newLocation.Y--;
-                    }
-                }
-                else if (direction == Direction.Down)
-                {
-                    if (thing.Location.X == character.Location.X)
-                    {
-                        newLocation.Y++;
-                    }
-                    else if (thing.Location.X < character.Location.X)
-                    {
-                        newLocation.X++;
-                    }
-                    else if (thing.Location.X > character.Location.X)
-                    {
-                        newLocation.X--;
-                    }
-                }
-                else if (direction == Direction.Left)
-                {
-                    if (thing.Location.Y == character.Location.Y)
-                    {
-                        newLocation.X--;
-                    }
-                    else if (thing.Location.Y < character.Location.Y)
-                    {
-                        newLocation.Y++;
-                    }
-                    else if (thing.Location.Y > character.Location.Y)
-                    {
-                        newLocation.Y--;
-                    }
-                }
+                    size = new Region(Handler.Holding_Character.Location.X, Handler.Holding_Character.Location.Y, 1, 1);
+                    newLocation = new Location(Handler.Holding_Character.Location.X, Handler.Holding_Character.Location.Y, 0);
 
-                for (int y = 0; y <= size.Height; y++)
-                {
-                    float Y = newLocation.Y + y;
-
-                    for (int x = 0; x <= size.Width; x++)
+                    Direction direction = GetDirection(character.Destination, character.Location, false);
+                    if (direction == Direction.Up)
                     {
-                        float X = newLocation.X + x;
-
-                        Tile bottom = bottom_tiles.GetTile(new Vector2(X, Y));
-                        if (bottom != null)
+                        if (Handler.Holding_Character.Location.X == character.Location.X)
                         {
-                            if (bottom.BlocksMovement)
+                            newLocation.Y--;
+                        }
+                        else if (Handler.Holding_Character.Location.X < character.Location.X)
+                        {
+                            newLocation.X++;
+                        }
+                        else if (Handler.Holding_Character.Location.X > character.Location.X)
+                        {
+                            newLocation.X--;
+                        }
+                    }
+                    else if (direction == Direction.Right)
+                    {
+                        if (Handler.Holding_Character.Location.Y == character.Location.Y)
+                        {
+                            newLocation.X++;
+                        }
+                        else if (Handler.Holding_Character.Location.Y < character.Location.Y)
+                        {
+                            newLocation.Y++;
+                        }
+                        else if (Handler.Holding_Character.Location.Y > character.Location.Y)
+                        {
+                            newLocation.Y--;
+                        }
+                    }
+                    else if (direction == Direction.Down)
+                    {
+                        if (Handler.Holding_Character.Location.X == character.Location.X)
+                        {
+                            newLocation.Y++;
+                        }
+                        else if (Handler.Holding_Character.Location.X < character.Location.X)
+                        {
+                            newLocation.X++;
+                        }
+                        else if (Handler.Holding_Character.Location.X > character.Location.X)
+                        {
+                            newLocation.X--;
+                        }
+                    }
+                    else if (direction == Direction.Left)
+                    {
+                        if (Handler.Holding_Character.Location.Y == character.Location.Y)
+                        {
+                            newLocation.X--;
+                        }
+                        else if (Handler.Holding_Character.Location.Y < character.Location.Y)
+                        {
+                            newLocation.Y++;
+                        }
+                        else if (Handler.Holding_Character.Location.Y > character.Location.Y)
+                        {
+                            newLocation.Y--;
+                        }
+                    }
+                }
+                else if (Handler.Holding_Tile != null)
+                {
+                    size = GetSize(Handler.Holding_Tile);
+                    newLocation = new Location(Handler.Holding_Tile.Location.X, Handler.Holding_Tile.Location.Y, 0);
+
+                    Direction direction = GetDirection(character.Destination, character.Location, false);
+                    if (direction == Direction.Up)
+                    {
+                        if (Handler.Holding_Tile.Location.X == character.Location.X)
+                        {
+                            newLocation.Y--;
+                        }
+                        else if (Handler.Holding_Tile.Location.X < character.Location.X)
+                        {
+                            newLocation.X++;
+                        }
+                        else if (Handler.Holding_Tile.Location.X > character.Location.X)
+                        {
+                            newLocation.X--;
+                        }
+                    }
+                    else if (direction == Direction.Right)
+                    {
+                        if (Handler.Holding_Tile.Location.Y == character.Location.Y)
+                        {
+                            newLocation.X++;
+                        }
+                        else if (Handler.Holding_Tile.Location.Y < character.Location.Y)
+                        {
+                            newLocation.Y++;
+                        }
+                        else if (Handler.Holding_Tile.Location.Y > character.Location.Y)
+                        {
+                            newLocation.Y--;
+                        }
+                    }
+                    else if (direction == Direction.Down)
+                    {
+                        if (Handler.Holding_Tile.Location.X == character.Location.X)
+                        {
+                            newLocation.Y++;
+                        }
+                        else if (Handler.Holding_Tile.Location.X < character.Location.X)
+                        {
+                            newLocation.X++;
+                        }
+                        else if (Handler.Holding_Tile.Location.X > character.Location.X)
+                        {
+                            newLocation.X--;
+                        }
+                    }
+                    else if (direction == Direction.Left)
+                    {
+                        if (Handler.Holding_Tile.Location.Y == character.Location.Y)
+                        {
+                            newLocation.X--;
+                        }
+                        else if (Handler.Holding_Tile.Location.Y < character.Location.Y)
+                        {
+                            newLocation.Y++;
+                        }
+                        else if (Handler.Holding_Tile.Location.Y > character.Location.Y)
+                        {
+                            newLocation.Y--;
+                        }
+                    }
+                }
+                
+                if (size != null &&
+                    newLocation != null)
+                {
+                    for (int y = 0; y <= size.Height; y++)
+                    {
+                        float Y = newLocation.Y + y;
+
+                        for (int x = 0; x <= size.Width; x++)
+                        {
+                            float X = newLocation.X + x;
+
+                            Tile bottom = bottom_tiles.GetTile(new Vector2(X, Y));
+                            if (bottom != null)
+                            {
+                                if (bottom.BlocksMovement)
+                                {
+                                    return false;
+                                }
+                            }
+                            else
                             {
                                 return false;
                             }
-                        }
-                        else
-                        {
-                            return false;
-                        }
 
-                        Tile middle = GetFurniture(Handler.MiddleFurniture, new Location(X, Y, 0));
-                        if (middle != null &&
-                            middle.ID != thing.ID)
-                        {
-                            return false;
-                        }
+                            Tile middle = GetFurniture(Handler.MiddleFurniture, new Location(X, Y, 0));
+                            if (middle != null &&
+                                middle.ID != Handler.Holding_ID &&
+                                !middle.Name.Contains("Open") &&
+                                !middle.Name.Contains("Broken"))
+                            {
+                                return false;
+                            }
 
-                        other = GetCharacter(new Location(X, Y, 0));
-                        if (other != null &&
-                            other.ID != character.ID)
-                        {
-                            return false;
+                            other = GetCharacter(new Location(X, Y, 0));
+                            if (other != null &&
+                                other.ID != character.ID)
+                            {
+                                return false;
+                            }
                         }
                     }
                 }
             }
 
             return true;
+        }
+
+        public static bool Blocked(Map map, Location location)
+        {
+            Layer bottom_tiles = map.GetLayer("BottomTiles");
+
+            //Check bottom tiles
+            if (location.X < bottom_tiles.Columns && location.X >= 0 &&
+                location.Y < bottom_tiles.Rows && location.Y >= 0)
+            {
+                Tile current = bottom_tiles.GetTile(location.ToVector2);
+                if (current != null)
+                {
+                    if (current.BlocksMovement)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            //Check for furniture
+            Tile furniture = GetFurniture(Handler.MiddleFurniture, location);
+            if (furniture != null)
+            {
+                if (!furniture.Name.Contains("Open"))
+                {
+                    if (furniture.BlocksMovement)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            //Check for characters
+            Character character = GetCharacter(location);
+            if (character != null)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         public static bool InRange(Location location, Location source, int distance)
@@ -320,9 +438,11 @@ namespace Despicaville.Util
 
         public static bool BlocksSight(string name)
         {
-            for (int i = 0; i < Handler.SeeThrough.Length; i++)
+            int count = Handler.SeeThrough.Length;
+            for (int i = 0; i < count; i++)
             {
-                if (name.Contains(Handler.SeeThrough[i]))
+                string furniture = Handler.SeeThrough[i];
+                if (name.Contains(furniture))
                 {
                     return false;
                 }
@@ -344,112 +464,20 @@ namespace Despicaville.Util
             return false;
         }
 
-        public static Something GetHeldThing()
+        public static void PullHeld_Tile(Character character, Direction direction, bool behind)
         {
-            Army army = CharacterManager.GetArmy("Characters");
-            
-            if (Handler.Holding)
+            if (Handler.Holding_Tile != null)
             {
-                int squadCount = army.Squads.Count;
-                for (int s = 0; s < squadCount; s++)
-                {
-                    Squad squad = army.Squads[s];
-
-                    int charCount = squad.Characters.Count;
-                    for (int c = 0; c < charCount; c++)
-                    {
-                        Character citizen = squad.Characters[c];
-                        if (citizen.ID == Handler.Holding_ID)
-                        {
-                            return citizen;
-                        }
-                    }
-                }
-
-                Tile[] tiles = Handler.MiddleFurniture.ToArray();
-                int tileCount = tiles.Length;
-                for (int i = 0; i < tileCount; i++)
-                {
-                    Tile tile = tiles[i];
-                    if (tile.ID == Handler.Holding_ID)
-                    {
-                        return tile;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        public static void MoveHeldThing(Character character, Direction direction, bool behind)
-        {
-            if (!Handler.Holding)
-            {
-                return;
-            }
-
-            Something thing = null;
-
-            Scene gameplay = SceneManager.GetScene("Gameplay");
-
-            Map map = gameplay.World.Maps[0];
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
-
-            int oldIndex = -1;
-            int newIndex = -1;
-
-            Tile[] tiles = middle_tiles.Tiles.ToArray();
-            int tileCount = tiles.Length;
-            for (int i = 0; i < tileCount; i++)
-            {
-                Tile tile = tiles[i];
-                if (tile.ID == Handler.Holding_ID)
-                {
-                    oldIndex = i;
-                    thing = tile;
-                    break;
-                }
-            }
-
-            if (thing == null)
-            {
-                Army army = CharacterManager.GetArmy("Characters");
-
-                int squadCount = army.Squads.Count;
-                for (int s = 0; s < squadCount; s++)
-                {
-                    Squad squad = army.Squads[s];
-
-                    int charCount = squad.Characters.Count;
-                    for (int c = 0; c < charCount; c++)
-                    {
-                        Character citizen = squad.Characters[c];
-                        if (citizen.ID == Handler.Holding_ID)
-                        {
-                            thing = citizen;
-                            Tasker.AbortTask(citizen);
-                            break;
-                        }
-                    }
-
-                    if (thing != null)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            if (thing != null)
-            {
+                Location location = new Location(Handler.Holding_Tile.Location.X, Handler.Holding_Tile.Location.Y, 0);
                 if (direction == Direction.North)
                 {
-                    if (thing.IsLightSource)
+                    if (Handler.Holding_Tile.IsLightSource)
                     {
                         for (int l = 0; l < Handler.light_sources.Count; l++)
                         {
                             Point source = Handler.light_sources[l];
-                            if (source.X == thing.Location.X &&
-                                source.Y == thing.Location.Y)
+                            if (source.X == location.X &&
+                                source.Y == location.Y)
                             {
                                 source.X = (int)character.Location.X;
 
@@ -468,26 +496,26 @@ namespace Despicaville.Util
                         }
                     }
 
-                    thing.Location.X = (int)character.Location.X;
+                    location.X = (int)character.Location.X;
 
                     if (behind)
                     {
-                        thing.Location.Y = (int)character.Location.Y + 1;
+                        location.Y = (int)character.Location.Y + 1;
                     }
                     else
                     {
-                        thing.Location.Y = (int)character.Location.Y - 1;
+                        location.Y = (int)character.Location.Y - 1;
                     }
                 }
                 else if (direction == Direction.East)
                 {
-                    if (thing.IsLightSource)
+                    if (Handler.Holding_Tile.IsLightSource)
                     {
                         for (int l = 0; l < Handler.light_sources.Count; l++)
                         {
                             Point source = Handler.light_sources[l];
-                            if (source.X == thing.Location.X &&
-                                source.Y == thing.Location.Y)
+                            if (source.X == location.X &&
+                                source.Y == location.Y)
                             {
                                 source.Y = (int)character.Location.Y;
 
@@ -506,26 +534,26 @@ namespace Despicaville.Util
                         }
                     }
 
-                    thing.Location.Y = (int)character.Location.Y;
+                    location.Y = (int)character.Location.Y;
 
                     if (behind)
                     {
-                        thing.Location.X = (int)character.Location.X - 1;
+                        location.X = (int)character.Location.X - 1;
                     }
                     else
                     {
-                        thing.Location.X = (int)character.Location.X + 1;
+                        location.X = (int)character.Location.X + 1;
                     }
                 }
                 else if (direction == Direction.South)
                 {
-                    if (thing.IsLightSource)
+                    if (Handler.Holding_Tile.IsLightSource)
                     {
                         for (int l = 0; l < Handler.light_sources.Count; l++)
                         {
                             Point source = Handler.light_sources[l];
-                            if (source.X == thing.Location.X &&
-                                source.Y == thing.Location.Y)
+                            if (source.X == location.X &&
+                                source.Y == location.Y)
                             {
                                 source.X = (int)character.Location.X;
 
@@ -544,26 +572,26 @@ namespace Despicaville.Util
                         }
                     }
 
-                    thing.Location.X = (int)character.Location.X;
+                    location.X = (int)character.Location.X;
 
                     if (behind)
                     {
-                        thing.Location.Y = (int)character.Location.Y - 1;
+                        location.Y = (int)character.Location.Y - 1;
                     }
                     else
                     {
-                        thing.Location.Y = (int)character.Location.Y + 1;
+                        location.Y = (int)character.Location.Y + 1;
                     }
                 }
                 else if (direction == Direction.West)
                 {
-                    if (thing.IsLightSource)
+                    if (Handler.Holding_Tile.IsLightSource)
                     {
                         for (int l = 0; l < Handler.light_sources.Count; l++)
                         {
                             Point source = Handler.light_sources[l];
-                            if (source.X == thing.Location.X &&
-                                source.Y == thing.Location.Y)
+                            if (source.X == location.X &&
+                                source.Y == location.Y)
                             {
                                 source.Y = (int)character.Location.Y;
 
@@ -582,31 +610,90 @@ namespace Despicaville.Util
                         }
                     }
 
-                    thing.Location.Y = (int)character.Location.Y;
+                    location.Y = (int)character.Location.Y;
 
                     if (behind)
                     {
-                        thing.Location.X = (int)character.Location.X + 1;
+                        location.X = (int)character.Location.X + 1;
                     }
                     else
                     {
-                        thing.Location.X = (int)character.Location.X - 1;
+                        location.X = (int)character.Location.X - 1;
                     }
                 }
 
-                newIndex = ((int)thing.Location.Y * middle_tiles.Columns) + (int)thing.Location.X;
-            }
+                Map map = GetMap();
+                Layer middle_tiles = map.GetLayer("MiddleTiles");
 
-            if (oldIndex >= 0 &&
-                newIndex >= 0)
-            {
+                int oldIndex = ((int)Handler.Holding_Tile.Location.Y * middle_tiles.Columns) + (int)Handler.Holding_Tile.Location.X;
+                int newIndex = ((int)location.Y * middle_tiles.Columns) + (int)location.X;
+
                 Tile temp = middle_tiles.Tiles[newIndex];
                 middle_tiles.Tiles[newIndex] = middle_tiles.Tiles[oldIndex];
                 middle_tiles.Tiles[oldIndex] = temp;
+
+                Handler.Holding_Tile.Location = new Location(location.X, location.Y, 0);
             }
-            else if (thing.Type == "Citizen")
+        }
+
+        public static void PullHeld_Character(Character character, Direction direction, bool behind)
+        {
+            if (Handler.Holding_Character != null)
             {
-                CharacterUtil.UpdateGear((Character)thing);
+                if (direction == Direction.North)
+                {
+                    Handler.Holding_Character.Location.X = (int)character.Location.X;
+
+                    if (behind)
+                    {
+                        Handler.Holding_Character.Location.Y = (int)character.Location.Y + 1;
+                    }
+                    else
+                    {
+                        Handler.Holding_Character.Location.Y = (int)character.Location.Y - 1;
+                    }
+                }
+                else if (direction == Direction.East)
+                {
+                    Handler.Holding_Character.Location.Y = (int)character.Location.Y;
+
+                    if (behind)
+                    {
+                        Handler.Holding_Character.Location.X = (int)character.Location.X - 1;
+                    }
+                    else
+                    {
+                        Handler.Holding_Character.Location.X = (int)character.Location.X + 1;
+                    }
+                }
+                else if (direction == Direction.South)
+                {
+                    Handler.Holding_Character.Location.X = (int)character.Location.X;
+
+                    if (behind)
+                    {
+                        Handler.Holding_Character.Location.Y = (int)character.Location.Y - 1;
+                    }
+                    else
+                    {
+                        Handler.Holding_Character.Location.Y = (int)character.Location.Y + 1;
+                    }
+                }
+                else if (direction == Direction.West)
+                {
+                    Handler.Holding_Character.Location.Y = (int)character.Location.Y;
+
+                    if (behind)
+                    {
+                        Handler.Holding_Character.Location.X = (int)character.Location.X + 1;
+                    }
+                    else
+                    {
+                        Handler.Holding_Character.Location.X = (int)character.Location.X - 1;
+                    }
+                }
+
+                CharacterUtil.UpdateGear(Handler.Holding_Character);
             }
         }
 
@@ -677,27 +764,26 @@ namespace Despicaville.Util
             return result;
         }
 
-        public static Character GetCharacter(Location destination)
+        public static Character GetCharacter(Location location)
         {
-            if (destination != null)
+            if (location != null)
             {
                 Army army = CharacterManager.GetArmy("Characters");
 
-                Character player = Handler.GetPlayer();
-                if (player.Moving)
+                if (Handler.Player.Moving)
                 {
-                    if (player.Destination.X == destination.X &&
-                        player.Destination.Y == destination.Y)
+                    if (Handler.Player.Destination.X == location.X &&
+                        Handler.Player.Destination.Y == location.Y)
                     {
-                        return player;
+                        return Handler.Player;
                     }
                 }
-                else if (player.Location != null)
+                else if (Handler.Player.Location != null)
                 {
-                    if (player.Location.X == destination.X &&
-                        player.Location.Y == destination.Y)
+                    if (Handler.Player.Location.X == location.X &&
+                        Handler.Player.Location.Y == location.Y)
                     {
-                        return player;
+                        return Handler.Player;
                     }
                 }
 
@@ -708,16 +794,16 @@ namespace Despicaville.Util
                     Character existing = citizens.Characters[i];
                     if (existing.Moving)
                     {
-                        if (existing.Destination.X == destination.X &&
-                            existing.Destination.Y == destination.Y)
+                        if (existing.Destination.X == location.X &&
+                            existing.Destination.Y == location.Y)
                         {
                             return existing;
                         }
                     }
                     else if (existing.Location != null)
                     {
-                        if (existing.Location.X == destination.X &&
-                            existing.Location.Y == destination.Y)
+                        if (existing.Location.X == location.X &&
+                            existing.Location.Y == location.Y)
                         {
                             return existing;
                         }
@@ -861,19 +947,21 @@ namespace Despicaville.Util
             int width_double = width * 2;
             int width_triple = width * 3;
 
+            float dest_x = destination.X;
+            float dest_y = destination.Y;
+
             Tile[] tiles = furniture.ToArray();
+
             int count = tiles.Length;
             for (int i = 0; i < count; i++)
             {
                 Tile existing = tiles[i];
 
-                if (existing.Texture == null)
-                {
-                    continue;
-                }
+                float x = existing.Location.X;
+                float y = existing.Location.Y;
 
-                if (destination.X == existing.Location.X &&
-                    destination.Y == existing.Location.Y)
+                if (dest_x == x &&
+                    dest_y == y)
                 {
                     return existing;
                 }
@@ -883,8 +971,8 @@ namespace Despicaville.Util
                     {
                         if (existing.Region.Width == width_double)
                         {
-                            if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
-                                destination.Y == existing.Location.Y)
+                            if (dest_x >= x && dest_x <= x + 1 &&
+                                dest_y == y)
                             {
                                 return existing;
                             }
@@ -894,8 +982,8 @@ namespace Despicaville.Util
                     {
                         if (existing.Region.Width == width_double)
                         {
-                            if (destination.X >= existing.Location.X - 1 && destination.X <= existing.Location.X &&
-                                destination.Y == existing.Location.Y)
+                            if (dest_x >= x - 1 && dest_x <= x &&
+                                dest_y == y)
                             {
                                 return existing;
                             }
@@ -906,16 +994,16 @@ namespace Despicaville.Util
                     {
                         if (existing.Region.Width == width_double)
                         {
-                            if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
-                                destination.Y == existing.Location.Y)
+                            if (dest_x >= x && dest_x <= x + 1 &&
+                                dest_y == y)
                             {
                                 return existing;
                             }
                         }
                         else if (existing.Region.Width == width_triple)
                         {
-                            if (destination.X >= existing.Location.X - 1 && destination.X <= existing.Location.X + 1 &&
-                                destination.Y == existing.Location.Y)
+                            if (dest_x >= x - 1 && dest_x <= x + 1 &&
+                                dest_y == y)
                             {
                                 return existing;
                             }
@@ -928,8 +1016,8 @@ namespace Despicaville.Util
                     {
                         if (existing.Region.Height == width_double)
                         {
-                            if (destination.X == existing.Location.X &&
-                                destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y - 1)
+                            if (dest_x == x &&
+                                dest_y >= y && dest_y <= y - 1)
                             {
                                 return existing;
                             }
@@ -939,8 +1027,8 @@ namespace Despicaville.Util
                     {
                         if (existing.Region.Height == width_double)
                         {
-                            if (destination.X == existing.Location.X &&
-                                destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
+                            if (dest_x == x &&
+                                dest_y >= y && dest_y <= y + 1)
                             {
                                 return existing;
                             }
@@ -951,16 +1039,16 @@ namespace Despicaville.Util
                     {
                         if (existing.Region.Height == width_double)
                         {
-                            if (destination.X == existing.Location.X &&
-                                destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
+                            if (dest_x == x &&
+                                dest_y >= y && dest_y <= y + 1)
                             {
                                 return existing;
                             }
                         }
                         else if (existing.Region.Height == width_triple)
                         {
-                            if (destination.X == existing.Location.X &&
-                                destination.Y >= existing.Location.Y - 1 && destination.Y <= existing.Location.Y + 1)
+                            if (dest_x == x &&
+                                dest_y >= y - 1 && dest_y <= y + 1)
                             {
                                 return existing;
                             }
@@ -970,8 +1058,8 @@ namespace Despicaville.Util
                 else if (existing.Region.Width == width_double &&
                          existing.Region.Height == width_double)
                 {
-                    if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
-                        destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
+                    if (dest_x >= x && dest_x <= x + 1 &&
+                        dest_y >= y && dest_y <= y + 1)
                     {
                         return existing;
                     }
@@ -981,13 +1069,16 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static Tile GetFurniture_Movable(Location destination)
+        public static Tile GetFurniture_Movable(List<Tile> furniture, Location destination)
         {
             int width = (int)Main.Game.TileSize_X;
             int width_double = width * 2;
             int width_triple = width * 3;
 
-            Tile[] tiles = Handler.MiddleFurniture.ToArray();
+            float dest_x = destination.X;
+            float dest_y = destination.Y;
+
+            Tile[] tiles = furniture.ToArray();
             int count = tiles.Length;
             for (int i = 0; i < count; i++)
             {
@@ -999,8 +1090,11 @@ namespace Despicaville.Util
                     continue;
                 }
 
-                if (destination.X.Equals(existing.Location.X) &&
-                    destination.Y.Equals(existing.Location.Y))
+                float x = existing.Location.X;
+                float y = existing.Location.Y;
+
+                if (dest_x == x &&
+                    dest_y == y)
                 {
                     return existing;
                 }
@@ -1010,8 +1104,8 @@ namespace Despicaville.Util
                     {
                         if (existing.Region.Width == width_double)
                         {
-                            if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
-                                destination.Y == existing.Location.Y)
+                            if (dest_x >= x && dest_x <= x + 1 &&
+                                dest_y == y)
                             {
                                 return existing;
                             }
@@ -1021,8 +1115,8 @@ namespace Despicaville.Util
                     {
                         if (existing.Region.Width == width_double)
                         {
-                            if (destination.X >= existing.Location.X - 1 && destination.X <= existing.Location.X &&
-                                destination.Y == existing.Location.Y)
+                            if (dest_x >= x - 1 && dest_x <= x &&
+                                dest_y == y)
                             {
                                 return existing;
                             }
@@ -1033,16 +1127,16 @@ namespace Despicaville.Util
                     {
                         if (existing.Region.Width == width_double)
                         {
-                            if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
-                                destination.Y == existing.Location.Y)
+                            if (dest_x >= x && dest_x <= x + 1 &&
+                                dest_y == y)
                             {
                                 return existing;
                             }
                         }
                         else if (existing.Region.Width == width_triple)
                         {
-                            if (destination.X >= existing.Location.X - 1 && destination.X <= existing.Location.X + 1 &&
-                                destination.Y == existing.Location.Y)
+                            if (dest_x >= x - 1 && dest_x <= x + 1 &&
+                                dest_y == y)
                             {
                                 return existing;
                             }
@@ -1055,8 +1149,8 @@ namespace Despicaville.Util
                     {
                         if (existing.Region.Height == width_double)
                         {
-                            if (destination.X == existing.Location.X &&
-                                destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y - 1)
+                            if (dest_x == x &&
+                                dest_y >= y && dest_y <= y - 1)
                             {
                                 return existing;
                             }
@@ -1066,8 +1160,8 @@ namespace Despicaville.Util
                     {
                         if (existing.Region.Height == width_double)
                         {
-                            if (destination.X == existing.Location.X &&
-                                destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
+                            if (dest_x == x &&
+                                dest_y >= y && dest_y <= y + 1)
                             {
                                 return existing;
                             }
@@ -1078,16 +1172,16 @@ namespace Despicaville.Util
                     {
                         if (existing.Region.Height == width_double)
                         {
-                            if (destination.X == existing.Location.X &&
-                                destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
+                            if (dest_x == x &&
+                                dest_y >= y && dest_y <= y + 1)
                             {
                                 return existing;
                             }
                         }
                         else if (existing.Region.Height == width_triple)
                         {
-                            if (destination.X == existing.Location.X &&
-                                destination.Y >= existing.Location.Y - 1 && destination.Y <= existing.Location.Y + 1)
+                            if (dest_x == x &&
+                                dest_y >= y - 1 && dest_y <= y + 1)
                             {
                                 return existing;
                             }
@@ -1097,8 +1191,8 @@ namespace Despicaville.Util
                 else if (existing.Region.Width == width_double &&
                          existing.Region.Height == width_double)
                 {
-                    if (destination.X >= existing.Location.X && destination.X <= existing.Location.X + 1 &&
-                        destination.Y >= existing.Location.Y && destination.Y <= existing.Location.Y + 1)
+                    if (dest_x >= x && dest_x <= x + 1 &&
+                        dest_y >= y && dest_y <= y + 1)
                     {
                         return existing;
                     }
@@ -1108,42 +1202,42 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static Region GetSize(Something thing)
+        public static Region GetSize(Tile tile)
         {
             Region size = new Region
             {
-                X = thing.Location.X,
-                Y = thing.Location.Y
+                X = tile.Location.X,
+                Y = tile.Location.Y
             };
 
             int width = (int)Main.Game.TileSize_X;
             int width_double = width * 2;
             int width_triple = width * 3;
 
-            if (thing.Region.Height == width)
+            if (tile.Region.Height == width)
             {
-                if (thing.Region.Width == width_double)
+                if (tile.Region.Width == width_double)
                 {
                     size.Width = 1;
                 }
-                else if (thing.Region.Width == width_triple)
+                else if (tile.Region.Width == width_triple)
                 {
                     size.Width = 2;
                 }
             }
-            else if (thing.Region.Width == width)
+            else if (tile.Region.Width == width)
             {
-                if (thing.Region.Height == width_double)
+                if (tile.Region.Height == width_double)
                 {
                     size.Height = 1;
                 }
-                else if (thing.Region.Height == width_triple)
+                else if (tile.Region.Height == width_triple)
                 {
                     size.Height = 2;
                 }
             }
-            else if (thing.Region.Width == width_double &&
-                     thing.Region.Height == width_double)
+            else if (tile.Region.Width == width_double &&
+                     tile.Region.Height == width_double)
             {
                 size.Width = 1;
                 size.Height = 1;
@@ -1518,8 +1612,7 @@ namespace Despicaville.Util
 
         public static void GenDescription()
         {
-            Character player = Handler.GetPlayer();
-            Something stat = player.GetStat("Perception");
+            Something stat = Handler.Player.GetStat("Perception");
             int perception = (int)stat.Value;
 
             string description = "You see ";
@@ -1546,9 +1639,9 @@ namespace Despicaville.Util
 
                 description += his_her + " name is " + character.Name + ".";
 
-                if (player.Relationships.ContainsKey(character.ID))
+                if (Handler.Player.Relationships.ContainsKey(character.ID))
                 {
-                    description += " " + he_she + " is your " + player.Relationships[character.ID].ToLower() + ".";
+                    description += " " + he_she + " is your " + Handler.Player.Relationships[character.ID].ToLower() + ".";
                 }
 
                 if (character.Unconscious)
@@ -1982,16 +2075,6 @@ namespace Despicaville.Util
                     squad.Characters.Remove(replacement);
 
                     player.Location = new Location(replacement.Location.X, replacement.Location.Y, 0);
-
-                    foreach (Tile tile in middle_furniture)
-                    {
-                        tile.OwnerIDs.Remove(replacement.ID);
-                    }
-
-                    foreach (Tile tile in top_furniture)
-                    {
-                        tile.OwnerIDs.Remove(replacement.ID);
-                    }
                 }
                 else if (mate != null)
                 {
@@ -2030,13 +2113,11 @@ namespace Despicaville.Util
 
                 foreach (Tile tile in middle_furniture)
                 {
-                    tile.OwnerIDs.Add(player.ID);
                     Handler.OwnedFurniture[player.ID].Add(tile);
                 }
 
                 foreach (Tile tile in top_furniture)
                 {
-                    tile.OwnerIDs.Add(player.ID);
                     Handler.OwnedFurniture[player.ID].Add(tile);
                 }
 
@@ -2168,7 +2249,7 @@ namespace Despicaville.Util
 
         public static bool PassedOpenDoor(Layer middle_tiles, Character character)
         {
-            Vector2 tile_location = new Vector2(character.Location.X, character.Location.Y);
+            Vector2 tile_location = character.Location.ToVector2;
             if (character.Direction == Direction.Up)
             {
                 tile_location.Y++;
@@ -2201,7 +2282,7 @@ namespace Despicaville.Util
 
         public static bool PassedOpenWindow(Layer middle_tiles, Character character)
         {
-            Vector2 tile_location = new Vector2(character.Location.X, character.Location.Y);
+            Vector2 tile_location = character.Location.ToVector2;
             if (character.Direction == Direction.Up)
             {
                 tile_location.Y++;
@@ -2328,12 +2409,12 @@ namespace Despicaville.Util
             }
         }
 
-        public static void UpdateWorldMap(Character player)
+        public static void UpdateWorldMap()
         {
             if (Handler.WorldMap_Visible)
             {
-                int world_x = (int)player.Location.X / 20;
-                int world_y = (int)player.Location.Y / 20;
+                int world_x = (int)Handler.Player.Location.X / 20;
+                int world_y = (int)Handler.Player.Location.Y / 20;
 
                 Tile center = null;
                 foreach (Tile tile in WorldGen.Worldmap)
@@ -2348,8 +2429,8 @@ namespace Despicaville.Util
 
                 if (center != null)
                 {
-                    center.Region.X = player.Region.X + (player.Region.Width / 2) - (Main.Game.MenuSize_X / 2);
-                    center.Region.Y = player.Region.Y + (player.Region.Height / 2) - (Main.Game.MenuSize_Y / 2);
+                    center.Region.X = Handler.Player.Region.X + (Handler.Player.Region.Width / 2) - (Main.Game.MenuSize_X / 2);
+                    center.Region.Y = Handler.Player.Region.Y + (Handler.Player.Region.Height / 2) - (Main.Game.MenuSize_Y / 2);
                     center.Region.Width = Main.Game.MenuSize_X;
                     center.Region.Height = Main.Game.MenuSize_Y;
 

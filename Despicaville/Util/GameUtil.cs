@@ -1,9 +1,7 @@
 ﻿using System.Text;
 using System.Collections.Generic;
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-
 using OP_Engine.Menus;
 using OP_Engine.Controls;
 using OP_Engine.Inputs;
@@ -44,11 +42,9 @@ namespace Despicaville.Util
             SceneManager.ChangeScene(scene);
 
             CenterToPlayer_OnFrame();
+            CharacterUtil.UpdateSight(Handler.Player);
 
-            Character player = Handler.GetPlayer();
-
-            CharacterUtil.UpdateSight(player);
-            UpdateWorld(scene.World, player);
+            UpdateWorld(scene.World, Handler.Player);
         }
 
         public static void ReturnToTitle()
@@ -133,116 +129,137 @@ namespace Despicaville.Util
         {
             Army army = CharacterManager.GetArmy("Characters");
 
-            Character player = Handler.GetPlayer();
-            if (player != null)
+            Handler.Player.Speed = (Main.Game.TileSize.X / 32);
+            Handler.Player.Move_TotalDistance = Main.Game.TileSize.X;
+
+            Handler.Player.Region.X = (Main.Game.ScreenWidth / 2) - (Main.Game.TileSize.X / 2);
+            Handler.Player.Region.Y = (Main.Game.ScreenHeight / 2) - (Main.Game.TileSize.Y / 2) - (Main.Game.TileSize.Y * 2);
+            Handler.Player.Region.Width = Main.Game.TileSize.X;
+            Handler.Player.Region.Height = Main.Game.TileSize.Y;
+
+            World world = SceneManager.GetScene("Gameplay").World;
+            if (world != null)
             {
-                player.Speed = (Main.Game.TileSize.X / 32);
-                player.Move_TotalDistance = Main.Game.TileSize.X;
-
-                player.Region.X = (Main.Game.ScreenWidth / 2) - (Main.Game.TileSize.X / 2);
-                player.Region.Y = (Main.Game.ScreenHeight / 2) - (Main.Game.TileSize.Y / 2) - (Main.Game.TileSize.Y * 2);
-                player.Region.Width = Main.Game.TileSize.X;
-                player.Region.Height = Main.Game.TileSize.Y;
-
-                World world = SceneManager.GetScene("Gameplay").World;
-                if (world != null)
+                Map map = world.Maps[0];
+                if (map != null)
                 {
-                    Map map = world.Maps[0];
-                    if (map != null)
-                    {
-                        Layer bottom_tiles = map.GetLayer("BottomTiles");
-                        Layer room_tiles = map.GetLayer("RoomTiles");
-                        Layer middle_tiles = map.GetLayer("MiddleTiles");
-                        Layer top_tiles = map.GetLayer("TopTiles");
-                        Layer effect_tiles = map.GetLayer("EffectTiles");
-                        Layer roof_tiles = map.GetLayer("RoofTiles");
+                    Layer bottom_tiles = map.GetLayer("BottomTiles");
+                    Layer room_tiles = map.GetLayer("RoomTiles");
+                    Layer middle_tiles = map.GetLayer("MiddleTiles");
+                    Layer top_tiles = map.GetLayer("TopTiles");
+                    Layer effect_tiles = map.GetLayer("EffectTiles");
+                    Layer roof_tiles = map.GetLayer("RoofTiles");
                         
-                        if (bottom_tiles != null)
+                    if (bottom_tiles != null)
+                    {
+                        Tile current = bottom_tiles.GetTile(Handler.Player.Location.ToVector2);
+                        if (current != null)
                         {
-                            Tile current = bottom_tiles.GetTile(new Vector2(player.Location.X, player.Location.Y));
-                            if (current != null)
+                            current.Region.X = Handler.Player.Region.X;
+                            current.Region.Y = Handler.Player.Region.Y;
+                            current.Region.Width = Main.Game.TileSize.X;
+                            current.Region.Height = Main.Game.TileSize.Y;
+
+                            foreach (Tile tile in bottom_tiles.Tiles)
                             {
-                                current.Region.X = player.Region.X;
-                                current.Region.Y = player.Region.Y;
-                                current.Region.Width = Main.Game.TileSize.X;
-                                current.Region.Height = Main.Game.TileSize.Y;
-
-                                foreach (Tile tile in bottom_tiles.Tiles)
+                                int x_diff = (int)tile.Location.X - (int)current.Location.X;
+                                if (x_diff < 0)
                                 {
-                                    int x_diff = (int)tile.Location.X - (int)current.Location.X;
-                                    if (x_diff < 0)
-                                    {
-                                        x_diff *= -1;
-                                    }
+                                    x_diff *= -1;
+                                }
 
-                                    int y_diff = (int)tile.Location.Y - (int)current.Location.Y;
-                                    if (y_diff < 0)
-                                    {
-                                        y_diff *= -1;
-                                    }
+                                int y_diff = (int)tile.Location.Y - (int)current.Location.Y;
+                                if (y_diff < 0)
+                                {
+                                    y_diff *= -1;
+                                }
 
-                                    if (tile.Location.X < current.Location.X)
-                                    {
-                                        tile.Region.X = current.Region.X - (x_diff * Main.Game.TileSize.X);
-                                    }
-                                    else if (tile.Location.X > current.Location.X)
-                                    {
-                                        tile.Region.X = current.Region.X + (x_diff * Main.Game.TileSize.X);
-                                    }
-                                    else if (tile.Location.X == current.Location.X)
-                                    {
-                                        tile.Region.X = current.Region.X;
-                                    }
+                                if (tile.Location.X < current.Location.X)
+                                {
+                                    tile.Region.X = current.Region.X - (x_diff * Main.Game.TileSize.X);
+                                }
+                                else if (tile.Location.X > current.Location.X)
+                                {
+                                    tile.Region.X = current.Region.X + (x_diff * Main.Game.TileSize.X);
+                                }
+                                else if (tile.Location.X == current.Location.X)
+                                {
+                                    tile.Region.X = current.Region.X;
+                                }
 
-                                    if (tile.Location.Y < current.Location.Y)
-                                    {
-                                        tile.Region.Y = current.Region.Y - (y_diff * Main.Game.TileSize.Y);
-                                    }
-                                    else if (tile.Location.Y > current.Location.Y)
-                                    {
-                                        tile.Region.Y = current.Region.Y + (y_diff * Main.Game.TileSize.Y);
-                                    }
-                                    else if (tile.Location.Y == current.Location.Y)
-                                    {
-                                        tile.Region.Y = current.Region.Y;
-                                    }
+                                if (tile.Location.Y < current.Location.Y)
+                                {
+                                    tile.Region.Y = current.Region.Y - (y_diff * Main.Game.TileSize.Y);
+                                }
+                                else if (tile.Location.Y > current.Location.Y)
+                                {
+                                    tile.Region.Y = current.Region.Y + (y_diff * Main.Game.TileSize.Y);
+                                }
+                                else if (tile.Location.Y == current.Location.Y)
+                                {
+                                    tile.Region.Y = current.Region.Y;
+                                }
 
-                                    tile.Region.Width = Main.Game.TileSize.X;
-                                    tile.Region.Height = Main.Game.TileSize.Y;
+                                tile.Region.Width = Main.Game.TileSize.X;
+                                tile.Region.Height = Main.Game.TileSize.Y;
 
-                                    Tile middle_tile = middle_tiles.GetTile(new Vector2(tile.Location.X, tile.Location.Y));
-                                    if (middle_tile != null)
+                                Tile middle_tile = middle_tiles.GetTile(tile.Location.ToVector2);
+                                if (middle_tile != null)
+                                {
+                                    middle_tile.Region.X = tile.Region.X;
+                                    middle_tile.Region.Y = tile.Region.Y;
+
+                                    if (!string.IsNullOrEmpty(middle_tile.Name))
                                     {
-                                        middle_tile.Region.X = tile.Region.X;
-                                        middle_tile.Region.Y = tile.Region.Y;
-
-                                        if (!string.IsNullOrEmpty(middle_tile.Name))
+                                        if (middle_tile.Name.Contains("Tree"))
                                         {
-                                            if (middle_tile.Name.Contains("Tree"))
+                                            middle_tile.Region.X = tile.Region.X - Main.Game.TileSize.X;
+                                            middle_tile.Region.Y = tile.Region.Y - Main.Game.TileSize.Y;
+                                            middle_tile.Region.Width = Main.Game.TileSize.X * 3;
+                                            middle_tile.Region.Height = Main.Game.TileSize.Y * 3;
+                                        }
+                                        else if (middle_tile.Name.Contains("Bench") ||
+                                                    middle_tile.Name.Contains("Couch"))
+                                        {
+                                            if (middle_tile.Direction == Direction.Up ||
+                                                middle_tile.Direction == Direction.Down)
                                             {
-                                                middle_tile.Region.X = tile.Region.X - Main.Game.TileSize.X;
-                                                middle_tile.Region.Y = tile.Region.Y - Main.Game.TileSize.Y;
                                                 middle_tile.Region.Width = Main.Game.TileSize.X * 3;
+                                                middle_tile.Region.Height = Main.Game.TileSize.Y;
+                                            }
+                                            else if (middle_tile.Direction == Direction.Left ||
+                                                        middle_tile.Direction == Direction.Right)
+                                            {
+                                                middle_tile.Region.Width = Main.Game.TileSize.X;
                                                 middle_tile.Region.Height = Main.Game.TileSize.Y * 3;
                                             }
-                                            else if (middle_tile.Name.Contains("Bench") ||
-                                                     middle_tile.Name.Contains("Couch"))
+                                        }
+                                        else if (middle_tile.Name.Contains("Dresser") ||
+                                                    middle_tile.Name.Contains("Loveseat"))
+                                        {
+                                            if (middle_tile.Direction == Direction.Up ||
+                                                middle_tile.Direction == Direction.Down)
                                             {
-                                                if (middle_tile.Direction == Direction.Up ||
-                                                    middle_tile.Direction == Direction.Down)
-                                                {
-                                                    middle_tile.Region.Width = Main.Game.TileSize.X * 3;
-                                                    middle_tile.Region.Height = Main.Game.TileSize.Y;
-                                                }
-                                                else if (middle_tile.Direction == Direction.Left ||
-                                                         middle_tile.Direction == Direction.Right)
-                                                {
-                                                    middle_tile.Region.Width = Main.Game.TileSize.X;
-                                                    middle_tile.Region.Height = Main.Game.TileSize.Y * 3;
-                                                }
+                                                middle_tile.Region.Width = Main.Game.TileSize.X * 2;
+                                                middle_tile.Region.Height = Main.Game.TileSize.Y;
                                             }
-                                            else if (middle_tile.Name.Contains("Dresser") ||
-                                                     middle_tile.Name.Contains("Loveseat"))
+                                            else if (middle_tile.Direction == Direction.Left ||
+                                                        middle_tile.Direction == Direction.Right)
+                                            {
+                                                middle_tile.Region.Width = Main.Game.TileSize.X;
+                                                middle_tile.Region.Height = Main.Game.TileSize.Y * 2;
+                                            }
+                                        }
+                                        else if (middle_tile.Name.Contains("Bath") ||
+                                                    middle_tile.Name.Contains("Bed") ||
+                                                    middle_tile.Name.Contains("ComputerDesk"))
+                                        {
+                                            if (middle_tile.Name.Contains("DoubleBed"))
+                                            {
+                                                middle_tile.Region.Width = Main.Game.TileSize.X * 2;
+                                                middle_tile.Region.Height = Main.Game.TileSize.Y * 2;
+                                            }
+                                            else if (middle_tile.Name.Contains("ComputerDesk"))
                                             {
                                                 if (middle_tile.Direction == Direction.Up ||
                                                     middle_tile.Direction == Direction.Down)
@@ -250,57 +267,27 @@ namespace Despicaville.Util
                                                     middle_tile.Region.Width = Main.Game.TileSize.X * 2;
                                                     middle_tile.Region.Height = Main.Game.TileSize.Y;
                                                 }
-                                                else if (middle_tile.Direction == Direction.Left ||
-                                                         middle_tile.Direction == Direction.Right)
+                                                else if (middle_tile.Direction == Direction.Right ||
+                                                            middle_tile.Direction == Direction.Left)
                                                 {
                                                     middle_tile.Region.Width = Main.Game.TileSize.X;
                                                     middle_tile.Region.Height = Main.Game.TileSize.Y * 2;
-                                                }
-                                            }
-                                            else if (middle_tile.Name.Contains("Bath") ||
-                                                     middle_tile.Name.Contains("Bed") ||
-                                                     middle_tile.Name.Contains("ComputerDesk"))
-                                            {
-                                                if (middle_tile.Name.Contains("DoubleBed"))
-                                                {
-                                                    middle_tile.Region.Width = Main.Game.TileSize.X * 2;
-                                                    middle_tile.Region.Height = Main.Game.TileSize.Y * 2;
-                                                }
-                                                else if (middle_tile.Name.Contains("ComputerDesk"))
-                                                {
-                                                    if (middle_tile.Direction == Direction.Up ||
-                                                        middle_tile.Direction == Direction.Down)
-                                                    {
-                                                        middle_tile.Region.Width = Main.Game.TileSize.X * 2;
-                                                        middle_tile.Region.Height = Main.Game.TileSize.Y;
-                                                    }
-                                                    else if (middle_tile.Direction == Direction.Right ||
-                                                             middle_tile.Direction == Direction.Left)
-                                                    {
-                                                        middle_tile.Region.Width = Main.Game.TileSize.X;
-                                                        middle_tile.Region.Height = Main.Game.TileSize.Y * 2;
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    if (middle_tile.Direction == Direction.Up ||
-                                                        middle_tile.Direction == Direction.Down)
-                                                    {
-                                                        middle_tile.Region.Width = Main.Game.TileSize.X;
-                                                        middle_tile.Region.Height = Main.Game.TileSize.Y * 2;
-                                                    }
-                                                    else if (middle_tile.Direction == Direction.Right ||
-                                                             middle_tile.Direction == Direction.Left)
-                                                    {
-                                                        middle_tile.Region.Width = Main.Game.TileSize.X * 2;
-                                                        middle_tile.Region.Height = Main.Game.TileSize.Y;
-                                                    }
                                                 }
                                             }
                                             else
                                             {
-                                                middle_tile.Region.Width = Main.Game.TileSize.X;
-                                                middle_tile.Region.Height = Main.Game.TileSize.Y;
+                                                if (middle_tile.Direction == Direction.Up ||
+                                                    middle_tile.Direction == Direction.Down)
+                                                {
+                                                    middle_tile.Region.Width = Main.Game.TileSize.X;
+                                                    middle_tile.Region.Height = Main.Game.TileSize.Y * 2;
+                                                }
+                                                else if (middle_tile.Direction == Direction.Right ||
+                                                            middle_tile.Direction == Direction.Left)
+                                                {
+                                                    middle_tile.Region.Width = Main.Game.TileSize.X * 2;
+                                                    middle_tile.Region.Height = Main.Game.TileSize.Y;
+                                                }
                                             }
                                         }
                                         else
@@ -309,79 +296,84 @@ namespace Despicaville.Util
                                             middle_tile.Region.Height = Main.Game.TileSize.Y;
                                         }
                                     }
-
-                                    Tile top_tile = top_tiles.GetTile(new Vector2(tile.Location.X, tile.Location.Y));
-                                    if (top_tile != null)
+                                    else
                                     {
-                                        top_tile.Region = tile.Region;
+                                        middle_tile.Region.Width = Main.Game.TileSize.X;
+                                        middle_tile.Region.Height = Main.Game.TileSize.Y;
                                     }
+                                }
 
-                                    Tile room_tile = room_tiles.GetTile(new Vector2(tile.Location.X, tile.Location.Y));
-                                    if (room_tile != null)
-                                    {
-                                        room_tile.Region = tile.Region;
-                                    }
+                                Tile top_tile = top_tiles.GetTile(tile.Location.ToVector2);
+                                if (top_tile != null)
+                                {
+                                    top_tile.Region = tile.Region;
+                                }
 
-                                    Tile effect_tile = effect_tiles.GetTile(new Vector2(tile.Location.X, tile.Location.Y));
-                                    if (effect_tile != null)
-                                    {
-                                        effect_tile.Region = tile.Region;
-                                    }
+                                Tile room_tile = room_tiles.GetTile(tile.Location.ToVector2);
+                                if (room_tile != null)
+                                {
+                                    room_tile.Region = tile.Region;
+                                }
 
-                                    Tile roof_tile = roof_tiles.GetTile(new Vector2(tile.Location.X, tile.Location.Y));
-                                    if (roof_tile != null)
-                                    {
-                                        roof_tile.Region = tile.Region;
-                                    }
+                                Tile effect_tile = effect_tiles.GetTile(tile.Location.ToVector2);
+                                if (effect_tile != null)
+                                {
+                                    effect_tile.Region = tile.Region;
+                                }
 
-                                    foreach (Squad squad in army.Squads)
+                                Tile roof_tile = roof_tiles.GetTile(tile.Location.ToVector2);
+                                if (roof_tile != null)
+                                {
+                                    roof_tile.Region = tile.Region;
+                                }
+
+                                foreach (Squad squad in army.Squads)
+                                {
+                                    if (squad.Name != "Players")
                                     {
-                                        if (squad.Name != "Players")
+                                        foreach (Character character in squad.Characters)
                                         {
-                                            foreach (Character character in squad.Characters)
+                                            if (character.Location.X == tile.Location.X &&
+                                                character.Location.Y == tile.Location.Y)
                                             {
-                                                if (character.Location.X == tile.Location.X &&
-                                                    character.Location.Y == tile.Location.Y)
+                                                character.Speed = 1;
+                                                character.Move_TotalDistance = Main.Game.TileSize.X;
+
+                                                character.Region.X = tile.Region.X;
+                                                character.Region.Y = tile.Region.Y;
+                                                character.Region.Width = Main.Game.TileSize.X;
+                                                character.Region.Height = Main.Game.TileSize.Y;
+
+                                                if (character.Moving)
                                                 {
-                                                    character.Speed = 1;
-                                                    character.Move_TotalDistance = Main.Game.TileSize.X;
-
-                                                    character.Region.X = tile.Region.X;
-                                                    character.Region.Y = tile.Region.Y;
-                                                    character.Region.Width = Main.Game.TileSize.X;
-                                                    character.Region.Height = Main.Game.TileSize.Y;
-
-                                                    if (character.Moving)
+                                                    if (character.Destination.Y < character.Location.Y)
                                                     {
-                                                        if (character.Destination.Y < character.Location.Y)
-                                                        {
-                                                            character.Region.Y -= (int)character.Moved;
-                                                        }
-                                                        else if (character.Destination.X > character.Location.X)
-                                                        {
-                                                            character.Region.X += (int)character.Moved;
-                                                        }
-                                                        else if (character.Destination.Y > character.Location.Y)
-                                                        {
-                                                            character.Region.Y += (int)character.Moved;
-                                                        }
-                                                        else if (character.Destination.X < character.Location.X)
-                                                        {
-                                                            character.Region.X -= (int)character.Moved;
-                                                        }
+                                                        character.Region.Y -= (int)character.Moved;
                                                     }
-
-                                                    Task task = character.Job.CurrentTask;
-                                                    if (task != null)
+                                                    else if (character.Destination.X > character.Location.X)
                                                     {
-                                                        ProgressBar taskbar = task.TaskBar;
-                                                        if (taskbar != null)
+                                                        character.Region.X += (int)character.Moved;
+                                                    }
+                                                    else if (character.Destination.Y > character.Location.Y)
+                                                    {
+                                                        character.Region.Y += (int)character.Moved;
+                                                    }
+                                                    else if (character.Destination.X < character.Location.X)
+                                                    {
+                                                        character.Region.X -= (int)character.Moved;
+                                                    }
+                                                }
+
+                                                Task task = character.Job.CurrentTask;
+                                                if (task != null)
+                                                {
+                                                    ProgressBar taskbar = task.TaskBar;
+                                                    if (taskbar != null)
+                                                    {
+                                                        if (taskbar.Base_Texture != null)
                                                         {
-                                                            if (taskbar.Base_Texture != null)
-                                                            {
-                                                                taskbar.Base_Region = new Region(character.Region.X + (Main.Game.TileSize.X / 8), character.Region.Y + character.Region.Height - (Main.Game.TileSize.Y / 4), Main.Game.TileSize.X - (Main.Game.TileSize.X / 4), Main.Game.TileSize.Y / 8);
-                                                                taskbar.Update();
-                                                            }
+                                                            taskbar.Base_Region = new Region(character.Region.X + (Main.Game.TileSize.X / 8), character.Region.Y + character.Region.Height - (Main.Game.TileSize.Y / 4), Main.Game.TileSize.X - (Main.Game.TileSize.X / 4), Main.Game.TileSize.Y / 8);
+                                                            taskbar.Update();
                                                         }
                                                     }
                                                 }
@@ -399,57 +391,71 @@ namespace Despicaville.Util
         public static void CenterToPlayer_OnFrame()
         {
             Army characters = CharacterManager.GetArmy("Characters");
-            Character player = Handler.GetPlayer();
 
             int center_x = (int)((Main.Game.ScreenWidth / 2) - (Main.Game.TileSize.X / 2));
             int center_y = (int)((Main.Game.ScreenHeight / 2) - (Main.Game.TileSize.Y / 2) - (Main.Game.TileSize.Y * 2));
 
-            float x_diff = center_x - player.Region.X;
-            float y_diff = center_y - player.Region.Y;
+            float x_diff = center_x - Handler.Player.Region.X;
+            float y_diff = center_y - Handler.Player.Region.Y;
 
-            player.Region.X += x_diff;
-            player.Region.Y += y_diff;
+            Handler.Player.Region.X += x_diff;
+            Handler.Player.Region.Y += y_diff;
 
-            World world = SceneManager.GetScene("Gameplay").World;
-            Map map = world.Maps[0];
+            Map map = WorldUtil.GetMap();
 
             Layer bottom_tiles = map.GetLayer("BottomTiles");
-            if (bottom_tiles != null)
-            {
-                Layer middle_tiles = map.GetLayer("MiddleTiles");
+            Layer middle_tiles = map.GetLayer("MiddleTiles");
 
-                foreach (Tile tile in bottom_tiles.Tiles)
+            int count = bottom_tiles.Tiles.Count;
+            for (int i = 0; i < count; i++)
+            {
+                Tile bottom_tile = bottom_tiles.Tiles[i];
+
+                Location location = bottom_tile.Location;
+
+                float x = location.X;
+                float y = location.Y;
+
+                Vector2 loc = new Vector2(x, y);
+
+                Region bottom_region = bottom_tile.Region;
+
+                if (x_diff != 0)
                 {
+                    bottom_region.X += x_diff;
+                }
+
+                if (y_diff != 0)
+                {
+                    bottom_region.Y += y_diff;
+                }
+
+                Tile middle_tile = middle_tiles.GetTile(loc);
+                if (middle_tile != null)
+                {
+                    Region middle_region = middle_tile.Region;
+
                     if (x_diff != 0)
                     {
-                        tile.Region.X += x_diff;
+                        middle_region.X += x_diff;
                     }
-                    
+
                     if (y_diff != 0)
                     {
-                        tile.Region.Y += y_diff;
-                    }
-
-                    Tile middle_tile = middle_tiles.GetTile(new Vector2(tile.Location.X, tile.Location.Y));
-                    if (middle_tile != null)
-                    {
-                        if (x_diff != 0)
-                        {
-                            middle_tile.Region.X += x_diff;
-                        }
-
-                        if (y_diff != 0)
-                        {
-                            middle_tile.Region.Y += y_diff;
-                        }
+                        middle_region.Y += y_diff;
                     }
                 }
             }
 
-            foreach (Squad squad in characters.Squads)
+            int squadCount = characters.Squads.Count;
+            for (int s = 0; s < squadCount; s++)
             {
-                foreach (Character character in squad.Characters)
+                Squad squad = characters.Squads[s];
+
+                int charCount = squad.Characters.Count;
+                for (int c = 0; c < charCount; c++)
                 {
+                    Character character = squad.Characters[c];
                     if (character.Type != "Player")
                     {
                         character.Region.X += x_diff;

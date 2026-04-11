@@ -329,25 +329,20 @@ namespace Despicaville.Util
 
         public static int AttackSound_Hit(Character character, string action)
         {
-            Character player = Handler.GetPlayer();
-
-            Vector2 player_loc = new Vector2(player.Location.X, player.Location.Y);
-            Vector2 character_loc = new Vector2(character.Location.X, character.Location.Y);
-
             if (action == "Punch")
             {
-                AssetManager.PlaySound_Random_AtDistance("Punch", player_loc, character_loc, 3);
+                AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, character.Location.ToVector2, 3);
                 return 3;
             }
             else if (action == "Throw" ||
                      action == "Swing")
             {
-                AssetManager.PlaySound_Random_AtDistance("Swing", player_loc, character_loc, 2);
+                AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
                 return 2;
             }
             else if (action == "Stab")
             {
-                AssetManager.PlaySound_Random_AtDistance("Stab", player_loc, character_loc, 2);
+                AssetManager.PlaySound_Random_AtDistance("Stab", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
                 return 1;
             }
             else if (action == "Shoot")
@@ -359,18 +354,18 @@ namespace Despicaville.Util
                     {
                         if (leftHandItem.Name.Contains("Pistol"))
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Pistol", player_loc, character_loc, 20);
+                            AssetManager.PlaySound_Random_AtDistance("Pistol", Handler.Player.Location.ToVector2, character.Location.ToVector2, 20);
                             return 20;
                         }
                         else if (leftHandItem.Name.Contains("Shotgun"))
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Shotgun", player_loc, character_loc, 40);
+                            AssetManager.PlaySound_Random_AtDistance("Shotgun", Handler.Player.Location.ToVector2, character.Location.ToVector2, 40);
                             return 40;
                         }
                         else if (leftHandItem.Name.Contains("Machine") ||
                                  leftHandItem.Name.Contains("Rifle"))
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Rifle", player_loc, character_loc, 40);
+                            AssetManager.PlaySound_Random_AtDistance("Rifle", Handler.Player.Location.ToVector2, character.Location.ToVector2, 40);
                             return 40;
                         }
                     }
@@ -383,18 +378,18 @@ namespace Despicaville.Util
                     {
                         if (rightHandItem.Name.Contains("Pistol"))
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Pistol", player_loc, character_loc, 20);
+                            AssetManager.PlaySound_Random_AtDistance("Pistol", Handler.Player.Location.ToVector2, character.Location.ToVector2, 20);
                             return 20;
                         }
                         else if (rightHandItem.Name.Contains("Shotgun"))
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Shotgun", player_loc, character_loc, 40);
+                            AssetManager.PlaySound_Random_AtDistance("Shotgun", Handler.Player.Location.ToVector2, character.Location.ToVector2, 40);
                             return 40;
                         }
                         else if (rightHandItem.Name.Contains("Machine") ||
                                  rightHandItem.Name.Contains("Rifle"))
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Rifle", player_loc, character_loc, 40);
+                            AssetManager.PlaySound_Random_AtDistance("Rifle", Handler.Player.Location.ToVector2, character.Location.ToVector2, 40);
                             return 40;
                         }
                     }
@@ -406,20 +401,15 @@ namespace Despicaville.Util
 
         public static int AttackSound_Miss(Character character, string action)
         {
-            Character player = Handler.GetPlayer();
-
-            Vector2 player_loc = new Vector2(player.Location.X, player.Location.Y);
-            Vector2 character_loc = new Vector2(character.Location.X, character.Location.Y);
-
             if (action == "Punch")
             {
-                AssetManager.PlaySound_Random_AtDistance("Swing", player_loc, character_loc, 2);
+                AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
                 return 0;
             }
             else if (action == "Throw" ||
                      action == "Swing")
             {
-                AssetManager.PlaySound_Random_AtDistance("Swing", player_loc, character_loc, 2);
+                AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
                 return 1;
             }
             else if (action == "Shoot")
@@ -431,17 +421,17 @@ namespace Despicaville.Util
                     {
                         if (leftHandItem.Name.Contains("Pistol"))
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Pistol", player_loc, character_loc, 20);
+                            AssetManager.PlaySound_Random_AtDistance("Pistol", Handler.Player.Location.ToVector2, character.Location.ToVector2, 20);
                             return 20;
                         }
                         else if (leftHandItem.Name.Contains("Shotgun"))
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Shotgun", player_loc, character_loc, 40);
+                            AssetManager.PlaySound_Random_AtDistance("Shotgun", Handler.Player.Location.ToVector2, character.Location.ToVector2, 40);
                             return 40;
                         }
                         else if (leftHandItem.Name.Contains("Machine"))
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Rifle", player_loc, character_loc, 40);
+                            AssetManager.PlaySound_Random_AtDistance("Rifle", Handler.Player.Location.ToVector2, character.Location.ToVector2, 40);
                             return 40;
                         }
                     }
@@ -454,17 +444,17 @@ namespace Despicaville.Util
                     {
                         if (rightHandItem.Name.Contains("Pistol"))
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Pistol", player_loc, character_loc, 20);
+                            AssetManager.PlaySound_Random_AtDistance("Pistol", Handler.Player.Location.ToVector2, character.Location.ToVector2, 20);
                             return 20;
                         }
                         else if (rightHandItem.Name.Contains("Shotgun"))
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Shotgun", player_loc, character_loc, 40);
+                            AssetManager.PlaySound_Random_AtDistance("Shotgun", Handler.Player.Location.ToVector2, character.Location.ToVector2, 40);
                             return 40;
                         }
                         else if (rightHandItem.Name.Contains("Machine"))
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Rifle", player_loc, character_loc, 40);
+                            AssetManager.PlaySound_Random_AtDistance("Rifle", Handler.Player.Location.ToVector2, character.Location.ToVector2, 40);
                             return 40;
                         }
                     }

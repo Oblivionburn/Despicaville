@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-
 using Microsoft.Xna.Framework;
-
 using OP_Engine.Characters;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;

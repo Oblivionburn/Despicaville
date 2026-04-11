@@ -3,11 +3,11 @@ using Microsoft.Xna.Framework;
 using OP_Engine.Characters;
 using OP_Engine.Controls;
 using OP_Engine.Inventories;
-using OP_Engine.Jobs;
 using OP_Engine.Scenes;
 using OP_Engine.Tiles;
 using OP_Engine.Utility;
 using OP_Engine.Enums;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Despicaville.Util
 {
@@ -25,7 +25,6 @@ namespace Despicaville.Util
             character.Direction = Direction.Down;
             character.Visible = true;
             character.Job.OwnerIDs.Add(character.ID);
-            JobManager.Jobs.Add(character.Job);
             InventoryManager.Inventories.Add(character.Inventory);
 
             //Get Stats
@@ -775,14 +774,18 @@ namespace Despicaville.Util
 
                     bool reverse = points[0] != starting;
 
-                    for (int i = 0; i < points.Count; i++)
+                    int pointCount = points.Count;
+                    for (int i = 0; i < pointCount; i++)
                     {
                         //Reverse direction if first point is not where we started
-                        int index = reverse ? (points.Count - 1) - i : i;
+                        int index = reverse ? (pointCount - 1) - i : i;
 
-                        Vector2 current_location = new Vector2(points[index].X, points[index].Y);
+                        Point point = points[index];
+                        int X = point.X;
+                        int Y = point.Y;
+
+                        Vector2 current_location = new Vector2(X, Y);
                         Tile bottom_tile = bottom_tiles.GetTile(current_location);
-                        Tile middle_tile = middle_tiles.GetTile(current_location);
 
                         if (!locations.Contains(current_location))
                         {
@@ -794,11 +797,15 @@ namespace Despicaville.Util
                         {
                             break;
                         }
-                        else if (middle_tile != null &&
-                                 middle_tile.BlocksMovement &&
-                                 WorldUtil.BlocksSight(middle_tile.Name))
+                        else
                         {
-                            break;
+                            Tile middle_tile = middle_tiles.GetTile(current_location);
+                            if (middle_tile != null &&
+                                middle_tile.BlocksSight &&
+                                !middle_tile.Name.Contains("Open"))
+                            {
+                                break;
+                            }
                         }
                     }
                 }
@@ -820,14 +827,18 @@ namespace Despicaville.Util
 
                     bool reverse = points[0] != starting;
 
-                    for (int i = 0; i < points.Count; i++)
+                    int pointCount = points.Count;
+                    for (int i = 0; i < pointCount; i++)
                     {
                         //Reverse direction if first point is not where we started
-                        int index = reverse ? (points.Count - 1) - i : i;
+                        int index = reverse ? (pointCount - 1) - i : i;
 
-                        Vector2 current_location = new Vector2(points[index].X, points[index].Y);
+                        Point point = points[index];
+                        int X = point.X;
+                        int Y = point.Y;
+
+                        Vector2 current_location = new Vector2(X, Y);
                         Tile bottom_tile = bottom_tiles.GetTile(current_location);
-                        Tile middle_tile = middle_tiles.GetTile(current_location);
 
                         if (!locations.Contains(current_location))
                         {
@@ -839,11 +850,15 @@ namespace Despicaville.Util
                         {
                             break;
                         }
-                        else if (middle_tile != null &&
-                                 middle_tile.BlocksMovement &&
-                                 WorldUtil.BlocksSight(middle_tile.Name))
+                        else
                         {
-                            break;
+                            Tile middle_tile = middle_tiles.GetTile(current_location);
+                            if (middle_tile != null &&
+                                middle_tile.BlocksSight &&
+                                !middle_tile.Name.Contains("Open"))
+                            {
+                                break;
+                            }
                         }
                     }
                 }
@@ -865,14 +880,18 @@ namespace Despicaville.Util
 
                     bool reverse = points[0] != starting;
 
-                    for (int i = 0; i < points.Count; i++)
+                    int pointCount = points.Count;
+                    for (int i = 0; i < pointCount; i++)
                     {
                         //Reverse direction if first point is not where we started
-                        int index = reverse ? (points.Count - 1) - i : i;
+                        int index = reverse ? (pointCount - 1) - i : i;
 
-                        Vector2 current_location = new Vector2(points[index].X, points[index].Y);
+                        Point point = points[index];
+                        int X = point.X;
+                        int Y = point.Y;
+
+                        Vector2 current_location = new Vector2(X, Y);
                         Tile bottom_tile = bottom_tiles.GetTile(current_location);
-                        Tile middle_tile = middle_tiles.GetTile(current_location);
 
                         if (!locations.Contains(current_location))
                         {
@@ -884,11 +903,15 @@ namespace Despicaville.Util
                         {
                             break;
                         }
-                        else if (middle_tile != null &&
-                                 middle_tile.BlocksMovement &&
-                                 WorldUtil.BlocksSight(middle_tile.Name))
+                        else
                         {
-                            break;
+                            Tile middle_tile = middle_tiles.GetTile(current_location);
+                            if (middle_tile != null &&
+                                middle_tile.BlocksSight &&
+                                !middle_tile.Name.Contains("Open"))
+                            {
+                                break;
+                            }
                         }
                     }
                 }
@@ -910,14 +933,18 @@ namespace Despicaville.Util
 
                     bool reverse = points[0] != starting;
 
-                    for (int i = 0; i < points.Count; i++)
+                    int pointCount = points.Count;
+                    for (int i = 0; i < pointCount; i++)
                     {
                         //Reverse direction if first point is not where we started
-                        int index = reverse ? (points.Count - 1) - i : i;
+                        int index = reverse ? (pointCount - 1) - i : i;
 
-                        Vector2 current_location = new Vector2(points[index].X, points[index].Y);
+                        Point point = points[index];
+                        int X = point.X;
+                        int Y = point.Y;
+
+                        Vector2 current_location = new Vector2(X, Y);
                         Tile bottom_tile = bottom_tiles.GetTile(current_location);
-                        Tile middle_tile = middle_tiles.GetTile(current_location);
 
                         if (!locations.Contains(current_location))
                         {
@@ -929,11 +956,15 @@ namespace Despicaville.Util
                         {
                             break;
                         }
-                        else if (middle_tile != null &&
-                                 middle_tile.BlocksMovement &&
-                                 WorldUtil.BlocksSight(middle_tile.Name))
+                        else
                         {
-                            break;
+                            Tile middle_tile = middle_tiles.GetTile(current_location);
+                            if (middle_tile != null &&
+                                middle_tile.BlocksSight &&
+                                !middle_tile.Name.Contains("Open"))
+                            {
+                                break;
+                            }
                         }
                     }
                 }
@@ -942,12 +973,20 @@ namespace Despicaville.Util
             }
 
             List<Tile> tiles = new List<Tile>();
-            foreach (Vector2 location in locations)
+            Texture2D selection = AssetManager.Textures["Selection"];
+
+            int count = locations.Count;
+            for (int i = 0; i < count; i++)
             {
-                Tile new_tile = new Tile();
-                new_tile.Location = new Location(location.X, location.Y, 0);
-                new_tile.Texture = AssetManager.Textures["Selection"];
-                new_tile.Image = new Rectangle(0, 0, new_tile.Texture.Width, new_tile.Texture.Height);
+                Vector2 location = locations[i];
+                Location tileLocation = new Location(location.X, location.Y, 0);
+
+                Tile new_tile = new Tile
+                {
+                    Location = tileLocation,
+                    Texture = selection,
+                    Image = new Rectangle(0, 0, selection.Width, selection.Height)
+                };
 
                 Tile existing = bottom_tiles.GetTile(location);
                 if (existing != null)
@@ -1359,7 +1398,7 @@ namespace Despicaville.Util
                         }
                         else
                         {
-                            WorldUtil.AddEffect(new Vector2(character.Location.X, character.Location.Y), "Tiny Blood", null);
+                            WorldUtil.AddEffect(character.Location.ToVector2, "Tiny Blood", null);
                         }
 
                         if (character.Moving &&
@@ -1368,22 +1407,22 @@ namespace Despicaville.Util
                             if (character.Direction == Direction.Up &&
                                 !trail_north_found)
                             {
-                                WorldUtil.AddEffect(new Vector2(character.Location.X, character.Location.Y), "Trail of Blood North", "Blood_Trail_Up");
+                                WorldUtil.AddEffect(character.Location.ToVector2, "Trail of Blood North", "Blood_Trail_Up");
                             }
                             else if (character.Direction == Direction.Right &&
                                      !trail_east_found)
                             {
-                                WorldUtil.AddEffect(new Vector2(character.Location.X, character.Location.Y), "Trail of Blood East", "Blood_Trail_Right");
+                                WorldUtil.AddEffect(character.Location.ToVector2, "Trail of Blood East", "Blood_Trail_Right");
                             }
                             else if (character.Direction == Direction.Down &&
                                      !trail_south_found)
                             {
-                                WorldUtil.AddEffect(new Vector2(character.Location.X, character.Location.Y), "Trail of Blood South", "Blood_Trail_Down");
+                                WorldUtil.AddEffect(character.Location.ToVector2, "Trail of Blood South", "Blood_Trail_Down");
                             }
                             else if (character.Direction == Direction.Left &&
                                      !trail_west_found)
                             {
-                                WorldUtil.AddEffect(new Vector2(character.Location.X, character.Location.Y), "Trail of Blood West", "Blood_Trail_Left");
+                                WorldUtil.AddEffect(character.Location.ToVector2, "Trail of Blood West", "Blood_Trail_Left");
                             }
                         }
                     }
@@ -1429,7 +1468,6 @@ namespace Despicaville.Util
         {
             character.Unconscious = false;
             character.Dead = true;
-            JobManager.Jobs.Remove(character.Job);
         }
 
         public static string ReactToAttack(Character attacker, Character defender)

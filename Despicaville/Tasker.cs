@@ -568,7 +568,7 @@ namespace Despicaville
 
             Layer effect_tiles = map.GetLayer("EffectTiles");
             Layer middle_tiles = map.GetLayer("MiddleTiles");
-            Tile tile = middle_tiles.GetTile(new Vector2(character.Destination.X, character.Destination.Y));
+            Tile tile = middle_tiles.GetTile(character.Destination.ToVector2);
 
             if (tile.Direction == Direction.Up)
             {
@@ -582,7 +582,7 @@ namespace Despicaville
             tile.Texture = AssetManager.Textures[tile.Name];
             tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
 
-            Vector2 location = new Vector2(character.Destination.X, character.Destination.Y);
+            Vector2 location = character.Destination.ToVector2;
             if (character.Direction == Direction.Up)
             {
                 location.Y--;
@@ -600,10 +600,9 @@ namespace Despicaville
                 location.X--;
             }
 
-            Character player = Handler.GetPlayer();
-            if (!player.Unconscious)
+            if (!Handler.Player.Unconscious)
             {
-                AssetManager.PlaySound_Random_AtDistance("GlassBreak", new Vector2(player.Location.X, player.Location.Y), location, 10);
+                AssetManager.PlaySound_Random_AtDistance("GlassBreak", Handler.Player.Location.ToVector2, location, 10);
             }
 
             Tile new_tile = effect_tiles.GetTile(location);
@@ -934,7 +933,7 @@ namespace Despicaville
         {
             bool in_room = false;
 
-            Tile room_tile = room_tiles.GetTile(new Vector2(character.Location.X, character.Location.Y));
+            Tile room_tile = room_tiles.GetTile(character.Location.ToVector2);
             if (room_tile != null &&
                 room_tile.Texture != null)
             {
@@ -985,7 +984,7 @@ namespace Despicaville
                         }
                         else
                         {
-                            tile = bottom_tiles.GetTile(new Vector2(exit.Location.X, exit.Location.Y));
+                            tile = bottom_tiles.GetTile(exit.Location.ToVector2);
                         }
 
                         if (tile != null)
@@ -998,7 +997,7 @@ namespace Despicaville
             }
             else
             {
-                Tile middle_tile = middle_tiles.GetTile(new Vector2(character.Location.X, character.Location.Y));
+                Tile middle_tile = middle_tiles.GetTile(character.Location.ToVector2);
                 if (middle_tile != null &&
                     middle_tile.Name.Contains("Door"))
                 {

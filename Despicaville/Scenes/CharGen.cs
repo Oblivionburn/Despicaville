@@ -847,25 +847,27 @@ namespace Despicaville.Scenes
         {
             Squad players = CharacterManager.GetArmy("Characters").GetSquad("Players");
 
-            Character player = new Character();
-            player.ID = Handler.GetID();
-            player.Name = First_Name + " " + Last_Name;
-            player.Type = "Player";
-            player.Animator.Frames = 4;
-            player.Speed = 1;
-            player.Move_TotalDistance = Main.Game.TileSize.X;
-            player.Direction = Direction.Down;
-            player.Visible = true;
-            player.Region.X = (Main.Game.ScreenWidth / 2) - (Main.Game.TileSize.X / 2);
-            player.Region.Y = (Main.Game.ScreenHeight / 2) - (Main.Game.TileSize.Y / 2) - (Main.Game.TileSize.Y * 2);
-            player.Region.Width = Main.Game.TileSize.X;
-            player.Region.Height = Main.Game.TileSize.Y;
-            players.Characters.Add(player);
+            float x = (Main.Game.ScreenWidth / 2) - (Main.Game.TileSize.X / 2);
+            float y = (Main.Game.ScreenHeight / 2) - (Main.Game.TileSize.Y / 2) - (Main.Game.TileSize.Y * 2);
 
-            JobManager.Jobs = new List<Job> { player.Job };
+            Character player = new Character
+            {
+                ID = Handler.GetID(),
+                Name = First_Name + " " + Last_Name,
+                Type = "Player",
+                Speed = 1,
+                Move_TotalDistance = Main.Game.TileSize.X,
+                Direction = Direction.Down,
+                Region = new Region(x, y, Main.Game.TileSize_X, Main.Game.TileSize_Y),
+                Visible = true
+            };
+            player.Animator.Frames = 4;
+            players.Characters.Add(player);
 
             LoadInventory(player);
             CharacterUtil.LoadStats(player, Stats);
+
+            Handler.Player = player;
 
             Reset();
 

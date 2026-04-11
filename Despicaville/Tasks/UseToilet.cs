@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using OP_Engine.Characters;
+﻿using OP_Engine.Characters;
 using OP_Engine.Enums;
 using OP_Engine.Jobs;
 using OP_Engine.Tiles;
@@ -110,9 +109,7 @@ namespace Despicaville.Tasks
                 return;
             }
 
-            Vector2 location = new Vector2(Location.X, Location.Y);
-
-            Tile toilet = WorldUtil.GetFurniture(Handler.MiddleFurniture, new Location(location.X, location.Y, 0));
+            Tile toilet = WorldUtil.GetFurniture(Handler.MiddleFurniture, Location);
             if (toilet != null)
             {
                 if (toilet.Name.Contains("Toilet"))
@@ -125,11 +122,9 @@ namespace Despicaville.Tasks
             Something bladder = character.GetStat("Bladder");
             bladder.Value = 0;
 
-            Character player = Handler.GetPlayer();
-            if (!player.Unconscious)
+            if (!Handler.Player.Unconscious)
             {
-                Vector2 player_location = new Vector2(player.Location.X, player.Location.Y);
-                AssetManager.PlaySound_Random_AtDistance("Flush", player_location, new Vector2(toilet.Location.X, toilet.Location.Y), 5);
+                AssetManager.PlaySound_Random_AtDistance("Flush", Handler.Player.Location.ToVector2, toilet.Location.ToVector2, 5);
 
                 if (character.Type == "Player")
                 {
@@ -137,8 +132,8 @@ namespace Despicaville.Tasks
                 }
                 else
                 {
-                    Direction direction = WorldUtil.GetDirection(toilet.Location, player.Location, true);
-                    if (WorldUtil.InRange(player.Location, toilet.Location, 5))
+                    Direction direction = WorldUtil.GetDirection(toilet.Location, Handler.Player.Location, true);
+                    if (WorldUtil.InRange(Handler.Player.Location, toilet.Location, 5))
                     {
                         GameUtil.AddMessage("You hear a toilet flush to the " + direction.ToString() + ".");
                     }

@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using OP_Engine.Characters;
+﻿using OP_Engine.Characters;
 using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
@@ -20,16 +19,14 @@ namespace Despicaville.Tasks
                 return;
             }
 
-            Vector2 location = new Vector2(Location.X, Location.Y);
-
             Scene scene = SceneManager.GetScene("Gameplay");
             Map map = scene.World.Maps[0];
             Layer bottom_tiles = map.GetLayer("BottomTiles");
 
-            Tile tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, new Location(location.X, location.Y, 0));
+            Tile tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, Location);
             if (tile == null)
             {
-                tile = bottom_tiles.GetTile(location);
+                tile = bottom_tiles.GetTile(Location.ToVector2);
             }
 
             if (tile.Texture != null)

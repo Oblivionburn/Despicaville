@@ -1592,6 +1592,7 @@ namespace Despicaville.Util
                 new_tile.Name.Contains("Stove"))
             {
                 new_tile.BlocksMovement = true;
+                new_tile.BlocksSight = WorldUtil.BlocksSight(new_tile.Name);
 
                 if (new_tile.Name.Contains("StreetLight"))
                 {
@@ -1621,6 +1622,7 @@ namespace Despicaville.Util
             {
                 new_tile.Name += "_Closed";
                 new_tile.BlocksMovement = true;
+                new_tile.BlocksSight = true;
             }
             else if (new_tile.Name.Contains("Window"))
             {
@@ -1683,8 +1685,11 @@ namespace Despicaville.Util
                     Handler.MiddleFurniture.Add(new_tile);
                 }
 
-                new_tile.Inventory.ID = Handler.GetID();
-                new_tile.Inventory.Location = new Location(x, y, 0);
+                new_tile.Inventory = new Inventory
+                {
+                    ID = Handler.GetID(),
+                    Location = new Location(x, y, 0)
+                };
                 InventoryManager.Inventories.Add(new_tile.Inventory);
             }
 
@@ -2127,7 +2132,7 @@ namespace Despicaville.Util
 
             foreach (Tile middle_tile in middle_tiles.Tiles)
             {
-                Tile roof_tile = roof_tiles.GetTile(new Vector2(middle_tile.Location.X, middle_tile.Location.Y));
+                Tile roof_tile = roof_tiles.GetTile(middle_tile.Location.ToVector2);
                 if (roof_tile != null)
                 {
                     if (roof_tile.Texture == null)
@@ -2145,7 +2150,7 @@ namespace Despicaville.Util
 
             foreach (Tile room_tile in room_tiles.Tiles)
             {
-                Tile roof_tile = roof_tiles.GetTile(new Vector2(room_tile.Location.X, room_tile.Location.Y));
+                Tile roof_tile = roof_tiles.GetTile(room_tile.Location.ToVector2);
                 if (roof_tile != null)
                 {
                     if (roof_tile.Texture == null)
@@ -2208,8 +2213,6 @@ namespace Despicaville.Util
                     {
                         Handler.OwnedFurniture[character.ID].Add(tile);
                     }
-
-                    tile.OwnerIDs.Add(character.ID);
                 }
             }
         }
@@ -2238,7 +2241,7 @@ namespace Despicaville.Util
                         current++;
                         Handler.Loading_Percent = (current * 100) / total;
 
-                        Tile room_tile = room_tiles.GetTile(new Vector2(bottom_tile.Location.X, bottom_tile.Location.Y));
+                        Tile room_tile = room_tiles.GetTile(bottom_tile.Location.ToVector2);
                         if (room_tile != null)
                         {
                             if (!string.IsNullOrEmpty(room_tile.Name))
@@ -2294,7 +2297,7 @@ namespace Despicaville.Util
 
                         if (middle_tile.Texture != null)
                         {
-                            Tile room_tile = room_tiles.GetTile(new Vector2(middle_tile.Location.X, middle_tile.Location.Y));
+                            Tile room_tile = room_tiles.GetTile(middle_tile.Location.ToVector2);
                             if (room_tile != null)
                             {
                                 if (!string.IsNullOrEmpty(room_tile.Name))

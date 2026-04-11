@@ -111,15 +111,11 @@ namespace Despicaville.Menus
                     }
                 }
 
-                Character player = Handler.GetPlayer();
-                if (player != null)
+                foreach (Item item in Handler.Player.Inventory.Items)
                 {
-                    foreach (Item item in player.Inventory.Items)
+                    if (item.Icon_Visible)
                     {
-                        if (item.Icon_Visible)
-                        {
-                            spriteBatch.Draw(item.Icon, item.Icon_Region.ToRectangle, item.Icon_Image, item.Icon_DrawColor);
-                        }
+                        spriteBatch.Draw(item.Icon, item.Icon_Region.ToRectangle, item.Icon_Image, item.Icon_DrawColor);
                     }
                 }
 
@@ -331,39 +327,35 @@ namespace Despicaville.Menus
             bool open_container = false;
             using_item = false;
 
-            Character player = Handler.GetPlayer();
-            if (player != null)
+            foreach (Item item in Handler.Player.Inventory.Items)
             {
-                foreach (Item item in player.Inventory.Items)
+                if (item.Icon_Visible)
                 {
-                    if (item.Icon_Visible)
+                    if (InputManager.MouseWithin(item.Icon_Region.ToRectangle))
                     {
-                        if (InputManager.MouseWithin(item.Icon_Region.ToRectangle))
+                        found = true;
+
+                        ExamineItem(item);
+
+                        Picture highlight = GetPicture("Highlight");
+                        highlight.Region = item.Icon_Region;
+                        highlight.Visible = true;
+
+                        if (InputManager.Mouse_LB_Held &&
+                            InputManager.Mouse_Moved)
                         {
-                            found = true;
+                            moving = true;
+                            starting_pos = item.Icon_Region.ToRectangle;
+                            selected_Item = item;
 
-                            ExamineItem(item);
-
-                            Picture highlight = GetPicture("Highlight");
-                            highlight.Region = item.Icon_Region;
-                            highlight.Visible = true;
-
-                            if (InputManager.Mouse_LB_Held &&
-                                InputManager.Mouse_Moved)
+                            if (item.Equipped &&
+                                InventoryUtil.IsContainer(item))
                             {
-                                moving = true;
-                                starting_pos = item.Icon_Region.ToRectangle;
-                                selected_Item = item;
-
-                                if (item.Equipped &&
-                                    InventoryUtil.IsContainer(item))
-                                {
-                                    LoadInventories();
-                                }
+                                LoadInventories();
                             }
-
-                            break;
                         }
+
+                        break;
                     }
                 }
             }
@@ -589,19 +581,17 @@ namespace Despicaville.Menus
 
         private void MoveItem()
         {
-            Character player = Handler.GetPlayer();
-
             Item item = null;
             Inventory item_inventory = null;
 
             bool equipped = false;
 
-            foreach (Item existing in player.Inventory.Items)
+            foreach (Item existing in Handler.Player.Inventory.Items)
             {
                 if (existing.ID == selected_Item?.ID)
                 {
                     item = existing;
-                    item_inventory = player.Inventory;
+                    item_inventory = Handler.Player.Inventory;
                     equipped = existing.Equipped;
                     break;
                 }
@@ -705,7 +695,7 @@ namespace Despicaville.Menus
 
                                             selected_Item = null;
 
-                                            InventoryUtil.TransferItem(Handler.GetPlayer().Inventory, existing, item);
+                                            InventoryUtil.TransferItem(Handler.Player.Inventory, existing, item);
 
                                             Picture slot = GetPicture(item.Assignment);
                                             if (slot != null)
@@ -761,7 +751,7 @@ namespace Despicaville.Menus
 
                                                 selected_Item = null;
 
-                                                InventoryUtil.TransferItem(Handler.GetPlayer().Inventory, existing, item);
+                                                InventoryUtil.TransferItem(Handler.Player.Inventory, existing, item);
 
                                                 Picture slot = GetPicture(item.Assignment);
                                                 if (slot != null)
@@ -960,7 +950,7 @@ namespace Despicaville.Menus
                             {
                                 bool slot_empty = true;
 
-                                foreach (Item existing in player.Inventory.Items)
+                                foreach (Item existing in Handler.Player.Inventory.Items)
                                 {
                                     if (existing.Equipped &&
                                         existing.Assignment == slot.Name)
@@ -978,7 +968,7 @@ namespace Despicaville.Menus
 
                                     selected_Item = null;
 
-                                    InventoryUtil.TransferItem(item_inventory, player.Inventory, item);
+                                    InventoryUtil.TransferItem(item_inventory, Handler.Player.Inventory, item);
 
                                     slot.Texture = AssetManager.Textures["Slot_Empty"];
 
@@ -1005,21 +995,19 @@ namespace Despicaville.Menus
         {
             bool okay = false;
 
-            Character player = Handler.GetPlayer();
-
             if (InventoryUtil.IsFood(item))
             {
                 Something hunger = item.GetProperty("Hunger");
                 if (hunger != null)
                 {
-                    if (player.GetStat("Hunger").Value < 100)
+                    if (Handler.Player.GetStat("Hunger").Value < 100)
                     {
                         okay = true;
 
-                        player.Job.Tasks.Add(new UseItem
+                        Handler.Player.Job.Tasks.Add(new UseItem
                         {
                             Name = "UseItem_" + item.ID,
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerIDs = new List<long> { Handler.Player.ID },
                             StartTime = new TimeHandler(TimeManager.Now),
                             EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(hunger.Value * -1)),
                         });
@@ -1031,14 +1019,14 @@ namespace Despicaville.Menus
                     Something thirst = item.GetProperty("Thirst");
                     if (thirst != null)
                     {
-                        if (player.GetStat("Thirst").Value < 100)
+                        if (Handler.Player.GetStat("Thirst").Value < 100)
                         {
                             okay = true;
 
-                            player.Job.Tasks.Add(new UseItem
+                            Handler.Player.Job.Tasks.Add(new UseItem
                             {
                                 Name = "UseItem_" + item.ID,
-                                OwnerIDs = new List<long> { player.ID },
+                                OwnerIDs = new List<long> { Handler.Player.ID },
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(thirst.Value * -1)),
                             });
@@ -1050,10 +1038,10 @@ namespace Despicaville.Menus
             {
                 okay = true;
 
-                player.Job.Tasks.Add(new UseItem
+                Handler.Player.Job.Tasks.Add(new UseItem
                 {
                     Name = "UseItem_" + item.ID,
-                    OwnerIDs = new List<long> { player.ID },
+                    OwnerIDs = new List<long> { Handler.Player.ID },
                     StartTime = new TimeHandler(TimeManager.Now),
                     EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
                 });
@@ -1064,7 +1052,7 @@ namespace Despicaville.Menus
                 Something hunger = item.GetProperty("Hunger");
                 if (hunger != null)
                 {
-                    if (player.GetStat("Hunger").Value >= 100)
+                    if (Handler.Player.GetStat("Hunger").Value >= 100)
                     {
                         GameUtil.AddMessage("You are not hungry enough to eat the " + item.Name.ToLower() + ".");
                     }
@@ -1074,7 +1062,7 @@ namespace Despicaville.Menus
                     Something thirst = item.GetProperty("Thirst");
                     if (thirst != null)
                     {
-                        if (player.GetStat("Thirst").Value >= 100)
+                        if (Handler.Player.GetStat("Thirst").Value >= 100)
                         {
                             GameUtil.AddMessage("You are not thirsty enough to drink the " + item.Name.ToLower() + ".");
                         }
@@ -1122,8 +1110,7 @@ namespace Despicaville.Menus
 
         public override void Close()
         {
-            Character player = Handler.GetPlayer();
-            foreach (Item item in player.Inventory.Items)
+            foreach (Item item in Handler.Player.Inventory.Items)
             {
                 item.Icon_Visible = false;
             }
@@ -1157,40 +1144,32 @@ namespace Despicaville.Menus
 
         private void LoadEquipped()
         {
-            Character player = Handler.GetPlayer();
-            if (player != null)
-            {
-                SetSlot(player, "Mask Slot");
-                SetSlot(player, "Hat Slot");
-                SetSlot(player, "Coat Slot");
-                SetSlot(player, "Shirt Slot");
-                SetSlot(player, "Backpack Slot");
-                SetSlot(player, "Right Glove Slot");
-                SetSlot(player, "Pants Slot");
-                SetSlot(player, "Left Glove Slot");
-                SetSlot(player, "Right Weapon Slot");
-                SetSlot(player, "Shoes Slot");
-                SetSlot(player, "Left Weapon Slot");
-            }
+            SetSlot(Handler.Player, "Mask Slot");
+            SetSlot(Handler.Player, "Hat Slot");
+            SetSlot(Handler.Player, "Coat Slot");
+            SetSlot(Handler.Player, "Shirt Slot");
+            SetSlot(Handler.Player, "Backpack Slot");
+            SetSlot(Handler.Player, "Right Glove Slot");
+            SetSlot(Handler.Player, "Pants Slot");
+            SetSlot(Handler.Player, "Left Glove Slot");
+            SetSlot(Handler.Player, "Right Weapon Slot");
+            SetSlot(Handler.Player, "Shoes Slot");
+            SetSlot(Handler.Player, "Left Weapon Slot");
         }
 
         private void ResizeEquipped()
         {
-            Character player = Handler.GetPlayer();
-            if (player != null)
-            {
-                ResizeSlot(player, "Mask Slot");
-                ResizeSlot(player, "Hat Slot");
-                ResizeSlot(player, "Coat Slot");
-                ResizeSlot(player, "Shirt Slot");
-                ResizeSlot(player, "Backpack Slot");
-                ResizeSlot(player, "Right Glove Slot");
-                ResizeSlot(player, "Pants Slot");
-                ResizeSlot(player, "Left Glove Slot");
-                ResizeSlot(player, "Right Weapon Slot");
-                ResizeSlot(player, "Shoes Slot");
-                ResizeSlot(player, "Left Weapon Slot");
-            }
+            ResizeSlot(Handler.Player, "Mask Slot");
+            ResizeSlot(Handler.Player, "Hat Slot");
+            ResizeSlot(Handler.Player, "Coat Slot");
+            ResizeSlot(Handler.Player, "Shirt Slot");
+            ResizeSlot(Handler.Player, "Backpack Slot");
+            ResizeSlot(Handler.Player, "Right Glove Slot");
+            ResizeSlot(Handler.Player, "Pants Slot");
+            ResizeSlot(Handler.Player, "Left Glove Slot");
+            ResizeSlot(Handler.Player, "Right Weapon Slot");
+            ResizeSlot(Handler.Player, "Shoes Slot");
+            ResizeSlot(Handler.Player, "Left Weapon Slot");
         }
 
         private void LoadInventories()
@@ -1209,21 +1188,17 @@ namespace Despicaville.Menus
 
             inventory_y = (int)((Main.Game.ScreenHeight / 2) - (Main.Game.MenuSize_Y * 4) - Main.Game.MenuSize_Y);
 
-            Character player = Handler.GetPlayer();
-            if (player != null)
+            foreach (Item item in Handler.Player.Inventory.Items)
             {
-                foreach (Item item in player.Inventory.Items)
+                if (item.Equipped &&
+                    InventoryUtil.IsContainer(item) &&
+                    item.ID != selected_Item?.ID)
                 {
-                    if (item.Equipped &&
-                        InventoryUtil.IsContainer(item) &&
-                        item.ID != selected_Item?.ID)
-                    {
-                        Inventories.Add(item.Inventory);
-                    }
+                    Inventories.Add(item.Inventory);
                 }
-
-                GetLabel("Name").Text = player.Name;
             }
+
+            GetLabel("Name").Text = Handler.Player.Name;
             
             Load_Inventory_Grids();
 

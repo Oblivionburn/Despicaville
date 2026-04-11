@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using OP_Engine.Characters;
+﻿using OP_Engine.Characters;
 using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
@@ -19,19 +18,15 @@ namespace Despicaville.Tasks
                 return;
             }
 
-            Vector2 location = new Vector2(Location.X, Location.Y);
-
             Scene scene = SceneManager.GetScene("Gameplay");
             Map map = scene.World.Maps[0];
 
             Layer middle_tiles = map.GetLayer("MiddleTiles");
-            Tile tile = middle_tiles.GetTile(location);
+            Tile tile = middle_tiles.GetTile(Location.ToVector2);
             if (tile.Name.Contains("Open"))
             {
                 return;
             }
-
-            Character player = Handler.GetPlayer();
 
             int loudness = 2;
             if (Name.Contains("Quiet"))
@@ -45,15 +40,15 @@ namespace Despicaville.Tasks
 
             if (loudness == 1)
             {
-                AssetManager.PlaySound_Random_AtDistance("DoorOpen", new Vector2(player.Location.X, player.Location.Y), location, 2);
+                AssetManager.PlaySound_Random_AtDistance("DoorOpen", Handler.Player.Location.ToVector2, Location.ToVector2, 2);
             }
             else if (loudness == 2)
             {
-                AssetManager.PlaySound_Random_AtDistance("DoorOpen", new Vector2(player.Location.X, player.Location.Y), location, 4);
+                AssetManager.PlaySound_Random_AtDistance("DoorOpen", Handler.Player.Location.ToVector2, Location.ToVector2, 4);
             }
             else if (loudness == 3)
             {
-                AssetManager.PlaySound_Random_AtDistance("DoorOpen", new Vector2(player.Location.X, player.Location.Y), location, 8);
+                AssetManager.PlaySound_Random_AtDistance("DoorOpen", Handler.Player.Location.ToVector2, Location.ToVector2, 8);
             }
 
             if (character.Direction == Direction.Up)
@@ -99,22 +94,22 @@ namespace Despicaville.Tasks
                     GameUtil.AddMessage("You loudly opened a door.");
                 }
             }
-            else if (!player.Unconscious)
+            else if (!Handler.Player.Unconscious)
             {
-                Direction direction = WorldUtil.GetDirection(Location, player.Location, true);
+                Direction direction = WorldUtil.GetDirection(Location, Handler.Player.Location, true);
 
                 if (loudness == 1 &&
-                    WorldUtil.InRange(player.Location, Location, 2))
+                    WorldUtil.InRange(Handler.Player.Location, Location, 2))
                 {
                     GameUtil.AddMessage("You hear a door quietly open to the " + direction.ToString() + ".");
                 }
                 else if (loudness == 2 &&
-                         WorldUtil.InRange(player.Location, Location, 4))
+                         WorldUtil.InRange(Handler.Player.Location, Location, 4))
                 {
                     GameUtil.AddMessage("You hear a door open to the " + direction.ToString() + ".");
                 }
                 else if (loudness == 3 &&
-                         WorldUtil.InRange(player.Location, Location, 8))
+                         WorldUtil.InRange(Handler.Player.Location, Location, 8))
                 {
                     GameUtil.AddMessage("You hear a door loudly open to the " + direction.ToString() + ".");
                 }

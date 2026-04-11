@@ -177,28 +177,24 @@ namespace Despicaville.Menus
 
         private void UpdateStats()
         {
-            Character player = Handler.GetPlayer();
-            if (player != null)
+            string[] stats = { "Hunger", "Thirst", "Bladder", "Grime", "Pain", "Paranoia", "Blood", "Consciousness", "Stamina", "Comfort" };
+            foreach (string stat_name in stats)
             {
-                string[] stats = { "Hunger", "Thirst", "Bladder", "Grime", "Pain", "Paranoia", "Blood", "Consciousness", "Stamina", "Comfort" };
-                foreach (string stat_name in stats)
+                Something stat = Handler.Player.GetStat(stat_name);
+                if (stat != null)
                 {
-                    Something stat = player.GetStat(stat_name);
-                    if (stat != null)
+                    ProgressBar bar = GetProgressBar(stat_name);
+                    if (bar != null)
                     {
-                        ProgressBar bar = GetProgressBar(stat_name);
-                        if (bar != null)
-                        {
-                            bar.Value = stat.Value;
-                            bar.Update();
-                        }
+                        bar.Value = stat.Value;
+                        bar.Update();
+                    }
 
-                        Label label = GetLabel(stat_name);
-                        if (label != null)
-                        {
-                            label.HoverText = stat.Description;
-                            label.Text = stat_name + ": " + stat.Value.ToString("0.##") + "/" + stat.Max_Value + "%";
-                        }
+                    Label label = GetLabel(stat_name);
+                    if (label != null)
+                    {
+                        label.HoverText = stat.Description;
+                        label.Text = stat_name + ": " + stat.Value.ToString("0.##") + "/" + stat.Max_Value + "%";
                     }
                 }
             }

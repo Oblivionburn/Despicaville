@@ -1,9 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
-
 using OP_Engine.Controls;
 using OP_Engine.Inputs;
 using OP_Engine.Scenes;
@@ -11,8 +9,6 @@ using OP_Engine.Sounds;
 using OP_Engine.Menus;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
-using OP_Engine.Characters;
-
 using Despicaville.Util;
 
 namespace Despicaville.Scenes
@@ -353,26 +349,25 @@ namespace Despicaville.Scenes
 
         private void Finish()
         {
-            Character player = Handler.GetPlayer();
             World world = SceneManager.GetScene("Gameplay").World;
 
-            WorldUtil.AssignPlayerBed(world, player);
-            if (player.Location == null)
+            WorldUtil.AssignPlayerBed(world, Handler.Player);
+            if (Handler.Player.Location == null)
             {
-                player.Location = new Location(0, 0, 0);
+                Handler.Player.Location = new Location(0, 0, 0);
             }
 
-            if (player.Location.X == 0 &&
-                player.Location.Y == 0)
+            if (Handler.Player.Location.X == 0 &&
+                Handler.Player.Location.Y == 0)
             {
                 Map map = world.Maps[0];
                 Layer bottom_tiles = map.GetLayer("BottomTiles");
 
                 Tile center = bottom_tiles.GetTile(new Vector2(bottom_tiles.Columns / 2, bottom_tiles.Rows / 2));
-                player.Location = new Location(center.Location.X, center.Location.Y, 0);
+                Handler.Player.Location = new Location(center.Location.X, center.Location.Y, 0);
             }
 
-            WorldUtil.SetCurrentMap(player);
+            WorldUtil.SetCurrentMap(Handler.Player);
 
             Menu.GetButton("Next").Visible = false;
 

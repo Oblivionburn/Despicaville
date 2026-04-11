@@ -129,22 +129,18 @@ namespace Despicaville.Menus
 
         private void UpdateStats()
         {
-            Character player = Handler.GetPlayer();
-            if (player != null)
+            foreach (string body_part in Handler.BodyParts)
             {
-                foreach (string body_part in Handler.BodyParts)
+                Picture picture = GetPicture("Paperdoll_" + body_part);
+                if (picture != null)
                 {
-                    Picture picture = GetPicture("Paperdoll_" + body_part);
-                    if (picture != null)
+                    BodyPart bodyPart = Handler.Player.GetBodyPart(body_part);
+                    if (bodyPart != null)
                     {
-                        BodyPart bodyPart = player.GetBodyPart(body_part);
-                        if (bodyPart != null)
+                        Something hp = bodyPart.GetStat("HP");
+                        if (hp != null)
                         {
-                            Something hp = bodyPart.GetStat("HP");
-                            if (hp != null)
-                            {
-                                picture.HoverText = hp.Name + ": " + hp.Value.ToString("0.##") + "/" + (int)hp.Max_Value + "%";
-                            }
+                            picture.HoverText = hp.Name + ": " + hp.Value.ToString("0.##") + "/" + (int)hp.Max_Value + "%";
                         }
                     }
                 }
@@ -153,11 +149,9 @@ namespace Despicaville.Menus
 
         private void InitBodyDisplay()
         {
-            Character player = Handler.GetPlayer();
-
             foreach (string body_part in Handler.BodyParts)
             {
-                CombatUtil.Update_Player_BodyStat(player, body_part);
+                CombatUtil.Update_Player_BodyStat(Handler.Player, body_part);
             }
         }
 

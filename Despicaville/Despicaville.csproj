@@ -104,6 +104,7 @@
     <Compile Include="Tasks\OpenDoor.cs" />
     <Compile Include="Tasks\OpenFridge.cs" />
     <Compile Include="Tasks\OpenWindow.cs" />
+    <Compile Include="Tasks\Push.cs" />
     <Compile Include="Tasks\Search.cs" />
     <Compile Include="Tasks\Sleep.cs" />
     <Compile Include="Tasks\ToggleLight.cs" />
