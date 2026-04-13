@@ -137,6 +137,42 @@ namespace Despicaville.Scenes
                         }
                     }
 
+                    for (int i = 0; i < effect_tiles.Tiles.Count; i++)
+                    {
+                        Tile effect_tile = effect_tiles.Tiles[i];
+                        if (effect_tile.Location.Z == 0)
+                        {
+                            if (effect_tile.Visible)
+                            {
+                                if (effect_tile.Texture != null)
+                                {
+                                    effect_tile.Update(resolution);
+
+                                    if (effect_tile.InView)
+                                    {
+                                        if (effect_tile.Animated)
+                                        {
+                                            WorldUtil.Animate_Effect(spriteBatch, effect_tile);
+                                        }
+                                        else if (effect_tile.InSight)
+                                        {
+                                            effect_tile.Draw(spriteBatch, resolution, color);
+                                        }
+                                        else
+                                        {
+                                            effect_tile.Draw(spriteBatch, resolution, color * 0.95f);
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                effect_tiles.Tiles.Remove(effect_tile);
+                                i--;
+                            }
+                        }
+                    }
+
                     int middle_count = Handler.MiddleFurniture.Count;
                     for (int i = 0; i < middle_count; i++)
                     {
@@ -178,33 +214,6 @@ namespace Despicaville.Scenes
                             else
                             {
                                 top_tile.Draw(spriteBatch, resolution, color * 0.95f);
-                            }
-                        }
-                    }
-
-                    int effect_count = effect_tiles.Tiles.Count;
-                    for (int i = 0; i < effect_count; i++)
-                    {
-                        Tile effect_tile = effect_tiles.Tiles[i];
-                        if (effect_tile.Texture != null)
-                        {
-                            effect_tile.Update(resolution);
-
-                            if (effect_tile.InView &&
-                                effect_tile.Visible)
-                            {
-                                if (effect_tile.Animated)
-                                {
-                                    WorldUtil.Animate_Effect(spriteBatch, effect_tile);
-                                }
-                                else if (effect_tile.InSight)
-                                {
-                                    effect_tile.Draw(spriteBatch, resolution, color);
-                                }
-                                else
-                                {
-                                    effect_tile.Draw(spriteBatch, resolution, color * 0.95f);
-                                }
                             }
                         }
                     }
@@ -309,6 +318,42 @@ namespace Despicaville.Scenes
                             }
                         }
                     }
+
+                    for (int i = 0; i < effect_tiles.Tiles.Count; i++)
+                    {
+                        Tile effect_tile = effect_tiles.Tiles[i];
+                        if (effect_tile.Location.Z == 1)
+                        {
+                            if (effect_tile.Visible)
+                            {
+                                if (effect_tile.Texture != null)
+                                {
+                                    effect_tile.Update(resolution);
+
+                                    if (effect_tile.InView)
+                                    {
+                                        if (effect_tile.Animated)
+                                        {
+                                            WorldUtil.Animate_Effect(spriteBatch, effect_tile);
+                                        }
+                                        else if (effect_tile.InSight)
+                                        {
+                                            effect_tile.Draw(spriteBatch, resolution, color);
+                                        }
+                                        else
+                                        {
+                                            effect_tile.Draw(spriteBatch, resolution, color * 0.95f);
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                effect_tiles.Tiles.Remove(effect_tile);
+                                i--;
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -410,13 +455,9 @@ namespace Despicaville.Scenes
                             Army army = CharacterManager.GetArmy("Characters");
                             Squad citizens = army.GetSquad("Citizens");
 
-                            Character character = WorldUtil.MouseGetCharacter(citizens.Characters, location);
+                            Character character = WorldUtil.GetCharacter(citizens.Characters, location);
                             if (character != null)
                             {
-                                Tasker.AbortTask(character);
-
-                                character.Moving = false;
-
                                 Map map = World.Maps[0];
                                 Layer bottom_tiles = map.GetLayer("BottomTiles");
                                 Tile tile = bottom_tiles.GetTile(character.Location.ToVector2);
@@ -427,6 +468,9 @@ namespace Despicaville.Scenes
                                 Handler.Holding = true;
                                 Handler.Holding_ID = character.ID;
                                 Handler.Holding_Character = character;
+
+                                Tasker.AbortTask(character);
+                                character.Moving = false;
 
                                 Label label = ui.GetLabel("Holding");
                                 label.Opacity = 1;
@@ -747,19 +791,19 @@ namespace Despicaville.Scenes
                                 Location location = new Location();
                                 if (player.Direction == Direction.Up)
                                 {
-                                    location = new Location(player.Location.X, player.Location.Y - 1, 0);
+                                    location = new Location(player.Location.X, player.Location.Y - 1, 1);
                                 }
                                 else if (player.Direction == Direction.Right)
                                 {
-                                    location = new Location(player.Location.X + 1, player.Location.Y, 0);
+                                    location = new Location(player.Location.X + 1, player.Location.Y, 1);
                                 }
                                 else if (player.Direction == Direction.Down)
                                 {
-                                    location = new Location(player.Location.X, player.Location.Y + 1, 0);
+                                    location = new Location(player.Location.X, player.Location.Y + 1, 1);
                                 }
                                 else if (player.Direction == Direction.Left)
                                 {
-                                    location = new Location(player.Location.X - 1, player.Location.Y, 0);
+                                    location = new Location(player.Location.X - 1, player.Location.Y, 1);
                                 }
 
                                 player.Job.Tasks.Add(new Attack
@@ -826,14 +870,9 @@ namespace Despicaville.Scenes
                                 Tile bottom_tile = bottom_tiles.GetTile(location);
                                 Tile middle_tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, new Location(location.X, location.Y, 0));
                                 Tile top_tile = top_tiles.GetTile(location);
-                                Tile effect_tile = effect_tiles.GetTile(location);
 
                                 Tile interaction_tile = null;
-                                if (effect_tile?.Texture != null)
-                                {
-                                    interaction_tile = effect_tile;
-                                }
-                                else if (top_tile?.Texture != null)
+                                if (top_tile?.Texture != null)
                                 {
                                     interaction_tile = top_tile;
                                 }
@@ -1008,41 +1047,75 @@ namespace Despicaville.Scenes
                             }
                             else
                             {
-                                player.Job.Update(TimeManager.Now);
-
                                 if (!task.Completed)
                                 {
                                     long milliseconds = task.EndTime.TotalMilliseconds - TimeManager.Now.TotalMilliseconds;
 
-                                    if (milliseconds >= 60000)
+                                    if (task.Name == "Attack")
                                     {
-                                        //1m
-                                        TimeTracker.Tick(60000);
+                                        if (milliseconds > 60000)
+                                        {
+                                            //1m
+                                            TimeTracker.Tick(60000);
+                                        }
+                                        else if (milliseconds > 10000)
+                                        {
+                                            //10s
+                                            TimeTracker.Tick(10000);
+                                        }
+                                        else if (milliseconds > 1000)
+                                        {
+                                            //1s
+                                            TimeTracker.Tick(1000);
+                                        }
+                                        else if (milliseconds > 100)
+                                        {
+                                            //100ms
+                                            TimeTracker.Tick(100);
+                                        }
+                                        else if (milliseconds > 10)
+                                        {
+                                            //10ms
+                                            TimeTracker.Tick(10);
+                                        }
+                                        else if (milliseconds > 0)
+                                        {
+                                            //1ms
+                                            TimeTracker.Tick(milliseconds);
+                                        }
                                     }
-                                    else if (milliseconds >= 10000)
+                                    else
                                     {
-                                        //10s
-                                        TimeTracker.Tick(10000);
-                                    }
-                                    else if (milliseconds >= 1000)
-                                    {
-                                        //1s
-                                        TimeTracker.Tick(1000);
-                                    }
-                                    else if (milliseconds >= 100)
-                                    {
-                                        //100ms
-                                        TimeTracker.Tick(100);
-                                    }
-                                    else if (milliseconds >= 10)
-                                    {
-                                        //10ms
-                                        TimeTracker.Tick(10);
-                                    }
-                                    else if (milliseconds > 0)
-                                    {
-                                        //1ms
-                                        TimeTracker.Tick(milliseconds);
+                                        if (milliseconds >= 60000)
+                                        {
+                                            //1m
+                                            TimeTracker.Tick(60000);
+                                        }
+                                        else if (milliseconds >= 10000)
+                                        {
+                                            //10s
+                                            TimeTracker.Tick(10000);
+                                        }
+                                        else if (milliseconds >= 1000)
+                                        {
+                                            //1s
+                                            TimeTracker.Tick(1000);
+                                        }
+                                        else if (milliseconds >= 100)
+                                        {
+                                            //100ms
+                                            TimeTracker.Tick(100);
+                                        }
+                                        else if (milliseconds >= 10)
+                                        {
+                                            //10ms
+                                            TimeTracker.Tick(10);
+                                        }
+                                        else if (milliseconds > 0)
+                                        {
+                                            //1ms
+                                            TimeTracker.Tick(milliseconds);
+                                        }
                                     }
                                 }
                             }

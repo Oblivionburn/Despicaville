@@ -315,7 +315,7 @@ namespace Despicaville.Util
                                     room_tile.Region = tile.Region;
                                 }
 
-                                Tile effect_tile = effect_tiles.GetTile(tile.Location.ToVector2);
+                                Tile effect_tile = effect_tiles.GetTile(tile.Location.ToVector3);
                                 if (effect_tile != null)
                                 {
                                     effect_tile.Region = tile.Region;

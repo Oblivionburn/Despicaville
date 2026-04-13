@@ -105,19 +105,19 @@ namespace Despicaville
                     Location location = new Location();
                     if (character.Direction == Direction.Up)
                     {
-                        location = new Location(character.Location.X, character.Location.Y - 1, 0);
+                        location = new Location(character.Location.X, character.Location.Y - 1, 1);
                     }
                     else if (character.Direction == Direction.Right)
                     {
-                        location = new Location(character.Location.X + 1, character.Location.Y, 0);
+                        location = new Location(character.Location.X + 1, character.Location.Y, 1);
                     }
                     else if (character.Direction == Direction.Down)
                     {
-                        location = new Location(character.Location.X, character.Location.Y + 1, 0);
+                        location = new Location(character.Location.X, character.Location.Y + 1, 1);
                     }
                     else if (character.Direction == Direction.Left)
                     {
-                        location = new Location(character.Location.X - 1, character.Location.Y, 0);
+                        location = new Location(character.Location.X - 1, character.Location.Y, 1);
                     }
 
                     Dictionary<string, string> AttackingWith = CombatUtil.AttackChoice(character);
@@ -566,7 +566,6 @@ namespace Despicaville
         {
             Map map = WorldUtil.GetMap();
 
-            Layer effect_tiles = map.GetLayer("EffectTiles");
             Layer middle_tiles = map.GetLayer("MiddleTiles");
             Tile tile = middle_tiles.GetTile(character.Destination.ToVector2);
 
@@ -605,14 +604,8 @@ namespace Despicaville
                 AssetManager.PlaySound_Random_AtDistance("GlassBreak", Handler.Player.Location.ToVector2, location, 10);
             }
 
-            Tile new_tile = effect_tiles.GetTile(location);
-            if (new_tile != null)
-            {
-                new_tile.Name = "BrokenGlass_" + character.Direction.ToString();
-                new_tile.Texture = AssetManager.Textures[new_tile.Name];
-                new_tile.Image = new Rectangle(0, 0, new_tile.Texture.Width, new_tile.Texture.Height);
-                new_tile.Visible = true;
-            }
+            string name = "BrokenGlass_" + character.Direction.ToString();
+            WorldUtil.AddEffect(new Vector3(location.X, location.Y, 0), name, name);
         }
 
         public static void AbortTask(Character character)

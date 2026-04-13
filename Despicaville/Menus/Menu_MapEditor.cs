@@ -715,8 +715,11 @@ namespace Despicaville.Menus
 
                 if (InputManager.Mouse_LB_Held)
                 {
-                    if (!TileToggle &&
-                        layer.Text != "Bottom")
+                    if (layer.Text == "Bottom")
+                    {
+                        RemovingTiles = false;
+                    }
+                    else if (!TileToggle)
                     {
                         TileToggle = true;
                 
@@ -731,7 +734,7 @@ namespace Despicaville.Menus
                             RemovingTiles = false;
                         }
                     }
-                
+
                     ToggleTile(tile, layer.Text);
                 }
                 else if (InputManager.Mouse_LB_Pressed)
@@ -1118,14 +1121,14 @@ namespace Despicaville.Menus
                             }
                             ExitNode();
 
-                            List<Tile> exits = GetExits(layer, BottomTiles, MiddleTiles, RoomTiles);
+                            List<Vector2> exits = GetExits(layer, BottomTiles, MiddleTiles, RoomTiles);
                             if (exits.Count > 0)
                             {
                                 EnterNode("Exits");
-                                foreach (Tile tile in exits)
+                                foreach (Vector2 exit in exits)
                                 {
                                     EnterNode("Exit");
-                                    Writer.WriteAttributeString("Location", tile.Location.X.ToString() + "," + tile.Location.Y.ToString());
+                                    Writer.WriteAttributeString("Location", exit.X.ToString() + "," + exit.Y.ToString());
                                     ExitNode();
                                 }
                                 ExitNode();
@@ -2530,9 +2533,9 @@ namespace Despicaville.Menus
             }
         }
 
-        private List<Tile> GetExits(Layer room, Layer bottom_tiles, Layer middle_tiles, Layer room_tiles)
+        private List<Vector2> GetExits(Layer room, Layer bottom_tiles, Layer middle_tiles, Layer room_tiles)
         {
-            Layer exits = new Layer();
+            List<Vector2> exits = new List<Vector2>();
 
             if (room != null)
             {
@@ -2541,138 +2544,162 @@ namespace Despicaville.Menus
                     Tile middle = middle_tiles.GetTile(tile.Location.ToVector2);
                     if (!middle.BlocksMovement)
                     {
-                        Vector3 north = new Vector3(tile.Location.X, tile.Location.Y - 1, 0);
+                        Vector2 north2 = new Vector2(tile.Location.X, tile.Location.Y - 1);
+                        Vector3 north3 = new Vector3(tile.Location.X, tile.Location.Y - 1, 0);
 
-                        Tile north_bottom = bottom_tiles.GetTile(north);
+                        Tile north_bottom = bottom_tiles.GetTile(north3);
                         if (north_bottom != null &&
                             !north_bottom.Name.Contains("Wall"))
                         {
-                            Tile north_middle = middle_tiles.GetTile(north);
+                            Tile north_middle = middle_tiles.GetTile(north3);
                             if (north_middle.Name.Contains("Door"))
                             {
-                                bool hasTile = HasTile(exits, north_middle);
-                                if (!hasTile)
+                                if (!exits.Contains(north2))
                                 {
-                                    exits.Tiles.Add(north_middle);
+                                    exits.Add(north2);
                                 }
                             }
                             else
                             {
-                                Tile north_room = room_tiles.GetTile(north);
+                                Tile north_room = room_tiles.GetTile(north3);
                                 if (north_room != null &&
                                     !string.IsNullOrEmpty(north_room.Name) &&
                                     north_room.Name != tile.Name &&
                                     !north_middle.BlocksMovement)
                                 {
-                                    bool hasTile = HasTile(exits, north_room);
-                                    if (!hasTile)
+                                    if (!exits.Contains(north2))
                                     {
-                                        exits.Tiles.Add(north_room);
+                                        exits.Add(north2);
                                     }
                                 }
                             }
                         }
+                        else if (north_bottom == null)
+                        {
+                            if (!exits.Contains(north2))
+                            {
+                                exits.Add(north2);
+                            }
+                        }
 
-                        Vector3 east = new Vector3(tile.Location.X + 1, tile.Location.Y, 0);
+                        Vector2 east2 = new Vector2(tile.Location.X + 1, tile.Location.Y);
+                        Vector3 east3 = new Vector3(tile.Location.X + 1, tile.Location.Y, 0);
 
-                        Tile east_bottom = bottom_tiles.GetTile(east);
+                        Tile east_bottom = bottom_tiles.GetTile(east3);
                         if (east_bottom != null &&
                             !east_bottom.Name.Contains("Wall"))
                         {
-                            Tile east_middle = middle_tiles.GetTile(east);
+                            Tile east_middle = middle_tiles.GetTile(east3);
                             if (east_middle.Name.Contains("Door"))
                             {
-                                bool hasTile = HasTile(exits, east_middle);
-                                if (!hasTile)
+                                if (!exits.Contains(east2))
                                 {
-                                    exits.Tiles.Add(east_middle);
+                                    exits.Add(east2);
                                 }
                             }
                             else
                             {
-                                Tile east_room = room_tiles.GetTile(east);
+                                Tile east_room = room_tiles.GetTile(east3);
                                 if (east_room != null &&
                                     !string.IsNullOrEmpty(east_room.Name) &&
                                     east_room.Name != tile.Name &&
                                     !east_middle.BlocksMovement)
                                 {
-                                    bool hasTile = HasTile(exits, east_room);
-                                    if (!hasTile)
+                                    if (!exits.Contains(east2))
                                     {
-                                        exits.Tiles.Add(east_room);
+                                        exits.Add(east2);
                                     }
                                 }
                             }
                         }
+                        else if (east_bottom == null)
+                        {
+                            if (!exits.Contains(east2))
+                            {
+                                exits.Add(east2);
+                            }
+                        }
 
-                        Vector3 south = new Vector3(tile.Location.X, tile.Location.Y + 1, 0);
+                        Vector2 south2 = new Vector2(tile.Location.X, tile.Location.Y + 1);
+                        Vector3 south3 = new Vector3(tile.Location.X, tile.Location.Y + 1, 0);
 
-                        Tile south_bottom = bottom_tiles.GetTile(south);
+                        Tile south_bottom = bottom_tiles.GetTile(south3);
                         if (south_bottom != null &&
                             !south_bottom.Name.Contains("Wall"))
                         {
-                            Tile south_middle = middle_tiles.GetTile(south);
+                            Tile south_middle = middle_tiles.GetTile(south3);
                             if (south_middle.Name.Contains("Door"))
                             {
-                                bool hasTile = HasTile(exits, south_middle);
-                                if (!hasTile)
+                                if (!exits.Contains(south2))
                                 {
-                                    exits.Tiles.Add(south_middle);
+                                    exits.Add(south2);
                                 }
                             }
                             else
                             {
-                                Tile south_room = room_tiles.GetTile(south);
+                                Tile south_room = room_tiles.GetTile(south3);
                                 if (south_room != null &&
                                     !string.IsNullOrEmpty(south_room.Name) &&
                                     south_room.Name != tile.Name &&
                                     !south_middle.BlocksMovement)
                                 {
-                                    bool hasTile = HasTile(exits, south_room);
-                                    if (!hasTile)
+                                    if (!exits.Contains(south2))
                                     {
-                                        exits.Tiles.Add(south_room);
+                                        exits.Add(south2);
                                     }
                                 }
                             }
                         }
+                        else if (east_bottom == null)
+                        {
+                            if (!exits.Contains(south2))
+                            {
+                                exits.Add(south2);
+                            }
+                        }
 
-                        Vector3 west = new Vector3(tile.Location.X - 1, tile.Location.Y, 0);
+                        Vector2 west2 = new Vector2(tile.Location.X - 1, tile.Location.Y);
+                        Vector3 west3 = new Vector3(tile.Location.X - 1, tile.Location.Y, 0);
 
-                        Tile west_bottom = bottom_tiles.GetTile(west);
+                        Tile west_bottom = bottom_tiles.GetTile(west3);
                         if (west_bottom != null &&
                             !west_bottom.Name.Contains("Wall"))
                         {
-                            Tile west_middle = middle_tiles.GetTile(west);
+                            Tile west_middle = middle_tiles.GetTile(west3);
                             if (west_middle.Name.Contains("Door"))
                             {
-                                bool hasTile = HasTile(exits, west_middle);
-                                if (!hasTile)
+                                if (!exits.Contains(west2))
                                 {
-                                    exits.Tiles.Add(west_middle);
+                                    exits.Add(west2);
                                 }
                             }
                             else
                             {
-                                Tile west_room = room_tiles.GetTile(west);
+                                Tile west_room = room_tiles.GetTile(west3);
                                 if (west_room != null &&
                                     !string.IsNullOrEmpty(west_room.Name) &&
                                     west_room.Name != tile.Name &&
                                     !west_middle.BlocksMovement)
                                 {
-                                    bool hasTile = HasTile(exits, west_room);
-                                    if (!hasTile)
+                                    if (!exits.Contains(west2))
                                     {
-                                        exits.Tiles.Add(west_room);
+                                        exits.Add(west2);
                                     }
                                 }
+                            }
+                        }
+                        else if (west_bottom == null)
+                        {
+                            if (!exits.Contains(west2))
+                            {
+                                exits.Add(west2);
                             }
                         }
                     }
                 }
             }
 
-            return exits.Tiles;
+            return exits;
         }
 
         #endregion

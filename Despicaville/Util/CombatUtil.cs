@@ -169,6 +169,79 @@ namespace Despicaville.Util
             return false;
         }
 
+        public static string RandomBodyPart(Character attacker)
+        {
+            CryptoRandom random;
+
+            Something agi = attacker.GetStat("Agility");
+            int agi_boost = (int)(agi.Value / 5);
+
+            if (Utility.RandomPercent(20 + agi_boost))
+            {
+                random = new CryptoRandom();
+                int part = random.Next(0, 2);
+
+                if (part == 0)
+                {
+                    return "Groin";
+                }
+                else if (part == 1)
+                {
+                    return "Neck";
+                }
+            }
+            else if (Utility.RandomPercent(40 + agi_boost))
+            {
+                return "Head";
+            }
+            else if (Utility.RandomPercent(60 + agi_boost))
+            {
+                random = new CryptoRandom();
+                int part = random.Next(0, 4);
+
+                if (part == 0)
+                {
+                    return "Right_Hand";
+                }
+                else if (part == 1)
+                {
+                    return "Left_Hand";
+                }
+                else if (part == 2)
+                {
+                    return "Right_Foot";
+                }
+                else if (part == 3)
+                {
+                    return "Left_Foot";
+                }
+            }
+            else if (Utility.RandomPercent(80 + agi_boost))
+            {
+                random = new CryptoRandom();
+                int part = random.Next(0, 4);
+
+                if (part == 0)
+                {
+                    return "Right_Arm";
+                }
+                else if (part == 1)
+                {
+                    return "Left_Arm";
+                }
+                else if (part == 2)
+                {
+                    return "Right_Leg";
+                }
+                else if (part == 3)
+                {
+                    return "Left_Leg";
+                }
+            }
+
+            return "Torso";
+        }
+
         public static float ChanceToHitBodyPart(Character attacker, Character defender, string body_part, string attack_type)
         {
             float base_chance = 0;
@@ -252,28 +325,21 @@ namespace Despicaville.Util
         public static int AttackTime(Character character, string attack_type)
         {
             int base_speed = 0;
-            if (attack_type == "Grab" ||
-                attack_type == "Stab")
-            {
-                base_speed = 3000;
-            }
-            else if (attack_type == "Throw")
-            {
-                base_speed = 5000;
-            }
-            else if (attack_type == "Punch")
-            {
-                base_speed = 4000;
-            }
-            else if (attack_type == "Swing")
-            {
-                base_speed = 6000;
-            }
-            else if (attack_type == "Shoot")
+            if (attack_type == "Stab" ||
+                attack_type == "Punch")
             {
                 base_speed = 2000;
             }
-
+            else if (attack_type == "Shoot" ||
+                     attack_type == "Throw")
+            {
+                base_speed = 3000;
+            }
+            else if (attack_type == "Swing")
+            {
+                base_speed = 4000;
+            }
+            
             Something strength = character.GetStat("Strength");
             int strength_bonus = (int)strength.Value;
             if (attack_type == "Shoot")

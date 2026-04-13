@@ -1398,7 +1398,7 @@ namespace Despicaville.Util
                         }
                         else
                         {
-                            WorldUtil.AddEffect(character.Location.ToVector2, "Tiny Blood", null);
+                            WorldUtil.AddEffect(character.Location.ToVector3, "Tiny Blood", null);
                         }
 
                         if (character.Moving &&
@@ -1407,22 +1407,22 @@ namespace Despicaville.Util
                             if (character.Direction == Direction.Up &&
                                 !trail_north_found)
                             {
-                                WorldUtil.AddEffect(character.Location.ToVector2, "Trail of Blood North", "Blood_Trail_Up");
+                                WorldUtil.AddEffect(character.Location.ToVector3, "Trail of Blood North", "Blood_Trail_Up");
                             }
                             else if (character.Direction == Direction.Right &&
                                      !trail_east_found)
                             {
-                                WorldUtil.AddEffect(character.Location.ToVector2, "Trail of Blood East", "Blood_Trail_Right");
+                                WorldUtil.AddEffect(character.Location.ToVector3, "Trail of Blood East", "Blood_Trail_Right");
                             }
                             else if (character.Direction == Direction.Down &&
                                      !trail_south_found)
                             {
-                                WorldUtil.AddEffect(character.Location.ToVector2, "Trail of Blood South", "Blood_Trail_Down");
+                                WorldUtil.AddEffect(character.Location.ToVector3, "Trail of Blood South", "Blood_Trail_Down");
                             }
                             else if (character.Direction == Direction.Left &&
                                      !trail_west_found)
                             {
-                                WorldUtil.AddEffect(character.Location.ToVector2, "Trail of Blood West", "Blood_Trail_Left");
+                                WorldUtil.AddEffect(character.Location.ToVector3, "Trail of Blood West", "Blood_Trail_Left");
                             }
                         }
                     }

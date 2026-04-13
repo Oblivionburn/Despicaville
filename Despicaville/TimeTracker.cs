@@ -66,9 +66,22 @@ namespace Despicaville
                     continue;
                 }
 
-                if (task == null)
+                if (task == null &&
+                    !CharacterUtil.HeldByPlayer(character))
                 {
                     Tasker.GiveTask_Citizen(character);
+                }
+            }
+
+            Task playerTask = Handler.Player.Job.CurrentTask;
+            if (playerTask != null)
+            {
+                if (playerTask.Name != "Sneak" &&
+                    playerTask.Name != "Walk" &&
+                    playerTask.Name != "Run" &&
+                    playerTask.Name != "Push")
+                {
+                    Handler.Player.Job.Update(TimeManager.Now);
                 }
             }
         }

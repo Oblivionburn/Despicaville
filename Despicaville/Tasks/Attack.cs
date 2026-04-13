@@ -25,7 +25,7 @@ namespace Despicaville.Tasks
             TimeSpan startTime = TimeSpan.FromMilliseconds(StartTime.TotalMilliseconds);
             int duration = (int)(EndTime.TotalMilliseconds - StartTime.TotalMilliseconds);
 
-            WorldUtil.AddEffect_Animated(Location.ToVector2, Direction, "Swing", startTime, duration);
+            WorldUtil.AddEffect_Animated(Location.ToVector3, Direction, "Swing", startTime, duration);
         }
 
         public override void Action_End()
@@ -40,64 +40,37 @@ namespace Despicaville.Tasks
             string weapon = AttackingWith.ElementAt(0).Key;
             string action = AttackingWith.ElementAt(0).Value;
 
-            string bodyPart = "";
+            string bodyPart = CombatUtil.RandomBodyPart(character);
 
-            int waitTime = 0;
+            int maxStunTime = 0;
 
-            CryptoRandom random = new CryptoRandom();
-            int choice = random.Next(0, 12);
-            switch (choice)
+            switch (bodyPart)
             {
-                case 0:
-                    bodyPart = "Torso";
-                    waitTime = 1;
+                case "Neck":
+                case "Groin":
+                    maxStunTime = 5;
                     break;
 
-                case 1:
-                    bodyPart = "Right_Arm";
+                case "Head":
+                    maxStunTime = 4;
                     break;
 
-                case 2:
-                    bodyPart = "Left_Arm";
+                case "Right_Hand":
+                case "Left_Hand":
+                case "Right_Foot":
+                case "Left_Foot":
+                    maxStunTime = 3;
                     break;
 
-                case 3:
-                    bodyPart = "Right_Leg";
+                case "Right_Arm":
+                case "Left_Arm":
+                case "Right_Leg":
+                case "Left_Leg":
+                    maxStunTime = 2;
                     break;
 
-                case 4:
-                    bodyPart = "Left_Leg";
-                    break;
-
-                case 5:
-                    bodyPart = "Head";
-                    waitTime = 2;
-                    break;
-
-                case 6:
-                    bodyPart = "Groin";
-                    waitTime = 3;
-                    break;
-
-                case 7:
-                    bodyPart = "Right_Hand";
-                    break;
-
-                case 8:
-                    bodyPart = "Left_Hand";
-                    break;
-
-                case 9:
-                    bodyPart = "Right_Foot";
-                    break;
-
-                case 10:
-                    bodyPart = "Left_Foot";
-                    break;
-
-                case 11:
-                    bodyPart = "Neck";
-                    waitTime = 3;
+                case "Torso":
+                    maxStunTime = 1;
                     break;
             }
 
@@ -124,14 +97,16 @@ namespace Despicaville.Tasks
                     target.InCombat = true;
                 }
 
-                if (waitTime > 0)
+                CryptoRandom random = new CryptoRandom();
+                int stunTime = random.Next(0, maxStunTime);
+                if (stunTime > 0)
                 {
                     target.Job.Tasks.Add(new Wait
                     {
                         Name = "Wait",
                         OwnerIDs = new List<long> { target.ID },
                         StartTime = new TimeHandler(TimeManager.Now),
-                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(waitTime))
+                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(stunTime))
                     });
                 }
             }
@@ -157,7 +132,27 @@ namespace Despicaville.Tasks
                 if (tile != null)
                 {
                     AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
-                    GameUtil.AddMessage("You hit a " + WorldUtil.GetTile_Name(tile) + ".");
+
+                    if (character.Type == "Player")
+                    {
+                        GameUtil.AddMessage("You hit a " + WorldUtil.GetTile_Name(tile) + ".");
+                    }
+                }
+            }
+
+            if (character.Type != "Player")
+            {
+                CryptoRandom random = new CryptoRandom();
+                int waitTime = random.Next(0, 3);
+                if (waitTime > 0)
+                {
+                    character.Job.Tasks.Add(new Wait
+                    {
+                        Name = "Wait",
+                        OwnerIDs = new List<long> { character.ID },
+                        StartTime = new TimeHandler(TimeManager.Now),
+                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(waitTime))
+                    });
                 }
             }
         }

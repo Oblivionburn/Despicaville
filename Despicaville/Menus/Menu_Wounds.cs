@@ -1,11 +1,7 @@
 ﻿using System.Collections.Generic;
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-
-using Despicaville.Util;
-
 using OP_Engine.Controls;
 using OP_Engine.Inputs;
 using OP_Engine.Menus;
@@ -13,6 +9,7 @@ using OP_Engine.Utility;
 using OP_Engine.Inventories;
 using OP_Engine.Characters;
 using OP_Engine.Time;
+using Despicaville.Util;
 
 namespace Despicaville.Menus
 {
@@ -68,11 +65,14 @@ namespace Despicaville.Menus
 
                 foreach (BodyPart bodyPart in Handler.Player.BodyParts)
                 {
-                    foreach (Something wound in bodyPart.Wounds)
+                    if (bodyPart.Name == Handler.Selected_BodyPart)
                     {
-                        if (wound.Visible)
+                        foreach (Something wound in bodyPart.Wounds)
                         {
-                            spriteBatch.Draw(wound.Texture, wound.Region.ToRectangle, Color.White);
+                            if (wound.Visible)
+                            {
+                                spriteBatch.Draw(wound.Texture, wound.Region.ToRectangle, Color.White);
+                            }
                         }
                     }
                 }
@@ -411,8 +411,6 @@ namespace Despicaville.Menus
 
         public override void Close()
         {
-            ClearGrid();
-
             InputManager.Keyboard.Flush();
             TimeManager.Paused = false;
             Visible = false;
@@ -454,6 +452,8 @@ namespace Despicaville.Menus
 
         private void LoadGrid()
         {
+            ClearGrid();
+
             if (!string.IsNullOrEmpty(Handler.Selected_BodyPart))
             {
                 string body_part_name = CharacterUtil.BodyPartToName(Handler.Selected_BodyPart);
@@ -485,22 +485,27 @@ namespace Despicaville.Menus
 
                 foreach (BodyPart bodyPart in Handler.Player.BodyParts)
                 {
-                    foreach (Something wound in bodyPart.Wounds)
+                    if (bodyPart.Name == Handler.Selected_BodyPart)
                     {
-                        Picture grid = GetPicture("x:" + grid_x.ToString() + ",y:" + grid_y.ToString());
-                        if (grid != null)
+                        foreach (Something wound in bodyPart.Wounds)
                         {
-                            wound.Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
-                            wound.Image = new Rectangle(0, 0, wound.Texture.Width, wound.Texture.Height);
-                            wound.Visible = true;
-
-                            grid_x++;
-                            if (grid_x >= 10)
+                            Picture grid = GetPicture("x:" + grid_x.ToString() + ",y:" + grid_y.ToString());
+                            if (grid != null)
                             {
-                                grid_x = 0;
-                                grid_y++;
+                                wound.Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
+                                wound.Image = new Rectangle(0, 0, wound.Texture.Width, wound.Texture.Height);
+                                wound.Visible = true;
+
+                                grid_x++;
+                                if (grid_x >= 10)
+                                {
+                                    grid_x = 0;
+                                    grid_y++;
+                                }
                             }
                         }
+
+                        break;
                     }
                 }
             }

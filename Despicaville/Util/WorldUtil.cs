@@ -78,7 +78,7 @@ namespace Despicaville.Util
                 //Check for held thing colliding when pushed
                 if (Handler.Holding_Character != null)
                 {
-                    size = new Region(Handler.Holding_Character.Location.X, Handler.Holding_Character.Location.Y, 1, 1);
+                    size = new Region(Handler.Holding_Character.Location.X, Handler.Holding_Character.Location.Y, 0, 0);
                     newLocation = new Location(Handler.Holding_Character.Location.X, Handler.Holding_Character.Location.Y, 0);
 
                     Direction direction = GetDirection(character.Destination, character.Location, false);
@@ -241,7 +241,17 @@ namespace Despicaville.Util
                                 !middle.Name.Contains("Open") &&
                                 !middle.Name.Contains("Broken"))
                             {
-                                return false;
+                                if (Handler.Holding_Character != null)
+                                {
+                                    if (middle.BlocksMovement)
+                                    {
+                                        return false;
+                                    }
+                                }
+                                else if (Handler.Holding_Tile != null)
+                                {
+                                    return false;
+                                }
                             }
 
                             other = GetCharacter(new Location(X, Y, 0));
@@ -258,7 +268,7 @@ namespace Despicaville.Util
             return true;
         }
 
-        public static bool Blocked(Map map, Location location)
+        public static bool Blocked(Map map, Location location, bool forTile)
         {
             Layer bottom_tiles = map.GetLayer("BottomTiles");
 
@@ -280,9 +290,14 @@ namespace Despicaville.Util
             Tile furniture = GetFurniture(Handler.MiddleFurniture, location);
             if (furniture != null)
             {
-                if (!furniture.Name.Contains("Open"))
+                if (!furniture.Name.Contains("Open") &&
+                    !furniture.Name.Contains("Broken"))
                 {
-                    if (furniture.BlocksMovement)
+                    if (forTile)
+                    {
+                        return true;
+                    }
+                    else if (furniture.BlocksMovement)
                     {
                         return true;
                     }
@@ -622,17 +637,7 @@ namespace Despicaville.Util
                     }
                 }
 
-                Map map = GetMap();
-                Layer middle_tiles = map.GetLayer("MiddleTiles");
-
-                int oldIndex = ((int)Handler.Holding_Tile.Location.Y * middle_tiles.Columns) + (int)Handler.Holding_Tile.Location.X;
-                int newIndex = ((int)location.Y * middle_tiles.Columns) + (int)location.X;
-
-                Tile temp = middle_tiles.Tiles[newIndex];
-                middle_tiles.Tiles[newIndex] = middle_tiles.Tiles[oldIndex];
-                middle_tiles.Tiles[oldIndex] = temp;
-
-                Handler.Holding_Tile.Location = new Location(location.X, location.Y, 0);
+                SwapTiles(GetMap().GetLayer("MiddleTiles"), Handler.Holding_Tile, location);
             }
         }
 
@@ -695,6 +700,46 @@ namespace Despicaville.Util
 
                 CharacterUtil.UpdateGear(Handler.Holding_Character);
             }
+        }
+
+        public static void Push_Tile(Tile tile, Location newLocation)
+        {
+            if (tile.IsLightSource)
+            {
+                for (int l = 0; l < Handler.light_sources.Count; l++)
+                {
+                    Point source = Handler.light_sources[l];
+                    if (source.X == tile.Location.X &&
+                        source.Y == tile.Location.Y)
+                    {
+                        Handler.light_sources[l] = new Point((int)newLocation.X, (int)newLocation.Y);
+                        break;
+                    }
+                }
+            }
+
+            SwapTiles(GetMap().GetLayer("MiddleTiles"), tile, newLocation);
+        }
+
+        public static void Push_Character(Character character, Location newLocation)
+        {
+            if (character != null)
+            {
+                character.Location = new Location(newLocation.X, newLocation.Y, 0);
+                CharacterUtil.UpdateGear(character);
+            }
+        }
+
+        public static void SwapTiles(Layer layer, Tile tile, Location newLocation)
+        {
+            int oldIndex = ((int)tile.Location.Y * layer.Columns) + (int)tile.Location.X;
+            int newIndex = ((int)newLocation.Y * layer.Columns) + (int)newLocation.X;
+
+            Tile temp = layer.Tiles[newIndex];
+            layer.Tiles[newIndex] = layer.Tiles[oldIndex];
+            layer.Tiles[oldIndex] = temp;
+
+            tile.Location = new Location(newLocation.X, newLocation.Y, 0);
         }
 
         public static Tile GetClosestTile(List<Tile> tiles, Character character)
@@ -768,45 +813,28 @@ namespace Despicaville.Util
         {
             if (location != null)
             {
-                Army army = CharacterManager.GetArmy("Characters");
+                Map map = GetMap();
+                Layer bottom_tiles = map.GetLayer("BottomTiles");
 
-                if (Handler.Player.Moving)
+                Tile tile = bottom_tiles.GetTile(location.ToVector2);
+                if (tile != null)
                 {
-                    if (Handler.Player.Destination.X == location.X &&
-                        Handler.Player.Destination.Y == location.Y)
+                    float center_x = Handler.Player.Region.X + (Handler.Player.Region.Width / 2);
+                    float center_y = Handler.Player.Region.Y + (Handler.Player.Region.Height / 2);
+
+                    if (center_x >= tile.Region.X && center_x < tile.Region.X + tile.Region.Width &&
+                        center_y >= tile.Region.Y && center_y < tile.Region.Y + tile.Region.Height)
                     {
                         return Handler.Player;
                     }
-                }
-                else if (Handler.Player.Location != null)
-                {
-                    if (Handler.Player.Location.X == location.X &&
-                        Handler.Player.Location.Y == location.Y)
-                    {
-                        return Handler.Player;
-                    }
-                }
 
-                Squad citizens = army.GetSquad("Citizens");
-                int count = citizens.Characters.Count;
-                for (int i = 0; i < count; i++)
-                {
-                    Character existing = citizens.Characters[i];
-                    if (existing.Moving)
+                    Army army = CharacterManager.GetArmy("Characters");
+                    Squad citizens = army.GetSquad("Citizens");
+
+                    Character character = GetCharacter(citizens.Characters, tile);
+                    if (character != null)
                     {
-                        if (existing.Destination.X == location.X &&
-                            existing.Destination.Y == location.Y)
-                        {
-                            return existing;
-                        }
-                    }
-                    else if (existing.Location != null)
-                    {
-                        if (existing.Location.X == location.X &&
-                            existing.Location.Y == location.Y)
-                        {
-                            return existing;
-                        }
+                        return character;
                     }
                 }
             }
@@ -814,44 +842,55 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static Character GetCharacter(List<Character> characters, Location destination)
+        public static Character GetCharacter(List<Character> characters, Location location)
         {
-            for (int i = 0; i < characters.Count; i++)
+            Map map = GetMap();
+            Layer bottom_tiles = map.GetLayer("BottomTiles");
+
+            Tile tile = bottom_tiles.GetTile(location.ToVector2);
+            if (tile != null)
             {
-                Character existing = characters[i];
-                if (existing.Moving)
+                Character character = GetCharacter(characters, tile);
+                if (character != null)
                 {
-                    if (existing.Destination.X == destination.X &&
-                        existing.Destination.Y == destination.Y)
-                    {
-                        return existing;
-                    }
-                }
-                else
-                {
-                    if (existing.Location.X == destination.X &&
-                        existing.Location.Y == destination.Y)
-                    {
-                        return existing;
-                    }
+                    return character;
                 }
             }
 
             return null;
         }
 
-        public static Character MouseGetCharacter(List<Character> characters, Location destination)
+        public static Character GetCharacter(List<Character> characters, Tile tile)
         {
-            for (int i = 0; i < characters.Count; i++)
+            int count = characters.Count;
+            for (int i = 0; i < count; i++)
             {
-                Character existing = characters[i];
-                if ((existing.Destination != null &&
-                     existing.Destination.X == destination.X &&
-                     existing.Destination.Y == destination.Y) ||
-                    (existing.Location.X == destination.X &&
-                     existing.Location.Y == destination.Y))
+                Character character = characters[i];
+
+                float center_x = character.Region.X + (character.Region.Width / 2);
+                float center_y = character.Region.Y + (character.Region.Height / 2);
+
+                if (center_x >= tile.Region.X && center_x < tile.Region.X + tile.Region.Width &&
+                    center_y >= tile.Region.Y && center_y < tile.Region.Y + tile.Region.Height)
                 {
-                    return existing;
+                    return character;
+                }
+            }
+
+            return null;
+        }
+
+        public static Character GetCharacter_Target(Character character)
+        {
+            Army army = CharacterManager.GetArmy("Characters");
+            foreach (Squad squad in army.Squads)
+            {
+                foreach (Character existing in squad.Characters)
+                {
+                    if (existing.ID == character.Target_ID)
+                    {
+                        return existing;
+                    }
                 }
             }
 
@@ -878,23 +917,6 @@ namespace Despicaville.Util
             }
 
             return characters;
-        }
-
-        public static Character GetCharacter_Target(Character character)
-        {
-            Army army = CharacterManager.GetArmy("Characters");
-            foreach (Squad squad in army.Squads)
-            {
-                foreach (Character existing in squad.Characters)
-                {
-                    if (existing.ID == character.Target_ID)
-                    {
-                        return existing;
-                    }
-                }
-            }
-
-            return null;
         }
 
         public static Map GetRoom(Character character)
@@ -941,14 +963,14 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static Tile GetFurniture(List<Tile> furniture, Location destination)
+        public static Tile GetFurniture(List<Tile> furniture, Location location)
         {
             int width = (int)Main.Game.TileSize_X;
             int width_double = width * 2;
             int width_triple = width * 3;
 
-            float dest_x = destination.X;
-            float dest_y = destination.Y;
+            float dest_x = location.X;
+            float dest_y = location.Y;
 
             Tile[] tiles = furniture.ToArray();
 
@@ -1069,23 +1091,23 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static Tile GetFurniture_Movable(List<Tile> furniture, Location destination)
+        public static Tile GetFurniture_Movable(List<Tile> furniture, Location location)
         {
             int width = (int)Main.Game.TileSize_X;
             int width_double = width * 2;
             int width_triple = width * 3;
 
-            float dest_x = destination.X;
-            float dest_y = destination.Y;
+            float dest_x = location.X;
+            float dest_y = location.Y;
 
             Tile[] tiles = furniture.ToArray();
+
             int count = tiles.Length;
             for (int i = 0; i < count; i++)
             {
                 Tile existing = tiles[i];
 
-                if (existing.Texture == null ||
-                    !existing.CanMove)
+                if (!existing.CanMove)
                 {
                     continue;
                 }
@@ -2211,9 +2233,9 @@ namespace Despicaville.Util
             return false;
         }
 
-        public static Tile StandingByFurniture(Layer middle_tiles, Location location, string type)
+        public static Tile StandingByFurniture(Layer tiles, Location location, string type)
         {
-            foreach (Tile tile in middle_tiles.Tiles)
+            foreach (Tile tile in tiles.Tiles)
             {
                 if (tile.Name.Contains(type))
                 {
@@ -2481,38 +2503,37 @@ namespace Despicaville.Util
             }
         }
 
-        public static void AddEffect(Vector2 location, string name, string texture)
+        public static void AddEffect(Vector3 location, string name, string texture)
         {
-            Scene scene = SceneManager.GetScene("Gameplay");
-            Map map = scene.World.Maps[0];
+            Map map = GetMap();
             if (map != null)
             {
                 Layer bottom_tiles = map.GetLayer("BottomTiles");
 
-                Tile bottom_tile = bottom_tiles.GetTile(location);
+                Tile bottom_tile = bottom_tiles.GetTile(new Vector2(location.X, location.Y));
                 if (bottom_tile != null)
                 {
                     Layer effect_tiles = map.GetLayer("EffectTiles");
 
-                    Tile new_tile = new Tile
+                    Texture2D texture2D = AssetManager.Textures[texture];
+
+                    effect_tiles.Tiles.Add(new Tile
                     {
                         ID = Handler.GetID(),
                         Map = map,
                         Layer = effect_tiles,
                         Name = name,
-                        Location = new Location(location.X, location.Y, 0),
+                        Location = new Location(location.X, location.Y, location.Z),
                         Region = bottom_tile.Region,
-                        Texture = AssetManager.Textures[texture],
+                        Texture = texture2D,
+                        Image = new Rectangle(0, 0, texture2D.Width, texture2D.Height),
                         Visible = true
-                    };
-                    new_tile.Image = new Rectangle(0, 0, new_tile.Texture.Width, new_tile.Texture.Height);
-
-                    effect_tiles.Tiles.Add(new_tile);
+                    });
                 }
             }
         }
 
-        public static void AddEffect_Animated(Vector2 location, Direction direction, string texture, TimeSpan start_time, int duration)
+        public static void AddEffect_Animated(Vector3 location, Direction direction, string texture, TimeSpan start_time, int duration)
         {
             Scene scene = SceneManager.GetScene("Gameplay");
             Map map = scene.World.Maps[0];
@@ -2520,7 +2541,7 @@ namespace Despicaville.Util
             {
                 Layer bottom_tiles = map.GetLayer("BottomTiles");
 
-                Tile bottom_tile = bottom_tiles.GetTile(location);
+                Tile bottom_tile = bottom_tiles.GetTile(new Vector2(location.X, location.Y));
                 if (bottom_tile != null)
                 {
                     Layer effect_tiles = map.GetLayer("EffectTiles");
@@ -2534,7 +2555,7 @@ namespace Despicaville.Util
                         Layer = effect_tiles,
                         Name = texture,
                         Direction = direction,
-                        Location = new Location(location.X, location.Y, 0),
+                        Location = new Location(location.X, location.Y, location.Z),
                         Region = bottom_tile.Region,
                         Texture = texture2D,
                         Image = new Rectangle(0, 0, texture2D.Height, texture2D.Height),
