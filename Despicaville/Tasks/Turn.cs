@@ -19,19 +19,19 @@ namespace Despicaville.Tasks
             {
                 if (Direction == Direction.Up)
                 {
-                    character.Animator.FaceNorth(character);
+                    character.FaceNorth();
                 }
                 else if (Direction == Direction.Right)
                 {
-                    character.Animator.FaceEast(character);
+                    character.FaceEast();
                 }
                 else if (Direction == Direction.Down)
                 {
-                    character.Animator.FaceSouth(character);
+                    character.FaceSouth();
                 }
                 else if (Direction == Direction.Left)
                 {
-                    character.Animator.FaceWest(character);
+                    character.FaceWest();
                 }
             }
 
@@ -46,26 +46,21 @@ namespace Despicaville.Tasks
 
         public Character GetOwner()
         {
-            if (OwnerIDs.Count > 0)
+            Army army = CharacterManager.GetArmy("Characters");
+            if (army != null)
             {
-                long id = OwnerIDs[0];
-
-                Army army = CharacterManager.GetArmy("Characters");
-                if (army != null)
+                int squadCount = army.Squads.Count;
+                for (int s = 0; s < squadCount; s++)
                 {
-                    int squadCount = army.Squads.Count;
-                    for (int s = 0; s < squadCount; s++)
-                    {
-                        Squad squad = army.Squads[s];
+                    Squad squad = army.Squads[s];
 
-                        int charCount = squad.Characters.Count;
-                        for (int c = 0; c < charCount; c++)
+                    int charCount = squad.Characters.Count;
+                    for (int c = 0; c < charCount; c++)
+                    {
+                        Character existing = squad.Characters[c];
+                        if (existing.ID == OwnerID)
                         {
-                            Character existing = squad.Characters[c];
-                            if (existing.ID == id)
-                            {
-                                return existing;
-                            }
+                            return existing;
                         }
                     }
                 }

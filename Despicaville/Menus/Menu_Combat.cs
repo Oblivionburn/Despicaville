@@ -274,7 +274,7 @@ namespace Despicaville.Menus
             task.Name = attack_type;
             task.Assignment = part_target;
             task.Type = attacking_with;
-            task.OwnerIDs.Add(Handler.Player.ID);
+            task.OwnerID = Handler.Player.ID;
             task.Keep_On_Completed = true;
             task.StartTime = new TimeHandler(TimeManager.Now);
             task.EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CombatUtil.AttackTime(Handler.Player, attack_type)));
@@ -322,7 +322,7 @@ namespace Despicaville.Menus
                         BodyPart bodyPart = target.GetBodyPart(body_part);
                         if (bodyPart != null)
                         {
-                            Something hp = bodyPart.GetStat("HP");
+                            Property hp = bodyPart.GetStat("HP");
                             if (hp != null)
                             {
                                 string hp_value = hp.Name + ": " + hp.Value.ToString("0.##") + "/" + (int)hp.Max_Value + "%";

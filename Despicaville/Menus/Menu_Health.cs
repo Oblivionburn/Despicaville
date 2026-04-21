@@ -137,7 +137,7 @@ namespace Despicaville.Menus
                     BodyPart bodyPart = Handler.Player.GetBodyPart(body_part);
                     if (bodyPart != null)
                     {
-                        Something hp = bodyPart.GetStat("HP");
+                        Property hp = bodyPart.GetStat("HP");
                         if (hp != null)
                         {
                             picture.HoverText = hp.Name + ": " + hp.Value.ToString("0.##") + "/" + (int)hp.Max_Value + "%";

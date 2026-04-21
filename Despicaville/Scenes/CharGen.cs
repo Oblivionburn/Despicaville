@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
-
 using OP_Engine.Controls;
 using OP_Engine.Inputs;
 using OP_Engine.Menus;
@@ -10,7 +8,6 @@ using OP_Engine.Scenes;
 using OP_Engine.Characters;
 using OP_Engine.Inventories;
 using OP_Engine.Utility;
-using OP_Engine.Jobs;
 using OP_Engine.Enums;
 
 using Despicaville.Util;
@@ -859,9 +856,9 @@ namespace Despicaville.Scenes
                 Move_TotalDistance = Main.Game.TileSize.X,
                 Direction = Direction.Down,
                 Region = new Region(x, y, Main.Game.TileSize_X, Main.Game.TileSize_Y),
-                Visible = true
+                Visible = true,
+                Frames = 4
             };
-            player.Animator.Frames = 4;
             players.Characters.Add(player);
 
             LoadInventory(player);
@@ -950,7 +947,6 @@ namespace Despicaville.Scenes
             pants.Visible = false;
             pants.Inventory.ID = Handler.GetID();
             pants.Inventory.Name = pants.Name;
-            pants.Inventory.Weight = 4;
             pants.Inventory.Max_Value = 4;
             InventoryManager.Inventories.Add(pants.Inventory);
             player.Inventory.Items.Add(pants);

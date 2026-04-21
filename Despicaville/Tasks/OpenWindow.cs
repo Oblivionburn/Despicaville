@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using OP_Engine.Characters;
+﻿using OP_Engine.Characters;
 using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
@@ -104,26 +103,21 @@ namespace Despicaville.Tasks
 
         public Character GetOwner()
         {
-            if (OwnerIDs.Count > 0)
+            Army army = CharacterManager.GetArmy("Characters");
+            if (army != null)
             {
-                long id = OwnerIDs[0];
-
-                Army army = CharacterManager.GetArmy("Characters");
-                if (army != null)
+                int squadCount = army.Squads.Count;
+                for (int s = 0; s < squadCount; s++)
                 {
-                    int squadCount = army.Squads.Count;
-                    for (int s = 0; s < squadCount; s++)
-                    {
-                        Squad squad = army.Squads[s];
+                    Squad squad = army.Squads[s];
 
-                        int charCount = squad.Characters.Count;
-                        for (int c = 0; c < charCount; c++)
+                    int charCount = squad.Characters.Count;
+                    for (int c = 0; c < charCount; c++)
+                    {
+                        Character existing = squad.Characters[c];
+                        if (existing.ID == OwnerID)
                         {
-                            Character existing = squad.Characters[c];
-                            if (existing.ID == id)
-                            {
-                                return existing;
-                            }
+                            return existing;
                         }
                     }
                 }

@@ -104,7 +104,7 @@ namespace Despicaville.Tasks
                     target.Job.Tasks.Add(new Wait
                     {
                         Name = "Wait",
-                        OwnerIDs = new List<long> { target.ID },
+                        OwnerID = target.ID,
                         StartTime = new TimeHandler(TimeManager.Now),
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(stunTime))
                     });
@@ -149,7 +149,7 @@ namespace Despicaville.Tasks
                     character.Job.Tasks.Add(new Wait
                     {
                         Name = "Wait",
-                        OwnerIDs = new List<long> { character.ID },
+                        OwnerID = character.ID,
                         StartTime = new TimeHandler(TimeManager.Now),
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(waitTime))
                     });
@@ -159,26 +159,21 @@ namespace Despicaville.Tasks
 
         public Character GetOwner()
         {
-            if (OwnerIDs.Count > 0)
+            Army army = CharacterManager.GetArmy("Characters");
+            if (army != null)
             {
-                long id = OwnerIDs[0];
-
-                Army army = CharacterManager.GetArmy("Characters");
-                if (army != null)
+                int squadCount = army.Squads.Count;
+                for (int s = 0; s < squadCount; s++)
                 {
-                    int squadCount = army.Squads.Count;
-                    for (int s = 0; s < squadCount; s++)
-                    {
-                        Squad squad = army.Squads[s];
+                    Squad squad = army.Squads[s];
 
-                        int charCount = squad.Characters.Count;
-                        for (int c = 0; c < charCount; c++)
+                    int charCount = squad.Characters.Count;
+                    for (int c = 0; c < charCount; c++)
+                    {
+                        Character existing = squad.Characters[c];
+                        if (existing.ID == OwnerID)
                         {
-                            Character existing = squad.Characters[c];
-                            if (existing.ID == id)
-                            {
-                                return existing;
-                            }
+                            return existing;
                         }
                     }
                 }

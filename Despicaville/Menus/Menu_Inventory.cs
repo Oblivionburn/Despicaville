@@ -997,7 +997,7 @@ namespace Despicaville.Menus
 
             if (InventoryUtil.IsFood(item))
             {
-                Something hunger = item.GetProperty("Hunger");
+                Property hunger = item.GetProperty("Hunger");
                 if (hunger != null)
                 {
                     if (Handler.Player.GetStat("Hunger").Value < 100)
@@ -1007,7 +1007,7 @@ namespace Despicaville.Menus
                         Handler.Player.Job.Tasks.Add(new UseItem
                         {
                             Name = "UseItem_" + item.ID,
-                            OwnerIDs = new List<long> { Handler.Player.ID },
+                            OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(hunger.Value * -1)),
                         });
@@ -1016,7 +1016,7 @@ namespace Despicaville.Menus
 
                 if (!okay)
                 {
-                    Something thirst = item.GetProperty("Thirst");
+                    Property thirst = item.GetProperty("Thirst");
                     if (thirst != null)
                     {
                         if (Handler.Player.GetStat("Thirst").Value < 100)
@@ -1026,7 +1026,7 @@ namespace Despicaville.Menus
                             Handler.Player.Job.Tasks.Add(new UseItem
                             {
                                 Name = "UseItem_" + item.ID,
-                                OwnerIDs = new List<long> { Handler.Player.ID },
+                                OwnerID = Handler.Player.ID,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(thirst.Value * -1)),
                             });
@@ -1041,7 +1041,7 @@ namespace Despicaville.Menus
                 Handler.Player.Job.Tasks.Add(new UseItem
                 {
                     Name = "UseItem_" + item.ID,
-                    OwnerIDs = new List<long> { Handler.Player.ID },
+                    OwnerID = Handler.Player.ID,
                     StartTime = new TimeHandler(TimeManager.Now),
                     EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
                 });
@@ -1049,7 +1049,7 @@ namespace Despicaville.Menus
 
             if (!okay)
             {
-                Something hunger = item.GetProperty("Hunger");
+                Property hunger = item.GetProperty("Hunger");
                 if (hunger != null)
                 {
                     if (Handler.Player.GetStat("Hunger").Value >= 100)
@@ -1059,7 +1059,7 @@ namespace Despicaville.Menus
                 }
                 else
                 {
-                    Something thirst = item.GetProperty("Thirst");
+                    Property thirst = item.GetProperty("Thirst");
                     if (thirst != null)
                     {
                         if (Handler.Player.GetStat("Thirst").Value >= 100)
@@ -1707,7 +1707,7 @@ namespace Despicaville.Menus
 
             for (int i = 0; i < item.Properties.Count; i++)
             {
-                Something property = item.Properties[i];
+                Property property = item.Properties[i];
                 text += "\n" + property.Name + ": " + property.Value;
 
                 if (i < item.Properties.Count - 1)

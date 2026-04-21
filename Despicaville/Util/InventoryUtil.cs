@@ -52,7 +52,7 @@ namespace Despicaville.Util
                 copy.Materials.Add(material);
             }
 
-            foreach (Something property in original.Properties)
+            foreach (Property property in original.Properties)
             {
                 copy.Properties.Add(CopyProperty(property, new_item));
             }
@@ -87,27 +87,16 @@ namespace Despicaville.Util
             return copy;
         }
 
-        public static Something CopyProperty(Something original, bool new_property)
+        public static Property CopyProperty(Property original, bool new_property)
         {
-            Something property = new Something();
-
-            if (new_property)
+            return new Property
             {
-                property.ID = Handler.GetID();
-            }
-            else
-            {
-                property.ID = original.ID;
-            }
-
-            property.Name = original.Name;
-            property.Type = original.Type;
-            property.Description = original.Description;
-            property.Rate = original.Rate;
-            property.Value = original.Value;
-            property.Max_Value = original.Max_Value;
-
-            return property;
+                Name = original.Name,
+                Description = original.Description,
+                Rate = original.Rate,
+                Value = original.Value,
+                Max_Value = original.Max_Value
+            };
         }
 
         public static void TransferItem(Inventory source, Inventory target, Item item)
@@ -313,15 +302,17 @@ namespace Despicaville.Util
 
         public static Item GenAsset(string name, string description, List<string> categories, int tier, string type, string task, int pain, float blood_loss, string effect)
         {
-            Item item = new Item();
-            item.ID = Handler.GetID();
-            item.Name = name;
-            item.Description = description;
-            item.Tier = tier;
-            item.Task = task;
+            Item item = new Item
+            {
+                ID = Handler.GetID(),
+                Name = name,
+                Description = description,
+                Tier = tier,
+                Task = task,
+                Icon_DrawColor = Color.White
+            };
             item.Icon = AssetManager.Textures[item.Description];
             item.Icon_Image = new Rectangle(0, 0, item.Icon.Width, item.Icon.Height);
-            item.Icon_DrawColor = Color.White;
 
             if (categories != null)
             {
@@ -377,25 +368,28 @@ namespace Despicaville.Util
 
             if (pain > 0)
             {
-                Something pain_property = new Something();
-                pain_property.Name = "Pain";
-                pain_property.Value = pain;
-                item.Properties.Add(pain_property);
+                item.Properties.Add(new Property
+                {
+                    Name = "Pain",
+                    Value = pain
+                });
             }
             
             if (blood_loss > 0)
             {
-                Something blood_loss_property = new Something();
-                blood_loss_property.Name = "Blood Loss";
-                blood_loss_property.Value = blood_loss;
-                item.Properties.Add(blood_loss_property);
+                item.Properties.Add(new Property
+                {
+                    Name = "Blood Loss",
+                    Value = blood_loss
+                });
             }
             
             if (!string.IsNullOrEmpty(effect))
             {
-                Something effect_property = new Something();
-                effect_property.Name = effect;
-                item.Properties.Add(effect_property);
+                item.Properties.Add(new Property
+                {
+                    Name = effect
+                });
             }
             
             return item;

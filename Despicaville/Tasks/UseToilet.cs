@@ -53,19 +53,19 @@ namespace Despicaville.Tasks
                     {
                         if (furniture_direction == Direction.Up)
                         {
-                            character.Animator.FaceNorth(character);
+                            character.FaceNorth();
                         }
                         else if (furniture_direction == Direction.Right)
                         {
-                            character.Animator.FaceEast(character);
+                            character.FaceEast();
                         }
                         else if (furniture_direction == Direction.Down)
                         {
-                            character.Animator.FaceSouth(character);
+                            character.FaceSouth();
                         }
                         else if (furniture_direction == Direction.Left)
                         {
-                            character.Animator.FaceWest(character);
+                            character.FaceWest();
                         }
                     }
                 }
@@ -75,19 +75,19 @@ namespace Despicaville.Tasks
                     {
                         if (toilet.Direction == Direction.Up)
                         {
-                            character.Animator.FaceNorth(character);
+                            character.FaceNorth();
                         }
                         else if (toilet.Direction == Direction.Right)
                         {
-                            character.Animator.FaceEast(character);
+                            character.FaceEast();
                         }
                         else if (toilet.Direction == Direction.Down)
                         {
-                            character.Animator.FaceSouth(character);
+                            character.FaceSouth();
                         }
                         else if (toilet.Direction == Direction.Left)
                         {
-                            character.Animator.FaceWest(character);
+                            character.FaceWest();
                         }
                     }
                 }
@@ -119,7 +119,7 @@ namespace Despicaville.Tasks
                 }
             }
 
-            Something bladder = character.GetStat("Bladder");
+            Property bladder = character.GetStat("Bladder");
             bladder.Value = 0;
 
             if (!Handler.Player.Unconscious)
@@ -143,26 +143,21 @@ namespace Despicaville.Tasks
 
         public Character GetOwner()
         {
-            if (OwnerIDs.Count > 0)
+            Army army = CharacterManager.GetArmy("Characters");
+            if (army != null)
             {
-                long id = OwnerIDs[0];
-
-                Army army = CharacterManager.GetArmy("Characters");
-                if (army != null)
+                int squadCount = army.Squads.Count;
+                for (int s = 0; s < squadCount; s++)
                 {
-                    int squadCount = army.Squads.Count;
-                    for (int s = 0; s < squadCount; s++)
-                    {
-                        Squad squad = army.Squads[s];
+                    Squad squad = army.Squads[s];
 
-                        int charCount = squad.Characters.Count;
-                        for (int c = 0; c < charCount; c++)
+                    int charCount = squad.Characters.Count;
+                    for (int c = 0; c < charCount; c++)
+                    {
+                        Character existing = squad.Characters[c];
+                        if (existing.ID == OwnerID)
                         {
-                            Character existing = squad.Characters[c];
-                            if (existing.ID == id)
-                            {
-                                return existing;
-                            }
+                            return existing;
                         }
                     }
                 }

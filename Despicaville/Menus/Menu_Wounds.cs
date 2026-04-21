@@ -67,7 +67,7 @@ namespace Despicaville.Menus
                 {
                     if (bodyPart.Name == Handler.Selected_BodyPart)
                     {
-                        foreach (Something wound in bodyPart.Wounds)
+                        foreach (Wound wound in bodyPart.Wounds)
                         {
                             if (wound.Visible)
                             {
@@ -187,7 +187,7 @@ namespace Despicaville.Menus
 
             foreach (BodyPart bodyPart in Handler.Player.BodyParts)
             {
-                foreach (Something wound in bodyPart.Wounds)
+                foreach (Wound wound in bodyPart.Wounds)
                 {
                     if (InputManager.MouseWithin(wound.Region.ToRectangle))
                     {
@@ -246,7 +246,7 @@ namespace Despicaville.Menus
             button.Selected = false;
         }
 
-        private void OpenMenu(Something wound)
+        private void OpenMenu(Wound wound)
         {
             CloseMenu();
 
@@ -373,7 +373,7 @@ namespace Despicaville.Menus
         {
             foreach (BodyPart bodyPart in Handler.Player.BodyParts)
             {
-                foreach (Something wound in bodyPart.Wounds)
+                foreach (Wound wound in bodyPart.Wounds)
                 {
                     if (wound.ID == selected_wound)
                     {
@@ -487,7 +487,7 @@ namespace Despicaville.Menus
                 {
                     if (bodyPart.Name == Handler.Selected_BodyPart)
                     {
-                        foreach (Something wound in bodyPart.Wounds)
+                        foreach (Wound wound in bodyPart.Wounds)
                         {
                             Picture grid = GetPicture("x:" + grid_x.ToString() + ",y:" + grid_y.ToString());
                             if (grid != null)
@@ -535,7 +535,7 @@ namespace Despicaville.Menus
             {
                 foreach (BodyPart bodyPart in Handler.Player.BodyParts)
                 {
-                    foreach (Something wound in bodyPart.Wounds)
+                    foreach (Wound wound in bodyPart.Wounds)
                     {
                         Picture grid = GetPicture("x:" + grid_x.ToString() + ",y:" + grid_y.ToString());
                         if (grid != null)
@@ -555,7 +555,7 @@ namespace Despicaville.Menus
             }
         }
 
-        private void ExamineItem(Something wound)
+        private void ExamineItem(Wound wound)
         {
             int width = (int)((Main.Game.MenuSize_X * 4) + (Main.Game.MenuSize_X / 2));
             int height = (int)(Main.Game.MenuSize_Y + (Main.Game.MenuSize_Y / 2));

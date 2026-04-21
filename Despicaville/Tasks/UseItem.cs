@@ -88,69 +88,123 @@ namespace Despicaville.Tasks
                 if (InventoryUtil.IsFood(item) ||
                     item.Task == "Inject")
                 {
-                    Something hunger = item.GetProperty("Hunger");
+                    Property hunger = item.GetProperty("Hunger");
                     if (hunger != null)
                     {
                         eat++;
-                        character.GetStat("Hunger").IncreaseValue(hunger.Value);
+
+                        Property stat = character.GetStat("Hunger");
+                        stat.Value += hunger.Value;
+
+                        if (stat.Value > stat.Max_Value)
+                        {
+                            stat.Value = stat.Max_Value;
+                        }
                     }
 
-                    Something thirst = item.GetProperty("Thirst");
+                    Property thirst = item.GetProperty("Thirst");
                     if (thirst != null)
                     {
                         drink++;
-                        character.GetStat("Thirst").IncreaseValue(thirst.Value);
+
+                        Property stat = character.GetStat("Thirst");
+                        stat.Value += thirst.Value;
+
+                        if (stat.Value > stat.Max_Value)
+                        {
+                            stat.Value = stat.Max_Value;
+                        }
                     }
 
-                    Something stamina = item.GetProperty("Stamina");
+                    Property stamina = item.GetProperty("Stamina");
                     if (stamina != null)
                     {
                         eat++;
                         drink++;
-                        character.GetStat("Stamina").IncreaseValue(stamina.Value);
+
+                        Property stat = character.GetStat("Stamina");
+                        stat.Value += stamina.Value;
+
+                        if (stat.Value > stat.Max_Value)
+                        {
+                            stat.Value = stat.Max_Value;
+                        }
                     }
 
-                    Something consciousness = item.GetProperty("Consciousness");
+                    Property consciousness = item.GetProperty("Consciousness");
                     if (consciousness != null)
                     {
                         eat++;
-                        character.GetStat("Consciousness").IncreaseValue(consciousness.Value);
+
+                        Property stat = character.GetStat("Consciousness");
+                        stat.Value += consciousness.Value;
+
+                        if (stat.Value > stat.Max_Value)
+                        {
+                            stat.Value = stat.Max_Value;
+                        }
                     }
 
-                    Something paranoia = item.GetProperty("Paranoia");
+                    Property paranoia = item.GetProperty("Paranoia");
                     if (paranoia != null)
                     {
                         eat++;
-                        character.GetStat("Paranoia").IncreaseValue(paranoia.Value);
+
+                        Property stat = character.GetStat("Paranoia");
+                        stat.Value += paranoia.Value;
+
+                        if (stat.Value > stat.Max_Value)
+                        {
+                            stat.Value = stat.Max_Value;
+                        }
                     }
 
-                    Something bladder = item.GetProperty("Bladder");
+                    Property bladder = item.GetProperty("Bladder");
                     if (bladder != null)
                     {
                         drink++;
-                        character.GetStat("Bladder").IncreaseValue(bladder.Value);
+
+                        Property stat = character.GetStat("Bladder");
+                        stat.Value += bladder.Value;
+
+                        if (stat.Value > stat.Max_Value)
+                        {
+                            stat.Value = stat.Max_Value;
+                        }
                     }
 
-                    Something blood = item.GetProperty("Blood");
+                    Property blood = item.GetProperty("Blood");
                     if (blood != null)
                     {
                         drink++;
-                        character.GetStat("Blood").IncreaseValue(blood.Value);
+
+                        Property stat = character.GetStat("Blood");
+                        stat.Value += blood.Value;
+
+                        if (stat.Value > stat.Max_Value)
+                        {
+                            stat.Value = stat.Max_Value;
+                        }
                     }
 
-                    Something pain = item.GetProperty("Pain");
+                    Property pain = item.GetProperty("Pain");
                     if (pain != null)
                     {
                         eat++;
 
-                        Something painKiller = character.GetStatusEffect("Painkiller");
-                        if (painKiller != null)
+                        Property stat = character.GetStatusEffect("Painkiller");
+                        if (stat != null)
                         {
-                            painKiller.IncreaseValue(pain.Value);
+                            stat.Value += pain.Value;
+
+                            if (stat.Value > stat.Max_Value)
+                            {
+                                stat.Value = stat.Max_Value;
+                            }
                         }
                         else
                         {
-                            character.StatusEffects.Add(new Something
+                            character.StatusEffects.Add(new Property
                             {
                                 Name = "Painkiller",
                                 Value = pain.Value
@@ -158,19 +212,24 @@ namespace Despicaville.Tasks
                         }
                     }
 
-                    Something poison = item.GetProperty("Poison");
+                    Property poison = item.GetProperty("Poison");
                     if (poison != null)
                     {
                         drink++;
 
-                        Something poisoned = character.GetStatusEffect("Poisoned");
-                        if (poisoned != null)
+                        Property stat = character.GetStatusEffect("Poisoned");
+                        if (stat != null)
                         {
-                            poisoned.IncreaseValue(poison.Value);
+                            stat.Value += poison.Value;
+
+                            if (stat.Value > stat.Max_Value)
+                            {
+                                stat.Value = stat.Max_Value;
+                            }
                         }
                         else
                         {
-                            character.StatusEffects.Add(new Something
+                            character.StatusEffects.Add(new Property
                             {
                                 Name = "Poisoned",
                                 Value = poison.Value
@@ -244,26 +303,21 @@ namespace Despicaville.Tasks
 
         public Character GetOwner()
         {
-            if (OwnerIDs.Count > 0)
+            Army army = CharacterManager.GetArmy("Characters");
+            if (army != null)
             {
-                long id = OwnerIDs[0];
-
-                Army army = CharacterManager.GetArmy("Characters");
-                if (army != null)
+                int squadCount = army.Squads.Count;
+                for (int s = 0; s < squadCount; s++)
                 {
-                    int squadCount = army.Squads.Count;
-                    for (int s = 0; s < squadCount; s++)
-                    {
-                        Squad squad = army.Squads[s];
+                    Squad squad = army.Squads[s];
 
-                        int charCount = squad.Characters.Count;
-                        for (int c = 0; c < charCount; c++)
+                    int charCount = squad.Characters.Count;
+                    for (int c = 0; c < charCount; c++)
+                    {
+                        Character existing = squad.Characters[c];
+                        if (existing.ID == OwnerID)
                         {
-                            Character existing = squad.Characters[c];
-                            if (existing.ID == id)
-                            {
-                                return existing;
-                            }
+                            return existing;
                         }
                     }
                 }

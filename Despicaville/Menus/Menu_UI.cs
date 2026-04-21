@@ -180,7 +180,7 @@ namespace Despicaville.Menus
             string[] stats = { "Hunger", "Thirst", "Bladder", "Grime", "Pain", "Paranoia", "Blood", "Consciousness", "Stamina", "Comfort" };
             foreach (string stat_name in stats)
             {
-                Something stat = Handler.Player.GetStat(stat_name);
+                Property stat = Handler.Player.GetStat(stat_name);
                 if (stat != null)
                 {
                     ProgressBar bar = GetProgressBar(stat_name);

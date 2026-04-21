@@ -1634,7 +1634,7 @@ namespace Despicaville.Util
 
         public static void GenDescription()
         {
-            Something stat = Handler.Player.GetStat("Perception");
+            Property stat = Handler.Player.GetStat("Perception");
             int perception = (int)stat.Value;
 
             string description = "You see ";

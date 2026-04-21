@@ -15,32 +15,34 @@ namespace Despicaville.Util
     {
         public static Character GenCharacter(string last_name)
         {
-            Character character = new Character();
-            character.ID = Handler.GetID();
+            Character character = new Character
+            {
+                ID = Handler.GetID(),
+                Type = "Citizen",
+                Frames = 4,
+                Speed = 1,
+                Move_TotalDistance = Main.Game.TileSize.X,
+                Direction = Direction.Down,
+                Visible = true
+            };
             character.Inventory.ID = Handler.GetID();
-            character.Type = "Citizen";
-            character.Animator.Frames = 4;
-            character.Speed = 1;
-            character.Move_TotalDistance = Main.Game.TileSize.X;
-            character.Direction = Direction.Down;
-            character.Visible = true;
-            character.Job.OwnerIDs.Add(character.ID);
+            character.Job.OwnerID = character.ID;
             InventoryManager.Inventories.Add(character.Inventory);
 
             //Get Stats
-            foreach (var stat in GenStats())
+            foreach (Property stat in GenStats())
             {
                 character.Stats.Add(stat);
             }
 
             //Get body parts
-            foreach (var part in BodyParts())
+            foreach (BodyPart part in BodyParts())
             {
                 character.BodyParts.Add(part);
             }
 
             //Get personality traits
-            foreach (var trait in Traits(character))
+            foreach (Property trait in Traits(character))
             {
                 character.Traits.Add(trait);
             }
@@ -169,7 +171,6 @@ namespace Despicaville.Util
             pants.Visible = false;
             pants.Inventory.ID = Handler.GetID();
             pants.Inventory.Name = pants.Name;
-            pants.Inventory.Weight = 4;
             pants.Inventory.Max_Value = 4;
             InventoryManager.Inventories.Add(pants.Inventory);
             character.Inventory.Items.Add(pants);
@@ -206,121 +207,123 @@ namespace Despicaville.Util
             return character;
         }
 
-        public static List<Something> BaseStats()
+        public static List<Property> BaseStats()
         {
-            List<Something> stats = new List<Something>();
-
-            Something stat = new Something();
-            stat.Name = "Blood";
-            stat.Description = "How much blood you have left.\n0% means you are dead.";
-            stat.Max_Value = 100;
-            stat.Value = 100;
-            stats.Add(stat);
-
-            stat = new Something();
-            stat.Name = "Consciousness";
-            stat.Description = "How conscious you are.\n0% means you are unconscious.";
-            stat.Max_Value = 100;
-            stat.Value = 100;
-            stats.Add(stat);
-
-            stat = new Something();
-            stat.Name = "Stamina";
-            stat.Description = "How much energy you have.\nConsciousness -1 every second at 0%.";
-            stat.Max_Value = 200;
-            stat.Value = 100;
-            stats.Add(stat);
-
-            stat = new Something();
-            stat.Name = "Comfort";
-            stat.Description = "How comfortable you are.\nMax Stamina -1 every minute at 0%.";
-            stat.Max_Value = 100;
-            stat.Value = 100;
-            stat.Rate = 0.00556f;
-            stats.Add(stat);
-
-            stat = new Something();
-            stat.Name = "Paranoia";
-            stat.Description = "How paranoid you are.\nYou will commit suicide at 100%.";
-            stat.Max_Value = 100;
-            stat.Value = 0;
-            stats.Add(stat);
-
-            stat = new Something();
-            stat.Name = "Hunger";
-            stat.Description = "How hungry you are.\nMax Stamina -1 every hour at 100%.";
-            stat.Max_Value = 100;
-            stat.Rate = 0.0006945f;
-            stat.Value = 30;
-            stats.Add(stat);
-
-            stat = new Something();
-            stat.Name = "Thirst";
-            stat.Description = "How thirsty you are.\nMax Blood -1 every hour at 100%.";
-            stat.Max_Value = 100;
-            stat.Rate = 0.0013888f;
-            stat.Value = 60;
-            stats.Add(stat);
-
-            stat = new Something();
-            stat.Name = "Disposition";
-            stat.Description = "How well the player is liked.\nWill follow any command at 100%.";
-            stat.Max_Value = 100;
-            stat.Value = 0;
-            stats.Add(stat);
-
-            stat = new Something();
-            stat.Name = "Depression";
-            stat.Description = "How depressed you are.\nYou will commit suicide at 100%.";
-            stat.Max_Value = 100;
-            stat.Value = 0;
-            stats.Add(stat);
-
-            stat = new Something();
-            stat.Name = "Boredom";
-            stat.Description = "How bored you are.\nDepression +1 every hour at 100%.";
-            stat.Max_Value = 100;
-            stat.Rate = 0.00695f;
-            stat.Value = 0;
-            stats.Add(stat);
-
-            stat = new Something();
-            stat.Name = "Bladder";
-            stat.Description = "How urgently you need a toilet.\nYou defecate yourself at 100%.";
-            stat.Max_Value = 100;
-            stat.Value = 0;
-            stats.Add(stat);
-
-            stat = new Something();
-            stat.Name = "Grime";
-            stat.Description = "How dirty you are.\nImpacts using your Charisma.";
-            stat.Max_Value = 100;
-            stat.Value = 0;
-            stats.Add(stat);
-
-            stat = new Something();
-            stat.Name = "Pain";
-            stat.Description = "How much pain you are feeling.\nConsciousness -5 every second at 100%.";
-            stat.Max_Value = 100;
-            stat.Value = 0;
-            stats.Add(stat);
-
-            return stats;
+            return new List<Property>
+            {
+                new Property
+                {
+                    Name = "Blood",
+                    Description = "How much blood you have left.\n0% means you are dead.",
+                    Max_Value = 100,
+                    Value = 100
+                },
+                new Property
+                {
+                    Name = "Consciousness",
+                    Description = "How conscious you are.\n0% means you are unconscious.",
+                    Max_Value = 100,
+                    Value = 100
+                },
+                new Property
+                {
+                    Name = "Stamina",
+                    Description = "How much energy you have.\nConsciousness -1 every second at 0%.",
+                    Max_Value = 200,
+                    Value = 100
+                },
+                new Property
+                {
+                    Name = "Comfort",
+                    Description = "How comfortable you are.\nMax Stamina -1 every minute at 0%.",
+                    Max_Value = 100,
+                    Value = 100,
+                    Rate = 0.00556f
+                },
+                new Property
+                {
+                    Name = "Paranoia",
+                    Description = "How paranoid you are.\nYou will commit suicide at 100%.",
+                    Max_Value = 100,
+                    Value = 0
+                },
+                new Property
+                {
+                    Name = "Hunger",
+                    Description = "How hungry you are.\nMax Stamina -1 every hour at 100%.",
+                    Max_Value = 100,
+                    Rate = 0.0006945f,
+                    Value = 30
+                },
+                new Property
+                {
+                    Name = "Thirst",
+                    Description = "How thirsty you are.\nMax Blood -1 every hour at 100%.",
+                    Max_Value = 100,
+                    Rate = 0.0013888f,
+                    Value = 60
+                },
+                new Property
+                {
+                    Name = "Disposition",
+                    Description = "How well the player is liked.\nWill follow any command at 100%.",
+                    Max_Value = 100,
+                    Value = 0
+                },
+                new Property
+                {
+                    Name = "Depression",
+                    Description = "How depressed you are.\nYou will commit suicide at 100%.",
+                    Max_Value = 100,
+                    Value = 0
+                },
+                new Property
+                {
+                    Name = "Boredom",
+                    Description = "How bored you are.\nDepression +1 every hour at 100%.",
+                    Max_Value = 100,
+                    Rate = 0.00695f,
+                    Value = 0
+                },
+                new Property
+                {
+                    Name = "Bladder",
+                    Description = "How urgently you need a toilet.\nYou defecate yourself at 100%.",
+                    Max_Value = 100,
+                    Value = 0
+                },
+                new Property
+                {
+                    Name = "Grime",
+                    Description = "How dirty you are.\nImpacts using your Charisma.",
+                    Max_Value = 100,
+                    Value = 0
+                },
+                new Property
+                {
+                    Name = "Pain",
+                    Description = "How much pain you are feeling.\nConsciousness -5 every second at 100%.",
+                    Max_Value = 100,
+                    Value = 0
+                }
+            };
         }
 
-        public static List<Something> GenStats()
+        public static List<Property> GenStats()
         {
-            List<Something> stats = new List<Something>();
+            List<Property> stats = new List<Property>();
 
             CryptoRandom random;
 
             int pool = 550;
             foreach (var new_stat in Handler.Stats)
             {
-                Something stat = new Something();
-                stat.Name = new_stat.Key;
-                stat.Description = new_stat.Value;
-                stat.Max_Value = 100;
+                Property stat = new Property
+                {
+                    Name = new_stat.Key,
+                    Description = new_stat.Value,
+                    Max_Value = 100
+                };
                 stats.Add(stat);
 
                 random = new CryptoRandom();
@@ -334,7 +337,7 @@ namespace Despicaville.Util
                 random = new CryptoRandom();
                 int index = random.Next(0, stats.Count);
 
-                Something stat = stats[index];
+                Property stat = stats[index];
                 if (stat.Value < 100)
                 {
                     stat.Value++;
@@ -350,7 +353,7 @@ namespace Despicaville.Util
                 }
             }
 
-            foreach (var base_stat in BaseStats())
+            foreach (Property base_stat in BaseStats())
             {
                 stats.Add(base_stat);
             }
@@ -381,29 +384,32 @@ namespace Despicaville.Util
 
         public static BodyPart GenBodyPart(string name, string description)
         {
-            BodyPart part = new BodyPart();
-            part.Name = name;
-            part.Description = description;
-
-            Something hp = new Something();
-            hp.Name = "HP";
-            hp.Max_Value = 100;
-            hp.Value = 100;
-            part.Stats.Add(hp);
-
-            Something pain = new Something();
-            pain.Name = "Pain";
-            pain.Max_Value = 100;
-            pain.Value = 0;
-            part.Stats.Add(pain);
-
-            Something blood_loss = new Something();
-            blood_loss.Name = "Blood Loss";
-            blood_loss.Max_Value = 100;
-            blood_loss.Value = 0;
-            part.Stats.Add(blood_loss);
-
-            return part;
+            return new BodyPart
+            {
+                Name = name,
+                Description = description,
+                Stats = new List<Property>
+                {
+                    new Property
+                    {
+                        Name = "HP",
+                        Max_Value = 100,
+                        Value = 100
+                    },
+                    new Property
+                    {
+                        Name = "Pain",
+                        Max_Value = 100,
+                        Value = 0
+                    },
+                    new Property
+                    {
+                        Name = "Blood Loss",
+                        Max_Value = 100,
+                        Value = 0
+                    }
+                }
+            };
         }
 
         public static string BodyPartToName(string body_part)
@@ -514,9 +520,9 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static List<Something> Traits(Character character)
+        public static List<Property> Traits(Character character)
         {
-            List<Something> traits = new List<Something>();
+            List<Property> traits = new List<Property>();
 
             int STR = (int)character.GetStat("Strength").Value;
             int END = (int)character.GetStat("Endurance").Value;
@@ -534,33 +540,33 @@ namespace Despicaville.Util
                 if (INT > 50)
                 {
                     //Grab nearest weapon and defend
-                    traits.Add(new Something() { Name = "Assertive" });
+                    traits.Add(new Property() { Name = "Assertive" });
 
                     if (SAN <= 50)
                     {
                         //They already knew where the nearest weapon was
-                        traits.Add(new Something() { Name = "Prepared" });
+                        traits.Add(new Property() { Name = "Prepared" });
                     }
                     else if (SAN > 50)
                     {
                         //Anything nearby will do
-                        traits.Add(new Something() { Name = "Adaptive" });
+                        traits.Add(new Property() { Name = "Adaptive" });
                     }
                 }
                 else if (INT <= 50)
                 {
                     //Attack without warning or preparation
-                    traits.Add(new Something() { Name = "Aggressive" });
+                    traits.Add(new Property() { Name = "Aggressive" });
 
                     if (SAN <= 50)
                     {
                         //They always have a weapon to threaten others with
-                        traits.Add(new Something() { Name = "Bully" });
+                        traits.Add(new Property() { Name = "Bully" });
                     }
                     else if (SAN > 50)
                     {
                         //Unlikely to have a weapon, just reckless abandon
-                        traits.Add(new Something() { Name = "Guardian" });
+                        traits.Add(new Property() { Name = "Guardian" });
                     }
                 }
             }
@@ -569,33 +575,33 @@ namespace Despicaville.Util
                 if (INT > 50)
                 {
                     //Flee, find a weapon, and attack
-                    traits.Add(new Something() { Name = "Passive-Aggressive" });
+                    traits.Add(new Property() { Name = "Passive-Aggressive" });
 
                     if (SAN <= 50)
                     {
                         //They'll just keep coming after you
-                        traits.Add(new Something() { Name = "Vengeful" });
+                        traits.Add(new Property() { Name = "Vengeful" });
                     }
                     else if (SAN > 50)
                     {
                         //They just want you to leave
-                        traits.Add(new Something() { Name = "Forgiving" });
+                        traits.Add(new Property() { Name = "Forgiving" });
                     }
                 }
                 else if (INT <= 50)
                 {
                     //Flee and defend
-                    traits.Add(new Something() { Name = "Passive" });
+                    traits.Add(new Property() { Name = "Passive" });
 
                     if (SAN <= 50)
                     {
                         //They're probably hiding in the closet
-                        traits.Add(new Something() { Name = "Coward" });
+                        traits.Add(new Property() { Name = "Coward" });
                     }
                     else if (SAN > 50)
                     {
                         //They're probably hiding in the closet where they keep the shotgun
-                        traits.Add(new Something() { Name = "Survivalist" });
+                        traits.Add(new Property() { Name = "Survivalist" });
                     }
                 }
             }
@@ -608,12 +614,12 @@ namespace Despicaville.Util
                 if (INT > 50)
                 {
                     //They speak when spoken to, otherwise very quiet
-                    traits.Add(new Something() { Name = "Low Introvert" });
+                    traits.Add(new Property() { Name = "Low Introvert" });
                 }
                 else if (INT <= 50)
                 {
                     //They never seem to shut up
-                    traits.Add(new Something() { Name = "High Extrovert" });
+                    traits.Add(new Property() { Name = "High Extrovert" });
                 }
             }
             else if (CHA <= 50)
@@ -623,12 +629,12 @@ namespace Despicaville.Util
                 if (INT > 50)
                 {
                     //Very shy, takes a long time to open up
-                    traits.Add(new Something() { Name = "High Introvert" });
+                    traits.Add(new Property() { Name = "High Introvert" });
                 }
                 else if (INT <= 50)
                 {
                     //Quiet until they start rambling
-                    traits.Add(new Something() { Name = "Low Extrovert" });
+                    traits.Add(new Property() { Name = "Low Extrovert" });
                 }
             }
 
@@ -638,12 +644,12 @@ namespace Despicaville.Util
                 if (PER > 50)
                 {
                     //They notice and react immediately
-                    traits.Add(new Something() { Name = "Observant" });
+                    traits.Add(new Property() { Name = "Observant" });
                 }
                 else if (PER <= 50)
                 {
                     //Slow to notice, but reacts quickly
-                    traits.Add(new Something() { Name = "Reactive" });
+                    traits.Add(new Property() { Name = "Reactive" });
                 }
             }
             else if (AGI <= 50)
@@ -651,12 +657,12 @@ namespace Despicaville.Util
                 if (PER > 50)
                 {
                     //They'll see it, but slow to react
-                    traits.Add(new Something() { Name = "Focused" });
+                    traits.Add(new Property() { Name = "Focused" });
                 }
                 else if (PER <= 50)
                 {
                     //Never sees it coming
-                    traits.Add(new Something() { Name = "Clumsy" });
+                    traits.Add(new Property() { Name = "Clumsy" });
                 }
             }
 
@@ -666,12 +672,12 @@ namespace Despicaville.Util
                 if (WIL > 50)
                 {
                     //They won't stop coming at you
-                    traits.Add(new Something() { Name = "Heroic" });
+                    traits.Add(new Property() { Name = "Heroic" });
                 }
                 else if (WIL <= 50)
                 {
                     //Quickly concedes from any wounds/pain
-                    traits.Add(new Something() { Name = "Quitter" });
+                    traits.Add(new Property() { Name = "Quitter" });
                 }
             }
             else if (END <= 50)
@@ -679,12 +685,12 @@ namespace Despicaville.Util
                 if (WIL > 50)
                 {
                     //Will fight back until they run out of steam
-                    traits.Add(new Something() { Name = "Defiant" });
+                    traits.Add(new Property() { Name = "Defiant" });
                 }
                 else if (WIL <= 50)
                 {
                     //Won't even bother trying, just accepts their fate
-                    traits.Add(new Something() { Name = "Accepting" });
+                    traits.Add(new Property() { Name = "Accepting" });
                 }
             }
 
@@ -694,12 +700,12 @@ namespace Despicaville.Util
                 if (LUK <= 50)
                 {
                     //Doesn't take risks
-                    traits.Add(new Something() { Name = "Conservative" });
+                    traits.Add(new Property() { Name = "Conservative" });
                 }
                 else if (LUK > 50)
                 {
                     //Will take a risk when the reward chance seems high
-                    traits.Add(new Something() { Name = "Opportunist" });
+                    traits.Add(new Property() { Name = "Opportunist" });
                 }
             }
             else if (INT <= 50)
@@ -707,12 +713,12 @@ namespace Despicaville.Util
                 if (LUK <= 50)
                 {
                     //Takes risks despite failing often... they must enjoy failing?
-                    traits.Add(new Something() { Name = "Masochist" });
+                    traits.Add(new Property() { Name = "Masochist" });
                 }
                 else if (LUK > 50)
                 {
                     //Risky and reckless, because they usually win
-                    traits.Add(new Something() { Name = "Gambler" });
+                    traits.Add(new Property() { Name = "Gambler" });
                 }
             }
 
@@ -725,12 +731,13 @@ namespace Despicaville.Util
 
             foreach (var new_stat in stats)
             {
-                Something stat = new Something();
-                stat.Name = new_stat.Key;
-                stat.Description = Handler.Stats[new_stat.Key];
-                stat.Value = new_stat.Value;
-                stat.Max_Value = 100;
-                character.Stats.Add(stat);
+                character.Stats.Add(new Property
+                {
+                    Name = new_stat.Key,
+                    Description = Handler.Stats[new_stat.Key],
+                    Value = new_stat.Value,
+                    Max_Value = 100
+                });
             }
 
             foreach (var base_stat in BaseStats())
@@ -1052,23 +1059,35 @@ namespace Despicaville.Util
 
         public static void UpdateConsciousness(Character character)
         {
-            Something consciousness = character.GetStat("Consciousness");
-            Something pain = character.GetStat("Pain");
-            Something stamina = character.GetStat("Stamina");
+            Property consciousness = character.GetStat("Consciousness");
+            Property pain = character.GetStat("Pain");
+            Property stamina = character.GetStat("Stamina");
 
             if (stamina.Value <= 0)
             {
-                consciousness.DecreaseValue(1);
+                consciousness.Value++;
+                if (consciousness.Value > consciousness.Max_Value)
+                {
+                    consciousness.Value = consciousness.Max_Value;
+                }
             }
             if (pain.Value >= 100)
             {
-                consciousness.DecreaseValue(5);
+                consciousness.Value -= 5;
+                if (consciousness.Value < 0)
+                {
+                    consciousness.Value = 0;
+                }
             }
 
             if (pain.Value < 100 &&
                 stamina.Value > 0)
             {
-                consciousness.IncreaseValue(1);
+                consciousness.Value++;
+                if (consciousness.Value > consciousness.Max_Value)
+                {
+                    consciousness.Value = consciousness.Max_Value;
+                }
             }
 
             if (consciousness.Value <= 0 &&
@@ -1099,92 +1118,97 @@ namespace Despicaville.Util
 
             foreach (BodyPart part in character.BodyParts)
             {
-                Something hp = part.GetStat("HP");
+                Property hp = part.GetStat("HP");
 
-                Something pain = part.GetStat("Pain");
+                Property pain = part.GetStat("Pain");
                 pain.Value = 0;
                        
-                foreach (Something wound in part.Wounds)
+                foreach (Wound wound in part.Wounds)
                 {
                     if (wound.Name == "Break")
                     {
                         if (part.Name == "Head")
                         {
-                            pain.IncreaseValue(50);
+                            pain.Value += 50;
                         }
                         else
                         {
-                            pain.IncreaseValue(20);
+                            pain.Value += 20;
                         }
                     }
                     else if (wound.Name == "Covered")
                     {
-                        pain.IncreaseValue(2);
+                        pain.Value += 2;
                     }
                     else if (wound.Name == "Cut")
                     {
-                        pain.IncreaseValue(4);
+                        pain.Value += 4;
                     }
                     else if (wound.Name == "Fracture")
                     {
                         if (part.Name == "Head")
                         {
-                            pain.IncreaseValue(25);
+                            pain.Value += 25;
                         }
                         else
                         {
-                            pain.IncreaseValue(10);
+                            pain.Value += 10;
                         }
                     }
                     else if (wound.Name == "Gunshot")
                     {
                         if (part.Name == "Head")
                         {
-                            pain.IncreaseValue(100);
+                            pain.Value += 100;
                         }
                         else
                         {
-                            pain.IncreaseValue(20);
+                            pain.Value += 20;
                         }
                     }
                     else if (wound.Name == "Stab")
                     {
                         if (part.Name == "Head")
                         {
-                            pain.IncreaseValue(50);
+                            pain.Value += 50;
                         }
                         else
                         {
-                            pain.IncreaseValue(20);
+                            pain.Value += 20;
                         }
                     }
                     else if (wound.Name == "Stitched")
                     {
-                        pain.IncreaseValue(4);
+                        pain.Value += 4;
                     }
                     else if (wound.Name == "Set")
                     {
-                        pain.IncreaseValue(10);
+                        pain.Value += 10;
                     }
                     else if (wound.Name == "Burn")
                     {
-                        pain.IncreaseValue(50);
+                        pain.Value += 50;
                     }
                     else if (wound.Name == "Sever")
                     {
-                        pain.IncreaseValue(80);
+                        pain.Value += 80;
                     }
                     else if (wound.Name == "Bruise")
                     {
                         if (part.Name == "Head")
                         {
-                            pain.IncreaseValue(20);
+                            pain.Value += 20;
                         }
                         else
                         {
-                            pain.IncreaseValue(5);
+                            pain.Value += 5;
                         }
                     }
+                }
+
+                if (pain.Value > pain.Max_Value)
+                {
+                    pain.Value = pain.Max_Value;
                 }
 
                 hp.Value = 100 - pain.Value;
@@ -1197,26 +1221,29 @@ namespace Despicaville.Util
                 total += pain.Value;
             }
 
-            Something painKiller = character.GetStatusEffect("Painkillers");
+            Property painKiller = character.GetStatusEffect("Painkillers");
             if (painKiller != null)
             {
                 total -= painKiller.Value;
             }
 
-            Something adrenaline = character.GetStatusEffect("Adrenaline");
+            Property adrenaline = character.GetStatusEffect("Adrenaline");
             if (adrenaline != null)
             {
                 total -= painKiller.Value;
             }
 
-            Something stat = character.GetStat("Pain");
-            stat.Value = 0;
-            stat.IncreaseValue(total);
+            Property stat = character.GetStat("Pain");
+            stat.Value = total;
+            if (stat.Value > stat.Max_Value)
+            {
+                stat.Value = stat.Max_Value;
+            }
         }
 
         public static void UpdateWounds(Character character)
         {
-            Something vitality = character.GetStat("Vitality");
+            Property vitality = character.GetStat("Vitality");
 
             int partCount = character.BodyParts.Count;
             for (int b = 0; b < partCount; b++)
@@ -1225,7 +1252,7 @@ namespace Despicaville.Util
 
                 for (int w = 0; w < part.Wounds.Count; w++)
                 {
-                    Something wound = part.Wounds[w];
+                    Wound wound = part.Wounds[w];
                     if (wound != null)
                     {
                         if (wound.Name != "Sever")
@@ -1251,7 +1278,7 @@ namespace Despicaville.Util
             {
                 if (total < 100)
                 {
-                    foreach (Something wound in part.Wounds)
+                    foreach (Wound wound in part.Wounds)
                     {
                         if (wound.Name == "Stitched")
                         {
@@ -1296,8 +1323,12 @@ namespace Despicaville.Util
 
             if (total > 0)
             {
-                Something stat = character.GetStat("Blood");
-                stat.DecreaseValue(total);
+                Property stat = character.GetStat("Blood");
+                stat.Value -= total;
+                if (stat.Value < 0)
+                {
+                    stat.Value = 0;
+                }
 
                 Scene scene = SceneManager.GetScene("Gameplay");
                 Map map = scene.World.Maps[0];
@@ -1432,17 +1463,17 @@ namespace Despicaville.Util
 
         public static float GetTurnTime(Character character)
         {
-            Something agility = character.GetStat("Agility");
+            Property agility = character.GetStat("Agility");
             return 5000 / agility.Value;
         }
 
         public static void Sleep(Character character)
         {
-            Something stamina = character.GetStat("Stamina");
+            Property stamina = character.GetStat("Stamina");
             if (stamina.Value < 100)
             {
                 //Per second
-                stamina.IncreaseValue(0.00348f);
+                stamina.Value += 0.00348f;
                 if (stamina.Value > 100)
                 {
                     stamina.Value = 100;
@@ -1452,11 +1483,11 @@ namespace Despicaville.Util
 
         public static void Rest(Character character)
         {
-            Something stamina = character.GetStat("Stamina");
+            Property stamina = character.GetStat("Stamina");
             if (stamina.Value < 100)
             {
                 //Per millisecond
-                stamina.IncreaseValue(0.00002f);
+                stamina.Value += 0.00002f;
                 if (stamina.Value > 100)
                 {
                     stamina.Value = 100;

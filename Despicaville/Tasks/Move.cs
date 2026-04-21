@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using OP_Engine.Characters;
 using OP_Engine.Jobs;
 using OP_Engine.Utility;
@@ -26,19 +25,19 @@ namespace Despicaville.Tasks
                 Direction direction = WorldUtil.GetDirection(Handler.Player.Location, character.Location, false);
                 if (direction == Direction.Up)
                 {
-                    character.Animator.FaceNorth(character);
+                    character.FaceNorth();
                 }
                 else if (direction == Direction.Right)
                 {
-                    character.Animator.FaceEast(character);
+                    character.FaceEast();
                 }
                 else if (direction == Direction.Down)
                 {
-                    character.Animator.FaceSouth(character);
+                    character.FaceSouth();
                 }
                 else if (direction == Direction.Left)
                 {
-                    character.Animator.FaceWest(character);
+                    character.FaceWest();
                 }
                 return;
             }
@@ -85,7 +84,7 @@ namespace Despicaville.Tasks
                     character.Job.Tasks.Add(new Turn
                     {
                         Name = "Turn",
-                        OwnerIDs = new List<long> { character.ID },
+                        OwnerID = character.ID,
                         StartTime = new TimeHandler(TimeManager.Now),
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
                         Direction = Direction
@@ -116,7 +115,7 @@ namespace Despicaville.Tasks
                     character.Job.Tasks.Add(new Turn
                     {
                         Name = "Turn",
-                        OwnerIDs = new List<long> { character.ID },
+                        OwnerID = character.ID,
                         StartTime = new TimeHandler(TimeManager.Now),
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
                         Direction = Direction
@@ -134,7 +133,7 @@ namespace Despicaville.Tasks
                             character.Job.Tasks.Add(new OpenWindow
                             {
                                 Name = "OpenWindow",
-                                OwnerIDs = new List<long> { character.ID },
+                                OwnerID = character.ID,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
                                 Location = character.Destination,
@@ -144,7 +143,7 @@ namespace Despicaville.Tasks
                             character.Job.Tasks.Add(new Move
                             {
                                 Name = Name,
-                                OwnerIDs = new List<long> { character.ID },
+                                OwnerID = character.ID,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 Location = character.Destination,
                                 Direction = Direction
@@ -172,7 +171,7 @@ namespace Despicaville.Tasks
                             character.Job.Tasks.Add(new Move
                             {
                                 Name = Name,
-                                OwnerIDs = new List<long> { character.ID },
+                                OwnerID = character.ID,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 Location = nextMove,
                                 Direction = Direction
@@ -184,7 +183,7 @@ namespace Despicaville.Tasks
                             character.Job.Tasks.Add(new OpenDoor
                             {
                                 Name = "OpenDoor",
-                                OwnerIDs = new List<long> { character.ID },
+                                OwnerID = character.ID,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(10)),
                                 Location = character.Destination,
@@ -194,7 +193,7 @@ namespace Despicaville.Tasks
                             character.Job.Tasks.Add(new Move
                             {
                                 Name = Name,
-                                OwnerIDs = new List<long> { character.ID },
+                                OwnerID = character.ID,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 Location = character.Destination,
                                 Direction = Direction
@@ -222,7 +221,7 @@ namespace Despicaville.Tasks
                             character.Job.Tasks.Add(new Move
                             {
                                 Name = Name,
-                                OwnerIDs = new List<long> { character.ID },
+                                OwnerID = character.ID,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 Location = nextMove,
                                 Direction = Direction
@@ -234,7 +233,7 @@ namespace Despicaville.Tasks
                         character.Job.Tasks.Add(new Wait
                         {
                             Name = "Wait",
-                            OwnerIDs = new List<long> { character.ID },
+                            OwnerID = character.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(21))
                         });
@@ -329,11 +328,11 @@ namespace Despicaville.Tasks
                 }
                 else
                 {
-                    for (int i = 1; i <= character.Animator.Frames; i++)
+                    for (int i = 1; i <= character.Frames; i++)
                     {
-                        if (character.Moved == (character.Move_TotalDistance / character.Animator.Frames) * i)
+                        if (character.Moved == (character.Move_TotalDistance / character.Frames) * i)
                         {
-                            character.Animator.Animate(character);
+                            character.Animate();
                             CharacterUtil.UpdateGear(character);
                             break;
                         }
@@ -404,11 +403,11 @@ namespace Despicaville.Tasks
                 }
                 else
                 {
-                    for (int i = 1; i <= character.Animator.Frames; i++)
+                    for (int i = 1; i <= character.Frames; i++)
                     {
-                        if (character.Moved == (character.Move_TotalDistance / character.Animator.Frames) * i)
+                        if (character.Moved == (character.Move_TotalDistance / character.Frames) * i)
                         {
-                            character.Animator.Animate(character);
+                            character.Animate();
                             CharacterUtil.UpdateGear(character);
                             break;
                         }
@@ -481,11 +480,11 @@ namespace Despicaville.Tasks
                     }
                     else
                     {
-                        for (int i = 1; i <= character.Animator.Frames; i++)
+                        for (int i = 1; i <= character.Frames; i++)
                         {
-                            if (character.Moved == (character.Move_TotalDistance / character.Animator.Frames) * i)
+                            if (character.Moved == (character.Move_TotalDistance / character.Frames) * i)
                             {
-                                character.Animator.Animate(character);
+                                character.Animate();
                                 CharacterUtil.UpdateGear(character);
                                 break;
                             }
@@ -556,11 +555,11 @@ namespace Despicaville.Tasks
                     }
                     else
                     {
-                        for (int i = 1; i <= character.Animator.Frames; i++)
+                        for (int i = 1; i <= character.Frames; i++)
                         {
-                            if (character.Moved == (character.Move_TotalDistance / character.Animator.Frames) * i)
+                            if (character.Moved == (character.Move_TotalDistance / character.Frames) * i)
                             {
-                                character.Animator.Animate(character);
+                                character.Animate();
                                 CharacterUtil.UpdateGear(character);
                                 break;
                             }
@@ -572,8 +571,6 @@ namespace Despicaville.Tasks
                     EndTime = new TimeHandler(TimeManager.Now);
                 }
             }
-
-            character.Animator.Update(character);
 
             if (character.Type == "Player")
             {
@@ -591,20 +588,25 @@ namespace Despicaville.Tasks
 
             if (character.Moving)
             {
-                Something stamina = character.GetStat("Stamina");
-                Something endurance = character.GetStat("Endurance");
+                Property stamina = character.GetStat("Stamina");
+                Property endurance = character.GetStat("Endurance");
 
                 if (Name == "Sneak")
                 {
-                    stamina.DecreaseValue(0.0385f / endurance.Value);
+                    stamina.Value -= (0.0385f / endurance.Value);
                 }
                 else if (Name == "Walk")
                 {
-                    stamina.DecreaseValue(0.077f / endurance.Value);
+                    stamina.Value -= (0.077f / endurance.Value);
                 }
                 else if (Name == "Run")
                 {
-                    stamina.DecreaseValue(0.154f / endurance.Value);
+                    stamina.Value -= (0.154f / endurance.Value);
+                }
+
+                if (stamina.Value < 0)
+                {
+                    stamina.Value = 0;
                 }
 
                 WorldUtil.SetCurrentMap(character);
@@ -612,7 +614,7 @@ namespace Despicaville.Tasks
 
             character.Moved = 0;
             character.Moving = false;
-            character.Animator.Reset(character);
+            character.ResetAnimation();
             CharacterUtil.UpdateGear(character);
 
             if (character.Unconscious)
@@ -698,7 +700,7 @@ namespace Despicaville.Tasks
                         character.Job.Tasks.Add(new Move
                         {
                             Name = Name,
-                            OwnerIDs = new List<long> { character.ID },
+                            OwnerID = character.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Location = character.Destination,
                             Direction = direction
@@ -709,7 +711,7 @@ namespace Despicaville.Tasks
                         character.Job.Tasks.Add(new Turn
                         {
                             Name = "Turn",
-                            OwnerIDs = new List<long> { character.ID },
+                            OwnerID = character.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
                             Location = character.Destination,
@@ -722,26 +724,21 @@ namespace Despicaville.Tasks
 
         public Character GetOwner()
         {
-            if (OwnerIDs.Count > 0)
+            Army army = CharacterManager.GetArmy("Characters");
+            if (army != null)
             {
-                long id = OwnerIDs[0];
-
-                Army army = CharacterManager.GetArmy("Characters");
-                if (army != null)
+                int squadCount = army.Squads.Count;
+                for (int s = 0; s < squadCount; s++)
                 {
-                    int squadCount = army.Squads.Count;
-                    for (int s = 0; s < squadCount; s++)
-                    {
-                        Squad squad = army.Squads[s];
+                    Squad squad = army.Squads[s];
 
-                        int charCount = squad.Characters.Count;
-                        for (int c = 0; c < charCount; c++)
+                    int charCount = squad.Characters.Count;
+                    for (int c = 0; c < charCount; c++)
+                    {
+                        Character existing = squad.Characters[c];
+                        if (existing.ID == OwnerID)
                         {
-                            Character existing = squad.Characters[c];
-                            if (existing.ID == id)
-                            {
-                                return existing;
-                            }
+                            return existing;
                         }
                     }
                 }

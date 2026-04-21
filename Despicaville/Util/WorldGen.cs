@@ -173,11 +173,6 @@ namespace Despicaville.Util
                         map.Name = Path.GetFileNameWithoutExtension(file);
                         break;
 
-                    case "Name":
-                        map.Name = Path.GetFileNameWithoutExtension(reader.Value);
-                        map.Assignment = "Convert";
-                        break;
-
                     case "Direction":
                         string value = reader.Value;
                         if (value == "North")
@@ -1508,7 +1503,6 @@ namespace Despicaville.Util
                 Map = map,
                 Rows = Handler.MapSize_Y * 20,
                 Columns = Handler.MapSize_X * 20,
-                DrawColor = Color.White,
                 Visible = true
             };
         }
@@ -1560,16 +1554,8 @@ namespace Despicaville.Util
                                     int tile_x = -1;
                                     int tile_y = -1;
 
-                                    if (block.Assignment == "Convert")
-                                    {
-                                        tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
-                                        tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
-                                    }
-                                    else
-                                    {
-                                        tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
-                                        tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
-                                    }
+                                    tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
+                                    tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
 
                                     if (tile_x == x &&
                                         tile_y == y &&
@@ -1611,16 +1597,8 @@ namespace Despicaville.Util
                                         int tile_x = -1;
                                         int tile_y = -1;
 
-                                        if (block.Assignment == "Convert")
-                                        {
-                                            tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
-                                            tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
-                                        }
-                                        else
-                                        {
-                                            tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
-                                            tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
-                                        }
+                                        tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
+                                        tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
 
                                         if (tile_x == x &&
                                             tile_y == y &&
@@ -1663,16 +1641,8 @@ namespace Despicaville.Util
                                         int tile_x = -1;
                                         int tile_y = -1;
 
-                                        if (block.Assignment == "Convert")
-                                        {
-                                            tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
-                                            tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
-                                        }
-                                        else
-                                        {
-                                            tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
-                                            tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
-                                        }
+                                        tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
+                                        tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
 
                                         if (tile_x == x &&
                                             tile_y == y &&
@@ -1715,16 +1685,8 @@ namespace Despicaville.Util
                                         int tile_x = -1;
                                         int tile_y = -1;
 
-                                        if (block.Assignment == "Convert")
-                                        {
-                                            tile_x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
-                                            tile_y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
-                                        }
-                                        else
-                                        {
-                                            tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
-                                            tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
-                                        }
+                                        tile_x = (int)(tile.Location.X + (worldTile.Location.X * 20));
+                                        tile_y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
 
                                         if (tile_x == x &&
                                             tile_y == y &&
@@ -1759,19 +1721,8 @@ namespace Despicaville.Util
 
         private static void AddTile(string blockName, Map map, Layer layer, Tile worldTile, Tile tile)
         {
-            int x = -1;
-            int y = -1;
-
-            if (map.Assignment == "Convert")
-            {
-                x = (int)(((tile.Location.X / 32) - 5) + (worldTile.Location.X * 20));
-                y = (int)(((tile.Location.Y - 80) / 32) + (worldTile.Location.Y * 20));
-            }
-            else
-            {
-                x = (int)(tile.Location.X + (worldTile.Location.X * 20));
-                y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
-            }
+            int x = (int)(tile.Location.X + (worldTile.Location.X * 20));
+            int y = (int)(tile.Location.Y + (worldTile.Location.Y * 20));
 
             Tile new_tile = new Tile
             {
@@ -1865,19 +1816,19 @@ namespace Despicaville.Util
 
                     if (new_tile.Direction == Direction.Up)
                     {
-                        character.Animator.FaceNorth(character);
+                        character.FaceNorth();
                     }
                     else if (new_tile.Direction == Direction.Right)
                     {
-                        character.Animator.FaceEast(character);
+                        character.FaceEast();
                     }
                     else if (new_tile.Direction == Direction.Down)
                     {
-                        character.Animator.FaceSouth(character);
+                        character.FaceSouth();
                     }
                     else if (new_tile.Direction == Direction.Left)
                     {
-                        character.Animator.FaceWest(character);
+                        character.FaceWest();
                     }
 
                     if (new_tile.Direction == Direction.Up)

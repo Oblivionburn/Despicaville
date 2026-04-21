@@ -41,7 +41,7 @@ namespace Despicaville
                 return;
             }
 
-            Something thirst = character.GetStat("Thirst");
+            Property thirst = character.GetStat("Thirst");
             if (thirst.Value >= 60)
             {
                 FindWater(character, true);
@@ -53,7 +53,7 @@ namespace Despicaville
                 return;
             }
 
-            Something hunger = character.GetStat("Hunger");
+            Property hunger = character.GetStat("Hunger");
             if (hunger.Value >= 60)
             {
                 FindFood(character, true);
@@ -84,7 +84,7 @@ namespace Despicaville
                     character.Job.Tasks.Add(new Turn
                     {
                         Name = "Turn",
-                        OwnerIDs = new List<long> { character.ID },
+                        OwnerID = character.ID,
                         StartTime = new TimeHandler(TimeManager.Now),
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
                         Direction = direction
@@ -95,7 +95,7 @@ namespace Despicaville
                     character.Job.Tasks.Add(new Move
                     {
                         Name = "Walk",
-                        OwnerIDs = new List<long> { character.ID },
+                        OwnerID = character.ID,
                         StartTime = new TimeHandler(TimeManager.Now),
                         Direction = character.Direction
                     });
@@ -127,7 +127,7 @@ namespace Despicaville
                     character.Job.Tasks.Add(new Attack
                     {
                         Name = "Attack",
-                        OwnerIDs = new List<long> { character.ID },
+                        OwnerID = character.ID,
                         Location = location,
                         Direction = character.Direction,
                         StartTime = new TimeHandler(TimeManager.Now),
@@ -152,13 +152,13 @@ namespace Despicaville
             {
                 Item existing = inventory.Items[i];
 
-                Something thirst = existing.GetProperty("Thirst");
+                Property thirst = existing.GetProperty("Thirst");
                 if (thirst != null)
                 {
                     character.Job.Tasks.Add(new UseItem
                     {
                         Name = "UseItem_" + existing.ID,
-                        OwnerIDs = new List<long> { character.ID },
+                        OwnerID = character.ID,
                         StartTime = new TimeHandler(TimeManager.Now),
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(thirst.Value * -10)),
                     });
@@ -189,7 +189,7 @@ namespace Despicaville
                             character.Job.Tasks.Add(new Turn
                             {
                                 Name = "Turn",
-                                OwnerIDs = new List<long> { character.ID },
+                                OwnerID = character.ID,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
                                 Direction = direction
@@ -197,13 +197,13 @@ namespace Despicaville
                         }
                         else if (!sink.Texture.Name.Contains("Used"))
                         {
-                            Something thirst = character.GetStat("Thirst");
+                            Property thirst = character.GetStat("Thirst");
                             TimeSpan duration = TimeSpan.FromSeconds(thirst.Value);
 
                             character.Job.Tasks.Add(new UseSink
                             {
                                 Name = "UseSink",
-                                OwnerIDs = new List<long> { character.ID },
+                                OwnerID = character.ID,
                                 Location = sink.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, duration),
@@ -239,7 +239,7 @@ namespace Despicaville
                     {
                         Item existing = fridge.Inventory.Items[i];
 
-                        Something thirst = existing.GetProperty("Thirst");
+                        Property thirst = existing.GetProperty("Thirst");
                         if (thirst != null)
                         {
                             item = existing;
@@ -257,7 +257,7 @@ namespace Despicaville
                                 character.Job.Tasks.Add(new Turn
                                 {
                                     Name = "Turn",
-                                    OwnerIDs = new List<long> { character.ID },
+                                    OwnerID = character.ID,
                                     StartTime = new TimeHandler(TimeManager.Now),
                                     EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
                                     Direction = direction
@@ -272,7 +272,7 @@ namespace Despicaville
                                     character.Job.Tasks.Add(new CloseFridge
                                     {
                                         Name = "CloseFridge",
-                                        OwnerIDs = new List<long> { character.ID },
+                                        OwnerID = character.ID,
                                         StartTime = new TimeHandler(TimeManager.Now),
                                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
                                         Location = fridge.Location,
@@ -284,7 +284,7 @@ namespace Despicaville
                                     character.Job.Tasks.Add(new OpenFridge
                                     {
                                         Name = "OpenFridge",
-                                        OwnerIDs = new List<long> { character.ID },
+                                        OwnerID = character.ID,
                                         StartTime = new TimeHandler(TimeManager.Now),
                                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
                                         Location = fridge.Location,
@@ -321,13 +321,13 @@ namespace Despicaville
             {
                 Item existing = inventory.Items[i];
 
-                Something hunger = existing.GetProperty("Hunger");
+                Property hunger = existing.GetProperty("Hunger");
                 if (hunger != null)
                 {
                     character.Job.Tasks.Add(new UseItem
                     {
                         Name = "UseItem_" + existing.ID,
-                        OwnerIDs = new List<long> { character.ID },
+                        OwnerID = character.ID,
                         StartTime = new TimeHandler(TimeManager.Now),
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(hunger.Value * -10)),
                     });
@@ -357,7 +357,7 @@ namespace Despicaville
                     {
                         Item existing = fridge.Inventory.Items[i];
 
-                        Something hunger = existing.GetProperty("Hunger");
+                        Property hunger = existing.GetProperty("Hunger");
                         if (hunger != null)
                         {
                             item = existing;
@@ -375,7 +375,7 @@ namespace Despicaville
                                 character.Job.Tasks.Add(new Turn
                                 {
                                     Name = "Turn",
-                                    OwnerIDs = new List<long> { character.ID },
+                                    OwnerID = character.ID,
                                     StartTime = new TimeHandler(TimeManager.Now),
                                     EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
                                     Direction = direction
@@ -390,7 +390,7 @@ namespace Despicaville
                                     character.Job.Tasks.Add(new CloseFridge
                                     {
                                         Name = "CloseFridge",
-                                        OwnerIDs = new List<long> { character.ID },
+                                        OwnerID = character.ID,
                                         StartTime = new TimeHandler(TimeManager.Now),
                                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
                                         Location = fridge.Location,
@@ -402,7 +402,7 @@ namespace Despicaville
                                     character.Job.Tasks.Add(new OpenFridge
                                     {
                                         Name = "OpenFridge",
-                                        OwnerIDs = new List<long> { character.ID },
+                                        OwnerID = character.ID,
                                         StartTime = new TimeHandler(TimeManager.Now),
                                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
                                         Location = fridge.Location,
@@ -458,7 +458,7 @@ namespace Despicaville
             character.Job.Tasks.Add(new CloseDoor
             {
                 Name = "CloseDoor",
-                OwnerIDs = new List<long> { character.ID },
+                OwnerID = character.ID,
                 StartTime = new TimeHandler(TimeManager.Now),
                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
                 Location = location,
@@ -495,7 +495,7 @@ namespace Despicaville
             character.Job.Tasks.Add(new CloseWindow
             {
                 Name = "CloseWindow",
-                OwnerIDs = new List<long> { character.ID },
+                OwnerID = character.ID,
                 StartTime = new TimeHandler(TimeManager.Now),
                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
                 Location = location,
@@ -533,7 +533,7 @@ namespace Despicaville
                 character.Job.Tasks.Add(new Wait
                 {
                     Name = "Wait",
-                    OwnerIDs = new List<long> { character.ID },
+                    OwnerID = character.ID,
                     StartTime = new TimeHandler(TimeManager.Now),
                     EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(10))
                 });
@@ -544,7 +544,7 @@ namespace Despicaville
                 character.Job.Tasks.Add(new Move
                 {
                     Name = "Walk",
-                    OwnerIDs = new List<long> { character.ID },
+                    OwnerID = character.ID,
                     StartTime = new TimeHandler(TimeManager.Now),
                     Direction = direction
                 });
@@ -554,7 +554,7 @@ namespace Despicaville
                 character.Job.Tasks.Add(new Turn
                 {
                     Name = "Turn",
-                    OwnerIDs = new List<long> { character.ID },
+                    OwnerID = character.ID,
                     StartTime = new TimeHandler(TimeManager.Now),
                     EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
                     Direction = direction
@@ -610,7 +610,7 @@ namespace Despicaville
 
         public static void AbortTask(Character character)
         {
-            character.Animator.Reset(character);
+            character.ResetAnimation();
             character.Path.Clear();
             character.Job.Tasks.Clear();
 
@@ -623,7 +623,7 @@ namespace Despicaville
             {
                 if (tile.Name.Contains("Sink"))
                 {
-                    Something thirst = player.GetStat("Thirst");
+                    Property thirst = player.GetStat("Thirst");
                     if (thirst.Value > 0)
                     {
                         TimeSpan duration = TimeSpan.FromSeconds(thirst.Value);
@@ -631,7 +631,7 @@ namespace Despicaville
                         player.Job.Tasks.Add(new UseSink
                         {
                             Name = "UseSink",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             Location = tile.Location,
                             StartTime = new TimeHandler(TimeManager.Now),
                             EndTime = new TimeHandler(TimeManager.Now, duration),
@@ -645,7 +645,7 @@ namespace Despicaville
                 }
                 else if (tile.Name.Contains("Toilet"))
                 {
-                    Something bladder = player.GetStat("Bladder");
+                    Property bladder = player.GetStat("Bladder");
                     if (bladder.Value > 0)
                     {
                         TimeSpan duration = TimeSpan.FromSeconds(bladder.Value);
@@ -653,7 +653,7 @@ namespace Despicaville
                         player.Job.Tasks.Add(new UseToilet
                         {
                             Name = "UseToilet",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             Location = tile.Location,
                             StartTime = new TimeHandler(TimeManager.Now),
                             EndTime = new TimeHandler(TimeManager.Now, duration),
@@ -670,7 +670,7 @@ namespace Despicaville
                     player.Job.Tasks.Add(new ToggleLight
                     {
                         Name = "ToggleLight",
-                        OwnerIDs = new List<long> { player.ID },
+                        OwnerID = player.ID,
                         Location = tile.Location,
                         StartTime = new TimeHandler(TimeManager.Now),
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
@@ -682,7 +682,7 @@ namespace Despicaville
                     player.Job.Tasks.Add(new ToggleTV
                     {
                         Name = "ToggleTV",
-                        OwnerIDs = new List<long> { player.ID },
+                        OwnerID = player.ID,
                         Location = tile.Location,
                         StartTime = new TimeHandler(TimeManager.Now),
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
@@ -698,7 +698,7 @@ namespace Despicaville
                             player.Job.Tasks.Add(new OpenDoor
                             {
                                 Name = "Quiet_OpenDoor",
-                                OwnerIDs = new List<long> { player.ID },
+                                OwnerID = player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(4)),
@@ -710,7 +710,7 @@ namespace Despicaville
                             player.Job.Tasks.Add(new OpenDoor
                             {
                                 Name = "Loud_OpenDoor",
-                                OwnerIDs = new List<long> { player.ID },
+                                OwnerID = player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
@@ -722,7 +722,7 @@ namespace Despicaville
                             player.Job.Tasks.Add(new OpenDoor
                             {
                                 Name = "OpenDoor",
-                                OwnerIDs = new List<long> { player.ID },
+                                OwnerID = player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
@@ -737,7 +737,7 @@ namespace Despicaville
                             player.Job.Tasks.Add(new CloseDoor
                             {
                                 Name = "Quiet_CloseDoor",
-                                OwnerIDs = new List<long> { player.ID },
+                                OwnerID = player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(4)),
@@ -749,7 +749,7 @@ namespace Despicaville
                             player.Job.Tasks.Add(new CloseDoor
                             {
                                 Name = "Loud_CloseDoor",
-                                OwnerIDs = new List<long> { player.ID },
+                                OwnerID = player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
@@ -761,7 +761,7 @@ namespace Despicaville
                             player.Job.Tasks.Add(new CloseDoor
                             {
                                 Name = "CloseDoor",
-                                OwnerIDs = new List<long> { player.ID },
+                                OwnerID = player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
@@ -780,7 +780,7 @@ namespace Despicaville
                             player.Job.Tasks.Add(new OpenWindow
                             {
                                 Name = "Quiet_OpenWindow",
-                                OwnerIDs = new List<long> { player.ID },
+                                OwnerID = player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(4)),
@@ -792,7 +792,7 @@ namespace Despicaville
                             player.Job.Tasks.Add(new OpenWindow
                             {
                                 Name = "Loud_OpenWindow",
-                                OwnerIDs = new List<long> { player.ID },
+                                OwnerID = player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
@@ -804,7 +804,7 @@ namespace Despicaville
                             player.Job.Tasks.Add(new OpenWindow
                             {
                                 Name = "OpenWindow",
-                                OwnerIDs = new List<long> { player.ID },
+                                OwnerID = player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
@@ -819,7 +819,7 @@ namespace Despicaville
                             player.Job.Tasks.Add(new CloseWindow
                             {
                                 Name = "Quiet_CloseWindow",
-                                OwnerIDs = new List<long> { player.ID },
+                                OwnerID = player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(4)),
@@ -831,7 +831,7 @@ namespace Despicaville
                             player.Job.Tasks.Add(new CloseWindow
                             {
                                 Name = "Loud_CloseWindow",
-                                OwnerIDs = new List<long> { player.ID },
+                                OwnerID = player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
@@ -843,7 +843,7 @@ namespace Despicaville
                             player.Job.Tasks.Add(new CloseWindow
                             {
                                 Name = "CloseWindow",
-                                OwnerIDs = new List<long> { player.ID },
+                                OwnerID = player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
@@ -859,7 +859,7 @@ namespace Despicaville
                         player.Job.Tasks.Add(new Search
                         {
                             Name = "Quiet_Search",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             Location = tile.Location,
                             StartTime = new TimeHandler(TimeManager.Now),
                             EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(20)),
@@ -873,7 +873,7 @@ namespace Despicaville
                         player.Job.Tasks.Add(new Search
                         {
                             Name = "Loud_Search",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             Location = tile.Location,
                             StartTime = new TimeHandler(TimeManager.Now),
                             EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(5)),
@@ -887,7 +887,7 @@ namespace Despicaville
                         player.Job.Tasks.Add(new Search
                         {
                             Name = "Search",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             Location = tile.Location,
                             StartTime = new TimeHandler(TimeManager.Now),
                             EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(10)),
@@ -999,7 +999,7 @@ namespace Despicaville
                         character.Job.Tasks.Add(new Move
                         {
                             Name = "Run",
-                            OwnerIDs = new List<long> { character.ID },
+                            OwnerID = character.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = character.Direction
                         });
@@ -1009,7 +1009,7 @@ namespace Despicaville
                         character.Job.Tasks.Add(new Move
                         {
                             Name = "Walk",
-                            OwnerIDs = new List<long> { character.ID },
+                            OwnerID = character.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = character.Direction
                         });
@@ -1067,7 +1067,7 @@ namespace Despicaville
                 character.Job.Tasks.Add(new Move
                 {
                     Name = "Run",
-                    OwnerIDs = new List<long> { character.ID },
+                    OwnerID = character.ID,
                     StartTime = new TimeHandler(TimeManager.Now),
                     Location = character.Destination,
                     Direction = direction
@@ -1078,7 +1078,7 @@ namespace Despicaville
                 character.Job.Tasks.Add(new Move
                 {
                     Name = "Walk",
-                    OwnerIDs = new List<long> { character.ID },
+                    OwnerID = character.ID,
                     StartTime = new TimeHandler(TimeManager.Now),
                     Location = character.Destination,
                     Direction = direction

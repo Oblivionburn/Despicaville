@@ -590,7 +590,7 @@ namespace Despicaville.Scenes
                         player.Job.Tasks.Add(new Move
                         {
                             Name = "Run",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Up
                         });
@@ -600,7 +600,7 @@ namespace Despicaville.Scenes
                         player.Job.Tasks.Add(new Move
                         {
                             Name = "Sneak",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Up
                         });
@@ -610,7 +610,7 @@ namespace Despicaville.Scenes
                         player.Job.Tasks.Add(new Move
                         {
                             Name = "Walk",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Up
                         });
@@ -623,7 +623,7 @@ namespace Despicaville.Scenes
                         player.Job.Tasks.Add(new Move
                         {
                             Name = "Run",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Right
                         });
@@ -633,7 +633,7 @@ namespace Despicaville.Scenes
                         player.Job.Tasks.Add(new Move
                         {
                             Name = "Sneak",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Right
                         });
@@ -643,7 +643,7 @@ namespace Despicaville.Scenes
                         player.Job.Tasks.Add(new Move
                         {
                             Name = "Walk",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Right
                         });
@@ -656,7 +656,7 @@ namespace Despicaville.Scenes
                         player.Job.Tasks.Add(new Move
                         {
                             Name = "Run",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Down
                         });
@@ -666,7 +666,7 @@ namespace Despicaville.Scenes
                         player.Job.Tasks.Add(new Move
                         {
                             Name = "Sneak",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Down
                         });
@@ -676,7 +676,7 @@ namespace Despicaville.Scenes
                         player.Job.Tasks.Add(new Move
                         {
                             Name = "Walk",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Down
                         });
@@ -689,7 +689,7 @@ namespace Despicaville.Scenes
                         player.Job.Tasks.Add(new Move
                         {
                             Name = "Run",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Left
                         });
@@ -699,7 +699,7 @@ namespace Despicaville.Scenes
                         player.Job.Tasks.Add(new Move
                         {
                             Name = "Sneak",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Left
                         });
@@ -709,7 +709,7 @@ namespace Despicaville.Scenes
                         player.Job.Tasks.Add(new Move
                         {
                             Name = "Walk",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Left
                         });
@@ -771,7 +771,7 @@ namespace Despicaville.Scenes
                             player.Job.Tasks.Add(new Turn
                             {
                                 Name = "Turn",
-                                OwnerIDs = new List<long> { player.ID },
+                                OwnerID = player.ID,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(player))),
                                 Direction = direction
@@ -809,7 +809,7 @@ namespace Despicaville.Scenes
                                 player.Job.Tasks.Add(new Attack
                                 {
                                     Name = "Attack",
-                                    OwnerIDs = new List<long> { player.ID },
+                                    OwnerID = player.ID,
                                     Location = location,
                                     Direction = player.Direction,
                                     StartTime = new TimeHandler(TimeManager.Now),
@@ -918,7 +918,7 @@ namespace Despicaville.Scenes
                         player.Job.Tasks.Add(new Push
                         {
                             Name = "Push",
-                            OwnerIDs = new List<long> { player.ID },
+                            OwnerID = player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Location = new Location(location.X, location.Y, 0),
                             Direction = player.Direction
@@ -946,7 +946,7 @@ namespace Despicaville.Scenes
                     player.Job.Tasks.Add(new Wait
                     {
                         Name = "Wait",
-                        OwnerIDs = new List<long> { player.ID },
+                        OwnerID = player.ID,
                         StartTime = new TimeHandler(TimeManager.Now),
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(time))
                     });
@@ -1019,7 +1019,7 @@ namespace Despicaville.Scenes
         {
             if (player != null)
             {
-                Something blood = player.GetStat("Blood");
+                Property blood = player.GetStat("Blood");
                 if (blood.Value <= 0)
                 {
                     player.Dead = true;

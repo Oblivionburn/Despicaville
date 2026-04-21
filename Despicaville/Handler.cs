@@ -1278,12 +1278,12 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Cannister of Blood", "Cannister_Blood", null, 0, "Tool", "Drink", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -10
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 10
@@ -1293,7 +1293,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Cannister of Poison", "Cannister_Poison", null, 0, "Tool", "Drink", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Poison",
                 Value = 1440
@@ -1303,12 +1303,12 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Cannister of Water", "Cannister_Water", null, 0, "Tool", "Drink", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -20
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 20
@@ -1369,12 +1369,12 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Bottle of Blood", "Bottle_Blood", null, 0, "Tool", "Drink", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -10
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 10
@@ -1384,7 +1384,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Bottle of Poison", "Bottle_Poison", null, 0, "Tool", "Drink", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Poison",
                 Value = 1440
@@ -1394,12 +1394,12 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Bottle of Water", "Bottle_Water", null, 0, "Tool", "Drink", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -20
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 20
@@ -1420,12 +1420,12 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Bucket of Blood", "Bucket_Blood", null, 0, "Tool", "Drink", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -50
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 50
@@ -1435,7 +1435,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Bucket of Poison", "Bucket_Poison", null, 0, "Tool", "Drink", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Poison",
                 Value = 4320
@@ -1445,12 +1445,12 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Bucket of Water", "Bucket_Water", null, 0, "Tool", "Drink", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -100
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 100
@@ -2090,12 +2090,12 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Blood Pack", "Blood_Pack", categories, 60, "Medical", "Drink", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -10
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 10
@@ -2115,7 +2115,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Adrenaline Pill", "Pill_Adrenaline", categories, 60, "Medical", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Stamina",
                 Value = 100
@@ -2125,7 +2125,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Caffeine Pill", "Pill_Caffeine", categories, 40, "Medical", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Stamina",
                 Value = 50
@@ -2135,7 +2135,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Focus Pill", "Pill_Focus", categories, 40, "Medical", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Consciousness",
                 Value = 100
@@ -2145,7 +2145,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Happy Pill", "Pill_Happy", categories, 20, "Medical", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Paranoia",
                 Value = -25
@@ -2155,7 +2155,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Painkiller", "Pill_Painkiller", categories, 20, "Medical", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Pain",
                 Value = -25
@@ -2175,7 +2175,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Syringe of Blood", "Syringe_Blood", null, 0, "Medical", "Inject", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Blood",
                 Value = 25
@@ -2185,7 +2185,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Syringe of Poison", "Syringe_Poison", null, 0, "Medical", "Inject", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Poison",
                 Value = 1440
@@ -2195,7 +2195,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Syringe of Water", "Syringe_Water", null, 0, "Medical", "Inject", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Blood",
                 Value = -20
@@ -2205,17 +2205,17 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Syringe of Adrenaline", "Syringe_Adrenaline", categories, 80, "Medical", "Inject", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Stamina",
                 Value = 200
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Consciousness",
                 Value = 100
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Pain",
                 Value = -160
@@ -2252,7 +2252,7 @@ namespace Despicaville
             #region Food
 
             item = InventoryUtil.GenAsset("Dough", "Dough", null, 0, "Food", null, 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -4
@@ -2268,17 +2268,17 @@ namespace Despicaville
             };
 
             item = InventoryUtil.GenAsset("Coffee", "Coffee", categories, 20, "Misc", "Drink", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -10
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Stamina",
                 Value = 25
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 5
@@ -2288,12 +2288,12 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Candy", "Food_Candy", categories, 40, "Misc", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -2
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Stamina",
                 Value = 5
@@ -2303,7 +2303,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Chips", "Food_Chips", categories, 20, "Misc", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -5
@@ -2313,7 +2313,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Popcorn", "Food_Popcorn", categories, 80, "Misc", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -5
@@ -2323,7 +2323,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Pretzel", "Food_Pretzel", categories, 60, "Misc", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -8
@@ -2333,12 +2333,12 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Cookie", "Food_Cookie", categories, 40, "Misc", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -2
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Stamina",
                 Value = 5
@@ -2353,7 +2353,7 @@ namespace Despicaville
             };
 
             item = InventoryUtil.GenAsset("Cooked Fish", "Fish_Cooked", categories, 60, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -10
@@ -2363,7 +2363,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Raw Fish", "Fish_Raw", categories, 40, "Food", "Cook", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -5
@@ -2378,17 +2378,17 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Apple", "Food_Apple", categories, 0, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -4
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -2
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 1
@@ -2398,7 +2398,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Banana", "Food_Banana", categories, 0, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -5
@@ -2408,7 +2408,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Bread", "Food_Bread", categories, 0, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -15
@@ -2418,7 +2418,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Broccoli", "Food_Broccoli", categories, 0, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -5
@@ -2428,7 +2428,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Cabbage", "Food_Cabbage", categories, 0, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -5
@@ -2438,12 +2438,12 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Cake", "Food_Cake", categories, 40, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -5
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Stamina",
                 Value = 10
@@ -2453,7 +2453,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Carrot", "Food_Carrot", categories, 0, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -5
@@ -2463,7 +2463,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Cheese", "Food_Cheese", categories, 0, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -8
@@ -2473,7 +2473,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Cherries", "Food_Cherries", categories, 20, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -2
@@ -2483,7 +2483,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Cooked Chicken", "Food_Chicken_Cooked", categories, 60, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -20
@@ -2493,7 +2493,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Raw Chicken", "Food_Chicken_Raw", categories, 40, "Food", "Cook", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -10
@@ -2503,12 +2503,12 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Chocolate", "Food_Chocolate", categories, 60, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -2
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Stamina",
                 Value = 8
@@ -2518,7 +2518,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Corn", "Food_Corn", categories, 20, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -10
@@ -2528,12 +2528,12 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Cupcake", "Food_Cupcake", categories, 40, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -4
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Stamina",
                 Value = 8
@@ -2543,12 +2543,12 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Donut", "Food_Donut", categories, 40, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -4
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Stamina",
                 Value = 8
@@ -2558,7 +2558,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Egg", "Food_Egg", categories, 10, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -4
@@ -2568,7 +2568,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Fries", "Food_Fries", categories, 80, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -5
@@ -2578,7 +2578,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Garlic", "Food_Garlic", categories, 60, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -2
@@ -2588,17 +2588,17 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Grapes", "Food_Grapes", categories, 0, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -4
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -2
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 1
@@ -2609,7 +2609,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Cooked Ham", "Food_Ham_Cooked", categories, 60, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -20
@@ -2619,7 +2619,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Raw Ham", "Food_Ham_Raw", categories, 40, "Food", "Cook", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -10
@@ -2629,7 +2629,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Hamburger", "Food_Hamburger", categories, 80, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -25
@@ -2639,22 +2639,22 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Ice Cream", "Food_IceCream", categories, 60, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -2
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -4
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Stamina",
                 Value = 15
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 2
@@ -2664,17 +2664,17 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Lemon", "Food_Lemon", categories, 20, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -4
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -2
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 1
@@ -2684,12 +2684,12 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Milk", "Food_Milk", categories, 0, "Food", "Drink", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -10
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 5
@@ -2699,17 +2699,17 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Orange", "Food_Orange", categories, 0, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -4
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -2
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 1
@@ -2719,17 +2719,17 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Pear", "Food_Pear", categories, 10, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -4
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -2
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 1
@@ -2739,7 +2739,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Pepper", "Food_Pepper", categories, 20, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -2
@@ -2749,17 +2749,17 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Pickle", "Food_Pickle", categories, 0, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -4
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -2
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 1
@@ -2769,17 +2769,17 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Pineapple", "Food_Pineapple", categories, 40, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -4
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -2
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 1
@@ -2789,7 +2789,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Pizza", "Food_Pizza", categories, 60, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -30
@@ -2799,7 +2799,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Potato", "Food_Potato", categories, 0, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -15
@@ -2809,7 +2809,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Pumpkin", "Food_Pumpkin", categories, 60, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -15
@@ -2819,7 +2819,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Sandwich", "Food_Sandwich", categories, 60, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -20
@@ -2829,7 +2829,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Cooked Sausage", "Food_Sausage_Cooked", categories, 60, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -10
@@ -2839,7 +2839,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Raw Sausage", "Food_Sausage_Raw", categories, 40, "Food", "Cook", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -5
@@ -2849,17 +2849,17 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Soda", "Food_Soda", categories, 20, "Food", "Drink", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -10
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Stamina",
                 Value = 10
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 5
@@ -2869,7 +2869,7 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Cooked Steak", "Food_Steak_Cooked", categories, 60, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -20
@@ -2879,17 +2879,17 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Raw Steak", "Food_Steak_Raw", categories, 40, "Food", "Cook", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -10
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -2
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 1
@@ -2899,17 +2899,17 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Strawberry", "Food_Strawberry", categories, 0, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -4
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -2
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 1
@@ -2919,17 +2919,17 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Tomato", "Food_Tomato", categories, 0, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -4
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -8
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 4
@@ -2939,17 +2939,17 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Watermelon", "Food_Watermelon", categories, 40, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -4
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -8
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 4
@@ -2959,22 +2959,22 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Honey", "Honey", categories, 0, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -2
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -2
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Stamina",
                 Value = 10
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 1
@@ -2984,17 +2984,17 @@ namespace Despicaville
             Loading_Percent = (current * 100) / Icon_Count;
 
             item = InventoryUtil.GenAsset("Ketchup", "Ketchup", categories, 0, "Food", "Eat", 0, 0, null);
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Hunger",
                 Value = -2
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Thirst",
                 Value = -2
             });
-            item.Properties.Add(new Something
+            item.Properties.Add(new Property
             {
                 Name = "Bladder",
                 Value = 1

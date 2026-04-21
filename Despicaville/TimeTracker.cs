@@ -97,7 +97,7 @@ namespace Despicaville
                 {
                     Character character = characters[i];
 
-                    Something blood = character.GetStat("Blood");
+                    Property blood = character.GetStat("Blood");
                     if (blood.Value <= 0)
                     {
                         CharacterUtil.Kill(character);
@@ -117,11 +117,27 @@ namespace Despicaville
                     }
                     else if (character.Type == "Citizen")
                     {
-                        character.GetStat("Boredom").IncreaseValueByRate();
+                        Property boredom = character.GetStat("Boredom");
+                        boredom.Value += boredom.Rate;
+                        if (boredom.Value > boredom.Max_Value)
+                        {
+                            boredom.Value = boredom.Max_Value;
+                        }
                     }
 
-                    character.GetStat("Thirst").IncreaseValueByRate();
-                    character.GetStat("Hunger").IncreaseValueByRate();
+                    Property thirst = character.GetStat("Thirst");
+                    thirst.Value += thirst.Rate;
+                    if (thirst.Value > thirst.Max_Value)
+                    {
+                        thirst.Value = thirst.Max_Value;
+                    }
+
+                    Property hunger = character.GetStat("Hunger");
+                    hunger.Value += hunger.Rate;
+                    if (hunger.Value > hunger.Max_Value)
+                    {
+                        hunger.Value = hunger.Max_Value;
+                    }
 
                     CharacterUtil.UpdateWounds(character);
                     CharacterUtil.UpdatePain(character);
@@ -149,12 +165,18 @@ namespace Despicaville
                         continue;
                     }
 
-                    Something poisoned = character.GetStatusEffect("Poisoned");
+                    Property poisoned = character.GetStatusEffect("Poisoned");
                     if (poisoned != null)
                     {
-                        character.GetStat("Blood").DecreaseValue(1);
+                        Property blood = character.GetStat("Blood");
+                        blood.Value--;
+                        if (blood.Value < 0)
+                        {
+                            blood.Value = 0;
+                            character.Dead = true;
+                        }
 
-                        poisoned.DecreaseValue(1);
+                        poisoned.Value--;
                         if (poisoned.Value <= 0)
                         {
                             character.StatusEffects.Remove(poisoned);
@@ -185,26 +207,52 @@ namespace Despicaville
                             }
                         }
 
-                        Something thirst = character.GetStat("Thirst");
+                        Property thirst = character.GetStat("Thirst");
                         if (thirst.Value >= 100)
                         {
-                            character.GetStat("Blood").DecreaseMaxValue(1);
+                            Property blood = character.GetStat("Blood");
+                            blood.Max_Value--;
+
+                            if (blood.Max_Value < 0)
+                            {
+                                blood.Max_Value = 0;
+                            }
+                            if (blood.Value > blood.Max_Value)
+                            {
+                                blood.Value = blood.Max_Value;
+                            }
                         }
 
-                        Something hunger = character.GetStat("Hunger");
+                        Property hunger = character.GetStat("Hunger");
                         if (hunger.Value >= 100)
                         {
-                            character.GetStat("Stamina").DecreaseMaxValue(1);
+                            Property stamina = character.GetStat("Stamina");
+                            stamina.Max_Value--;
+
+                            if (stamina.Max_Value < 0)
+                            {
+                                stamina.Max_Value = 0;
+                            }
+                            if (stamina.Value > stamina.Max_Value)
+                            {
+                                stamina.Value = stamina.Max_Value;
+                            }
                         }
 
                         if (character.Type == "Citizen" &&
                             !sleeping &&
                             !character.Unconscious)
                         {
-                            Something boredom = character.GetStat("Boredom");
+                            Property boredom = character.GetStat("Boredom");
                             if (boredom.Value >= 100)
                             {
-                                character.GetStat("Depression").IncreaseValue(1);
+                                Property depression = character.GetStat("Depression");
+                                depression.Value++;
+
+                                if (depression.Value > depression.Max_Value)
+                                {
+                                    depression.Value = depression.Max_Value;
+                                }
                             }
                         }
                     } 

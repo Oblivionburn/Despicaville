@@ -22,7 +22,7 @@ namespace Despicaville.Util
                     BodyPart part = player.GetBodyPart(body_part);
                     if (part != null)
                     {
-                        Something hp = part.GetStat("HP");
+                        Property hp = part.GetStat("HP");
                         if (hp != null)
                         {
                             if (hp.Value >= 80)
@@ -67,7 +67,7 @@ namespace Despicaville.Util
                     BodyPart part = character.GetBodyPart(body_part);
                     if (part != null)
                     {
-                        Something hp = part.GetStat("HP");
+                        Property hp = part.GetStat("HP");
                         if (hp != null)
                         {
                             if (hp.Value >= 80)
@@ -173,7 +173,7 @@ namespace Despicaville.Util
         {
             CryptoRandom random;
 
-            Something agi = attacker.GetStat("Agility");
+            Property agi = attacker.GetStat("Agility");
             int agi_boost = (int)(agi.Value / 5);
 
             if (Utility.RandomPercent(20 + agi_boost))
@@ -295,18 +295,18 @@ namespace Despicaville.Util
                 base_chance = 25;
             }
 
-            Something attacker_agility = attacker.GetStat("Agility");
-            Something defender_agility = defender.GetStat("Agility");
+            Property attacker_agility = attacker.GetStat("Agility");
+            Property defender_agility = defender.GetStat("Agility");
             float agi_chance = attacker_agility.Value - defender_agility.Value;
 
-            Something attacker_perception = attacker.GetStat("Perception");
+            Property attacker_perception = attacker.GetStat("Perception");
             float per_chance = attacker_perception.Value / 10;
             if (attack_type == "Shoot")
             {
                 per_chance = attacker_perception.Value / 4;
             }
 
-            Something attacker_luck = attacker.GetStat("Luck");
+            Property attacker_luck = attacker.GetStat("Luck");
             float luk_chance = attacker_luck.Value / 10;
 
             float chance = base_chance + agi_chance + per_chance + luk_chance;
@@ -339,18 +339,18 @@ namespace Despicaville.Util
             {
                 base_speed = 4000;
             }
-            
-            Something strength = character.GetStat("Strength");
+
+            Property strength = character.GetStat("Strength");
             int strength_bonus = (int)strength.Value;
             if (attack_type == "Shoot")
             {
                 strength_bonus = 0;
             }
 
-            Something perception = character.GetStat("Perception");
+            Property perception = character.GetStat("Perception");
             int perception_bonus = (int)(perception.Value / 2);
 
-            Something agility = character.GetStat("Agility");
+            Property agility = character.GetStat("Agility");
             int agility_bonus = (int)agility.Value;
 
             int speed = base_speed - strength_bonus - agility_bonus;
@@ -533,7 +533,7 @@ namespace Despicaville.Util
         public static void DoDamage(Character attacker, Character defender, string weapon, string action, string body_part)
         {
             BodyPart bodyPart = defender.GetBodyPart(body_part);
-            Something strength = attacker.GetStat("Strength");
+            Property strength = attacker.GetStat("Strength");
 
             string wound = "";
 
@@ -541,16 +541,16 @@ namespace Despicaville.Util
             if (item != null)
             {
                 float pain_value = 2;
-                Something pain = item.GetProperty("Pain");
+                Property pain = item.GetProperty("Pain");
                 if (pain != null)
                 {
                     pain_value = pain.Value;
                 }
 
-                Something lose_limb = item.GetProperty("Lose Limb");
-                Something explode = item.GetProperty("Explode");
-                Something burn = item.GetProperty("Burn");
-                Something blood_loss = item.GetProperty("Blood Loss");
+                Property lose_limb = item.GetProperty("Lose Limb");
+                Property explode = item.GetProperty("Explode");
+                Property burn = item.GetProperty("Burn");
+                Property blood_loss = item.GetProperty("Blood Loss");
 
                 if (action == "Throw" &&
                     explode != null)
@@ -601,7 +601,7 @@ namespace Despicaville.Util
                 }
                 else if (action == "Grab")
                 {
-                    defender.StatusEffects.Add(new Something
+                    defender.StatusEffects.Add(new Property
                     {
                         Name = body_part + "_GrabbedBy_" + attacker.ID
                     });
@@ -614,38 +614,38 @@ namespace Despicaville.Util
                 
                 CharacterUtil.UpdatePain(defender);
 
-                Something hooked = item.GetProperty("Hooked");
+                Property hooked = item.GetProperty("Hooked");
                 if (hooked != null)
                 {
-                    defender.StatusEffects.Add(new Something
+                    defender.StatusEffects.Add(new Property
                     {
                         Name = "HookedBy_" + attacker.ID
                     });
                 }
 
-                Something blind = item.GetProperty("Blind");
+                Property blind = item.GetProperty("Blind");
                 if (blind != null)
                 {
-                    defender.StatusEffects.Add(new Something
+                    defender.StatusEffects.Add(new Property
                     {
                         Name = "Blind",
                         Value = 3
                     });
                 }
 
-                Something gas = item.GetProperty("Gas");
+                Property gas = item.GetProperty("Gas");
                 if (gas != null)
                 {
-                    defender.StatusEffects.Add(new Something
+                    defender.StatusEffects.Add(new Property
                     {
                         Name = "Gas"
                     });
                 }
 
-                Something net = item.GetProperty("Net");
+                Property net = item.GetProperty("Net");
                 if (net != null)
                 {
-                    defender.StatusEffects.Add(new Something
+                    defender.StatusEffects.Add(new Property
                     {
                         Name = "Net"
                     });
@@ -786,9 +786,11 @@ namespace Despicaville.Util
 
         public static void AddWound(Character attacker, Character defender, BodyPart part, string wound_type)
         {
-            Something wound = new Something();
-            wound.ID = Handler.GetID();
-            wound.Name = wound_type;
+            Wound wound = new Wound
+            {
+                ID = Handler.GetID(),
+                Name = wound_type
+            };
 
             if (wound_type == "Break")
             {
