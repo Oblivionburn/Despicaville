@@ -8,23 +8,12 @@
 - Numerous character base stats for sim/survival mechanics (5 physical stats and 5 mental stats)
 - Random generation of small town, 80s based time period
 - Time progression based on player movement/action
-- Default 'interact' key for convenience ('E' key by default), or right-click for menu-driven interacting
-- Crouching to sneak, perform actions slower/quietly, and interact with furniture underneath sinks/phones
-- Running to move more quickly and perform actions quickly/loudly
-- Verbose event/dialogue logging with timestamps (uses in-game time)
-- Intentionally very few animations or visible gore effects to leave the details to player imagination
-- Combat/attacking with body-part targeting, hit chance calculations, and different actions taking different amounts of time to execute (e.g. stabs are quick while swinging a sledgehammer takes longer)
-- Character 'health' driven by wounds (e.g. bruises, cuts, stabs, gunshots) per body part, overall percentage of blood remaining in body, and total pain from wounds (e.g. too much pain will cause a character to pass out until enough of the wounds contributing to their pain have recovered... not recovering quickly enough can result in laying there bleeding out to death)
-- Blood trails/pooling from bleeding
-- Somewhat realistic wound recovery timescales
-- Consumable item usage (right-click to use)
-- Drinking from sinks
+- Pulling/pushing mechanics
+- Combat with body-part targeting, hit chance calculations, and different weapons taking different amounts of time to attack with (e.g. stabs are quick while swinging a sledgehammer takes longer)
+- Character health driven by wounds (e.g. bruises, cuts, stabs, etc) per body part, overall percentage of blood remaining in body, and total pain from wounds
 - Very basic NPC AI to satisfy survival needs (eating and drinking)
-- Wound Management (menu to view wounds and apply items to decrease recovery time or stop bleeding)
 
 ### Planned features not yet implemented:
-- Stats menu to view current base stats and status effects
-- Grappling/grabbing/dragging actions and mechanics based on stats
 - More dynamic and personality-based reactions for NPCs being attacked
 - NPCs under attack calling for help from other nearby NPCs and/or calling the police
 - NPCs witnessing crimes calling the police and/or attempting citizens arrest
@@ -33,18 +22,13 @@
 - Vehicles/driving
 - NPC job/ai schedules
 - Key-word based NPC dialogue
-- Implementing memory system for NPCs (tracking of in-game events per NPC that they experience/witness)
+- Implementing memory system for NPCs (tracking of in-game events that they experience/witness)
 - Dialogue between NPCs that the player can overhear, and a means for NPCs to share/spread event knowledge from their memory
 - News on newspapers/TV covering in-game events from the prior day
 - Purchasing items from stores and restocking of stores with items
 - Daytime job for player (number of tasks that can be completed to earn money), handful of job options
 - Usability of most items (e.g. using Duct Tape or Rope on NPCs)
-- Inflicting cut wounds on feet when walking barefoot on broken glass
-- Textures for more clothing items so they can be renderered on characters
 - Status effects inflicted from weapons (e.g. knocking someone out with a hammer for a period of time)
-- Display of status effects on player in the UI
-- Tying more stats into more gameplay mechanics
-- Skills for player progression (skills increase by doing whatever the skill governs)
-- Learning/unlocking skills from books
-- Saving/Loading game states
+- Display of status effects for player in the UI
+- Saving/Loading game state
 - More music
