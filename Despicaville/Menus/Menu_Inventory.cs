@@ -901,27 +901,11 @@ namespace Despicaville.Menus
                         {
                             Picture slot = null;
 
-                            if (item.Type == "Gloves")
-                            {
-                                if (HoveringSlot("Right Glove Slot") &&
-                                    item.Name.Contains("Right"))
-                                {
-                                    slot = GetPicture("Right Glove Slot");
-                                }
-                                else if (HoveringSlot("Left Glove Slot") &&
-                                         item.Name.Contains("Left"))
-                                {
-                                    slot = GetPicture("Left Glove Slot");
-                                }
-                            }
-                            else if (item.Type == "Weapon" ||
-                                     item.Type == "Tool" ||
-                                     item.Name.Contains("Bag") ||
-                                     item.Name == "Basket" ||
-                                     item.Name == "Briefcase" ||
-                                     item.Name == "Purse" ||
-                                     item.Name == "Cooler" ||
-                                     item.Name == "First Aid Kit")
+                            if (item.Type == "Weapon" ||
+                                item.Name.Contains("Bag") ||
+                                item.Name == "Briefcase" ||
+                                item.Name == "Suitcase" ||
+                                item.Name == "Cooler")
                             {
                                 if (HoveringSlot("Right Weapon Slot"))
                                 {
@@ -932,42 +916,57 @@ namespace Despicaville.Menus
                                     slot = GetPicture("Left Weapon Slot");
                                 }
                             }
-                            else if (item.Name.Contains("Backpack") ||
-                                     item.Name == "Quiver" ||
-                                     item.Type == "Back")
+                            else if (item.Type.Contains("Shoes"))
                             {
-                                if (HoveringSlot("Backpack Slot"))
-                                {
-                                    slot = GetPicture("Backpack Slot");
-                                }
+                                slot = GetPicture("Shoes Slot");
                             }
-                            else if (HoveringSlot(item.Type + " Slot"))
+                            else if (item.Type.Contains("Pants"))
                             {
-                                slot = GetPicture(item.Type + " Slot");
+                                slot = GetPicture("Pants Slot");
+                            }
+                            else if (item.Type.Contains("Shirt"))
+                            {
+                                slot = GetPicture("Shirt Slot");
+                            }
+                            else if (item.Name.Contains("Backpack"))
+                            {
+                                slot = GetPicture("Backpack Slot");
                             }
 
                             if (slot != null)
                             {
-                                bool slot_empty = true;
+                                AssetManager.PlaySound_Random("Equip");
+
+                                Item equippedItem = null;
 
                                 foreach (Item existing in Handler.Player.Inventory.Items)
                                 {
                                     if (existing.Equipped &&
                                         existing.Assignment == slot.Name)
                                     {
-                                        slot_empty = false;
+                                        equippedItem = existing;
                                         break;
                                     }
                                 }
 
-                                if (slot_empty)
+                                if (equippedItem == null)
                                 {
+                                    selected_Item = null;
+
                                     item.Equipped = true;
                                     item.Icon_Region = new Region(slot.Region.X, slot.Region.Y, slot.Region.Width, slot.Region.Height);
                                     item.Assignment = slot.Name;
+                                    if (item.Texture != null)
+                                    {
+                                        item.Region = Handler.Player.Region;
+                                        item.Image = Handler.Player.Image;
 
-                                    selected_Item = null;
-
+                                        if (!item.Name.Contains("Shoes") &&
+                                            !item.Name.Contains("Pants"))
+                                        {
+                                            item.Visible = true;
+                                        }
+                                    }
                                     InventoryUtil.TransferItem(item_inventory, Handler.Player.Inventory, item);
 
                                     slot.Texture = AssetManager.Textures["Slot_Empty"];
@@ -977,7 +976,29 @@ namespace Despicaville.Menus
                                 else
                                 {
                                     selected_Item = null;
-                                    item.Icon_Region = new Region(starting_pos.X, starting_pos.Y, starting_pos.Width, starting_pos.Height);
+
+                                    equippedItem.Equipped = false;
+                                    equippedItem.Assignment = null;
+                                    equippedItem.Location = new Location(item.Location.X, item.Location.Y);
+                                    InventoryUtil.TransferItem(Handler.Player.Inventory, item_inventory, equippedItem);
+
+                                    item.Equipped = true;
+                                    item.Icon_Region = new Region(slot.Region.X, slot.Region.Y, slot.Region.Width, slot.Region.Height);
+                                    item.Assignment = slot.Name;
+                                    if (item.Texture != null)
+                                    {
+                                        item.Region = Handler.Player.Region;
+                                        item.Image = Handler.Player.Image;
+
+                                        if (!item.Name.Contains("Shoes") &&
+                                            !item.Name.Contains("Pants"))
+                                        {
+                                            item.Visible = true;
+                                        }
+                                    }
+                                    InventoryUtil.TransferItem(item_inventory, Handler.Player.Inventory, item);
+
+                                    LoadInventories();
                                 }
                             }
                             else
@@ -1708,11 +1729,14 @@ namespace Despicaville.Menus
             for (int i = 0; i < item.Properties.Count; i++)
             {
                 Property property = item.Properties[i];
-                text += "\n" + property.Name + ": " + property.Value;
-
-                if (i < item.Properties.Count - 1)
+                if (!CombatUtil.IsWoundType(property))
                 {
-                    height += (int)(Main.Game.MenuSize_Y / 2);
+                    text += "\n" + property.Name + ": " + property.Value;
+
+                    if (i < item.Properties.Count - 1)
+                    {
+                        height += (int)(Main.Game.MenuSize_Y / 2);
+                    }
                 }
             }
 

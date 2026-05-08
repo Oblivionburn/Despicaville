@@ -4,6 +4,7 @@ using OP_Engine.Characters;
 using OP_Engine.Controls;
 using OP_Engine.Inventories;
 using OP_Engine.Menus;
+using OP_Engine.Tiles;
 using OP_Engine.Utility;
 
 namespace Despicaville.Util
@@ -137,7 +138,7 @@ namespace Despicaville.Util
                 }
                 else
                 {
-                    attacking_with = "Right Hand";
+                    attacking_with = "Left Hand";
                 }
 
                 attack.Add(attacking_with, "Punch");
@@ -169,73 +170,163 @@ namespace Despicaville.Util
             return false;
         }
 
-        public static string RandomBodyPart(Character attacker)
+        public static bool IsAttack(string taskName)
         {
-            CryptoRandom random;
+            if (taskName == "Grab" ||
+                taskName == "Stab" ||
+                taskName == "Punch" ||
+                taskName == "Swing" ||
+                taskName == "Throw" ||
+                taskName == "Shoot")
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsRanged(string weapon)
+        {
+            if (weapon.Contains("Pistol") ||
+                weapon.Contains("Rifle") ||
+                weapon.Contains("Machine") ||
+                weapon.Contains("Shotgun") ||
+                weapon.Contains("Bow") ||
+                weapon.Contains("Crossbow"))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool InRange(Character attacker, Character defender, string action)
+        {
+            if (action == "Grab" ||
+                action == "Punch" ||
+                action == "Stab" ||
+                action == "Swing")
+            {
+                return WorldUtil.NextTo(attacker.Location, defender.Location);
+            }
+            else
+            {
+                return WorldUtil.Location_IsVisible(attacker.ID, defender.Location);
+            }
+        }
+
+        public static bool IsSevered(BodyPart bodyPart)
+        {
+            if (bodyPart != null)
+            {
+                foreach (Wound wound in bodyPart.Wounds)
+                {
+                    if (wound.Name == "Sever")
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public static bool BodyPart_HasHP(BodyPart bodyPart)
+        {
+            Property hp = bodyPart.GetStat("HP");
+            if (hp != null)
+            {
+                if (hp.Value > 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsWoundType(Property property)
+        {
+            if (property.Name.Contains("Sever") || 
+                property.Name.Contains("Break") ||
+                property.Name.Contains("Fracture") ||
+                property.Name.Contains("Bruise") ||
+                property.Name.Contains("Burn") ||
+                property.Name.Contains("Cut") ||
+                property.Name.Contains("Gunshot") ||
+                property.Name.Contains("Stab"))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static string RandomBodyPart(Character attacker, Character defender)
+        {
+            List<string> parts = new List<string>();
 
             Property agi = attacker.GetStat("Agility");
             int agi_boost = (int)(agi.Value / 5);
 
             if (Utility.RandomPercent(20 + agi_boost))
             {
-                random = new CryptoRandom();
-                int part = random.Next(0, 2);
-
-                if (part == 0)
-                {
-                    return "Groin";
-                }
-                else if (part == 1)
-                {
-                    return "Neck";
-                }
+                parts.Add("Groin");
             }
-            else if (Utility.RandomPercent(40 + agi_boost))
+            if (Utility.RandomPercent(20 + agi_boost))
             {
-                return "Head";
+                parts.Add("Neck");
             }
-            else if (Utility.RandomPercent(60 + agi_boost))
+            if (Utility.RandomPercent(40 + agi_boost))
             {
-                random = new CryptoRandom();
-                int part = random.Next(0, 4);
-
-                if (part == 0)
-                {
-                    return "Right_Hand";
-                }
-                else if (part == 1)
-                {
-                    return "Left_Hand";
-                }
-                else if (part == 2)
-                {
-                    return "Right_Foot";
-                }
-                else if (part == 3)
-                {
-                    return "Left_Foot";
-                }
+                parts.Add("Head");
             }
-            else if (Utility.RandomPercent(80 + agi_boost))
+            if (Utility.RandomPercent(60 + agi_boost))
             {
-                random = new CryptoRandom();
-                int part = random.Next(0, 4);
+                parts.Add("Right_Hand");
+            }
+            if (Utility.RandomPercent(60 + agi_boost))
+            {
+                parts.Add("Left_Hand");
+            }
+            if (Utility.RandomPercent(60 + agi_boost))
+            {
+                parts.Add("Right_Foot");
+            }
+            if (Utility.RandomPercent(60 + agi_boost))
+            {
+                parts.Add("Left_Foot");
+            }
+            if (Utility.RandomPercent(80 + agi_boost))
+            {
+                parts.Add("Right_Arm");
+            }
+            if (Utility.RandomPercent(80 + agi_boost))
+            {
+                parts.Add("Left_Arm");
+            }
+            if (Utility.RandomPercent(80 + agi_boost))
+            {
+                parts.Add("Right_Leg");
+            }
+            if (Utility.RandomPercent(80 + agi_boost))
+            {
+                parts.Add("Left_Leg");
+            }
 
-                if (part == 0)
+            foreach (string part in parts)
+            {
+                BodyPart bodyPart = defender.GetBodyPart(part);
+                if (bodyPart != null)
                 {
-                    return "Right_Arm";
-                }
-                else if (part == 1)
-                {
-                    return "Left_Arm";
-                }
-                else if (part == 2)
-                {
-                    return "Right_Leg";
-                }
-                else if (part == 3)
-                {
-                    return "Left_Leg";
+                    bool severed = IsSevered(bodyPart);
+                    bool hasHP = BodyPart_HasHP(bodyPart);
+
+                    if (!severed &&
+                        hasHP)
+                    {
+                        return part;
+                    }
                 }
             }
 
@@ -363,168 +454,85 @@ namespace Despicaville.Util
             return speed;
         }
 
-        public static bool IsAttack(string taskName)
+        public static int AttackSound_Hit(Character defender, Tile tile, string weapon, string action)
         {
-            if (taskName == "Grab"||
-                taskName == "Stab" ||
-                taskName == "Punch" ||
-                taskName == "Swing" ||
-                taskName == "Throw" ||
-                taskName == "Shoot")
+            switch (action)
             {
-                return true;
-            }
-
-            return false;
-        }
-
-        public static bool InRange(Character attacker, Character defender, string action)
-        {
-            if (action == "Grab" ||
-                action == "Punch" ||
-                action == "Stab" ||
-                action == "Swing")
-            {
-                return WorldUtil.NextTo(attacker.Location, defender.Location);
-            }
-            else
-            {
-                return WorldUtil.Location_IsVisible(attacker.ID, defender.Location);
-            }
-        }
-
-        public static int AttackSound_Hit(Character character, string action)
-        {
-            if (action == "Punch")
-            {
-                AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, character.Location.ToVector2, 3);
-                return 3;
-            }
-            else if (action == "Throw" ||
-                     action == "Swing")
-            {
-                AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
-                return 2;
-            }
-            else if (action == "Stab")
-            {
-                AssetManager.PlaySound_Random_AtDistance("Stab", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
-                return 1;
-            }
-            else if (action == "Shoot")
-            {
-                Item leftHandItem = InventoryUtil.Get_EquippedItem(character, "Left Weapon Slot");
-                if (leftHandItem != null)
-                {
-                    if (leftHandItem.Task == "Shoot")
+                case "Stab":
+                case "Cut":
+                    if (defender != null)
                     {
-                        if (leftHandItem.Name.Contains("Pistol"))
-                        {
-                            AssetManager.PlaySound_Random_AtDistance("Pistol", Handler.Player.Location.ToVector2, character.Location.ToVector2, 20);
-                            return 20;
-                        }
-                        else if (leftHandItem.Name.Contains("Shotgun"))
-                        {
-                            AssetManager.PlaySound_Random_AtDistance("Shotgun", Handler.Player.Location.ToVector2, character.Location.ToVector2, 40);
-                            return 40;
-                        }
-                        else if (leftHandItem.Name.Contains("Machine") ||
-                                 leftHandItem.Name.Contains("Rifle"))
-                        {
-                            AssetManager.PlaySound_Random_AtDistance("Rifle", Handler.Player.Location.ToVector2, character.Location.ToVector2, 40);
-                            return 40;
-                        }
+                        AssetManager.PlaySound_Random_AtDistance("Stab", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 1);
                     }
-                }
-                
-                Item rightHandItem = InventoryUtil.Get_EquippedItem(character, "Right Weapon Slot");
-                if (rightHandItem != null)
-                {
-                    if (rightHandItem.Task == "Shoot")
+                    else if (tile != null)
                     {
-                        if (rightHandItem.Name.Contains("Pistol"))
-                        {
-                            AssetManager.PlaySound_Random_AtDistance("Pistol", Handler.Player.Location.ToVector2, character.Location.ToVector2, 20);
-                            return 20;
-                        }
-                        else if (rightHandItem.Name.Contains("Shotgun"))
-                        {
-                            AssetManager.PlaySound_Random_AtDistance("Shotgun", Handler.Player.Location.ToVector2, character.Location.ToVector2, 40);
-                            return 40;
-                        }
-                        else if (rightHandItem.Name.Contains("Machine") ||
-                                 rightHandItem.Name.Contains("Rifle"))
-                        {
-                            AssetManager.PlaySound_Random_AtDistance("Rifle", Handler.Player.Location.ToVector2, character.Location.ToVector2, 40);
-                            return 40;
-                        }
+                        AssetManager.PlaySound_Random_AtDistance("Stab", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 1);
                     }
-                }
-            }
+                    return 1;
 
-            return 0;
-        }
-
-        public static int AttackSound_Miss(Character character, string action)
-        {
-            if (action == "Punch")
-            {
-                AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
-                return 0;
-            }
-            else if (action == "Throw" ||
-                     action == "Swing")
-            {
-                AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
-                return 1;
-            }
-            else if (action == "Shoot")
-            {
-                Item leftHandItem = InventoryUtil.Get_EquippedItem(character, "Left Weapon Slot");
-                if (leftHandItem != null)
-                {
-                    if (leftHandItem.Task == "Shoot")
+                case "Shoot":
+                    if (weapon.Contains("Pistol"))
                     {
-                        if (leftHandItem.Name.Contains("Pistol"))
+                        if (defender != null)
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Pistol", Handler.Player.Location.ToVector2, character.Location.ToVector2, 20);
-                            return 20;
+                            AssetManager.PlaySound_Random_AtDistance("Pistol", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 20);
                         }
-                        else if (leftHandItem.Name.Contains("Shotgun"))
+                        else if (tile != null)
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Shotgun", Handler.Player.Location.ToVector2, character.Location.ToVector2, 40);
-                            return 40;
+                            AssetManager.PlaySound_Random_AtDistance("Pistol", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 20);
                         }
-                        else if (leftHandItem.Name.Contains("Machine"))
-                        {
-                            AssetManager.PlaySound_Random_AtDistance("Rifle", Handler.Player.Location.ToVector2, character.Location.ToVector2, 40);
-                            return 40;
-                        }
+                        return 20;
                     }
-                }
-
-                Item rightHandItem = InventoryUtil.Get_EquippedItem(character, "Right Weapon Slot");
-                if (rightHandItem != null)
-                {
-                    if (rightHandItem.Task == "Shoot")
+                    else if (weapon.Contains("Rifle") ||
+                             weapon.Contains("Machine"))
                     {
-                        if (rightHandItem.Name.Contains("Pistol"))
+                        if (defender != null)
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Pistol", Handler.Player.Location.ToVector2, character.Location.ToVector2, 20);
-                            return 20;
+                            AssetManager.PlaySound_Random_AtDistance("Rifle", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 30);
                         }
-                        else if (rightHandItem.Name.Contains("Shotgun"))
+                        else if (tile != null)
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Shotgun", Handler.Player.Location.ToVector2, character.Location.ToVector2, 40);
-                            return 40;
+                            AssetManager.PlaySound_Random_AtDistance("Rifle", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 30);
                         }
-                        else if (rightHandItem.Name.Contains("Machine"))
-                        {
-                            AssetManager.PlaySound_Random_AtDistance("Rifle", Handler.Player.Location.ToVector2, character.Location.ToVector2, 40);
-                            return 40;
-                        }
+                        return 30;
                     }
-                }
+                    else if (weapon.Contains("Shotgun"))
+                    {
+                        if (defender != null)
+                        {
+                            AssetManager.PlaySound_Random_AtDistance("Shotgun", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 40);
+                        }
+                        else if (tile != null)
+                        {
+                            AssetManager.PlaySound_Random_AtDistance("Shotgun", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 40);
+                        }
+                        return 40;
+                    }
+                    else if (weapon.Contains("Bow") ||
+                             weapon.Contains("Crossbow"))
+                    {
+                        if (defender != null)
+                        {
+                            AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 1);
+                        }
+                        else if (tile != null)
+                        {
+                            AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 1);
+                        }
+                        return 1;
+                    }
+                    break;
+
+                default:
+                    if (defender != null)
+                    {
+                        AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 1);
+                    }
+                    else if (tile != null)
+                    {
+                        AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 1);
+                    }
+                    return 2;
             }
 
             return 0;
@@ -540,116 +548,56 @@ namespace Despicaville.Util
             Item item = attacker.Inventory.GetItem(weapon);
             if (item != null)
             {
-                float pain_value = 2;
-                Property pain = item.GetProperty("Pain");
-                if (pain != null)
-                {
-                    pain_value = pain.Value;
-                }
+                Property wound_sever = item.GetProperty("Sever");
+                Property wound_break = item.GetProperty("Break");
+                Property wound_fracture = item.GetProperty("Fracture");
+                Property wound_bruise = item.GetProperty("Bruise");
+                Property wound_stab = item.GetProperty("Stab");
+                Property wound_cut = item.GetProperty("Cut");
+                Property wound_gunshot = item.GetProperty("Gunshot");
 
-                Property lose_limb = item.GetProperty("Lose Limb");
-                Property explode = item.GetProperty("Explode");
-                Property burn = item.GetProperty("Burn");
-                Property blood_loss = item.GetProperty("Blood Loss");
-
-                if (action == "Throw" &&
-                    explode != null)
-                {
-                    Explode(attacker, defender);
-                }
-                else if (action == "Swing" &&
-                         lose_limb != null &&
-                         Utility.RandomPercent(strength.Value))
+                if (wound_sever != null &&
+                    Utility.RandomPercent(strength.Value))
                 {
                     wound = "Sever";
                 }
-                else if (action == "Swing" &&
-                         pain_value >= 20 &&
+                else if (wound_break != null &&
                          Utility.RandomPercent(strength.Value))
                 {
                     wound = "Break";
                 }
-                else if (action == "Swing" &&
-                         blood_loss != null)
-                {
-                    wound = "Cut";
-                }
-                else if (action == "Swing" &&
-                         pain_value >= 10 &&
+                else if (wound_fracture != null &&
                          Utility.RandomPercent(strength.Value))
                 {
                     wound = "Fracture";
                 }
-                else if (action == "Swing" &&
-                         pain_value > 0)
+                else if (wound_bruise != null)
                 {
                     wound = "Bruise";
                 }
-                else if (action == "Shoot" &&
-                         weapon != "Bow" &&
-                         burn == null)
+                else if (wound_cut != null)
+                {
+                    wound = "Cut";
+                }
+                else if (wound_gunshot != null)
                 {
                     wound = "Gunshot";
                 }
-                else if (action == "Stab")
+                else if (wound_stab != null)
                 {
                     wound = "Stab";
                 }
-                else if (burn != null)
-                {
-                    wound = "Burn";
-                }
-                else if (action == "Grab")
-                {
-                    defender.StatusEffects.Add(new Property
-                    {
-                        Name = body_part + "_GrabbedBy_" + attacker.ID
-                    });
-                }
 
-                if (!string.IsNullOrEmpty(wound))
+                if (wound == "Sever")
+                {
+                    SeverLimb(attacker, defender, bodyPart);
+                }
+                else if (!string.IsNullOrEmpty(wound))
                 {
                     AddWound(attacker, defender, bodyPart, wound);
                 }
                 
                 CharacterUtil.UpdatePain(defender);
-
-                Property hooked = item.GetProperty("Hooked");
-                if (hooked != null)
-                {
-                    defender.StatusEffects.Add(new Property
-                    {
-                        Name = "HookedBy_" + attacker.ID
-                    });
-                }
-
-                Property blind = item.GetProperty("Blind");
-                if (blind != null)
-                {
-                    defender.StatusEffects.Add(new Property
-                    {
-                        Name = "Blind",
-                        Value = 3
-                    });
-                }
-
-                Property gas = item.GetProperty("Gas");
-                if (gas != null)
-                {
-                    defender.StatusEffects.Add(new Property
-                    {
-                        Name = "Gas"
-                    });
-                }
-
-                Property net = item.GetProperty("Net");
-                if (net != null)
-                {
-                    defender.StatusEffects.Add(new Property
-                    {
-                        Name = "Net"
-                    });
-                }
             }
             else if (action == "Punch")
             {
@@ -756,32 +704,6 @@ namespace Despicaville.Util
             }
 
             AddWound(attacker, defender, part, "Sever");
-
-            if (defender.Type == "Player")
-            {
-                GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " has been severed.");
-            }
-            else if (attacker.Type == "Player")
-            {
-                CryptoRandom random = new CryptoRandom();
-                int reaction = random.Next(0, 4);
-                if (reaction == 0)
-                {
-                    GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is severed.");
-                }
-                else if (reaction == 1)
-                {
-                    GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is severed.");
-                }
-                else if (reaction == 2)
-                {
-                    GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is severed.");
-                }
-                else if (reaction == 3)
-                {
-                    GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is severed.");
-                }
-            }
         }
 
         public static void AddWound(Character attacker, Character defender, BodyPart part, string wound_type)
@@ -1065,6 +987,40 @@ namespace Despicaville.Util
             else if (wound_type == "Sever")
             {
                 wound.Value = -1; //Never
+
+                if (defender.Type == "Player")
+                {
+                    GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " has been severed.");
+                }
+                else if (attacker.Type == "Player")
+                {
+                    if (!defender.Dead &&
+                        !defender.Unconscious)
+                    {
+                        CryptoRandom random = new CryptoRandom();
+                        int reaction = random.Next(0, 4);
+                        if (reaction == 0)
+                        {
+                            GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is severed.");
+                        }
+                        else if (reaction == 1)
+                        {
+                            GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is severed.");
+                        }
+                        else if (reaction == 2)
+                        {
+                            GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is severed.");
+                        }
+                        else if (reaction == 3)
+                        {
+                            GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is severed.");
+                        }
+                    }
+                    else
+                    {
+                        GameUtil.AddMessage("You severed the " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " of " + defender.Name + ".");
+                    }
+                }
             }
 
             wound.Texture = AssetManager.Textures["Wound_" + wound_type];

@@ -12,6 +12,8 @@ namespace Despicaville.Tasks
 {
     public class Attack : Task
     {
+        Dictionary<string, string> AttackingWith = null;
+
         public override void Action_Start()
         {
             Character character = GetOwner();
@@ -20,12 +22,25 @@ namespace Despicaville.Tasks
                 return;
             }
 
-            AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
+            AttackingWith = CombatUtil.AttackChoice(character);
+            string action = AttackingWith.ElementAt(0).Value;
 
-            TimeSpan startTime = TimeSpan.FromMilliseconds(StartTime.TotalMilliseconds);
-            int duration = (int)(EndTime.TotalMilliseconds - StartTime.TotalMilliseconds);
+            if (action == "Punch" ||
+                action == "Swing" ||
+                action == "Stab" ||
+                action == "Cut")
+            {
+                AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
 
-            WorldUtil.AddEffect_Animated(Location.ToVector3, Direction, "Swing", startTime, duration);
+                TimeSpan startTime = TimeSpan.FromMilliseconds(StartTime.TotalMilliseconds);
+                int duration = (int)(EndTime.TotalMilliseconds - StartTime.TotalMilliseconds);
+
+                WorldUtil.AddEffect_Animated(Location.ToVector3, Direction, "Swing", startTime, duration);
+            }
+            else if (action == "Throw")
+            {
+                AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
+            }
         }
 
         public override void Action_End()
@@ -36,48 +51,47 @@ namespace Despicaville.Tasks
                 return;
             }
 
-            Dictionary<string, string> AttackingWith = CombatUtil.AttackChoice(character);
             string weapon = AttackingWith.ElementAt(0).Key;
             string action = AttackingWith.ElementAt(0).Value;
-
-            string bodyPart = CombatUtil.RandomBodyPart(character);
-
-            int maxStunTime = 0;
-
-            switch (bodyPart)
-            {
-                case "Neck":
-                case "Groin":
-                    maxStunTime = 5;
-                    break;
-
-                case "Head":
-                    maxStunTime = 4;
-                    break;
-
-                case "Right_Hand":
-                case "Left_Hand":
-                case "Right_Foot":
-                case "Left_Foot":
-                    maxStunTime = 3;
-                    break;
-
-                case "Right_Arm":
-                case "Left_Arm":
-                case "Right_Leg":
-                case "Left_Leg":
-                    maxStunTime = 2;
-                    break;
-
-                case "Torso":
-                    maxStunTime = 1;
-                    break;
-            }
 
             Character target = WorldUtil.GetCharacter(Location);
             if (target != null)
             {
-                AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
+                string bodyPart = CombatUtil.RandomBodyPart(character, target);
+
+                int maxStunTime = 0;
+
+                switch (bodyPart)
+                {
+                    case "Neck":
+                    case "Groin":
+                        maxStunTime = 5;
+                        break;
+
+                    case "Head":
+                        maxStunTime = 4;
+                        break;
+
+                    case "Right_Hand":
+                    case "Left_Hand":
+                    case "Right_Foot":
+                    case "Left_Foot":
+                        maxStunTime = 3;
+                        break;
+
+                    case "Right_Arm":
+                    case "Left_Arm":
+                    case "Right_Leg":
+                    case "Left_Leg":
+                        maxStunTime = 2;
+                        break;
+
+                    case "Torso":
+                        maxStunTime = 1;
+                        break;
+                }
+
+                CombatUtil.AttackSound_Hit(target, null, weapon, action);
                 CombatUtil.DoDamage(character, target, weapon, action, bodyPart);
 
                 if (target.Unconscious)
@@ -108,6 +122,11 @@ namespace Despicaville.Tasks
                         StartTime = new TimeHandler(TimeManager.Now),
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(stunTime))
                     });
+
+                    if (target.Type == "Player")
+                    {
+                        TimeTracker.Tick(stunTime);
+                    }
                 }
             }
             else
@@ -129,13 +148,45 @@ namespace Despicaville.Tasks
                     }
                 }
 
+                if (tile == null)
+                {
+                    Map map = WorldUtil.GetMap();
+                    Layer bottom_tiles = map.GetLayer("BottomTiles");
+                    Tile bottom_tile = bottom_tiles.GetTile(Location.ToVector2);
+                    if (bottom_tile != null)
+                    {
+                        tile = bottom_tile;
+                    }
+                }
+
                 if (tile != null)
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
+                    CombatUtil.AttackSound_Hit(null, tile, weapon, action);
 
                     if (character.Type == "Player")
                     {
-                        GameUtil.AddMessage("You hit a " + WorldUtil.GetTile_Name(tile) + ".");
+                        switch (action)
+                        {
+                            case "Punch":
+                                GameUtil.AddMessage("You punched a " + WorldUtil.GetTile_Name(tile) + ".");
+                                break;
+
+                            case "Stab":
+                                GameUtil.AddMessage("You stabbed a " + WorldUtil.GetTile_Name(tile) + ".");
+                                break;
+
+                            case "Cut":
+                                GameUtil.AddMessage("You cut a " + WorldUtil.GetTile_Name(tile) + ".");
+                                break;
+
+                            case "Shoot":
+                                GameUtil.AddMessage("You shot a " + WorldUtil.GetTile_Name(tile) + ".");
+                                break;
+
+                            default:
+                                GameUtil.AddMessage("You hit a " + WorldUtil.GetTile_Name(tile) + ".");
+                                break;
+                        }
                     }
                 }
             }

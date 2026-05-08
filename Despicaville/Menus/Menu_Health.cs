@@ -26,7 +26,7 @@ namespace Despicaville.Menus
         {
             ID = Handler.GetID();
             Name = "Health";
-            Load();
+            Load(content);
         }
 
         #endregion

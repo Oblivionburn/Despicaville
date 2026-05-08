@@ -300,101 +300,6 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static Item GenAsset(string name, string description, List<string> categories, int tier, string type, string task, int pain, float blood_loss, string effect)
-        {
-            Item item = new Item
-            {
-                ID = Handler.GetID(),
-                Name = name,
-                Description = description,
-                Tier = tier,
-                Task = task,
-                Icon_DrawColor = Color.White
-            };
-            item.Icon = AssetManager.Textures[item.Description];
-            item.Icon_Image = new Rectangle(0, 0, item.Icon.Width, item.Icon.Height);
-
-            if (categories != null)
-            {
-                foreach (string category in categories)
-                {
-                    item.Categories.Add(category);
-                }
-            }
-            
-            item.Type = type;
-            if (type == "Container")
-            {
-                item.Inventory.ID = Handler.GetID();
-                item.Inventory.Name = item.Name;
-
-                if (item.Name == "Large Backpack" ||
-                    item.Name == "Duffel Bag" ||
-                    item.Name == "Gym Bag" ||
-                    item.Name.Contains("Wooden Chest") ||
-                    item.Name == "Barrel" ||
-                    item.Name == "Wooden Crate")
-                {
-                    item.Inventory.Max_Value = 28;
-                }
-                else if (item.Name == "Medium Backpack" ||
-                         item.Name == "Suitcase")
-                {
-                    item.Inventory.Max_Value = 21;
-                }
-                else if (item.Name == "Small Backpack" ||
-                         item.Name == "Safe" ||
-                         item.Name.Contains("Cardboard Box"))
-                {
-                    item.Inventory.Max_Value = 14;
-                }
-                else if (item.Name == "Basket" ||
-                         item.Name == "Briefcase" ||
-                         item.Name == "Paper Bag" ||
-                         item.Name == "Plastic Bag" ||
-                         item.Name == "Purse" ||
-                         item.Name == "Cooler" ||
-                         item.Name == "First Aid Kit" ||
-                         item.Name == "Present")
-                {
-                    item.Inventory.Max_Value = 7;
-                }
-                else if (item.Name == "Quiver" ||
-                         item.Name == "Coffin")
-                {
-                    item.Inventory.Max_Value = 1;
-                }
-            }
-
-            if (pain > 0)
-            {
-                item.Properties.Add(new Property
-                {
-                    Name = "Pain",
-                    Value = pain
-                });
-            }
-            
-            if (blood_loss > 0)
-            {
-                item.Properties.Add(new Property
-                {
-                    Name = "Blood Loss",
-                    Value = blood_loss
-                });
-            }
-            
-            if (!string.IsNullOrEmpty(effect))
-            {
-                item.Properties.Add(new Property
-                {
-                    Name = effect
-                });
-            }
-            
-            return item;
-        }
-
         public static List<Item> GetLoot(string category, string container, int max_items)
         {
             List<Item> items = new List<Item>();
@@ -511,17 +416,9 @@ namespace Despicaville.Util
                             }
                             else if (container == "Dresser")
                             {
-                                if (item.Type == "Boots" ||
-                                    item.Type == "Pants" ||
-                                    item.Type == "Shirt" ||
-                                    item.Type == "Mask" ||
-                                    item.Type == "Hat" ||
-                                    item.Type == "Back" ||
-                                    item.Type == "Gloves" ||
-                                    item.Type == "Coat" ||
-                                    item.Type == "Shield" ||
-                                    item.Type == "Container" ||
-                                    item.Type == "Ammo")
+                                if (item.Type.Contains("Shoes") ||
+                                    item.Type.Contains("Pants") ||
+                                    item.Type.Contains("Shirt"))
                                 {
                                     item_pool.Add(item);
                                 }

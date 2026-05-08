@@ -788,19 +788,16 @@ namespace Despicaville.Scenes
             body.Image = new Rectangle(body.Texture.Width / 4, 0, body.Texture.Width / 4, body.Texture.Height);
 
             Picture shirt = Menu.GetPicture("Shirt");
-            shirt.Texture = AssetManager.Textures["Down_Shirt"];
+            shirt.Texture = AssetManager.Textures["Shirt_" + Handler.Colors[ShirtColor_Value] + "_Down"];
             shirt.Image = new Rectangle(shirt.Texture.Width / 4, 0, shirt.Texture.Width / 4, shirt.Texture.Height);
-            shirt.DrawColor = GameUtil.ColorFromName(Handler.Colors[ShirtColor_Value]);
 
             Picture pants = Menu.GetPicture("Pants");
-            pants.Texture = AssetManager.Textures["Down_Pants"];
+            pants.Texture = AssetManager.Textures["Pants_" + Handler.Colors[PantsColor_Value] + "_Down"];
             pants.Image = new Rectangle(pants.Texture.Width / 4, 0, pants.Texture.Width / 4, pants.Texture.Height);
-            pants.DrawColor = GameUtil.ColorFromName(Handler.Colors[PantsColor_Value]);
 
             Picture shoes = Menu.GetPicture("Shoes");
-            shoes.Texture = AssetManager.Textures["Down_Shoes"];
+            shoes.Texture = AssetManager.Textures["Shoes_" + Handler.Colors[ShoesColor_Value] + "_Down"];
             shoes.Image = new Rectangle(shoes.Texture.Width / 4, 0, shoes.Texture.Width / 4, shoes.Texture.Height);
-            shoes.DrawColor = GameUtil.ColorFromName(Handler.Colors[ShoesColor_Value]);
 
             Picture hair = Menu.GetPicture("Hair");
             if (HairLength_Value == 0)
@@ -810,9 +807,8 @@ namespace Despicaville.Scenes
             }
             else
             {
-                hair.Texture = AssetManager.Textures["Down_Hair_" + Handler.HairLength[HairLength_Value]];
+                hair.Texture = AssetManager.Textures["Hair_" + Handler.HairLength[HairLength_Value] + "_" + Handler.HairColor[HairColor_Value] + "_Down"];
                 hair.Image = new Rectangle(hair.Texture.Width / 4, 0, hair.Texture.Width / 4, hair.Texture.Height);
-                hair.DrawColor = GameUtil.ColorFromName(Handler.HairColor[HairColor_Value]);
             }
 
             Picture hat = Menu.GetPicture("Hat");
@@ -823,9 +819,8 @@ namespace Despicaville.Scenes
             }
             else
             {
-                hat.Texture = AssetManager.Textures["Down_Hat"];
+                hat.Texture = AssetManager.Textures["Hat_" + HatColors[HatColor_Value] + "_Down"];
                 hat.Image = new Rectangle(hat.Texture.Width / 4, 0, hat.Texture.Width / 4, hat.Texture.Height);
-                hat.DrawColor = GameUtil.ColorFromName(HatColors[HatColor_Value]);
             }
         }
 
@@ -887,9 +882,9 @@ namespace Despicaville.Scenes
                 Item hair = new Item();
                 hair.Name = Handler.HairLength[HairLength_Value] + " " + Handler.HairColor[HairColor_Value] + " Hair";
                 hair.Equipped = true;
-                hair.Type = "Hair_" + Handler.HairLength[HairLength_Value];
+                hair.Type = "Hair_" + Handler.HairLength[HairLength_Value] + "_" + Handler.HairColor[HairColor_Value];
                 hair.Texture = AssetManager.Textures[hair.Type];
-                hair.DrawColor = GameUtil.ColorFromName(Handler.HairColor[HairColor_Value]);
+                hair.DrawColor = Color.White;
                 hair.Image = player.Image;
                 hair.Region = player.Region;
                 hair.Visible = true;
@@ -904,14 +899,14 @@ namespace Despicaville.Scenes
                 hat.Type = "Hat";
                 hat.Equipped = true;
                 hat.Assignment = "Hat Slot";
-                hat.Icon = AssetManager.Textures["Hat_Cap"];
+                hat.Icon = AssetManager.Textures["Hat_Cap_" + HatColors[HatColor_Value]];
                 hat.Icon_Image = new Rectangle(0, 0, hat.Icon.Width, hat.Icon.Height);
-                hat.Icon_DrawColor = GameUtil.ColorFromName(HatColors[HatColor_Value]);
+                hat.Icon_DrawColor = Color.White;
                 hat.Icon_Visible = true;
-                hat.Texture = AssetManager.Textures["Hat"];
-                hat.DrawColor = GameUtil.ColorFromName(HatColors[HatColor_Value]);
+                hat.Texture = AssetManager.Textures["Hat_" + HatColors[HatColor_Value]];
                 hat.Image = player.Image;
                 hat.Region = player.Region;
+                hat.DrawColor = Color.White;
                 hat.Visible = true;
                 player.Inventory.Items.Add(hat);
             }
@@ -920,14 +915,14 @@ namespace Despicaville.Scenes
             shirt.ID = Handler.GetID();
             shirt.Name = Handler.Colors[ShirtColor_Value] + " Shirt";
             shirt.Type = "Shirt";
-            shirt.Icon = AssetManager.Textures["Shirt_T"];
+            shirt.Icon = AssetManager.Textures["Shirt_T-Shirt_" + Handler.Colors[ShirtColor_Value]];
             shirt.Icon_Image = new Rectangle(0, 0, shirt.Icon.Width, shirt.Icon.Height);
-            shirt.Icon_DrawColor = GameUtil.ColorFromName(Handler.Colors[ShirtColor_Value]);
+            shirt.Icon_DrawColor = Color.White;
             shirt.Icon_Visible = true;
-            shirt.Texture = AssetManager.Textures["Shirt"];
-            shirt.DrawColor = GameUtil.ColorFromName(Handler.Colors[ShirtColor_Value]);
+            shirt.Texture = AssetManager.Textures["Shirt_" + Handler.Colors[ShirtColor_Value]];
             shirt.Image = player.Image;
             shirt.Region = player.Region;
+            shirt.DrawColor = Color.White;
             shirt.Equipped = true;
             shirt.Assignment = "Shirt Slot";
             shirt.Visible = true;
@@ -937,11 +932,14 @@ namespace Despicaville.Scenes
             pants.ID = Handler.GetID();
             pants.Name = Handler.Colors[PantsColor_Value] + " Pants";
             pants.Type = "Pants";
-            pants.Icon = AssetManager.Textures["Pants_Plain"];
+            pants.Icon = AssetManager.Textures["Pants_Pants_" + Handler.Colors[PantsColor_Value]];
             pants.Icon_Image = new Rectangle(0, 0, pants.Icon.Width, pants.Icon.Height);
-            pants.Icon_DrawColor = GameUtil.ColorFromName(Handler.Colors[PantsColor_Value]);
+            pants.Icon_DrawColor = Color.White;
             pants.Icon_Visible = true;
-            pants.DrawColor = GameUtil.ColorFromName(Handler.Colors[PantsColor_Value]);
+            pants.Texture = AssetManager.Textures["Pants_" + Handler.Colors[PantsColor_Value] + "_Down"];
+            pants.Image = player.Image;
+            pants.Region = player.Region;
+            pants.DrawColor = Color.White;
             pants.Equipped = true;
             pants.Assignment = "Pants Slot";
             pants.Visible = false;
@@ -955,11 +953,14 @@ namespace Despicaville.Scenes
             shoes.ID = Handler.GetID();
             shoes.Name = Handler.Colors[ShoesColor_Value] + " Shoes";
             shoes.Type = "Shoes";
-            shoes.Icon = AssetManager.Textures["Shoes_Plain"];
-            shoes.DrawColor = GameUtil.ColorFromName(Handler.Colors[ShoesColor_Value]);
+            shoes.Icon = AssetManager.Textures["Shoes_Shoes_" + Handler.Colors[ShoesColor_Value]];
             shoes.Icon_Image = new Rectangle(0, 0, shoes.Icon.Width, shoes.Icon.Height);
-            shoes.Icon_DrawColor = GameUtil.ColorFromName(Handler.Colors[ShoesColor_Value]);
+            shoes.Icon_DrawColor = Color.White;
             shoes.Icon_Visible = true;
+            shoes.Texture = AssetManager.Textures["Shoes_" + Handler.Colors[ShoesColor_Value] + "_Down"];
+            shoes.Image = player.Image;
+            shoes.Region = player.Region;
+            shoes.DrawColor = Color.White;
             shoes.Equipped = true;
             shoes.Assignment = "Shoes Slot";
             shoes.Visible = false;
@@ -971,6 +972,7 @@ namespace Despicaville.Scenes
         public override void Load()
         {
             ChangeMenu();
+            UpdateDisplay();
         }
 
         public override void Load(ContentManager content)
@@ -1221,33 +1223,22 @@ namespace Despicaville.Scenes
 
             #region Display
 
-            //Menu.AddPicture(Handler.GetID(), "Grass", Handler.Textures["Grass"], new Rectangle(0, 0, 0, 0), Color.White, false);
-            //Appearance_Pictures.Add(Menu.GetPicture("Grass"));
-
-            Menu.AddPicture(Handler.GetID(), "Body", AssetManager.Textures["Down_Naked_Light"], new Region(0, 0, 0, 0), Color.White, false);
-            Picture body = Menu.GetPicture("Body");
-            body.Image = new Rectangle(body.Texture.Width / 4, 0, body.Texture.Width / 4, body.Texture.Height);
+            Menu.AddPicture(Handler.GetID(), "Body", null, new Region(0, 0, 0, 0), Color.White, false);
             Appearance_Pictures.Add(Menu.GetPicture("Body"));
 
-            Menu.AddPicture(Handler.GetID(), "Shirt", AssetManager.Textures["Down_Shirt"], new Region(0, 0, 0, 0), GameUtil.ColorFromName("Black"), false);
-            Picture shirt = Menu.GetPicture("Shirt");
-            shirt.Image = new Rectangle(shirt.Texture.Width / 4, 0, shirt.Texture.Width / 4, shirt.Texture.Height);
+            Menu.AddPicture(Handler.GetID(), "Shirt", null, new Region(0, 0, 0, 0), Color.White, false);
             Appearance_Pictures.Add(Menu.GetPicture("Shirt"));
 
-            Menu.AddPicture(Handler.GetID(), "Pants", AssetManager.Textures["Down_Pants"], new Region(0, 0, 0, 0), GameUtil.ColorFromName("Black"), false);
-            Picture pants = Menu.GetPicture("Pants");
-            pants.Image = new Rectangle(pants.Texture.Width / 4, 0, pants.Texture.Width / 4, pants.Texture.Height);
+            Menu.AddPicture(Handler.GetID(), "Pants", null, new Region(0, 0, 0, 0), Color.White, false);
             Appearance_Pictures.Add(Menu.GetPicture("Pants"));
 
-            Menu.AddPicture(Handler.GetID(), "Shoes", AssetManager.Textures["Down_Shoes"], new Region(0, 0, 0, 0), GameUtil.ColorFromName("Black"), false);
-            Picture shoes = Menu.GetPicture("Shoes");
-            shoes.Image = new Rectangle(shoes.Texture.Width / 4, 0, shoes.Texture.Width / 4, shoes.Texture.Height);
+            Menu.AddPicture(Handler.GetID(), "Shoes", null, new Region(0, 0, 0, 0), Color.White, false);
             Appearance_Pictures.Add(Menu.GetPicture("Shoes"));
 
-            Menu.AddPicture(Handler.GetID(), "Hair", AssetManager.Textures["Clear"], new Region(0, 0, 0, 0), Color.White, false);
+            Menu.AddPicture(Handler.GetID(), "Hair", null, new Region(0, 0, 0, 0), Color.White, false);
             Appearance_Pictures.Add(Menu.GetPicture("Hair"));
 
-            Menu.AddPicture(Handler.GetID(), "Hat", AssetManager.Textures["Clear"], new Region(0, 0, 0, 0), Color.White, false);
+            Menu.AddPicture(Handler.GetID(), "Hat", null, new Region(0, 0, 0, 0), Color.White, false);
             Appearance_Pictures.Add(Menu.GetPicture("Hat"));
 
             #endregion

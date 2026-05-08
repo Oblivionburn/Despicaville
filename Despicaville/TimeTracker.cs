@@ -67,6 +67,7 @@ namespace Despicaville
                 }
 
                 if (task == null &&
+                    !character.Unconscious &&
                     !CharacterUtil.HeldByPlayer(character))
                 {
                     Tasker.GiveTask_Citizen(character);

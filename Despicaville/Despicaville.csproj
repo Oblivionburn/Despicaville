@@ -121,6 +121,7 @@
     <Compile Include="Util\GameUtil.cs" />
     <Compile Include="Util\InventoryUtil.cs" />
     <Compile Include="Util\LoadUtil.cs" />
+    <Compile Include="Util\ModUtil.cs" />
     <Compile Include="Util\SaveUtil.cs" />
     <Compile Include="Util\WorldGen.cs" />
     <Compile Include="Util\WorldUtil.cs" />

@@ -10,6 +10,7 @@ using OP_Engine.Utility;
 using OP_Engine.Scenes;
 using OP_Engine.Enums;
 using OP_Engine.Time;
+using OP_Engine.Inputs;
 
 namespace Despicaville.Util
 {
@@ -425,6 +426,117 @@ namespace Despicaville.Util
             }
 
             return x_diff + y_diff;
+        }
+
+        public static void UpdateWorld(World world, Character player)
+        {
+            if (world.Visible)
+            {
+                Army characters = CharacterManager.GetArmy("Characters");
+
+                List<Tile> visible = new List<Tile>();
+                if (Handler.VisibleTiles.ContainsKey(player.ID))
+                {
+                    visible = Handler.VisibleTiles[player.ID];
+                }
+
+                Map map = world.Maps[0];
+
+                Layer bottom_tiles = map.GetLayer("BottomTiles");
+                Layer middle_tiles = map.GetLayer("MiddleTiles");
+                Layer top_tiles = map.GetLayer("TopTiles");
+                Layer roof_tiles = map.GetLayer("RoofTiles");
+
+                int start_y = (int)player.Location.Y - Handler.SightDistance - 1;
+                int end_y = (int)player.Location.Y + Handler.SightDistance + 1;
+                int start_x = (int)player.Location.X - Handler.SightDistance - 1;
+                int end_x = (int)player.Location.X + Handler.SightDistance + 1;
+
+                if (!player.Unconscious)
+                {
+                    for (int y = start_y; y <= end_y; y++)
+                    {
+                        for (int x = start_x; x <= end_x; x++)
+                        {
+                            Vector2 location = new Vector2(x, y);
+
+                            Tile tile = bottom_tiles.GetTile(location);
+                            if (tile != null)
+                            {
+                                tile.InSight = Location_IsVisible(player.ID, tile.Location);
+
+                                Tile middle_tile = middle_tiles.GetTile(location);
+                                middle_tile.InSight = tile.InSight;
+
+                                Tile top_tile = top_tiles.GetTile(location);
+                                top_tile.InSight = tile.InSight;
+
+                                Tile roof_tile = roof_tiles.GetTile(location);
+                                roof_tile.InSight = tile.InSight;
+                            }
+                        }
+                    }
+
+                    foreach (Tile tile in visible)
+                    {
+                        tile.Visible = InputManager.MouseWithin(tile.Region.ToRectangle);
+                    }
+
+                    foreach (Squad squad in characters.Squads)
+                    {
+                        foreach (Character character in squad.Characters)
+                        {
+                            if (Location_IsVisible(player.ID, character.Location) ||
+                                Location_IsVisible(player.ID, character.Destination))
+                            {
+                                character.InSight = true;
+                            }
+                            else
+                            {
+                                character.InSight = false;
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    for (int y = start_y; y <= end_y; y++)
+                    {
+                        for (int x = start_x; x <= end_x; x++)
+                        {
+                            Vector2 location = new Vector2(x, y);
+
+                            Tile tile = bottom_tiles.GetTile(location);
+                            if (tile != null)
+                            {
+                                tile.InSight = false;
+
+                                Tile middle_tile = middle_tiles.GetTile(location);
+                                middle_tile.InSight = false;
+
+                                Tile top_tile = top_tiles.GetTile(location);
+                                top_tile.InSight = false;
+
+                                Tile roof_tile = roof_tiles.GetTile(location);
+                                roof_tile.InSight = false;
+                            }
+                        }
+                    }
+
+                    foreach (Tile tile in visible)
+                    {
+                        tile.Visible = false;
+                    }
+
+                    foreach (Squad squad in characters.Squads)
+                    {
+                        foreach (Character character in squad.Characters)
+                        {
+                            character.InSight = false;
+                        }
+                    }
+                }
+            }
         }
 
         public static bool Location_IsVisible(long character_id, Location location)
@@ -1632,20 +1744,20 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static void GenDescription()
+        public static void GenDescription(Character character)
         {
-            Property stat = Handler.Player.GetStat("Perception");
-            int perception = (int)stat.Value;
-
-            string description = "You see ";
-            string he_she = "He";
-            string his_her = "His";
-            string him_her = "Him";
-
-            List<string> details = new List<string>();
-            if (Handler.Interaction_Character != null)
+            if (character != null)
             {
-                Character character = Handler.Interaction_Character;
+                Property stat = Handler.Player.GetStat("Perception");
+                int perception = (int)stat.Value;
+
+                string description = "You see ";
+                string he_she = "He";
+                string his_her = "His";
+                string him_her = "Him";
+
+                List<string> details = new List<string>();
+
                 if (character.Gender == "Male")
                 {
                     description += "a man. ";
@@ -1872,12 +1984,20 @@ namespace Despicaville.Util
                         description += " " + detail;
                     }
                 }
+
+                GameUtil.AddMessage(description);
             }
-            else if (Handler.Interaction_Tile != null)
+        }
+
+        public static void GenDescription(Tile tile)
+        {
+            if (tile != null)
             {
+                string description = "You see ";
+
                 bool plural = false;
 
-                string name = GetTile_Name(Handler.Interaction_Tile);
+                string name = GetTile_Name(tile);
                 if (name.Contains(" "))
                 {
                     if (name.Split(' ')[0] == "some")
@@ -1901,9 +2021,9 @@ namespace Despicaville.Util
                         description += "a " + name + ".";
                     }
                 }
-            }
 
-            GameUtil.AddMessage(description);
+                GameUtil.AddMessage(description);
+            }
         }
 
         public static void AssignPlayerBed(World world, Character player)
@@ -2515,20 +2635,41 @@ namespace Despicaville.Util
                 {
                     Layer effect_tiles = map.GetLayer("EffectTiles");
 
-                    Texture2D texture2D = AssetManager.Textures[texture];
+                    Texture2D texture2D = null;
 
-                    effect_tiles.Tiles.Add(new Tile
+                    if (!string.IsNullOrEmpty(texture) &&
+                        AssetManager.Textures.ContainsKey(texture))
                     {
-                        ID = Handler.GetID(),
-                        Map = map,
-                        Layer = effect_tiles,
-                        Name = name,
-                        Location = new Location(location.X, location.Y, location.Z),
-                        Region = bottom_tile.Region,
-                        Texture = texture2D,
-                        Image = new Rectangle(0, 0, texture2D.Width, texture2D.Height),
-                        Visible = true
-                    });
+                        texture2D = AssetManager.Textures[texture];
+                    }
+
+                    if (texture2D != null)
+                    {
+                        effect_tiles.Tiles.Add(new Tile
+                        {
+                            ID = Handler.GetID(),
+                            Map = map,
+                            Layer = effect_tiles,
+                            Name = name,
+                            Location = new Location(location.X, location.Y, location.Z),
+                            Region = bottom_tile.Region,
+                            Texture = texture2D,
+                            Image = new Rectangle(0, 0, texture2D.Width, texture2D.Height),
+                            Visible = true
+                        });
+                    }
+                    else
+                    {
+                        effect_tiles.Tiles.Add(new Tile
+                        {
+                            ID = Handler.GetID(),
+                            Map = map,
+                            Layer = effect_tiles,
+                            Name = name,
+                            Location = new Location(location.X, location.Y, location.Z),
+                            Region = bottom_tile.Region
+                        });
+                    }
                 }
             }
         }

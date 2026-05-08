@@ -18,6 +18,7 @@ using OP_Engine.Rendering;
 using OP_Engine.Enums;
 using Despicaville.Util;
 using Despicaville.Tasks;
+using System.Linq;
 
 namespace Despicaville.Scenes
 {
@@ -264,10 +265,14 @@ namespace Despicaville.Scenes
 
                                                 foreach (Item item in character.Inventory.Items)
                                                 {
-                                                    Texture2D texture = AssetManager.Textures["Down_" + item.Type];
-                                                    if (texture != null)
+                                                    string name = item.Type + "_Down";
+                                                    if (AssetManager.Textures.ContainsKey(name))
                                                     {
-                                                        spriteBatch.Draw(texture, region, image, item.DrawColor);
+                                                        Texture2D texture = AssetManager.Textures[name];
+                                                        if (texture != null)
+                                                        {
+                                                            spriteBatch.Draw(texture, region, image, item.DrawColor);
+                                                        }
                                                     }
                                                 }
                                             }
@@ -789,23 +794,46 @@ namespace Despicaville.Scenes
                                 #region Attack
 
                                 Location location = new Location();
-                                if (player.Direction == Direction.Up)
+
+                                if (CombatUtil.CanAttack_Ranged(player))
                                 {
-                                    location = new Location(player.Location.X, player.Location.Y - 1, 1);
+                                    List<Tile> visible = Handler.VisibleTiles[player.ID];
+
+                                    int count = visible.Count;
+                                    for (int i = 0; i < count; i++)
+                                    {
+                                        Tile tile = visible[i];
+                                        if (tile.Visible)
+                                        {
+                                            location = new Location(tile.Location.X, tile.Location.Y, 1);
+                                            break;
+                                        }
+                                    }
                                 }
-                                else if (player.Direction == Direction.Right)
+                                else
                                 {
-                                    location = new Location(player.Location.X + 1, player.Location.Y, 1);
-                                }
-                                else if (player.Direction == Direction.Down)
-                                {
-                                    location = new Location(player.Location.X, player.Location.Y + 1, 1);
-                                }
-                                else if (player.Direction == Direction.Left)
-                                {
-                                    location = new Location(player.Location.X - 1, player.Location.Y, 1);
+                                    if (player.Direction == Direction.Up)
+                                    {
+                                        location = new Location(player.Location.X, player.Location.Y - 1, 1);
+                                    }
+                                    else if (player.Direction == Direction.Right)
+                                    {
+                                        location = new Location(player.Location.X + 1, player.Location.Y, 1);
+                                    }
+                                    else if (player.Direction == Direction.Down)
+                                    {
+                                        location = new Location(player.Location.X, player.Location.Y + 1, 1);
+                                    }
+                                    else if (player.Direction == Direction.Left)
+                                    {
+                                        location = new Location(player.Location.X - 1, player.Location.Y, 1);
+                                    }
                                 }
 
+                                Dictionary<string, string> AttackingWith = CombatUtil.AttackChoice(player);
+                                string action = AttackingWith.ElementAt(0).Value;
+
+                                int attackTime = CombatUtil.AttackTime(player, action);
                                 player.Job.Tasks.Add(new Attack
                                 {
                                     Name = "Attack",
@@ -813,8 +841,8 @@ namespace Despicaville.Scenes
                                     Location = location,
                                     Direction = player.Direction,
                                     StartTime = new TimeHandler(TimeManager.Now),
-                                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
-                                    TaskBar = CharacterUtil.GenTaskbar(player, 1000)
+                                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(attackTime)),
+                                    TaskBar = CharacterUtil.GenTaskbar(player, attackTime)
                                 });
 
                                 #endregion
@@ -826,12 +854,14 @@ namespace Despicaville.Scenes
                                 Vector2 location = new Vector2(-1, -1);
 
                                 List<Tile> visible = Handler.VisibleTiles[player.ID];
-                                foreach (Tile tile in visible)
+
+                                int count = visible.Count;
+                                for (int i = 0; i < count; i++)
                                 {
+                                    Tile tile = visible[i];
                                     if (tile.Visible)
                                     {
-                                        if (tile.Location.X >= player.Location.X - 1 && tile.Location.X <= player.Location.X + 1 &&
-                                            tile.Location.Y >= player.Location.Y - 1 && tile.Location.Y <= player.Location.Y + 1)
+                                        if (WorldUtil.NextTo(tile.Location, player.Location))
                                         {
                                             location = tile.Location.ToVector2;
                                         }
@@ -861,31 +891,48 @@ namespace Despicaville.Scenes
                                     }
                                 }
 
-                                Map map = World.Maps[0];
-
-                                Layer bottom_tiles = map.GetLayer("BottomTiles");
-                                Layer top_tiles = map.GetLayer("TopTiles");
-                                Layer effect_tiles = map.GetLayer("EffectTiles");
-
-                                Tile bottom_tile = bottom_tiles.GetTile(location);
-                                Tile middle_tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, new Location(location.X, location.Y, 0));
-                                Tile top_tile = top_tiles.GetTile(location);
-
-                                Tile interaction_tile = null;
-                                if (top_tile?.Texture != null)
+                                Character target = WorldUtil.GetCharacter(new Location(location.X, location.Y));
+                                if (target != null)
                                 {
-                                    interaction_tile = top_tile;
+                                    WorldUtil.GenDescription(target);
                                 }
-                                else if (middle_tile?.Texture != null)
+                                else
                                 {
-                                    interaction_tile = middle_tile;
-                                }
-                                else if (bottom_tile != null)
-                                {
-                                    interaction_tile = bottom_tile;
-                                }
+                                    Tile interaction_tile = null;
 
-                                Tasker.Interact(interaction_tile, player);
+                                    Map map = World.Maps[0];
+
+                                    Layer top_tiles = map.GetLayer("TopTiles");
+                                    Tile top_tile = top_tiles.GetTile(location);
+                                    if (top_tile?.Texture != null)
+                                    {
+                                        interaction_tile = top_tile;
+                                    }
+
+                                    if (interaction_tile == null)
+                                    {
+                                        Tile middle_tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, new Location(location.X, location.Y, 0));
+                                        if (middle_tile?.Texture != null)
+                                        {
+                                            interaction_tile = middle_tile;
+                                        }
+                                    }
+
+                                    if (interaction_tile == null)
+                                    {
+                                        Layer bottom_tiles = map.GetLayer("BottomTiles");
+                                        Tile bottom_tile = bottom_tiles.GetTile(location);
+                                        if (bottom_tile != null)
+                                        {
+                                            interaction_tile = bottom_tile;
+                                        }
+                                    }
+
+                                    if (interaction_tile != null)
+                                    {
+                                        Tasker.Interact(interaction_tile, player);
+                                    }                                        
+                                }
 
                                 #endregion
                             }
@@ -1121,8 +1168,8 @@ namespace Despicaville.Scenes
                             }
                         }
                     }
-                    
-                    GameUtil.UpdateWorld(World, player);
+
+                    WorldUtil.UpdateWorld(World, player);
                     GameUtil.CenterToPlayer_OnFrame();
                 }
             }

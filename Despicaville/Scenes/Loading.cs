@@ -76,13 +76,13 @@ namespace Despicaville.Scenes
                 }
                 else if (Handler.Loading_Stage == 1)
                 {
-                    #region Load Assets
+                    #region Load Mods
 
                     if (Handler.Loading_Percent == 0 &&
                         Handler.LoadingTask == null)
                     {
                         Handler.LoadingTokenSource = new CancellationTokenSource();
-                        Handler.LoadingTask = Task.Factory.StartNew(() => Handler.LoadAssets(), Handler.LoadingTokenSource.Token);
+                        Handler.LoadingTask = Task.Factory.StartNew(() => ModUtil.LoadMods(), Handler.LoadingTokenSource.Token);
                     }
 
                     if (Handler.LoadingTask != null)
@@ -102,32 +102,6 @@ namespace Despicaville.Scenes
                 }
                 else if (Handler.Loading_Stage == 2)
                 {
-                    #region Get Blocks
-
-                    if (Handler.Loading_Percent == 0 &&
-                        Handler.LoadingTask == null)
-                    {
-                        Handler.LoadingTokenSource = new CancellationTokenSource();
-                        Handler.LoadingTask = Task.Factory.StartNew(() => WorldGen.GetBlocks(), Handler.LoadingTokenSource.Token);
-                    }
-
-                    if (Handler.LoadingTask != null)
-                    {
-                        if (Handler.LoadingTask.Status == TaskStatus.RanToCompletion)
-                        {
-                            Handler.LoadingTask = null;
-                            Handler.LoadingTokenSource.Dispose();
-                            Handler.Loading_Percent = 0;
-                            Handler.Loading_Stage++;
-                        }
-                    }
-
-                    UpdateLoadbar();
-
-                    #endregion
-                }
-                else if (Handler.Loading_Stage == 3)
-                {
                     #region Logo
 
                     Handler.Loading_Stage++;
@@ -136,7 +110,7 @@ namespace Despicaville.Scenes
 
                     #endregion
                 }
-                else if (Handler.Loading_Stage == 4)
+                else if (Handler.Loading_Stage == 3)
                 {
                     #region GenMap
 
@@ -162,7 +136,7 @@ namespace Despicaville.Scenes
 
                     #endregion
                 }
-                else if (Handler.Loading_Stage == 5)
+                else if (Handler.Loading_Stage == 4)
                 {
                     #region GenTown
 
@@ -188,7 +162,7 @@ namespace Despicaville.Scenes
 
                     #endregion
                 }
-                else if (Handler.Loading_Stage == 6)
+                else if (Handler.Loading_Stage == 5)
                 {
                     #region GenLoot
 
@@ -214,7 +188,7 @@ namespace Despicaville.Scenes
 
                     #endregion
                 }
-                else if (Handler.Loading_Stage == 7)
+                else if (Handler.Loading_Stage == 6)
                 {
                     #region Ready
 

@@ -899,25 +899,7 @@ namespace Despicaville
                 }
                 else
                 {
-                    bool plural = false;
-
-                    string name = WorldUtil.GetTile_Name(tile);
-                    if (name.Contains(" "))
-                    {
-                        if (name.Split(' ')[0] == "some")
-                        {
-                            plural = true;
-                        }
-                    }
-
-                    if (plural)
-                    {
-                        GameUtil.AddMessage("You can't do anything with " + WorldUtil.GetTile_Name(tile) + ".");
-                    }
-                    else
-                    {
-                        GameUtil.AddMessage("You can't do anything with the " + WorldUtil.GetTile_Name(tile) + ".");
-                    }
+                    WorldUtil.GenDescription(tile);
                 }
             }
         }

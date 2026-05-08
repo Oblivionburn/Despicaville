@@ -44,7 +44,7 @@ namespace Despicaville.Util
             CenterToPlayer_OnFrame();
             CharacterUtil.UpdateSight(Handler.Player);
 
-            UpdateWorld(scene.World, Handler.Player);
+            WorldUtil.UpdateWorld(scene.World, Handler.Player);
         }
 
         public static void ReturnToTitle()
@@ -474,117 +474,6 @@ namespace Despicaville.Util
                                     taskbar.Update();
                                 }
                             }
-                        }
-                    }
-                }
-            }
-        }
-
-        public static void UpdateWorld(World world, Character player)
-        {
-            if (world.Visible)
-            {
-                Army characters = CharacterManager.GetArmy("Characters");
-
-                List<Tile> visible = new List<Tile>();
-                if (Handler.VisibleTiles.ContainsKey(player.ID))
-                {
-                    visible = Handler.VisibleTiles[player.ID];
-                }
-
-                Map map = world.Maps[0];
-
-                Layer bottom_tiles = map.GetLayer("BottomTiles");
-                Layer middle_tiles = map.GetLayer("MiddleTiles");
-                Layer top_tiles = map.GetLayer("TopTiles");
-                Layer roof_tiles = map.GetLayer("RoofTiles");
-
-                int start_y = (int)player.Location.Y - Handler.SightDistance - 1;
-                int end_y = (int)player.Location.Y + Handler.SightDistance + 1;
-                int start_x = (int)player.Location.X - Handler.SightDistance - 1;
-                int end_x = (int)player.Location.X + Handler.SightDistance + 1;
-
-                if (!player.Unconscious)
-                {
-                    for (int y = start_y; y <= end_y; y++)
-                    {
-                        for (int x = start_x; x <= end_x; x++)
-                        {
-                            Vector2 location = new Vector2(x, y);
-
-                            Tile tile = bottom_tiles.GetTile(location);
-                            if (tile != null)
-                            {
-                                tile.InSight = WorldUtil.Location_IsVisible(player.ID, tile.Location);
-
-                                Tile middle_tile = middle_tiles.GetTile(location);
-                                middle_tile.InSight = tile.InSight;
-
-                                Tile top_tile = top_tiles.GetTile(location);
-                                top_tile.InSight = tile.InSight;
-
-                                Tile roof_tile = roof_tiles.GetTile(location);
-                                roof_tile.InSight = tile.InSight;
-                            }
-                        }
-                    }
-
-                    foreach (Tile tile in visible)
-                    {
-                        tile.Visible = InputManager.MouseWithin(tile.Region.ToRectangle);
-                    }
-
-                    foreach (Squad squad in characters.Squads)
-                    {
-                        foreach (Character character in squad.Characters)
-                        {
-                            if (WorldUtil.Location_IsVisible(player.ID, character.Location) ||
-                                WorldUtil.Location_IsVisible(player.ID, character.Destination))
-                            {
-                                character.InSight = true;
-                            }
-                            else
-                            {
-                                character.InSight = false;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    for (int y = start_y; y <= end_y; y++)
-                    {
-                        for (int x = start_x; x <= end_x; x++)
-                        {
-                            Vector2 location = new Vector2(x, y);
-
-                            Tile tile = bottom_tiles.GetTile(location);
-                            if (tile != null)
-                            {
-                                tile.InSight = false;
-
-                                Tile middle_tile = middle_tiles.GetTile(location);
-                                middle_tile.InSight = false;
-
-                                Tile top_tile = top_tiles.GetTile(location);
-                                top_tile.InSight = false;
-
-                                Tile roof_tile = roof_tiles.GetTile(location);
-                                roof_tile.InSight = false;
-                            }
-                        }
-                    }
-
-                    foreach (Tile tile in visible)
-                    {
-                        tile.Visible = false;
-                    }
-
-                    foreach (Squad squad in characters.Squads)
-                    {
-                        foreach (Character character in squad.Characters)
-                        {
-                            character.InSight = false;
                         }
                     }
                 }

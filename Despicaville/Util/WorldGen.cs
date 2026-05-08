@@ -19,7 +19,7 @@ namespace Despicaville.Util
         #region Variables
 
         public static List<Tile> Worldmap = new List<Tile>();
-        private static List<Map> Blocks = new List<Map>();
+        public static List<Map> Blocks = new List<Map>();
         private static Dictionary<long, List<Map>> BlockRooms = new Dictionary<long, List<Map>>();
 
         private static List<Map> PoliceBlocks = new List<Map>();
@@ -46,32 +46,9 @@ namespace Despicaville.Util
 
         #region Methods
 
-        public static void GetBlocks()
-        {
-            Handler.Loading_Percent = 0;
-            Handler.Loading_Message = "Getting available blocks...";
-
-            DirectoryInfo dir = new DirectoryInfo(AssetManager.Directories["Maps"]);
-            FileInfo[] files = dir.GetFiles("*.blockmap");
-
-            total = files.Length;
-            current = 0;
-
-            Blocks.Clear();
-            for (int i = 0; i < total; i++)
-            {
-                FileInfo file = files[i];
-
-                ParseBlock(file.FullName);
-
-                current++;
-                Handler.Loading_Percent = (current * 100) / total;
-            }
-        }
-
         #region GetBlocks
 
-        private static void ParseBlock(string file)
+        public static void ParseBlock(string file)
         {
             using (XmlTextReader reader = new XmlTextReader(File.OpenRead(file)))
             {
