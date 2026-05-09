@@ -139,43 +139,6 @@ namespace Despicaville.Tasks
                                 Location = character.Destination,
                                 Direction = Direction
                             });
-
-                            character.Job.Tasks.Add(new Move
-                            {
-                                Name = Name,
-                                OwnerID = character.ID,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                Location = character.Destination,
-                                Direction = Direction
-                            });
-
-                            Location nextMove = null;
-
-                            if (character.Direction == Direction.Up)
-                            {
-                                nextMove = new Location(character.Destination.X, character.Destination.Y - 1, character.Destination.Z);
-                            }
-                            else if (character.Direction == Direction.Right)
-                            {
-                                nextMove = new Location(character.Destination.X + 1, character.Destination.Y, character.Destination.Z);
-                            }
-                            else if (character.Direction == Direction.Down)
-                            {
-                                nextMove = new Location(character.Destination.X, character.Destination.Y + 1, character.Destination.Z);
-                            }
-                            else if (character.Direction == Direction.Left)
-                            {
-                                nextMove = new Location(character.Destination.X - 1, character.Destination.Y, character.Destination.Z);
-                            }
-
-                            character.Job.Tasks.Add(new Move
-                            {
-                                Name = Name,
-                                OwnerID = character.ID,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                Location = nextMove,
-                                Direction = Direction
-                            });
                         }
                         else if (tile.Name.Contains("Door") &&
                                  tile.Name.Contains("Closed"))
@@ -187,43 +150,6 @@ namespace Despicaville.Tasks
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(10)),
                                 Location = character.Destination,
-                                Direction = Direction
-                            });
-
-                            character.Job.Tasks.Add(new Move
-                            {
-                                Name = Name,
-                                OwnerID = character.ID,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                Location = character.Destination,
-                                Direction = Direction
-                            });
-
-                            Location nextMove = null;
-
-                            if (character.Direction == Direction.Up)
-                            {
-                                nextMove = new Location(character.Destination.X, character.Destination.Y - 1, character.Destination.Z);
-                            }
-                            else if (character.Direction == Direction.Right)
-                            {
-                                nextMove = new Location(character.Destination.X + 1, character.Destination.Y, character.Destination.Z);
-                            }
-                            else if (character.Direction == Direction.Down)
-                            {
-                                nextMove = new Location(character.Destination.X, character.Destination.Y + 1, character.Destination.Z);
-                            }
-                            else if (character.Direction == Direction.Left)
-                            {
-                                nextMove = new Location(character.Destination.X - 1, character.Destination.Y, character.Destination.Z);
-                            }
-
-                            character.Job.Tasks.Add(new Move
-                            {
-                                Name = Name,
-                                OwnerID = character.ID,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                Location = nextMove,
                                 Direction = Direction
                             });
                         }
@@ -630,10 +556,9 @@ namespace Despicaville.Tasks
             {
                 character.Path.Clear();
             }
-            else
+            else if (character.Type != "Player")
             {
-                Scene scene = SceneManager.GetScene("Gameplay");
-                Map map = scene.World.Maps[0];
+                Map map = WorldUtil.GetMap();
 
                 if (WorldUtil.PassedOpenDoor(map.GetLayer("MiddleTiles"), character))
                 {

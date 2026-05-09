@@ -23,8 +23,8 @@ namespace Despicaville.Menus
         Item selected_item;
         List<Picture> GridList = new List<Picture>();
 
-        private int inventory_x;
-        private int inventory_y;
+        private int starting_x;
+        private int starting_y;
 
         #endregion
 
@@ -63,16 +63,14 @@ namespace Despicaville.Menus
                     }
                 }
 
-                foreach (BodyPart bodyPart in Handler.Player.BodyParts)
+                BodyPart bodyPart = Handler.Player.GetBodyPart(Handler.Selected_BodyPart);
+                if (bodyPart != null)
                 {
-                    if (bodyPart.Name == Handler.Selected_BodyPart)
+                    foreach (Wound wound in bodyPart.Wounds)
                     {
-                        foreach (Wound wound in bodyPart.Wounds)
+                        if (wound.Visible)
                         {
-                            if (wound.Visible)
-                            {
-                                spriteBatch.Draw(wound.Texture, wound.Region.ToRectangle, Color.White);
-                            }
+                            spriteBatch.Draw(wound.Texture, wound.Region.ToRectangle, Color.White);
                         }
                     }
                 }
@@ -99,14 +97,7 @@ namespace Despicaville.Menus
                     }
                 }
 
-                foreach (Label label in Labels)
-                {
-                    if (label.Name == "Examine")
-                    {
-                        label.Draw(spriteBatch);
-                        break;
-                    }
-                }
+                GetLabel("Examine")?.Draw(spriteBatch);
             }
         }
 
@@ -136,6 +127,15 @@ namespace Despicaville.Menus
                 }
             }
 
+            if (!found_button &&
+                !found_grid)
+            {
+                if (InputManager.Mouse_LB_Pressed)
+                {
+                    Close();
+                }
+            }
+
             if (InputManager.KeyPressed("Cancel"))
             {
                 Close();
@@ -145,6 +145,12 @@ namespace Despicaville.Menus
         private bool HoveringButton()
         {
             bool found = false;
+
+            foreach (Button button in Buttons)
+            {
+                button.Opacity = 0.8f;
+                button.Selected = false;
+            }
 
             foreach (Button button in Buttons)
             {
@@ -170,11 +176,6 @@ namespace Despicaville.Menus
                             break;
                         }
                     }
-                    else if (InputManager.Mouse_Moved)
-                    {
-                        button.Opacity = 0.8f;
-                        button.Selected = false;
-                    }
                 }
             }
 
@@ -185,21 +186,25 @@ namespace Despicaville.Menus
         {
             bool found = false;
 
-            foreach (BodyPart bodyPart in Handler.Player.BodyParts)
+            BodyPart bodyPart = Handler.Player.GetBodyPart(Handler.Selected_BodyPart);
+            if (bodyPart != null)
             {
                 foreach (Wound wound in bodyPart.Wounds)
                 {
-                    if (InputManager.MouseWithin(wound.Region.ToRectangle))
+                    if (wound.Visible)
                     {
-                        found = true;
-
-                        ExamineItem(wound);
-
-                        if (InputManager.Mouse_RB_Pressed)
+                        if (InputManager.MouseWithin(wound.Region.ToRectangle))
                         {
-                            found = false;
-                            OpenMenu(wound);
-                            break;
+                            found = true;
+
+                            ExamineItem(wound);
+
+                            if (InputManager.Mouse_RB_Pressed)
+                            {
+                                found = false;
+                                OpenMenu(wound);
+                                break;
+                            }
                         }
                     }
                 }
@@ -371,7 +376,8 @@ namespace Despicaville.Menus
 
         private void Heal()
         {
-            foreach (BodyPart bodyPart in Handler.Player.BodyParts)
+            BodyPart bodyPart = Handler.Player.GetBodyPart(Handler.Selected_BodyPart);
+            if (bodyPart != null)
             {
                 foreach (Wound wound in bodyPart.Wounds)
                 {
@@ -412,9 +418,15 @@ namespace Despicaville.Menus
         public override void Close()
         {
             InputManager.Keyboard.Flush();
-            TimeManager.Paused = false;
+            InputManager.Mouse.Flush();
+
+            CloseMenu();
+
+            Handler.Selected_BodyPart = "";
             Visible = false;
             Active = false;
+
+            TimeManager.Paused = false;
         }
 
         private void ClearGrid()
@@ -427,24 +439,22 @@ namespace Despicaville.Menus
                     Labels.Remove(label);
                 }
 
-                for (int y = 0; y < 10; y++)
+                for (int i = 0; i < GridList.Count; i++)
                 {
-                    for (int x = 0; x < 10; x++)
-                    {
-                        Picture existing = GetPicture("x:" + x.ToString() + ",y:" + y.ToString());
-                        if (existing != null)
-                        {
-                            Pictures.Remove(existing);
+                    Picture grid = GridList[i];
 
-                            foreach (Picture grid in GridList)
-                            {
-                                if (grid.ID == existing.ID)
-                                {
-                                    GridList.Remove(existing);
-                                    break;
-                                }
-                            }
-                        }
+                    Pictures.Remove(grid);
+                    GridList.Remove(grid);
+
+                    i--;
+                }
+
+                BodyPart bodyPart = Handler.Player.GetBodyPart(Handler.Selected_BodyPart);
+                if (bodyPart != null)
+                {
+                    foreach (Wound wound in bodyPart.Wounds)
+                    {
+                        wound.Visible = false;
                     }
                 }
             }
@@ -459,53 +469,38 @@ namespace Despicaville.Menus
                 string body_part_name = CharacterUtil.BodyPartToName(Handler.Selected_BodyPart);
 
                 AddLabel(AssetManager.Fonts["ControlFont"], 0, Handler.Selected_BodyPart, body_part_name + " Wounds", Color.White,
-                    new Region(inventory_x + (Main.Game.MenuSize_X * 3), inventory_y, (Main.Game.MenuSize_X * 4), Main.Game.MenuSize_Y), true);
+                    new Region(starting_x + (Main.Game.MenuSize_X * 3), starting_y, (Main.Game.MenuSize_X * 4), Main.Game.MenuSize_Y), true);
 
-                int starting_x = inventory_x;
-                int starting_y = (int)(inventory_y + Main.Game.MenuSize_Y);
+                float base_x = starting_x;
+                float base_y = starting_y + Main.Game.MenuSize_Y;
 
-                for (int y = 0; y < 10; y++)
+                int x = 0;
+                int y = 0;
+
+                BodyPart bodyPart = Handler.Player.GetBodyPart(Handler.Selected_BodyPart);
+                if (bodyPart != null)
                 {
-                    for (int x = 0; x < 10; x++)
+                    foreach (Wound wound in bodyPart.Wounds)
                     {
                         AddPicture(Handler.GetID(), "x:" + x.ToString() + ",y:" + y.ToString(), AssetManager.Textures["Grid"],
-                            new Region(starting_x + (Main.Game.MenuSize_X * x), starting_y + (Main.Game.MenuSize_Y * y), Main.Game.MenuSize_X, Main.Game.MenuSize_Y), Color.White, true);
+                            new Region(base_x + (Main.Game.MenuSize_X * x), base_y + (Main.Game.MenuSize_Y * y), Main.Game.MenuSize_X, Main.Game.MenuSize_Y), Color.White, true);
 
                         Picture grid = GetPicture("x:" + x.ToString() + ",y:" + y.ToString());
                         if (grid != null)
                         {
                             grid.Location = new Location(x, y, 0);
                             GridList.Add(grid);
-                        }
-                    }
-                }
 
-                int grid_x = 0;
-                int grid_y = 0;
+                            wound.Region = grid.Region;
+                            wound.Visible = true;
 
-                foreach (BodyPart bodyPart in Handler.Player.BodyParts)
-                {
-                    if (bodyPart.Name == Handler.Selected_BodyPart)
-                    {
-                        foreach (Wound wound in bodyPart.Wounds)
-                        {
-                            Picture grid = GetPicture("x:" + grid_x.ToString() + ",y:" + grid_y.ToString());
-                            if (grid != null)
+                            x++;
+                            if (x >= 10)
                             {
-                                wound.Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
-                                wound.Image = new Rectangle(0, 0, wound.Texture.Width, wound.Texture.Height);
-                                wound.Visible = true;
-
-                                grid_x++;
-                                if (grid_x >= 10)
-                                {
-                                    grid_x = 0;
-                                    grid_y++;
-                                }
+                                x = 0;
+                                y++;
                             }
                         }
-
-                        break;
                     }
                 }
             }
@@ -513,44 +508,24 @@ namespace Despicaville.Menus
 
         private void ResizeGrid()
         {
-            int starting_x = inventory_x;
-            int starting_y = (int)(inventory_y + Main.Game.MenuSize_Y);
+            float base_x = starting_x;
+            float base_y = starting_y + Main.Game.MenuSize_Y;
 
-            for (int y = 0; y < 10; y++)
+            int x = 0;
+            int y = 0;
+
+            int count = GridList.Count;
+            for (int i = 0; i < count; i++)
             {
-                for (int x = 0; x < 10; x++)
+                Picture grid = GridList[i];
+
+                grid.Region = new Region(base_x + (Main.Game.MenuSize_X * x), base_y + (Main.Game.MenuSize_Y * y), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+
+                x++;
+                if (x >= 10)
                 {
-                    Picture existing = GetPicture("x:" + x.ToString() + ",y:" + y.ToString());
-                    if (existing != null)
-                    {
-                        existing.Region = new Region(starting_x + (Main.Game.MenuSize_X * x), starting_y + (Main.Game.MenuSize_Y * y), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-                    }
-                }
-            }
-
-            int grid_x = 0;
-            int grid_y = 0;
-
-            if (Handler.Player != null)
-            {
-                foreach (BodyPart bodyPart in Handler.Player.BodyParts)
-                {
-                    foreach (Wound wound in bodyPart.Wounds)
-                    {
-                        Picture grid = GetPicture("x:" + grid_x.ToString() + ",y:" + grid_y.ToString());
-                        if (grid != null)
-                        {
-                            wound.Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
-                            wound.Image = new Rectangle(0, 0, wound.Texture.Width, wound.Texture.Height);
-
-                            grid_x++;
-                            if (grid_x >= 10)
-                            {
-                                grid_x = 0;
-                                grid_y++;
-                            }
-                        }
-                    }
+                    x = 0;
+                    y++;
                 }
             }
         }
@@ -605,13 +580,10 @@ namespace Despicaville.Menus
 
         public override void Resize(Point point)
         {
-            inventory_y = (int)((Main.Game.ScreenHeight / 2) - (Main.Game.MenuSize_Y * 8));
-            inventory_x = (int)((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X * 5));
+            starting_y = (int)((Main.Game.ScreenHeight / 2) - (Main.Game.MenuSize_Y * 8));
+            starting_x = (int)((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X * 5));
 
-            int x = (int)((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2));
-            int y = (int)(inventory_y + (Main.Game.MenuSize_Y * 10) + Main.Game.MenuSize_Y);
-
-            GetButton("Close").Region = new Region(x, y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+            GetButton("Close").Region = new Region(starting_x, starting_y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
 
             ResizeGrid();
         }

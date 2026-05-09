@@ -154,6 +154,7 @@ namespace Despicaville.Menus
                 else
                 {
                     Handler.Menu_Health = false;
+                    Handler.Selected_BodyPart = "";
 
                     Menu main = MenuManager.GetMenu(button.Name);
                     main.Active = false;

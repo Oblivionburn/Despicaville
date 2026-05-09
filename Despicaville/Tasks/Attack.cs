@@ -57,7 +57,11 @@ namespace Despicaville.Tasks
             Character target = WorldUtil.GetCharacter(Location);
             if (target != null)
             {
-                string bodyPart = CombatUtil.RandomBodyPart(character, target);
+                string bodyPart = Handler.Selected_BodyPart;
+                if (string.IsNullOrEmpty(bodyPart))
+                {
+                    bodyPart = CombatUtil.RandomBodyPart(character, target);
+                }
 
                 int maxStunTime = 0;
 
@@ -91,41 +95,88 @@ namespace Despicaville.Tasks
                         break;
                 }
 
-                CombatUtil.AttackSound_Hit(target, null, weapon, action);
-                CombatUtil.DoDamage(character, target, weapon, action, bodyPart);
-
-                if (target.Unconscious)
+                float hitChance = CombatUtil.ChanceToHitBodyPart(character, target, bodyPart);
+                if (Utility.RandomPercent(hitChance))
                 {
-                    if (character.Type != "Player")
+                    CombatUtil.AttackSound_Hit(target, null, weapon, action);
+                    CombatUtil.DoDamage(character, target, weapon, action, bodyPart);
+
+                    if (target.Unconscious)
                     {
-                        character.InCombat = false;
-                        character.Target_ID = -1;
+                        if (character.Type != "Player")
+                        {
+                            character.InCombat = false;
+                            character.Target_ID = -1;
+                        }
+
+                        target.InCombat = false;
+                        target.Target_ID = -1;
+                    }
+                    else if (target.Type != "Player")
+                    {
+                        target.Target_ID = character.ID;
+                        target.InCombat = true;
                     }
 
-                    target.InCombat = false;
-                    target.Target_ID = -1;
-                }
-                else if (target.Type != "Player")
-                {
-                    target.Target_ID = character.ID;
-                    target.InCombat = true;
-                }
-
-                CryptoRandom random = new CryptoRandom();
-                int stunTime = random.Next(0, maxStunTime);
-                if (stunTime > 0)
-                {
-                    target.Job.Tasks.Add(new Wait
+                    CryptoRandom random = new CryptoRandom();
+                    int stunTime = random.Next(0, maxStunTime);
+                    if (stunTime > 0)
                     {
-                        Name = "Wait",
-                        OwnerID = target.ID,
-                        StartTime = new TimeHandler(TimeManager.Now),
-                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(stunTime))
-                    });
+                        target.Job.Tasks.Add(new Wait
+                        {
+                            Name = "Wait",
+                            OwnerID = target.ID,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(stunTime))
+                        });
 
-                    if (target.Type == "Player")
+                        if (target.Type == "Player")
+                        {
+                            TimeTracker.Tick(stunTime);
+                        }
+                    }
+                }
+                else
+                {
+                    if (character.Type == "Player")
                     {
-                        TimeTracker.Tick(stunTime);
+                        switch (action)
+                        {
+                            case "Punch":
+                            case "Stab":
+                            case "Cut":
+                                GameUtil.AddMessage("You tried to " + action.ToLower() + " their " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                                break;
+
+                            case "Shoot":
+                                CombatUtil.AttackSound_Hit(target, null, weapon, action);
+                                GameUtil.AddMessage("You tried to " + action.ToLower() + " their " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                                break;
+
+                            default:
+                                GameUtil.AddMessage("You tried to hit their " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                                break;
+                        }
+                    }
+                    else if (target.Type == "Player")
+                    {
+                        switch (action)
+                        {
+                            case "Punch":
+                            case "Stab":
+                            case "Cut":
+                                GameUtil.AddMessage(character.Name + " tried to " + action.ToLower() + " your " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                                break;
+
+                            case "Shoot":
+                                CombatUtil.AttackSound_Hit(target, null, weapon, action);
+                                GameUtil.AddMessage(character.Name + " tried to " + action.ToLower() + " your " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                                break;
+
+                            default:
+                                GameUtil.AddMessage(character.Name + " tried to hit your " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                                break;
+                        }
                     }
                 }
             }

@@ -1760,7 +1760,7 @@ namespace Despicaville.Util
 
                 if (character.Gender == "Male")
                 {
-                    description += "a man. ";
+                    description += "a man.";
                 }
                 else
                 {
@@ -1768,10 +1768,10 @@ namespace Despicaville.Util
                     his_her = "Her";
                     him_her = "Her";
 
-                    description += "a woman. ";
+                    description += "a woman.";
                 }
 
-                description += his_her + " name is " + character.Name + ".";
+                description += " " + his_her + " name is " + character.Name + ".";
 
                 if (Handler.Player.Relationships.ContainsKey(character.ID))
                 {
@@ -1780,12 +1780,12 @@ namespace Despicaville.Util
 
                 if (character.Unconscious)
                 {
-                    description += he_she + " is unconscious.";
+                    description += " " + he_she + " is unconscious.";
                 }
 
                 if (character.Dead)
                 {
-                    description += he_she + " is dead.";
+                    description += " " + he_she + " is dead.";
                 }
 
                 #region Left Hand

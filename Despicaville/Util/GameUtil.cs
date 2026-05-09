@@ -59,7 +59,7 @@ namespace Despicaville.Util
             ResetArmy();
 
             Handler.CharGen_Stage = 0;
-            Handler.Loading_Stage = 4;
+            Handler.Loading_Stage = 3;
             Handler.Loading_Percent = 0;
             Handler.Loading_Message = "";            
 
@@ -650,29 +650,7 @@ namespace Despicaville.Util
 
                 if (check_color != new Color(0, 0, 0, 0))
                 {
-                    if (picture.Value == 0)
-                    {
-                        for (int i = 0; i < colors.Length; i++)
-                        {
-                            Color color = colors[i];
-                            if (color.R == 0 &&
-                                color.G == 0 &&
-                                color.B == 0 &&
-                                color.A == 255)
-                            {
-                                colors[i] = new Color(254, 254, 254, 255);
-                            }
-                        }
-
-                        texture.SetData(colors);
-                        picture.Value = 1;
-
-                        return true;
-                    }
-                    else if (picture.Value == 1)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
             

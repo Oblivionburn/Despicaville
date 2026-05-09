@@ -851,7 +851,7 @@ namespace Despicaville.Scenes
                             {
                                 #region Interact
 
-                                Vector2 location = new Vector2(-1, -1);
+                                Location location = null;
 
                                 List<Tile> visible = Handler.VisibleTiles[player.ID];
 
@@ -861,11 +861,7 @@ namespace Despicaville.Scenes
                                     Tile tile = visible[i];
                                     if (tile.Visible)
                                     {
-                                        if (WorldUtil.NextTo(tile.Location, player.Location))
-                                        {
-                                            location = tile.Location.ToVector2;
-                                        }
-
+                                        location = tile.Location;
                                         break;
                                     }
                                 }
@@ -875,23 +871,23 @@ namespace Despicaville.Scenes
                                 {
                                     if (player.Direction == Direction.Up)
                                     {
-                                        location = new Vector2(player.Location.X, player.Location.Y - 1);
+                                        location = new Location(player.Location.X, player.Location.Y - 1);
                                     }
                                     else if (player.Direction == Direction.Right)
                                     {
-                                        location = new Vector2(player.Location.X + 1, player.Location.Y);
+                                        location = new Location(player.Location.X + 1, player.Location.Y);
                                     }
                                     else if (player.Direction == Direction.Down)
                                     {
-                                        location = new Vector2(player.Location.X, player.Location.Y + 1);
+                                        location = new Location(player.Location.X, player.Location.Y + 1);
                                     }
                                     else if (player.Direction == Direction.Left)
                                     {
-                                        location = new Vector2(player.Location.X - 1, player.Location.Y);
+                                        location = new Location(player.Location.X - 1, player.Location.Y);
                                     }
                                 }
 
-                                Character target = WorldUtil.GetCharacter(new Location(location.X, location.Y));
+                                Character target = WorldUtil.GetCharacter(location);
                                 if (target != null)
                                 {
                                     WorldUtil.GenDescription(target);
@@ -903,7 +899,7 @@ namespace Despicaville.Scenes
                                     Map map = World.Maps[0];
 
                                     Layer top_tiles = map.GetLayer("TopTiles");
-                                    Tile top_tile = top_tiles.GetTile(location);
+                                    Tile top_tile = top_tiles.GetTile(location.ToVector2);
                                     if (top_tile?.Texture != null)
                                     {
                                         interaction_tile = top_tile;
@@ -921,7 +917,7 @@ namespace Despicaville.Scenes
                                     if (interaction_tile == null)
                                     {
                                         Layer bottom_tiles = map.GetLayer("BottomTiles");
-                                        Tile bottom_tile = bottom_tiles.GetTile(location);
+                                        Tile bottom_tile = bottom_tiles.GetTile(location.ToVector2);
                                         if (bottom_tile != null)
                                         {
                                             interaction_tile = bottom_tile;
@@ -930,7 +926,14 @@ namespace Despicaville.Scenes
 
                                     if (interaction_tile != null)
                                     {
-                                        Tasker.Interact(interaction_tile, player);
+                                        if (WorldUtil.NextTo(location, player.Location))
+                                        {
+                                            Tasker.Interact(interaction_tile, player);
+                                        }
+                                        else
+                                        {
+                                            WorldUtil.GenDescription(interaction_tile);
+                                        }
                                     }                                        
                                 }
 
@@ -941,37 +944,72 @@ namespace Despicaville.Scenes
                     else if (Handler.Combat &&
                              InputManager.Mouse.RB_Pressed)
                     {
-                        #region Push
+                        #region Get Ranged Target
 
-                        Vector2 location = new Vector2(-1, -1);
+                        Character target = null;
 
-                        if (player.Direction == Direction.Up)
+                        if (CombatUtil.CanAttack_Ranged(player))
                         {
-                            location = new Vector2(player.Location.X, player.Location.Y - 1);
-                        }
-                        else if (player.Direction == Direction.Right)
-                        {
-                            location = new Vector2(player.Location.X + 1, player.Location.Y);
-                        }
-                        else if (player.Direction == Direction.Down)
-                        {
-                            location = new Vector2(player.Location.X, player.Location.Y + 1);
-                        }
-                        else if (player.Direction == Direction.Left)
-                        {
-                            location = new Vector2(player.Location.X - 1, player.Location.Y);
-                        }
+                            List<Tile> visible = Handler.VisibleTiles[player.ID];
 
-                        player.Job.Tasks.Add(new Push
-                        {
-                            Name = "Push",
-                            OwnerID = player.ID,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            Location = new Location(location.X, location.Y, 0),
-                            Direction = player.Direction
-                        });
+                            int count = visible.Count;
+                            for (int i = 0; i < count; i++)
+                            {
+                                Tile tile = visible[i];
+                                if (tile.Visible)
+                                {
+                                    target = WorldUtil.GetCharacter(tile.Location);
+                                    break;
+                                }
+                            }
+                        }
 
                         #endregion
+
+                        if (target != null &&
+                            !WorldUtil.NextTo(target.Location, player.Location))
+                        {
+                            #region Aimed Attack
+
+                            Handler.Interaction_Character = target;
+                            MenuManager.GetMenu("Combat").Open();
+
+                            #endregion
+                        }
+                        else
+                        {
+                            #region Push
+
+                            Location location = null;
+
+                            if (player.Direction == Direction.Up)
+                            {
+                                location = new Location(player.Location.X, player.Location.Y - 1, 1);
+                            }
+                            else if (player.Direction == Direction.Right)
+                            {
+                                location = new Location(player.Location.X + 1, player.Location.Y, 1);
+                            }
+                            else if (player.Direction == Direction.Down)
+                            {
+                                location = new Location(player.Location.X, player.Location.Y + 1, 1);
+                            }
+                            else if (player.Direction == Direction.Left)
+                            {
+                                location = new Location(player.Location.X - 1, player.Location.Y, 1);
+                            }
+
+                            player.Job.Tasks.Add(new Push
+                            {
+                                Name = "Push",
+                                OwnerID = player.ID,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                Location = location,
+                                Direction = player.Direction
+                            });
+
+                            #endregion
+                        }
                     }
                 }
 
@@ -1162,6 +1200,10 @@ namespace Despicaville.Scenes
                                         {
                                             //1ms
                                             TimeTracker.Tick(milliseconds);
+                                        }
+                                        else
+                                        {
+                                            player.Job.Update(TimeManager.Now);
                                         }
                                     }
                                 }

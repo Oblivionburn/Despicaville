@@ -79,6 +79,11 @@ namespace Despicaville.Tasks
             tile.BlocksMovement = true;
             CharacterUtil.UpdateSight(character);
 
+            if (character.Type != "Player")
+            {
+                CharacterUtil.UpdateSight(Handler.Player);
+            }
+
             if (character.Type == "Player")
             {
                 if (loudness == 1)

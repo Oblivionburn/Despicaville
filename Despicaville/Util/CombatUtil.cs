@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
-using Microsoft.Xna.Framework;
 using OP_Engine.Characters;
-using OP_Engine.Controls;
 using OP_Engine.Inventories;
-using OP_Engine.Menus;
 using OP_Engine.Tiles;
 using OP_Engine.Utility;
 
@@ -11,96 +8,6 @@ namespace Despicaville.Util
 {
     public static class CombatUtil
     {
-        public static void Update_Player_BodyStat(Character player, string body_part)
-        {
-            if (player != null)
-            {
-                Menu menu = MenuManager.GetMenu("Health");
-
-                Picture picture = menu.GetPicture("Paperdoll_" + body_part);
-                if (picture != null)
-                {
-                    BodyPart part = player.GetBodyPart(body_part);
-                    if (part != null)
-                    {
-                        Property hp = part.GetStat("HP");
-                        if (hp != null)
-                        {
-                            if (hp.Value >= 80)
-                            {
-                                GameUtil.Texture_ChangeColor(picture, new Color(0, 200, 0));
-                            }
-                            else if (hp.Value >= 60)
-                            {
-                                GameUtil.Texture_ChangeColor(picture, new Color(200, 200, 0));
-                            }
-                            else if (hp.Value >= 40)
-                            {
-                                GameUtil.Texture_ChangeColor(picture, new Color(200, 100, 0));
-                            }
-                            else if (hp.Value >= 20)
-                            {
-                                GameUtil.Texture_ChangeColor(picture, new Color(200, 0, 0));
-                            }
-                            else if (hp.Value > 0)
-                            {
-                                GameUtil.Texture_ChangeColor(picture, new Color(100, 0, 100));
-                            }
-                            else if (hp.Value <= 0)
-                            {
-                                GameUtil.Texture_ChangeColor(picture, new Color(12, 12, 12));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        public static void Update_Citizen_BodyStat(Character character, string body_part)
-        {
-            if (character != null)
-            {
-                Menu combat = MenuManager.GetMenu("Combat");
-
-                Picture picture = combat.GetPicture("Paperdoll_" + body_part);
-                if (picture != null)
-                {
-                    BodyPart part = character.GetBodyPart(body_part);
-                    if (part != null)
-                    {
-                        Property hp = part.GetStat("HP");
-                        if (hp != null)
-                        {
-                            if (hp.Value >= 80)
-                            {
-                                GameUtil.Texture_ChangeColor(picture, new Color(0, 200, 0));
-                            }
-                            else if (hp.Value >= 60)
-                            {
-                                GameUtil.Texture_ChangeColor(picture, new Color(200, 200, 0));
-                            }
-                            else if (hp.Value >= 40)
-                            {
-                                GameUtil.Texture_ChangeColor(picture, new Color(200, 100, 0));
-                            }
-                            else if (hp.Value >= 20)
-                            {
-                                GameUtil.Texture_ChangeColor(picture, new Color(200, 0, 0));
-                            }
-                            else if (hp.Value > 0)
-                            {
-                                GameUtil.Texture_ChangeColor(picture, new Color(100, 0, 100));
-                            }
-                            else if (hp.Value <= 0)
-                            {
-                                GameUtil.Texture_ChangeColor(picture, new Color(12, 12, 12));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         public static Dictionary<string, string> AttackChoice(Character character)
         {
             Dictionary<string, string> attack = new Dictionary<string, string>();
@@ -333,7 +240,7 @@ namespace Despicaville.Util
             return "Torso";
         }
 
-        public static float ChanceToHitBodyPart(Character attacker, Character defender, string body_part, string attack_type)
+        public static float ChanceToHitBodyPart(Character attacker, Character defender, string body_part)
         {
             float base_chance = 0;
 
@@ -392,15 +299,14 @@ namespace Despicaville.Util
 
             Property attacker_perception = attacker.GetStat("Perception");
             float per_chance = attacker_perception.Value / 10;
-            if (attack_type == "Shoot")
-            {
-                per_chance = attacker_perception.Value / 4;
-            }
 
             Property attacker_luck = attacker.GetStat("Luck");
             float luk_chance = attacker_luck.Value / 10;
 
-            float chance = base_chance + agi_chance + per_chance + luk_chance;
+            int distance = WorldUtil.GetDistance(attacker.Location, defender.Location);
+            int distance_penalty = distance * 2;
+
+            float chance = base_chance + agi_chance + per_chance + luk_chance - distance_penalty;
             if (chance > 100)
             {
                 chance = 100;
@@ -462,11 +368,11 @@ namespace Despicaville.Util
                 case "Cut":
                     if (defender != null)
                     {
-                        AssetManager.PlaySound_Random_AtDistance("Stab", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 1);
+                        AssetManager.PlaySound_Random_AtDistance("Stab", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 2);
                     }
                     else if (tile != null)
                     {
-                        AssetManager.PlaySound_Random_AtDistance("Stab", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 1);
+                        AssetManager.PlaySound_Random_AtDistance("Stab", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 2);
                     }
                     return 1;
 
@@ -513,11 +419,11 @@ namespace Despicaville.Util
                     {
                         if (defender != null)
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 1);
+                            AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 2);
                         }
                         else if (tile != null)
                         {
-                            AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 1);
+                            AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 2);
                         }
                         return 1;
                     }
@@ -526,11 +432,11 @@ namespace Despicaville.Util
                 default:
                     if (defender != null)
                     {
-                        AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 1);
+                        AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 2);
                     }
                     else if (tile != null)
                     {
-                        AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 1);
+                        AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 2);
                     }
                     return 2;
             }

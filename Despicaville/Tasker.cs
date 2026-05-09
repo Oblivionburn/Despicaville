@@ -455,7 +455,7 @@ namespace Despicaville
                 location = new Location(character.Location.X + 1, character.Location.Y, 0);
             }
 
-            character.Job.Tasks.Add(new CloseDoor
+            CloseDoor task = new CloseDoor
             {
                 Name = "CloseDoor",
                 OwnerID = character.ID,
@@ -463,7 +463,8 @@ namespace Despicaville
                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
                 Location = location,
                 Direction = direction
-            });
+            };
+            character.Job.Tasks.Add(task);
         }
 
         public static void CloseWindow_Behind(Character character)
@@ -492,7 +493,7 @@ namespace Despicaville
                 location = new Location(character.Location.X + 1, character.Location.Y, 0);
             }
 
-            character.Job.Tasks.Add(new CloseWindow
+            CloseWindow task = new CloseWindow
             {
                 Name = "CloseWindow",
                 OwnerID = character.ID,
@@ -500,7 +501,8 @@ namespace Despicaville
                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
                 Location = location,
                 Direction = direction
-            });
+            };
+            character.Job.Tasks.Add(task);
         }
 
         public static void Wander(Character character)
