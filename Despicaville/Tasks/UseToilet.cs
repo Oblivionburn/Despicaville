@@ -119,8 +119,7 @@ namespace Despicaville.Tasks
                 }
             }
 
-            Property bladder = character.GetStat("Bladder");
-            bladder.Value = 0;
+            character.Stats.Bladder = 0;
 
             if (!Handler.Player.Unconscious)
             {

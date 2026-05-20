@@ -1,14 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
-
 using OP_Engine.Controls;
 using OP_Engine.Inputs;
 using OP_Engine.Menus;
-using OP_Engine.Characters;
 using OP_Engine.Utility;
 using OP_Engine.Time;
 using OP_Engine.Enums;
-
 using Despicaville.Util;
 
 namespace Despicaville.Menus
@@ -54,12 +51,18 @@ namespace Despicaville.Menus
         private void UpdateControls()
         {
             bool hoveringButton = HoveringButton();
-            bool hoveringLabel = HoveringLabel();
+            Label hoveringLabel = HoveringLabel();
 
-            if (!hoveringButton &&
-                !hoveringLabel)
+            if (!hoveringButton)
             {
-                GetLabel("Examine").Visible = false;
+                if (hoveringLabel == null ||
+                    hoveringLabel?.Name == "Crouching" ||
+                    hoveringLabel?.Name == "Running" ||
+                    hoveringLabel?.Name == "Holding" ||
+                    hoveringLabel?.Name == "Combat")
+                {
+                    GetLabel("Examine").Visible = false;
+                }
             }
         }
 
@@ -102,7 +105,7 @@ namespace Despicaville.Menus
             return false;
         }
 
-        private bool HoveringLabel()
+        private Label HoveringLabel()
         {
             foreach (Label label in Labels)
             {
@@ -115,12 +118,12 @@ namespace Despicaville.Menus
                             Examine(label.HoverText);
                         }
 
-                        return true;
+                        return label;
                     }
                 }
             }
 
-            return false;
+            return null;
         }
 
         private void CheckClick(Button button)
@@ -178,26 +181,134 @@ namespace Despicaville.Menus
 
         private void UpdateStats()
         {
-            string[] stats = { "Hunger", "Thirst", "Bladder", "Grime", "Pain", "Paranoia", "Blood", "Consciousness", "Stamina", "Comfort" };
-            foreach (string stat_name in stats)
+            ProgressBar bar = GetProgressBar("Hunger");
+            if (bar != null)
             {
-                Property stat = Handler.Player.GetStat(stat_name);
-                if (stat != null)
-                {
-                    ProgressBar bar = GetProgressBar(stat_name);
-                    if (bar != null)
-                    {
-                        bar.Value = stat.Value;
-                        bar.Update();
-                    }
+                bar.Value = Handler.Player.Stats.Hunger;
+                bar.Update();
+            }
+            Label label = GetLabel("Hunger");
+            if (label != null)
+            {
+                label.HoverText = "How hungry you are.\nStamina -1 every hour at 100%.";
+                label.Text = "Hunger: " + Handler.Player.Stats.Hunger.ToString("0.##") + "/100%";
+            }
 
-                    Label label = GetLabel(stat_name);
-                    if (label != null)
-                    {
-                        label.HoverText = stat.Description;
-                        label.Text = stat_name + ": " + stat.Value.ToString("0.##") + "/" + stat.Max_Value + "%";
-                    }
-                }
+            bar = GetProgressBar("Thirst");
+            if (bar != null)
+            {
+                bar.Value = Handler.Player.Stats.Thirst;
+                bar.Update();
+            }
+            label = GetLabel("Thirst");
+            if (label != null)
+            {
+                label.HoverText = "How thirsty you are.\nBlood -1 every hour at 100%.";
+                label.Text = "Thirst: " + Handler.Player.Stats.Thirst.ToString("0.##") + "/100%";
+            }
+
+            bar = GetProgressBar("Bladder");
+            if (bar != null)
+            {
+                bar.Value = Handler.Player.Stats.Bladder;
+                bar.Update();
+            }
+            label = GetLabel("Bladder");
+            if (label != null)
+            {
+                label.HoverText = "How urgently you need a toilet.\nYou defecate yourself at 100%.";
+                label.Text = "Bladder: " + Handler.Player.Stats.Bladder.ToString("0.##") + "/100%";
+            }
+
+            bar = GetProgressBar("Grime");
+            if (bar != null)
+            {
+                bar.Value = Handler.Player.Stats.Grime;
+                bar.Update();
+            }
+            label = GetLabel("Grime");
+            if (label != null)
+            {
+                label.HoverText = "How dirty you are.\nImpacts using your Charisma.";
+                label.Text = "Grime: " + Handler.Player.Stats.Grime.ToString("0.##") + "/100%";
+            }
+
+            bar = GetProgressBar("Pain");
+            if (bar != null)
+            {
+                bar.Value = Handler.Player.Stats.Pain;
+                bar.Update();
+            }
+            label = GetLabel("Pain");
+            if (label != null)
+            {
+                label.HoverText = "How much pain you are feeling.\nConsciousness -5 every second at 100%.";
+                label.Text = "Pain: " + Handler.Player.Stats.Pain.ToString("0.##") + "/100%";
+            }
+
+            bar = GetProgressBar("Paranoia");
+            if (bar != null)
+            {
+                bar.Value = Handler.Player.Stats.Paranoia;
+                bar.Update();
+            }
+            label = GetLabel("Paranoia");
+            if (label != null)
+            {
+                label.HoverText = "How paranoid you are.\nYou will commit suicide at 100%.";
+                label.Text = "Paranoia: " + Handler.Player.Stats.Paranoia.ToString("0.##") + "/100%";
+            }
+
+            bar = GetProgressBar("Blood");
+            if (bar != null)
+            {
+                bar.Value = Handler.Player.Stats.Blood;
+                bar.Update();
+            }
+            label = GetLabel("Blood");
+            if (label != null)
+            {
+                label.HoverText = "How much blood you have left.\n0% means you are dead.";
+                label.Text = "Blood: " + Handler.Player.Stats.Blood.ToString("0.##") + "/100%";
+            }
+
+            bar = GetProgressBar("Consciousness");
+            if (bar != null)
+            {
+                bar.Value = Handler.Player.Stats.Consciousness;
+                bar.Update();
+            }
+            label = GetLabel("Consciousness");
+            if (label != null)
+            {
+                label.HoverText = "How conscious you are.\n0% means you are unconscious.";
+                label.Text = "Consciousness: " + Handler.Player.Stats.Consciousness.ToString("0.##") + "/100%";
+            }
+
+            bar = GetProgressBar("Stamina");
+            if (bar != null)
+            {
+                bar.Value = Handler.Player.Stats.Stamina;
+                bar.Update();
+            }
+            label = GetLabel("Stamina");
+            if (label != null)
+            {
+                label.HoverText = "How much energy you have.\nConsciousness -1 every second at 0%.";
+                label.Text = "Stamina: " + Handler.Player.Stats.Stamina.ToString("0.##") + "/100%";
+            }
+
+            bar = GetProgressBar("Comfort");
+            if (bar != null)
+            {
+                bar.Value = Handler.Player.Stats.Comfort;
+                bar.Update();
+            }
+            label = GetLabel("Comfort");
+            if (label != null)
+            {
+                label.HoverText = "How comfortable you are.\nStamina -1 every minute at 0%.";
+                label.Text = "Comfort: " + Handler.Player.Stats.Comfort.ToString("0.##") + "/100%";
             }
         }
 

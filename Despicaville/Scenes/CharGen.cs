@@ -9,7 +9,6 @@ using OP_Engine.Characters;
 using OP_Engine.Inventories;
 using OP_Engine.Utility;
 using OP_Engine.Enums;
-
 using Despicaville.Util;
 
 namespace Despicaville.Scenes
@@ -837,29 +836,25 @@ namespace Despicaville.Scenes
 
         private void Finish()
         {
-            Squad players = CharacterManager.GetArmy("Characters").GetSquad("Players");
-
             float x = (Main.Game.ScreenWidth / 2) - (Main.Game.TileSize.X / 2);
             float y = (Main.Game.ScreenHeight / 2) - (Main.Game.TileSize.Y / 2) - (Main.Game.TileSize.Y * 2);
 
-            Character player = new Character
+            Handler.Player = new Character
             {
                 ID = Handler.GetID(),
                 Name = First_Name + " " + Last_Name,
                 Type = "Player",
-                Speed = 1,
+                MoveSpeed = 1,
                 Move_TotalDistance = Main.Game.TileSize.X,
                 Direction = Direction.Down,
                 Region = new Region(x, y, Main.Game.TileSize_X, Main.Game.TileSize_Y),
                 Visible = true,
                 Frames = 4
             };
-            players.Characters.Add(player);
+            CharacterManager.GetArmy("Characters").GetSquad("Players").Characters[0] = Handler.Player;
 
-            LoadInventory(player);
-            CharacterUtil.LoadStats(player, Stats);
-
-            Handler.Player = player;
+            LoadInventory(Handler.Player);
+            CharacterUtil.LoadStats(Handler.Player, Stats);
 
             Reset();
 

@@ -93,12 +93,11 @@ namespace Despicaville.Tasks
                     {
                         eat++;
 
-                        Property stat = character.GetStat("Hunger");
-                        stat.Value += hunger.Value;
+                        character.Stats.Hunger += hunger.Value;
 
-                        if (stat.Value > stat.Max_Value)
+                        if (character.Stats.Hunger > 100)
                         {
-                            stat.Value = stat.Max_Value;
+                            character.Stats.Hunger = 100;
                         }
                     }
 
@@ -107,12 +106,11 @@ namespace Despicaville.Tasks
                     {
                         drink++;
 
-                        Property stat = character.GetStat("Thirst");
-                        stat.Value += thirst.Value;
+                        character.Stats.Thirst += thirst.Value;
 
-                        if (stat.Value > stat.Max_Value)
+                        if (character.Stats.Thirst > 100)
                         {
-                            stat.Value = stat.Max_Value;
+                            character.Stats.Thirst = 100;
                         }
                     }
 
@@ -122,12 +120,11 @@ namespace Despicaville.Tasks
                         eat++;
                         drink++;
 
-                        Property stat = character.GetStat("Stamina");
-                        stat.Value += stamina.Value;
+                        character.Stats.Stamina += stamina.Value;
 
-                        if (stat.Value > stat.Max_Value)
+                        if (character.Stats.Stamina > 100)
                         {
-                            stat.Value = stat.Max_Value;
+                            character.Stats.Stamina = 100;
                         }
                     }
 
@@ -136,12 +133,11 @@ namespace Despicaville.Tasks
                     {
                         eat++;
 
-                        Property stat = character.GetStat("Consciousness");
-                        stat.Value += consciousness.Value;
+                        character.Stats.Consciousness += consciousness.Value;
 
-                        if (stat.Value > stat.Max_Value)
+                        if (character.Stats.Consciousness > 100)
                         {
-                            stat.Value = stat.Max_Value;
+                            character.Stats.Consciousness = 100;
                         }
                     }
 
@@ -150,12 +146,11 @@ namespace Despicaville.Tasks
                     {
                         eat++;
 
-                        Property stat = character.GetStat("Paranoia");
-                        stat.Value += paranoia.Value;
+                        character.Stats.Paranoia += paranoia.Value;
 
-                        if (stat.Value > stat.Max_Value)
+                        if (character.Stats.Paranoia > 100)
                         {
-                            stat.Value = stat.Max_Value;
+                            character.Stats.Paranoia = 100;
                         }
                     }
 
@@ -164,12 +159,11 @@ namespace Despicaville.Tasks
                     {
                         drink++;
 
-                        Property stat = character.GetStat("Bladder");
-                        stat.Value += bladder.Value;
+                        character.Stats.Bladder += bladder.Value;
 
-                        if (stat.Value > stat.Max_Value)
+                        if (character.Stats.Bladder > 100)
                         {
-                            stat.Value = stat.Max_Value;
+                            character.Stats.Bladder = 100;
                         }
                     }
 
@@ -178,12 +172,11 @@ namespace Despicaville.Tasks
                     {
                         drink++;
 
-                        Property stat = character.GetStat("Blood");
-                        stat.Value += blood.Value;
+                        character.Stats.Blood += blood.Value;
 
-                        if (stat.Value > stat.Max_Value)
+                        if (character.Stats.Blood > 100)
                         {
-                            stat.Value = stat.Max_Value;
+                            character.Stats.Blood = 100;
                         }
                     }
 
@@ -197,9 +190,9 @@ namespace Despicaville.Tasks
                         {
                             stat.Value += pain.Value;
 
-                            if (stat.Value > stat.Max_Value)
+                            if (stat.Value > 100)
                             {
-                                stat.Value = stat.Max_Value;
+                                stat.Value = 100;
                             }
                         }
                         else

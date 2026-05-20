@@ -1,4 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System;
+using System.Linq;
+using System.Collections.Generic;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using OP_Engine.Controls;
@@ -8,10 +11,7 @@ using OP_Engine.Characters;
 using OP_Engine.Utility;
 using OP_Engine.Time;
 using Despicaville.Util;
-using System;
 using Despicaville.Tasks;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Despicaville.Menus
 {
@@ -54,6 +54,25 @@ namespace Despicaville.Menus
                 foreach (Picture picture in Pictures)
                 {
                     picture.Draw(spriteBatch);
+                }
+
+                foreach (string body_part in Handler.BodyParts)
+                {
+                    BodyPart part = Handler.Interaction_Character.GetBodyPart(body_part);
+                    if (part == null)
+                    {
+                        continue;
+                    }
+
+                    Property hp = part.GetStat("HP");
+                    if (hp == null)
+                    {
+                        continue;
+                    }
+
+                    GetButton(body_part).Visible = hp.Value > 0;
+                    GetProgressBar(body_part).Visible = hp.Value > 0;
+                    //GetLabel(body_part).Visible = hp.Value > 0;
                 }
 
                 foreach (Button button in Buttons)
@@ -115,21 +134,30 @@ namespace Despicaville.Menus
                             GameUtil.Examine(this, button.HoverText);
                         }
 
-                        button.Opacity = 1;
-                        button.Selected = true;
-
-                        Label label = GetLabel(button.Name);
-                        label.Opacity = 1;
-
-                        ProgressBar bar = GetProgressBar(button.Name);
-                        bar.Opacity = 1;
-
-                        if (InputManager.Mouse_LB_Pressed)
+                        BodyPart part = Handler.Interaction_Character.GetBodyPart(button.Name);
+                        if (part != null)
                         {
-                            CheckClick(button);
+                            Property hp = part.GetStat("HP");
+                            if (hp != null &&
+                                hp.Value > 0)
+                            {
+                                button.Opacity = 1;
+                                button.Selected = true;
 
-                            button.Opacity = 0.8f;
-                            button.Selected = false;
+                                Label label = GetLabel(button.Name);
+                                label.Opacity = 1;
+
+                                ProgressBar bar = GetProgressBar(button.Name);
+                                bar.Opacity = 1;
+
+                                if (InputManager.Mouse_LB_Pressed)
+                                {
+                                    CheckClick(button);
+
+                                    button.Opacity = 0.8f;
+                                    button.Selected = false;
+                                }
+                            }
                         }
 
                         return true;
@@ -319,42 +347,42 @@ namespace Despicaville.Menus
             AddPicture(Handler.GetID(), "Left_Arm", AssetManager.Textures["Paperdoll_Left_Arm"], new Region(0, 0, 0, 0), Color.White, true);
             AddButton(Handler.GetID(), "Left_Arm", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
                 new Region(0, 0, 0, 0), Color.White, true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Left_Arm", "Left_Arm", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Left_Arm", "Left Arm", Color.White, new Region(0, 0, 0, 0), true);
             AddProgressBar(Handler.GetID(), "Left_Arm", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
             AddPicture(Handler.GetID(), "Right_Arm", AssetManager.Textures["Paperdoll_Right_Arm"], new Region(0, 0, 0, 0), Color.White, true);
             AddButton(Handler.GetID(), "Right_Arm", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
                 new Region(0, 0, 0, 0), Color.White, true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Right_Arm", "Right_Arm", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Right_Arm", "Right Arm", Color.White, new Region(0, 0, 0, 0), true);
             AddProgressBar(Handler.GetID(), "Right_Arm", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
             AddPicture(Handler.GetID(), "Left_Hand", AssetManager.Textures["Paperdoll_Left_Hand"], new Region(0, 0, 0, 0), Color.White, true);
             AddButton(Handler.GetID(), "Left_Hand", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
                 new Region(0, 0, 0, 0), Color.White, true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Left_Hand", "Left_Hand", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Left_Hand", "Left Hand", Color.White, new Region(0, 0, 0, 0), true);
             AddProgressBar(Handler.GetID(), "Left_Hand", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
             AddPicture(Handler.GetID(), "Right_Hand", AssetManager.Textures["Paperdoll_Right_Hand"], new Region(0, 0, 0, 0), Color.White, true);
             AddButton(Handler.GetID(), "Right_Hand", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
                 new Region(0, 0, 0, 0), Color.White, true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Right_Hand", "Right_Hand", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Right_Hand", "Right Hand", Color.White, new Region(0, 0, 0, 0), true);
             AddProgressBar(Handler.GetID(), "Right_Hand", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
             AddPicture(Handler.GetID(), "Left_Leg", AssetManager.Textures["Paperdoll_Left_Leg"], new Region(0, 0, 0, 0), Color.White, true);
             AddButton(Handler.GetID(), "Left_Leg", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
                 new Region(0, 0, 0, 0), Color.White, true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Left_Leg", "Left_Leg", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Left_Leg", "Left Leg", Color.White, new Region(0, 0, 0, 0), true);
             AddProgressBar(Handler.GetID(), "Left_Leg", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
             AddPicture(Handler.GetID(), "Right_Leg", AssetManager.Textures["Paperdoll_Right_Leg"], new Region(0, 0, 0, 0), Color.White, true);
             AddButton(Handler.GetID(), "Right_Leg", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
                 new Region(0, 0, 0, 0), Color.White, true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Right_Leg", "Right_Leg", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Right_Leg", "Right Leg", Color.White, new Region(0, 0, 0, 0), true);
             AddProgressBar(Handler.GetID(), "Right_Leg", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
@@ -368,14 +396,14 @@ namespace Despicaville.Menus
             AddPicture(Handler.GetID(), "Left_Foot", AssetManager.Textures["Paperdoll_Left_Foot"], new Region(0, 0, 0, 0), Color.White, true);
             AddButton(Handler.GetID(), "Left_Foot", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
                 new Region(0, 0, 0, 0), Color.White, true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Left_Foot", "Left_Foot", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Left_Foot", "Left Foot", Color.White, new Region(0, 0, 0, 0), true);
             AddProgressBar(Handler.GetID(), "Left_Foot", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
             AddPicture(Handler.GetID(), "Right_Foot", AssetManager.Textures["Paperdoll_Right_Foot"], new Region(0, 0, 0, 0), Color.White, true);
             AddButton(Handler.GetID(), "Right_Foot", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
                 new Region(0, 0, 0, 0), Color.White, true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Right_Foot", "Right_Foot", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Right_Foot", "Right Foot", Color.White, new Region(0, 0, 0, 0), true);
             AddProgressBar(Handler.GetID(), "Right_Foot", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
@@ -426,29 +454,29 @@ namespace Despicaville.Menus
 
             Y = label_y + (Main.Game.MenuSize_Y * 3) + (Main.Game.MenuSize_Y / 2);
             X = label_x - (Main.Game.MenuSize_X * 2) - (Main.Game.MenuSize_X / 4);
-            GetPicture("Left_Arm").Region = new Region(x, y, width, height);
-            GetButton("Left_Arm").Region = new Region(X, Y, label_width, button_height);
-            GetLabel("Left_Arm").Region = new Region(X, Y, label_width, label_height);
-            GetProgressBar("Left_Arm").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
-
-            X = label_x + label_width + Main.Game.MenuSize_X - (Main.Game.MenuSize_X / 2) - (Main.Game.MenuSize_X / 4);
             GetPicture("Right_Arm").Region = new Region(x, y, width, height);
             GetButton("Right_Arm").Region = new Region(X, Y, label_width, button_height);
             GetLabel("Right_Arm").Region = new Region(X, Y, label_width, label_height);
             GetProgressBar("Right_Arm").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
 
+            X = label_x + label_width + Main.Game.MenuSize_X - (Main.Game.MenuSize_X / 2) - (Main.Game.MenuSize_X / 4);
+            GetPicture("Left_Arm").Region = new Region(x, y, width, height);
+            GetButton("Left_Arm").Region = new Region(X, Y, label_width, button_height);
+            GetLabel("Left_Arm").Region = new Region(X, Y, label_width, label_height);
+            GetProgressBar("Left_Arm").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+
             Y = label_y + (Main.Game.MenuSize_Y * 5) + (Main.Game.MenuSize_Y / 2);
             X = label_x - (Main.Game.MenuSize_X * 2) - Main.Game.MenuSize_X;
-            GetPicture("Left_Hand").Region = new Region(x, y, width, height);
-            GetButton("Left_Hand").Region = new Region(X, Y, label_width, button_height);
-            GetLabel("Left_Hand").Region = new Region(X, Y, label_width, label_height);
-            GetProgressBar("Left_Hand").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
-
-            X = label_x + label_width + Main.Game.MenuSize_X + (Main.Game.MenuSize_X / 2) - (Main.Game.MenuSize_X / 4);
             GetPicture("Right_Hand").Region = new Region(x, y, width, height);
             GetButton("Right_Hand").Region = new Region(X, Y, label_width, button_height);
             GetLabel("Right_Hand").Region = new Region(X, Y, label_width, label_height);
             GetProgressBar("Right_Hand").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+
+            X = label_x + label_width + Main.Game.MenuSize_X + (Main.Game.MenuSize_X / 2) - (Main.Game.MenuSize_X / 4);
+            GetPicture("Left_Hand").Region = new Region(x, y, width, height);
+            GetButton("Left_Hand").Region = new Region(X, Y, label_width, button_height);
+            GetLabel("Left_Hand").Region = new Region(X, Y, label_width, label_height);
+            GetProgressBar("Left_Hand").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
 
             Y = label_y + (Main.Game.MenuSize_Y * 5) + (Main.Game.MenuSize_Y / 2);
             X = label_x;
@@ -459,29 +487,29 @@ namespace Despicaville.Menus
 
             Y = label_y + (Main.Game.MenuSize_Y * 8);
             X = label_x - Main.Game.MenuSize_X - (Main.Game.MenuSize_X / 4);
-            GetPicture("Left_Leg").Region = new Region(x, y, width, height);
-            GetButton("Left_Leg").Region = new Region(X, Y, label_width, button_height);
-            GetLabel("Left_Leg").Region = new Region(X, Y, label_width, label_height);
-            GetProgressBar("Left_Leg").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
-
-            X = label_x + label_width - (Main.Game.MenuSize_X / 2);
             GetPicture("Right_Leg").Region = new Region(x, y, width, height);
             GetButton("Right_Leg").Region = new Region(X, Y, label_width, button_height);
             GetLabel("Right_Leg").Region = new Region(X, Y, label_width, label_height);
             GetProgressBar("Right_Leg").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
 
+            X = label_x + label_width - (Main.Game.MenuSize_X / 2);
+            GetPicture("Left_Leg").Region = new Region(x, y, width, height);
+            GetButton("Left_Leg").Region = new Region(X, Y, label_width, button_height);
+            GetLabel("Left_Leg").Region = new Region(X, Y, label_width, label_height);
+            GetProgressBar("Left_Leg").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+
             Y = label_y + (Main.Game.MenuSize_Y * 11) + (Main.Game.MenuSize_Y / 2);
             X = label_x - Main.Game.MenuSize_X - (Main.Game.MenuSize_X / 4);
-            GetPicture("Left_Foot").Region = new Region(x, y, width, height);
-            GetButton("Left_Foot").Region = new Region(X, Y, label_width, button_height);
-            GetLabel("Left_Foot").Region = new Region(X, Y, label_width, label_height);
-            GetProgressBar("Left_Foot").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
-
-            X = label_x + label_width - (Main.Game.MenuSize_X / 2);
             GetPicture("Right_Foot").Region = new Region(x, y, width, height);
             GetButton("Right_Foot").Region = new Region(X, Y, label_width, button_height);
             GetLabel("Right_Foot").Region = new Region(X, Y, label_width, label_height);
             GetProgressBar("Right_Foot").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+
+            X = label_x + label_width - (Main.Game.MenuSize_X / 2);
+            GetPicture("Left_Foot").Region = new Region(x, y, width, height);
+            GetButton("Left_Foot").Region = new Region(X, Y, label_width, button_height);
+            GetLabel("Left_Foot").Region = new Region(X, Y, label_width, label_height);
+            GetProgressBar("Left_Foot").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
         }
 
         #endregion

@@ -41,32 +41,30 @@ namespace Despicaville
                 return;
             }
 
-            Property thirst = character.GetStat("Thirst");
-            if (thirst.Value >= 60)
+            if (character.Stats.Thirst >= 60)
             {
                 FindWater(character, true);
                 return;
             }
-            else if (thirst.Value >= 30)
+            else if (character.Stats.Thirst >= 30)
             {
                 FindWater(character, false);
                 return;
             }
 
-            Property hunger = character.GetStat("Hunger");
-            if (hunger.Value >= 60)
+            if (character.Stats.Hunger >= 60)
             {
                 FindFood(character, true);
                 return;
             }
-            else if (hunger.Value >= 30)
+            else if (character.Stats.Hunger >= 30)
             {
                 FindFood(character, false);
                 return;
             }
 
-            if (thirst.Value < 30 &&
-                hunger.Value < 30)
+            if (character.Stats.Thirst < 30 &&
+                character.Stats.Hunger < 30)
             {
                 Wander(character);
             }
@@ -197,8 +195,7 @@ namespace Despicaville
                         }
                         else if (!sink.Texture.Name.Contains("Used"))
                         {
-                            Property thirst = character.GetStat("Thirst");
-                            TimeSpan duration = TimeSpan.FromSeconds(thirst.Value);
+                            TimeSpan duration = TimeSpan.FromSeconds(character.Stats.Thirst);
 
                             character.Job.Tasks.Add(new UseSink
                             {
@@ -564,12 +561,12 @@ namespace Despicaville
             }
         }
 
-        public static void BreakWindow(Character character)
+        public static void BreakWindow(Vector2 destination, Direction direction)
         {
             Map map = WorldUtil.GetMap();
 
             Layer middle_tiles = map.GetLayer("MiddleTiles");
-            Tile tile = middle_tiles.GetTile(character.Destination.ToVector2);
+            Tile tile = middle_tiles.GetTile(destination);
 
             if (tile.Direction == Direction.Up)
             {
@@ -583,20 +580,20 @@ namespace Despicaville
             tile.Texture = AssetManager.Textures[tile.Name];
             tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
 
-            Vector2 location = character.Destination.ToVector2;
-            if (character.Direction == Direction.Up)
+            Vector2 location = new Vector2(destination.X, destination.Y);
+            if (direction == Direction.Up)
             {
                 location.Y--;
             }
-            else if (character.Direction == Direction.Right)
+            else if (direction == Direction.Right)
             {
                 location.X++;
             }
-            else if (character.Direction == Direction.Down)
+            else if (direction == Direction.Down)
             {
                 location.Y++;
             }
-            else if (character.Direction == Direction.Left)
+            else if (direction == Direction.Left)
             {
                 location.X--;
             }
@@ -606,7 +603,7 @@ namespace Despicaville
                 AssetManager.PlaySound_Random_AtDistance("GlassBreak", Handler.Player.Location.ToVector2, location, 10);
             }
 
-            string name = "BrokenGlass_" + character.Direction.ToString();
+            string name = "BrokenGlass_" + direction.ToString();
             WorldUtil.AddEffect(new Vector3(location.X, location.Y, 0), name, name);
         }
 
@@ -619,25 +616,24 @@ namespace Despicaville
             character.InCombat = false;
         }
 
-        public static void Interact(Tile tile, Character player)
+        public static void Interact(Tile tile)
         {
             if (tile != null)
             {
                 if (tile.Name.Contains("Sink"))
                 {
-                    Property thirst = player.GetStat("Thirst");
-                    if (thirst.Value > 0)
+                    if (Handler.Player.Stats.Thirst > 0)
                     {
-                        TimeSpan duration = TimeSpan.FromSeconds(thirst.Value);
+                        TimeSpan duration = TimeSpan.FromSeconds(Handler.Player.Stats.Thirst);
 
-                        player.Job.Tasks.Add(new UseSink
+                        Handler.Player.Job.Tasks.Add(new UseSink
                         {
                             Name = "UseSink",
-                            OwnerID = player.ID,
+                            OwnerID = Handler.Player.ID,
                             Location = tile.Location,
                             StartTime = new TimeHandler(TimeManager.Now),
                             EndTime = new TimeHandler(TimeManager.Now, duration),
-                            TaskBar = CharacterUtil.GenTaskbar(player, (int)duration.TotalMilliseconds)
+                            TaskBar = CharacterUtil.GenTaskbar(Handler.Player, (int)duration.TotalMilliseconds)
                         });
                     }
                     else
@@ -647,19 +643,18 @@ namespace Despicaville
                 }
                 else if (tile.Name.Contains("Toilet"))
                 {
-                    Property bladder = player.GetStat("Bladder");
-                    if (bladder.Value > 0)
+                    if (Handler.Player.Stats.Bladder > 0)
                     {
-                        TimeSpan duration = TimeSpan.FromSeconds(bladder.Value);
+                        TimeSpan duration = TimeSpan.FromSeconds(Handler.Player.Stats.Bladder);
 
-                        player.Job.Tasks.Add(new UseToilet
+                        Handler.Player.Job.Tasks.Add(new UseToilet
                         {
                             Name = "UseToilet",
-                            OwnerID = player.ID,
+                            OwnerID = Handler.Player.ID,
                             Location = tile.Location,
                             StartTime = new TimeHandler(TimeManager.Now),
                             EndTime = new TimeHandler(TimeManager.Now, duration),
-                            TaskBar = CharacterUtil.GenTaskbar(player, (int)duration.TotalMilliseconds)
+                            TaskBar = CharacterUtil.GenTaskbar(Handler.Player, (int)duration.TotalMilliseconds)
                         });
                     }
                     else
@@ -669,26 +664,26 @@ namespace Despicaville
                 }
                 else if (tile.Name.Contains("Lamp"))
                 {
-                    player.Job.Tasks.Add(new ToggleLight
+                    Handler.Player.Job.Tasks.Add(new ToggleLight
                     {
                         Name = "ToggleLight",
-                        OwnerID = player.ID,
+                        OwnerID = Handler.Player.ID,
                         Location = tile.Location,
                         StartTime = new TimeHandler(TimeManager.Now),
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
-                        TaskBar = CharacterUtil.GenTaskbar(player, 1000)
+                        TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 1000)
                     });
                 }
                 else if (tile.Name.Contains("TV"))
                 {
-                    player.Job.Tasks.Add(new ToggleTV
+                    Handler.Player.Job.Tasks.Add(new ToggleTV
                     {
                         Name = "ToggleTV",
-                        OwnerID = player.ID,
+                        OwnerID = Handler.Player.ID,
                         Location = tile.Location,
                         StartTime = new TimeHandler(TimeManager.Now),
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
-                        TaskBar = CharacterUtil.GenTaskbar(player, 1000)
+                        TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 1000)
                     });
                 }
                 else if (tile.Name.Contains("Door"))
@@ -697,38 +692,38 @@ namespace Despicaville
                     {
                         if (InputManager.KeyDown("Crouch"))
                         {
-                            player.Job.Tasks.Add(new OpenDoor
+                            Handler.Player.Job.Tasks.Add(new OpenDoor
                             {
                                 Name = "Quiet_OpenDoor",
-                                OwnerID = player.ID,
+                                OwnerID = Handler.Player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(4)),
-                                TaskBar = CharacterUtil.GenTaskbar(player, 4000)
+                                TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 4000)
                             });
                         }
                         else if (InputManager.KeyDown("Run"))
                         {
-                            player.Job.Tasks.Add(new OpenDoor
+                            Handler.Player.Job.Tasks.Add(new OpenDoor
                             {
                                 Name = "Loud_OpenDoor",
-                                OwnerID = player.ID,
+                                OwnerID = Handler.Player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
-                                TaskBar = CharacterUtil.GenTaskbar(player, 1000)
+                                TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 1000)
                             });
                         }
                         else
                         {
-                            player.Job.Tasks.Add(new OpenDoor
+                            Handler.Player.Job.Tasks.Add(new OpenDoor
                             {
                                 Name = "OpenDoor",
-                                OwnerID = player.ID,
+                                OwnerID = Handler.Player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
-                                TaskBar = CharacterUtil.GenTaskbar(player, 2000)
+                                TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 2000)
                             });
                         }
                     }
@@ -736,38 +731,38 @@ namespace Despicaville
                     {
                         if (InputManager.KeyDown("Crouch"))
                         {
-                            player.Job.Tasks.Add(new CloseDoor
+                            Handler.Player.Job.Tasks.Add(new CloseDoor
                             {
                                 Name = "Quiet_CloseDoor",
-                                OwnerID = player.ID,
+                                OwnerID = Handler.Player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(4)),
-                                TaskBar = CharacterUtil.GenTaskbar(player, 4000)
+                                TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 4000)
                             });
                         }
                         else if (InputManager.KeyDown("Run"))
                         {
-                            player.Job.Tasks.Add(new CloseDoor
+                            Handler.Player.Job.Tasks.Add(new CloseDoor
                             {
                                 Name = "Loud_CloseDoor",
-                                OwnerID = player.ID,
+                                OwnerID = Handler.Player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
-                                TaskBar = CharacterUtil.GenTaskbar(player, 1000)
+                                TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 1000)
                             });
                         }
                         else
                         {
-                            player.Job.Tasks.Add(new CloseDoor
+                            Handler.Player.Job.Tasks.Add(new CloseDoor
                             {
                                 Name = "CloseDoor",
-                                OwnerID = player.ID,
+                                OwnerID = Handler.Player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
-                                TaskBar = CharacterUtil.GenTaskbar(player, 2000)
+                                TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 2000)
                             });
                         }
                     }
@@ -779,38 +774,38 @@ namespace Despicaville
                     {
                         if (InputManager.KeyDown("Crouch"))
                         {
-                            player.Job.Tasks.Add(new OpenWindow
+                            Handler.Player.Job.Tasks.Add(new OpenWindow
                             {
                                 Name = "Quiet_OpenWindow",
-                                OwnerID = player.ID,
+                                OwnerID = Handler.Player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(4)),
-                                TaskBar = CharacterUtil.GenTaskbar(player, 4000)
+                                TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 4000)
                             });
                         }
                         else if (InputManager.KeyDown("Run"))
                         {
-                            player.Job.Tasks.Add(new OpenWindow
+                            Handler.Player.Job.Tasks.Add(new OpenWindow
                             {
                                 Name = "Loud_OpenWindow",
-                                OwnerID = player.ID,
+                                OwnerID = Handler.Player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
-                                TaskBar = CharacterUtil.GenTaskbar(player, 1000)
+                                TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 1000)
                             });
                         }
                         else
                         {
-                            player.Job.Tasks.Add(new OpenWindow
+                            Handler.Player.Job.Tasks.Add(new OpenWindow
                             {
                                 Name = "OpenWindow",
-                                OwnerID = player.ID,
+                                OwnerID = Handler.Player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
-                                TaskBar = CharacterUtil.GenTaskbar(player, 2000)
+                                TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 2000)
                             });
                         }
                     }
@@ -818,38 +813,38 @@ namespace Despicaville
                     {
                         if (InputManager.KeyDown("Crouch"))
                         {
-                            player.Job.Tasks.Add(new CloseWindow
+                            Handler.Player.Job.Tasks.Add(new CloseWindow
                             {
                                 Name = "Quiet_CloseWindow",
-                                OwnerID = player.ID,
+                                OwnerID = Handler.Player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(4)),
-                                TaskBar = CharacterUtil.GenTaskbar(player, 4000)
+                                TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 4000)
                             });
                         }
                         else if (InputManager.KeyDown("Run"))
                         {
-                            player.Job.Tasks.Add(new CloseWindow
+                            Handler.Player.Job.Tasks.Add(new CloseWindow
                             {
                                 Name = "Loud_CloseWindow",
-                                OwnerID = player.ID,
+                                OwnerID = Handler.Player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
-                                TaskBar = CharacterUtil.GenTaskbar(player, 1000)
+                                TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 1000)
                             });
                         }
                         else
                         {
-                            player.Job.Tasks.Add(new CloseWindow
+                            Handler.Player.Job.Tasks.Add(new CloseWindow
                             {
                                 Name = "CloseWindow",
-                                OwnerID = player.ID,
+                                OwnerID = Handler.Player.ID,
                                 Location = tile.Location,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
-                                TaskBar = CharacterUtil.GenTaskbar(player, 2000)
+                                TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 2000)
                             });
                         }
                     }
@@ -858,42 +853,42 @@ namespace Despicaville
                 {
                     if (InputManager.KeyDown("Crouch"))
                     {
-                        player.Job.Tasks.Add(new Search
+                        Handler.Player.Job.Tasks.Add(new Search
                         {
                             Name = "Quiet_Search",
-                            OwnerID = player.ID,
+                            OwnerID = Handler.Player.ID,
                             Location = tile.Location,
                             StartTime = new TimeHandler(TimeManager.Now),
                             EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(20)),
-                            TaskBar = CharacterUtil.GenTaskbar(player, 20000)
+                            TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 20000)
                         });
 
                         GameUtil.AddMessage("You started quietly searching the " + WorldUtil.GetTile_Name(tile) + ".");
                     }
                     else if (InputManager.KeyDown("Run"))
                     {
-                        player.Job.Tasks.Add(new Search
+                        Handler.Player.Job.Tasks.Add(new Search
                         {
                             Name = "Loud_Search",
-                            OwnerID = player.ID,
+                            OwnerID = Handler.Player.ID,
                             Location = tile.Location,
                             StartTime = new TimeHandler(TimeManager.Now),
                             EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(5)),
-                            TaskBar = CharacterUtil.GenTaskbar(player, 5000)
+                            TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 5000)
                         });
 
                         GameUtil.AddMessage("You started quickly searching the " + WorldUtil.GetTile_Name(tile) + ".");
                     }
                     else
                     {
-                        player.Job.Tasks.Add(new Search
+                        Handler.Player.Job.Tasks.Add(new Search
                         {
                             Name = "Search",
-                            OwnerID = player.ID,
+                            OwnerID = Handler.Player.ID,
                             Location = tile.Location,
                             StartTime = new TimeHandler(TimeManager.Now),
                             EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(10)),
-                            TaskBar = CharacterUtil.GenTaskbar(player, 10000)
+                            TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 10000)
                         });
 
                         GameUtil.AddMessage("You started searching the " + WorldUtil.GetTile_Name(tile) + ".");

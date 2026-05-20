@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
@@ -18,7 +19,6 @@ using OP_Engine.Rendering;
 using OP_Engine.Enums;
 using Despicaville.Util;
 using Despicaville.Tasks;
-using System.Linq;
 
 namespace Despicaville.Scenes
 {
@@ -73,10 +73,10 @@ namespace Despicaville.Scenes
                         if (!Handler.Player.Moving &&
                             !Handler.Player.Unconscious)
                         {
-                            UpdatePlayerControls(Handler.Player);
+                            UpdatePlayerControls();
                         }
 
-                        UpdatePlayer(Handler.Player);
+                        UpdatePlayer();
                     }
                 }
             }
@@ -236,6 +236,7 @@ namespace Despicaville.Scenes
                                         character.InSight)
                                     {
                                         if (character.Unconscious ||
+                                            character.Laying ||
                                             character.Dead)
                                         {
                                             Texture2D body_texture = AssetManager.Textures["Down_" + character.Texture.Name];
@@ -415,7 +416,7 @@ namespace Despicaville.Scenes
             }
         }
 
-        private void UpdatePlayerControls(Character player)
+        private void UpdatePlayerControls()
         {
             bool mouse_in_view = false;
 
@@ -426,7 +427,7 @@ namespace Despicaville.Scenes
                 mouse_in_view = true;
             }
 
-            if (player.Job.Tasks.Count == 0)
+            if (Handler.Player.Job.Tasks.Count == 0)
             {
                 #region Holding
 
@@ -435,24 +436,24 @@ namespace Despicaville.Scenes
                     if (InputManager.Mouse_RB_Held)
                     {
                         if (!Handler.Holding &&
-                            InventoryUtil.HasEmptyHand(player))
+                            InventoryUtil.HasEmptyHand(Handler.Player))
                         {
                             Location location = new Location();
-                            if (player.Direction == Direction.Up)
+                            if (Handler.Player.Direction == Direction.Up)
                             {
-                                location = new Location(player.Location.X, player.Location.Y - 1, 0);
+                                location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y - 1, 0);
                             }
-                            else if (player.Direction == Direction.Right)
+                            else if (Handler.Player.Direction == Direction.Right)
                             {
-                                location = new Location(player.Location.X + 1, player.Location.Y, 0);
+                                location = new Location(Handler.Player.Location.X + 1, Handler.Player.Location.Y, 0);
                             }
-                            else if (player.Direction == Direction.Down)
+                            else if (Handler.Player.Direction == Direction.Down)
                             {
-                                location = new Location(player.Location.X, player.Location.Y + 1, 0);
+                                location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y + 1, 0);
                             }
-                            else if (player.Direction == Direction.Left)
+                            else if (Handler.Player.Direction == Direction.Left)
                             {
-                                location = new Location(player.Location.X - 1, player.Location.Y, 0);
+                                location = new Location(Handler.Player.Location.X - 1, Handler.Player.Location.Y, 0);
                             }
 
                             bool holding = false;
@@ -475,6 +476,7 @@ namespace Despicaville.Scenes
                                 Handler.Holding_Character = character;
 
                                 Tasker.AbortTask(character);
+                                character.Moved = 0;
                                 character.Moving = false;
 
                                 Label label = ui.GetLabel("Holding");
@@ -495,7 +497,7 @@ namespace Despicaville.Scenes
 
                                         Label label = ui.GetLabel("Holding");
                                         label.Opacity = 1;
-                                        label.TextColor = Color.Lime;
+                                        label.TextColor = Color.Red;
                                     }
                                 }
                             }
@@ -517,7 +519,7 @@ namespace Despicaville.Scenes
                     }
                 }
                 else if (Handler.Holding &&
-                         !player.Moving)
+                         !Handler.Player.Moving)
                 {
                     Handler.Holding = false;
                     Handler.Holding_ID = 0;
@@ -535,21 +537,21 @@ namespace Despicaville.Scenes
 
                 if (InputManager.KeyDown("Run"))
                 {
-                    if (!Handler.Running &&
+                    if (!Handler.Player.Running &&
                         !Handler.Holding)
                     {
-                        Handler.Running = true;
+                        Handler.Player.Running = true;
 
                         Label label = ui.GetLabel("Running");
                         label.Opacity = 1;
-                        label.TextColor = Color.LimeGreen;
+                        label.TextColor = Color.Red;
                     }
                 }
                 else
                 {
-                    if (Handler.Running)
+                    if (Handler.Player.Running)
                     {
-                        Handler.Running = false;
+                        Handler.Player.Running = false;
 
                         Label label = ui.GetLabel("Running");
                         label.Opacity = 0.6f;
@@ -563,20 +565,20 @@ namespace Despicaville.Scenes
 
                 if (InputManager.KeyDown("Crouch"))
                 {
-                    if (!Handler.Crouching)
+                    if (!Handler.Player.Crouching)
                     {
-                        Handler.Crouching = true;
+                        Handler.Player.Crouching = true;
 
                         Label label = ui.GetLabel("Crouching");
                         label.Opacity = 1;
-                        label.TextColor = Color.LimeGreen;
+                        label.TextColor = Color.Red;
                     }
                 }
                 else
                 {
-                    if (Handler.Crouching)
+                    if (Handler.Player.Crouching)
                     {
-                        Handler.Crouching = false;
+                        Handler.Player.Crouching = false;
 
                         Label label = ui.GetLabel("Crouching");
                         label.Opacity = 0.6f;
@@ -590,32 +592,32 @@ namespace Despicaville.Scenes
 
                 if (InputManager.KeyDown("Up"))
                 {
-                    if (Handler.Running)
+                    if (Handler.Player.Running)
                     {
-                        player.Job.Tasks.Add(new Move
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
                             Name = "Run",
-                            OwnerID = player.ID,
+                            OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Up
                         });
                     }
-                    else if (Handler.Crouching)
+                    else if (Handler.Player.Crouching)
                     {
-                        player.Job.Tasks.Add(new Move
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
                             Name = "Sneak",
-                            OwnerID = player.ID,
+                            OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Up
                         });
                     }
                     else
                     {
-                        player.Job.Tasks.Add(new Move
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
                             Name = "Walk",
-                            OwnerID = player.ID,
+                            OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Up
                         });
@@ -623,32 +625,32 @@ namespace Despicaville.Scenes
                 }
                 else if (InputManager.KeyDown("Right"))
                 {
-                    if (Handler.Running)
+                    if (Handler.Player.Running)
                     {
-                        player.Job.Tasks.Add(new Move
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
                             Name = "Run",
-                            OwnerID = player.ID,
+                            OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Right
                         });
                     }
-                    else if (Handler.Crouching)
+                    else if (Handler.Player.Crouching)
                     {
-                        player.Job.Tasks.Add(new Move
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
                             Name = "Sneak",
-                            OwnerID = player.ID,
+                            OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Right
                         });
                     }
                     else
                     {
-                        player.Job.Tasks.Add(new Move
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
                             Name = "Walk",
-                            OwnerID = player.ID,
+                            OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Right
                         });
@@ -656,32 +658,32 @@ namespace Despicaville.Scenes
                 }
                 else if (InputManager.KeyDown("Down"))
                 {
-                    if (Handler.Running)
+                    if (Handler.Player.Running)
                     {
-                        player.Job.Tasks.Add(new Move
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
                             Name = "Run",
-                            OwnerID = player.ID,
+                            OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Down
                         });
                     }
-                    else if (Handler.Crouching)
+                    else if (Handler.Player.Crouching)
                     {
-                        player.Job.Tasks.Add(new Move
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
                             Name = "Sneak",
-                            OwnerID = player.ID,
+                            OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Down
                         });
                     }
                     else
                     {
-                        player.Job.Tasks.Add(new Move
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
                             Name = "Walk",
-                            OwnerID = player.ID,
+                            OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Down
                         });
@@ -689,32 +691,32 @@ namespace Despicaville.Scenes
                 }
                 else if (InputManager.KeyDown("Left"))
                 {
-                    if (Handler.Running)
+                    if (Handler.Player.Running)
                     {
-                        player.Job.Tasks.Add(new Move
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
                             Name = "Run",
-                            OwnerID = player.ID,
+                            OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Left
                         });
                     }
-                    else if (Handler.Crouching)
+                    else if (Handler.Player.Crouching)
                     {
-                        player.Job.Tasks.Add(new Move
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
                             Name = "Sneak",
-                            OwnerID = player.ID,
+                            OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Left
                         });
                     }
                     else
                     {
-                        player.Job.Tasks.Add(new Move
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
                             Name = "Walk",
-                            OwnerID = player.ID,
+                            OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
                             Direction = Direction.Left
                         });
@@ -733,21 +735,21 @@ namespace Despicaville.Scenes
 
                         Direction direction = Direction.Nowhere;
 
-                        int x_diff = (int)Math.Abs(InputManager.Mouse.X - (player.Region.X + (player.Region.Width / 2)));
-                        int y_diff = (int)Math.Abs(InputManager.Mouse.Y - (player.Region.Y + (player.Region.Height / 2)));
+                        int x_diff = (int)Math.Abs(InputManager.Mouse.X - (Handler.Player.Region.X + (Handler.Player.Region.Width / 2)));
+                        int y_diff = (int)Math.Abs(InputManager.Mouse.Y - (Handler.Player.Region.Y + (Handler.Player.Region.Height / 2)));
 
                         if (x_diff > y_diff)
                         {
-                            if (InputManager.Mouse.X <= player.Region.X + (player.Region.Width / 2))
+                            if (InputManager.Mouse.X <= Handler.Player.Region.X + (Handler.Player.Region.Width / 2))
                             {
-                                if (player.Direction != Direction.Left)
+                                if (Handler.Player.Direction != Direction.Left)
                                 {
                                     direction = Direction.Left;
                                 }
                             }
-                            else if (InputManager.Mouse.X > player.Region.X + (player.Region.Width / 2))
+                            else if (InputManager.Mouse.X > Handler.Player.Region.X + (Handler.Player.Region.Width / 2))
                             {
-                                if (player.Direction != Direction.Right)
+                                if (Handler.Player.Direction != Direction.Right)
                                 {
                                     direction = Direction.Right;
                                 }
@@ -755,16 +757,16 @@ namespace Despicaville.Scenes
                         }
                         else
                         {
-                            if (InputManager.Mouse.Y <= player.Region.Y + (player.Region.Height / 2))
+                            if (InputManager.Mouse.Y <= Handler.Player.Region.Y + (Handler.Player.Region.Height / 2))
                             {
-                                if (player.Direction != Direction.Up)
+                                if (Handler.Player.Direction != Direction.Up)
                                 {
                                     direction = Direction.Up;
                                 }
                             }
-                            else if (InputManager.Mouse.Y > player.Region.Y + (player.Region.Height / 2))
+                            else if (InputManager.Mouse.Y > Handler.Player.Region.Y + (Handler.Player.Region.Height / 2))
                             {
-                                if (player.Direction != Direction.Down)
+                                if (Handler.Player.Direction != Direction.Down)
                                 {
                                     direction = Direction.Down;
                                 }
@@ -773,12 +775,12 @@ namespace Despicaville.Scenes
 
                         if (direction != Direction.Nowhere)
                         {
-                            player.Job.Tasks.Add(new Turn
+                            Handler.Player.Job.Tasks.Add(new Turn
                             {
                                 Name = "Turn",
-                                OwnerID = player.ID,
+                                OwnerID = Handler.Player.ID,
                                 StartTime = new TimeHandler(TimeManager.Now),
-                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(player))),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(Handler.Player))),
                                 Direction = direction
                             });
 
@@ -795,9 +797,9 @@ namespace Despicaville.Scenes
 
                                 Location location = new Location();
 
-                                if (CombatUtil.CanAttack_Ranged(player))
+                                if (CombatUtil.CanAttack_Ranged(Handler.Player))
                                 {
-                                    List<Tile> visible = Handler.VisibleTiles[player.ID];
+                                    List<Tile> visible = Handler.VisibleTiles[Handler.Player.ID];
 
                                     int count = visible.Count;
                                     for (int i = 0; i < count; i++)
@@ -812,37 +814,37 @@ namespace Despicaville.Scenes
                                 }
                                 else
                                 {
-                                    if (player.Direction == Direction.Up)
+                                    if (Handler.Player.Direction == Direction.Up)
                                     {
-                                        location = new Location(player.Location.X, player.Location.Y - 1, 1);
+                                        location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y - 1, 1);
                                     }
-                                    else if (player.Direction == Direction.Right)
+                                    else if (Handler.Player.Direction == Direction.Right)
                                     {
-                                        location = new Location(player.Location.X + 1, player.Location.Y, 1);
+                                        location = new Location(Handler.Player.Location.X + 1, Handler.Player.Location.Y, 1);
                                     }
-                                    else if (player.Direction == Direction.Down)
+                                    else if (Handler.Player.Direction == Direction.Down)
                                     {
-                                        location = new Location(player.Location.X, player.Location.Y + 1, 1);
+                                        location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y + 1, 1);
                                     }
-                                    else if (player.Direction == Direction.Left)
+                                    else if (Handler.Player.Direction == Direction.Left)
                                     {
-                                        location = new Location(player.Location.X - 1, player.Location.Y, 1);
+                                        location = new Location(Handler.Player.Location.X - 1, Handler.Player.Location.Y, 1);
                                     }
                                 }
 
-                                Dictionary<string, string> AttackingWith = CombatUtil.AttackChoice(player);
+                                Dictionary<string, string> AttackingWith = CombatUtil.AttackChoice(Handler.Player);
                                 string action = AttackingWith.ElementAt(0).Value;
 
-                                int attackTime = CombatUtil.AttackTime(player, action);
-                                player.Job.Tasks.Add(new Attack
+                                int attackTime = CombatUtil.AttackTime(Handler.Player, action);
+                                Handler.Player.Job.Tasks.Add(new Attack
                                 {
                                     Name = "Attack",
-                                    OwnerID = player.ID,
+                                    OwnerID = Handler.Player.ID,
                                     Location = location,
-                                    Direction = player.Direction,
+                                    Direction = Handler.Player.Direction,
                                     StartTime = new TimeHandler(TimeManager.Now),
                                     EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(attackTime)),
-                                    TaskBar = CharacterUtil.GenTaskbar(player, attackTime)
+                                    TaskBar = CharacterUtil.GenTaskbar(Handler.Player, attackTime)
                                 });
 
                                 #endregion
@@ -853,7 +855,7 @@ namespace Despicaville.Scenes
 
                                 Location location = null;
 
-                                List<Tile> visible = Handler.VisibleTiles[player.ID];
+                                List<Tile> visible = Handler.VisibleTiles[Handler.Player.ID];
 
                                 int count = visible.Count;
                                 for (int i = 0; i < count; i++)
@@ -866,24 +868,25 @@ namespace Despicaville.Scenes
                                     }
                                 }
 
-                                if (location.X == -1 &&
+                                if (location != null &&
+                                    location.X == -1 &&
                                     location.Y == -1)
                                 {
-                                    if (player.Direction == Direction.Up)
+                                    if (Handler.Player.Direction == Direction.Up)
                                     {
-                                        location = new Location(player.Location.X, player.Location.Y - 1);
+                                        location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y - 1);
                                     }
-                                    else if (player.Direction == Direction.Right)
+                                    else if (Handler.Player.Direction == Direction.Right)
                                     {
-                                        location = new Location(player.Location.X + 1, player.Location.Y);
+                                        location = new Location(Handler.Player.Location.X + 1, Handler.Player.Location.Y);
                                     }
-                                    else if (player.Direction == Direction.Down)
+                                    else if (Handler.Player.Direction == Direction.Down)
                                     {
-                                        location = new Location(player.Location.X, player.Location.Y + 1);
+                                        location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y + 1);
                                     }
-                                    else if (player.Direction == Direction.Left)
+                                    else if (Handler.Player.Direction == Direction.Left)
                                     {
-                                        location = new Location(player.Location.X - 1, player.Location.Y);
+                                        location = new Location(Handler.Player.Location.X - 1, Handler.Player.Location.Y);
                                     }
                                 }
 
@@ -926,9 +929,9 @@ namespace Despicaville.Scenes
 
                                     if (interaction_tile != null)
                                     {
-                                        if (WorldUtil.NextTo(location, player.Location))
+                                        if (WorldUtil.NextTo(location, Handler.Player.Location))
                                         {
-                                            Tasker.Interact(interaction_tile, player);
+                                            Tasker.Interact(interaction_tile);
                                         }
                                         else
                                         {
@@ -948,9 +951,9 @@ namespace Despicaville.Scenes
 
                         Character target = null;
 
-                        if (CombatUtil.CanAttack_Ranged(player))
+                        if (CombatUtil.CanAttack_Ranged(Handler.Player))
                         {
-                            List<Tile> visible = Handler.VisibleTiles[player.ID];
+                            List<Tile> visible = Handler.VisibleTiles[Handler.Player.ID];
 
                             int count = visible.Count;
                             for (int i = 0; i < count; i++)
@@ -967,7 +970,7 @@ namespace Despicaville.Scenes
                         #endregion
 
                         if (target != null &&
-                            !WorldUtil.NextTo(target.Location, player.Location))
+                            !WorldUtil.NextTo(target.Location, Handler.Player.Location))
                         {
                             #region Aimed Attack
 
@@ -982,30 +985,30 @@ namespace Despicaville.Scenes
 
                             Location location = null;
 
-                            if (player.Direction == Direction.Up)
+                            if (Handler.Player.Direction == Direction.Up)
                             {
-                                location = new Location(player.Location.X, player.Location.Y - 1, 1);
+                                location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y - 1, 1);
                             }
-                            else if (player.Direction == Direction.Right)
+                            else if (Handler.Player.Direction == Direction.Right)
                             {
-                                location = new Location(player.Location.X + 1, player.Location.Y, 1);
+                                location = new Location(Handler.Player.Location.X + 1, Handler.Player.Location.Y, 1);
                             }
-                            else if (player.Direction == Direction.Down)
+                            else if (Handler.Player.Direction == Direction.Down)
                             {
-                                location = new Location(player.Location.X, player.Location.Y + 1, 1);
+                                location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y + 1, 1);
                             }
-                            else if (player.Direction == Direction.Left)
+                            else if (Handler.Player.Direction == Direction.Left)
                             {
-                                location = new Location(player.Location.X - 1, player.Location.Y, 1);
+                                location = new Location(Handler.Player.Location.X - 1, Handler.Player.Location.Y, 1);
                             }
 
-                            player.Job.Tasks.Add(new Push
+                            Handler.Player.Job.Tasks.Add(new Push
                             {
                                 Name = "Push",
-                                OwnerID = player.ID,
+                                OwnerID = Handler.Player.ID,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 Location = location,
-                                Direction = player.Direction
+                                Direction = Handler.Player.Direction
                             });
 
                             #endregion
@@ -1019,19 +1022,19 @@ namespace Despicaville.Scenes
                 {
                     long time = Handler.ActionRate;
 
-                    if (Handler.Running)
+                    if (Handler.Player.Running)
                     {
                         time = Handler.ActionRate * 5;
                     }
-                    else if (Handler.Crouching)
+                    else if (Handler.Player.Crouching)
                     {
                         time = Handler.ActionRate / 5;
                     }
 
-                    player.Job.Tasks.Add(new Wait
+                    Handler.Player.Job.Tasks.Add(new Wait
                     {
                         Name = "Wait",
-                        OwnerID = player.ID,
+                        OwnerID = Handler.Player.ID,
                         StartTime = new TimeHandler(TimeManager.Now),
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(time))
                     });
@@ -1053,7 +1056,7 @@ namespace Despicaville.Scenes
                     if (Handler.Combat)
                     {
                         label.Opacity = 1;
-                        label.TextColor = Color.LimeGreen;
+                        label.TextColor = Color.Red;
                     }
                     else
                     {
@@ -1100,27 +1103,26 @@ namespace Despicaville.Scenes
             }
         }
 
-        private void UpdatePlayer(Character player)
+        private void UpdatePlayer()
         {
-            if (player != null)
+            if (Handler.Player != null)
             {
-                Property blood = player.GetStat("Blood");
-                if (blood.Value <= 0)
+                if (Handler.Player.Stats.Blood <= 0)
                 {
-                    player.Dead = true;
+                    Handler.Player.Dead = true;
                     //Game Over
                 }
 
-                if (!player.Dead)
+                if (!Handler.Player.Dead)
                 {
-                    if (player.Unconscious)
+                    if (Handler.Player.Unconscious)
                     {
                         TimeTracker.Tick(Handler.ActionRate * 5);
-                        CharacterUtil.Sleep(player);
+                        CharacterUtil.Sleep(Handler.Player);
                     }
                     else
                     {
-                        Task task = player.Job.CurrentTask;
+                        Task task = Handler.Player.Job.CurrentTask;
                         if (task != null)
                         {
                             if (task.Name == "Sneak" ||
@@ -1128,7 +1130,7 @@ namespace Despicaville.Scenes
                                 task.Name == "Run" ||
                                 task.Name == "Push")
                             {
-                                player.Job.Update(TimeManager.Now);
+                                Handler.Player.Job.Update(TimeManager.Now);
                             }
                             else
                             {
@@ -1203,7 +1205,7 @@ namespace Despicaville.Scenes
                                         }
                                         else
                                         {
-                                            player.Job.Update(TimeManager.Now);
+                                            Handler.Player.Job.Update(TimeManager.Now);
                                         }
                                     }
                                 }
@@ -1211,7 +1213,7 @@ namespace Despicaville.Scenes
                         }
                     }
 
-                    WorldUtil.UpdateWorld(World, player);
+                    WorldUtil.UpdateWorld(World);
                     GameUtil.CenterToPlayer_OnFrame();
                 }
             }

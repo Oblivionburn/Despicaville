@@ -36,8 +36,6 @@ namespace Despicaville
 
         public static bool Menu_Health;
         public static bool WorldMap_Visible;
-        public static bool Crouching;
-        public static bool Running;
         public static bool Combat;
 
         public static bool Holding;
@@ -52,7 +50,7 @@ namespace Despicaville
         public static string[] HairLength = { "Bald", "Short", "Long" };
         public static string[] HairColor = { "Black", "Blonde", "Brown", "Grey", "Red", "White" };
         public static string[] Colors = { "Black", "Blue", "Brown", "Cyan", "Green", "Grey", "Orange", "Pink", "Purple", "Red", "White", "Yellow" };
-        public static string[] SeeThrough = { "Lamp", "StreetLight", "Counter", "TV", "Stove", "Table" };
+        public static string[] SeeThrough = { "Lamp", "StreetLight", "Counter", "TV", "Stove", "Table", "Dresser", "Bookshelf", "ComputerDesk" };
         public static string[] Searchable = { "Counter", "Fridge", "Dresser", "Desk", "Bookshelf", "Grass" };
         public static string[] BodyParts = { "Head", "Neck", "Torso", "Groin", "Right_Arm", "Right_Hand", "Left_Arm", "Left_Hand", "Right_Leg", "Right_Foot", "Left_Leg", "Left_Foot" };
 
@@ -72,7 +70,12 @@ namespace Despicaville
         public static List<Tile> MiddleFurniture = new List<Tile>();
         public static Dictionary<long, List<Tile>> VisibleTiles = new Dictionary<long, List<Tile>>();
         public static Dictionary<long, List<Tile>> OwnedFurniture = new Dictionary<long, List<Tile>>();
+
         public static Dictionary<string, string> Stats = new Dictionary<string, string>();
+        public static float HungerRate = 0.0006945f;
+        public static float ThirstRate = 0.0013888f;
+        public static float ComfortRate = 0.00556f;
+        public static float BoredomRate = 0.00695f;
 
         public static int CharGen_Stage;
         public static string Selected_BodyPart;
@@ -123,12 +126,14 @@ namespace Despicaville
                 LoadUtil.ParseINI(config);
             }
 
-            Inventory assets = new Inventory
+            InventoryManager.Inventories = new List<Inventory>
             {
-                ID = GetID(),
-                Name = "Assets"
+                new Inventory
+                {
+                    ID = GetID(),
+                    Name = "Assets"
+                }
             };
-            InventoryManager.Inventories.Add(assets);
 
             AssetManager.Directories.Add("Mods", Path.Combine(Environment.CurrentDirectory, "Mods"));
         }
@@ -304,45 +309,49 @@ namespace Despicaville
 
         private static void LoadStats()
         {
-            string stat = "Strength";
-            string description = "How much physical force you can apply.";
-            Stats.Add(stat, description);
-
-            stat = "Vitality";
-            description = "How quickly your wounds heal.";
-            Stats.Add(stat, description);
-
-            stat = "Endurance";
-            description = "How long you can sustain physical exertion.";
-            Stats.Add(stat, description);
-
-            stat = "Agility";
-            description = "How quickly you can move and react.";
-            Stats.Add(stat, description);
-
-            stat = "Intelligence";
-            description = "How quickly you learn new things.";
-            Stats.Add(stat, description);
-
-            stat = "Perception";
-            description = "How quickly you notice details.";
-            Stats.Add(stat, description);
-
-            stat = "Charisma";
-            description = "How persuasive you are.";
-            Stats.Add(stat, description);
-
-            stat = "Willpower";
-            description = "How much pain you can tolerate.";
-            Stats.Add(stat, description);
-
-            stat = "Sanity";
-            description = "How well you manage paranoia.";
-            Stats.Add(stat, description);
-
-            stat = "Luck";
-            description = "How lucky you are.";
-            Stats.Add(stat, description);
+            Stats = new Dictionary<string, string>
+            {
+                {
+                    "Strength",
+                    "How much physical force you can apply."
+                },
+                {
+                    "Vitality",
+                    "How quickly your wounds heal."
+                },
+                {
+                    "Endurance",
+                    "How long you can sustain physical exertion."
+                },
+                {
+                    "Agility",
+                    "How quickly you can move and react."
+                },
+                {
+                    "Intelligence",
+                    "How quickly you learn new things."
+                },
+                {
+                    "Perception",
+                    "How quickly you notice details."
+                },
+                {
+                    "Charisma",
+                    "How persuasive you are."
+                },
+                {
+                    "Willpower",
+                    "How much pain you can tolerate."
+                },
+                {
+                    "Sanity",
+                    "How well you manage paranoia."
+                },
+                {
+                    "Luck",
+                    "How lucky you are."
+                },
+            };
 
             CharacterManager.LastNames.Sort();
         }

@@ -44,15 +44,15 @@ namespace Despicaville.Tasks
 
             if (Name == "Sneak")
             {
-                character.Speed = 0.5f;
+                character.MoveSpeed = 0.5f;
             }
             else if (Name == "Walk")
             {
-                character.Speed = 1;
+                character.MoveSpeed = 1;
             }
             else if (Name == "Run")
             {
-                character.Speed = 2;
+                character.MoveSpeed = 2;
             }
 
             if (Direction == Direction.Up)
@@ -77,6 +77,8 @@ namespace Despicaville.Tasks
 
             if (WorldUtil.CanMove(character, map, character.Destination))
             {
+                #region Move
+
                 if (Direction != character.Direction)
                 {
                     EndTime = new TimeHandler(TimeManager.Now);
@@ -94,6 +96,30 @@ namespace Despicaville.Tasks
                 {
                     character.Moving = true;
 
+                    if (character.Type == "Player" &&
+                        Handler.Holding_Character != null)
+                    {
+                        if (character.Destination.X > character.Location.X)
+                        {
+                            WorldUtil.HeldCharacter_SetDestination(character, Direction.East, Handler.Holding_Character.Region.X < character.Region.X);
+                        }
+                        else if (character.Destination.X < character.Location.X)
+                        {
+                            WorldUtil.HeldCharacter_SetDestination(character, Direction.West, Handler.Holding_Character.Region.X > character.Region.X);
+                        }
+                        else
+                        {
+                            if (character.Destination.Y > character.Location.Y)
+                            {
+                                WorldUtil.HeldCharacter_SetDestination(character, Direction.South, Handler.Holding_Character.Region.Y < character.Region.Y);
+                            }
+                            else if (character.Destination.Y < character.Location.Y)
+                            {
+                                WorldUtil.HeldCharacter_SetDestination(character, Direction.North, Handler.Holding_Character.Region.Y > character.Region.Y);
+                            }
+                        }
+                    }
+
                     Layer middle_tiles = map.GetLayer("MiddleTiles");
                     Tile tile = middle_tiles.GetTile(character.Destination.ToVector2);
                     if (tile != null)
@@ -101,13 +127,17 @@ namespace Despicaville.Tasks
                         if (tile.Name.Contains("Window") &&
                             tile.Name.Contains("Closed"))
                         {
-                            Tasker.BreakWindow(character);
+                            Tasker.BreakWindow(character.Destination.ToVector2, character.Direction);
                         }
                     }
                 }
+
+                #endregion
             }
             else
             {
+                #region Do Something Else
+
                 EndTime = new TimeHandler(TimeManager.Now);
 
                 if (Direction != character.Direction)
@@ -165,6 +195,8 @@ namespace Despicaville.Tasks
                         });
                     }
                 }
+
+                #endregion
             }
         }
 
@@ -192,8 +224,8 @@ namespace Despicaville.Tasks
 
             if (character.Destination.X > character.Location.X)
             {
-                character.Region.X += character.Speed;
-                character.Moved += character.Speed;
+                character.Region.X += character.MoveSpeed;
+                character.Moved += character.MoveSpeed;
 
                 if (character.Type == "Player")
                 {
@@ -201,15 +233,15 @@ namespace Despicaville.Tasks
                     {
                         if (Handler.Holding_Character.Location.Y == character.Location.Y)
                         {
-                            Handler.Holding_Character.Region.X += character.Speed;
+                            Handler.Holding_Character.Region.X += character.MoveSpeed;
                         }
                         else if (Handler.Holding_Character.Location.Y < character.Location.Y)
                         {
-                            Handler.Holding_Character.Region.Y += character.Speed;
+                            Handler.Holding_Character.Region.Y += character.MoveSpeed;
                         }
                         else if (Handler.Holding_Character.Location.Y > character.Location.Y)
                         {
-                            Handler.Holding_Character.Region.Y -= character.Speed;
+                            Handler.Holding_Character.Region.Y -= character.MoveSpeed;
                         }
 
                         if (Handler.Holding_Character.Type == "Citizen")
@@ -221,15 +253,15 @@ namespace Despicaville.Tasks
                     {
                         if (Handler.Holding_Tile.Location.Y == character.Location.Y)
                         {
-                            Handler.Holding_Tile.Region.X += character.Speed;
+                            Handler.Holding_Tile.Region.X += character.MoveSpeed;
                         }
                         else if (Handler.Holding_Tile.Location.Y < character.Location.Y)
                         {
-                            Handler.Holding_Tile.Region.Y += character.Speed;
+                            Handler.Holding_Tile.Region.Y += character.MoveSpeed;
                         }
                         else if (Handler.Holding_Tile.Location.Y > character.Location.Y)
                         {
-                            Handler.Holding_Tile.Region.Y -= character.Speed;
+                            Handler.Holding_Tile.Region.Y -= character.MoveSpeed;
                         }
                     }
                 }
@@ -242,11 +274,11 @@ namespace Despicaville.Tasks
                     {
                         if (Handler.Holding_Character != null)
                         {
-                            WorldUtil.PullHeld_Character(character, Direction.East, Handler.Holding_Character.Region.X < character.Region.X);
+                            WorldUtil.HeldCharacter_SetLocation(character, Direction.East, Handler.Holding_Character.Region.X < character.Region.X);
                         }
                         else if (Handler.Holding_Tile != null)
                         {
-                            WorldUtil.PullHeld_Tile(character, Direction.East, Handler.Holding_Tile.Region.X < character.Region.X);
+                            WorldUtil.HeldTile_SetLocation(character, Direction.East, Handler.Holding_Tile.Region.X < character.Region.X);
                         }
                     }
 
@@ -267,8 +299,8 @@ namespace Despicaville.Tasks
             }
             else if (character.Destination.X < character.Location.X)
             {
-                character.Region.X -= character.Speed;
-                character.Moved += character.Speed;
+                character.Region.X -= character.MoveSpeed;
+                character.Moved += character.MoveSpeed;
 
                 if (character.Type == "Player")
                 {
@@ -276,15 +308,15 @@ namespace Despicaville.Tasks
                     {
                         if (Handler.Holding_Character.Location.Y == character.Location.Y)
                         {
-                            Handler.Holding_Character.Region.X -= character.Speed;
+                            Handler.Holding_Character.Region.X -= character.MoveSpeed;
                         }
                         else if (Handler.Holding_Character.Location.Y < character.Location.Y)
                         {
-                            Handler.Holding_Character.Region.Y += character.Speed;
+                            Handler.Holding_Character.Region.Y += character.MoveSpeed;
                         }
                         else if (Handler.Holding_Character.Location.Y > character.Location.Y)
                         {
-                            Handler.Holding_Character.Region.Y -= character.Speed;
+                            Handler.Holding_Character.Region.Y -= character.MoveSpeed;
                         }
 
                         if (Handler.Holding_Character.Type == "Citizen")
@@ -296,15 +328,15 @@ namespace Despicaville.Tasks
                     {
                         if (Handler.Holding_Tile.Location.Y == character.Location.Y)
                         {
-                            Handler.Holding_Tile.Region.X -= character.Speed;
+                            Handler.Holding_Tile.Region.X -= character.MoveSpeed;
                         }
                         else if (Handler.Holding_Tile.Location.Y < character.Location.Y)
                         {
-                            Handler.Holding_Tile.Region.Y += character.Speed;
+                            Handler.Holding_Tile.Region.Y += character.MoveSpeed;
                         }
                         else if (Handler.Holding_Tile.Location.Y > character.Location.Y)
                         {
-                            Handler.Holding_Tile.Region.Y -= character.Speed;
+                            Handler.Holding_Tile.Region.Y -= character.MoveSpeed;
                         }
                     }
                 }
@@ -317,11 +349,11 @@ namespace Despicaville.Tasks
                     {
                         if (Handler.Holding_Character != null)
                         {
-                            WorldUtil.PullHeld_Character(character, Direction.West, Handler.Holding_Character.Region.X > character.Region.X);
+                            WorldUtil.HeldCharacter_SetLocation(character, Direction.West, Handler.Holding_Character.Region.X > character.Region.X);
                         }
                         else if (Handler.Holding_Tile != null)
                         {
-                            WorldUtil.PullHeld_Tile(character, Direction.West, Handler.Holding_Tile.Region.X > character.Region.X);
+                            WorldUtil.HeldTile_SetLocation(character, Direction.West, Handler.Holding_Tile.Region.X > character.Region.X);
                         }
                     }
 
@@ -344,8 +376,8 @@ namespace Despicaville.Tasks
             {
                 if (character.Destination.Y > character.Location.Y)
                 {
-                    character.Region.Y += character.Speed;
-                    character.Moved += character.Speed;
+                    character.Region.Y += character.MoveSpeed;
+                    character.Moved += character.MoveSpeed;
 
                     if (character.Type == "Player")
                     {
@@ -353,15 +385,15 @@ namespace Despicaville.Tasks
                         {
                             if (Handler.Holding_Character.Location.X == character.Location.X)
                             {
-                                Handler.Holding_Character.Region.Y += character.Speed;
+                                Handler.Holding_Character.Region.Y += character.MoveSpeed;
                             }
                             else if (Handler.Holding_Character.Location.X < character.Location.X)
                             {
-                                Handler.Holding_Character.Region.X += character.Speed;
+                                Handler.Holding_Character.Region.X += character.MoveSpeed;
                             }
                             else if (Handler.Holding_Character.Location.X > character.Location.X)
                             {
-                                Handler.Holding_Character.Region.X -= character.Speed;
+                                Handler.Holding_Character.Region.X -= character.MoveSpeed;
                             }
 
                             if (Handler.Holding_Character.Type == "Citizen")
@@ -373,15 +405,15 @@ namespace Despicaville.Tasks
                         {
                             if (Handler.Holding_Tile.Location.X == character.Location.X)
                             {
-                                Handler.Holding_Tile.Region.Y += character.Speed;
+                                Handler.Holding_Tile.Region.Y += character.MoveSpeed;
                             }
                             else if (Handler.Holding_Tile.Location.X < character.Location.X)
                             {
-                                Handler.Holding_Tile.Region.X += character.Speed;
+                                Handler.Holding_Tile.Region.X += character.MoveSpeed;
                             }
                             else if (Handler.Holding_Tile.Location.X > character.Location.X)
                             {
-                                Handler.Holding_Tile.Region.X -= character.Speed;
+                                Handler.Holding_Tile.Region.X -= character.MoveSpeed;
                             }
                         }
                     }
@@ -394,11 +426,11 @@ namespace Despicaville.Tasks
                         {
                             if (Handler.Holding_Character != null)
                             {
-                                WorldUtil.PullHeld_Character(character, Direction.South, Handler.Holding_Character.Region.Y < character.Region.Y);
+                                WorldUtil.HeldCharacter_SetLocation(character, Direction.South, Handler.Holding_Character.Region.Y < character.Region.Y);
                             }
                             else if (Handler.Holding_Tile != null)
                             {
-                                WorldUtil.PullHeld_Tile(character, Direction.South, Handler.Holding_Tile.Region.Y < character.Region.Y);
+                                WorldUtil.HeldTile_SetLocation(character, Direction.South, Handler.Holding_Tile.Region.Y < character.Region.Y);
                             }
                         }
 
@@ -419,8 +451,8 @@ namespace Despicaville.Tasks
                 }
                 else if (character.Destination.Y < character.Location.Y)
                 {
-                    character.Region.Y -= character.Speed;
-                    character.Moved += character.Speed;
+                    character.Region.Y -= character.MoveSpeed;
+                    character.Moved += character.MoveSpeed;
 
                     if (character.Type == "Player")
                     {
@@ -428,15 +460,15 @@ namespace Despicaville.Tasks
                         {
                             if (Handler.Holding_Character.Location.X == character.Location.X)
                             {
-                                Handler.Holding_Character.Region.Y -= character.Speed;
+                                Handler.Holding_Character.Region.Y -= character.MoveSpeed;
                             }
                             else if (Handler.Holding_Character.Location.X < character.Location.X)
                             {
-                                Handler.Holding_Character.Region.X += character.Speed;
+                                Handler.Holding_Character.Region.X += character.MoveSpeed;
                             }
                             else if (Handler.Holding_Character.Location.X > character.Location.X)
                             {
-                                Handler.Holding_Character.Region.X -= character.Speed;
+                                Handler.Holding_Character.Region.X -= character.MoveSpeed;
                             }
 
                             if (Handler.Holding_Character.Type == "Citizen")
@@ -448,15 +480,15 @@ namespace Despicaville.Tasks
                         {
                             if (Handler.Holding_Tile.Location.X == character.Location.X)
                             {
-                                Handler.Holding_Tile.Region.Y -= character.Speed;
+                                Handler.Holding_Tile.Region.Y -= character.MoveSpeed;
                             }
                             else if (Handler.Holding_Tile.Location.X < character.Location.X)
                             {
-                                Handler.Holding_Tile.Region.X += character.Speed;
+                                Handler.Holding_Tile.Region.X += character.MoveSpeed;
                             }
                             else if (Handler.Holding_Tile.Location.X > character.Location.X)
                             {
-                                Handler.Holding_Tile.Region.X -= character.Speed;
+                                Handler.Holding_Tile.Region.X -= character.MoveSpeed;
                             }
                         }
                     }
@@ -469,11 +501,11 @@ namespace Despicaville.Tasks
                         {
                             if (Handler.Holding_Character != null)
                             {
-                                WorldUtil.PullHeld_Character(character, Direction.North, Handler.Holding_Character.Region.Y > character.Region.Y);
+                                WorldUtil.HeldCharacter_SetLocation(character, Direction.North, Handler.Holding_Character.Region.Y > character.Region.Y);
                             }
                             else if (Handler.Holding_Tile != null)
                             {
-                                WorldUtil.PullHeld_Tile(character, Direction.North, Handler.Holding_Tile.Region.Y > character.Region.Y);
+                                WorldUtil.HeldTile_SetLocation(character, Direction.North, Handler.Holding_Tile.Region.Y > character.Region.Y);
                             }
                         }
 
@@ -514,25 +546,22 @@ namespace Despicaville.Tasks
 
             if (character.Moving)
             {
-                Property stamina = character.GetStat("Stamina");
-                Property endurance = character.GetStat("Endurance");
-
                 if (Name == "Sneak")
                 {
-                    stamina.Value -= (0.0385f / endurance.Value);
+                    character.Stats.Stamina -= (0.0385f / character.Stats.Endurance);
                 }
                 else if (Name == "Walk")
                 {
-                    stamina.Value -= (0.077f / endurance.Value);
+                    character.Stats.Stamina -= (0.077f / character.Stats.Endurance);
                 }
                 else if (Name == "Run")
                 {
-                    stamina.Value -= (0.154f / endurance.Value);
+                    character.Stats.Stamina -= (0.154f / character.Stats.Endurance);
                 }
 
-                if (stamina.Value < 0)
+                if (character.Stats.Stamina < 0)
                 {
-                    stamina.Value = 0;
+                    character.Stats.Stamina = 0;
                 }
 
                 WorldUtil.SetCurrentMap(character);
@@ -541,6 +570,15 @@ namespace Despicaville.Tasks
             character.Moved = 0;
             character.Moving = false;
             character.ResetAnimation();
+
+            Map map = WorldUtil.GetMap();
+            Layer bottom_tiles = map.GetLayer("BottomTiles");
+            Tile bottom_tile = bottom_tiles.GetTile(character.Location.ToVector2);
+            if (bottom_tile != null)
+            {
+                character.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
+            }
+
             CharacterUtil.UpdateGear(character);
 
             if (character.Unconscious)
@@ -558,8 +596,6 @@ namespace Despicaville.Tasks
             }
             else if (character.Type != "Player")
             {
-                Map map = WorldUtil.GetMap();
-
                 if (WorldUtil.PassedOpenDoor(map.GetLayer("MiddleTiles"), character))
                 {
                     Tasker.CloseDoor_Behind(character);

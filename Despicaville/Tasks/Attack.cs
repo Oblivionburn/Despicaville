@@ -179,6 +179,8 @@ namespace Despicaville.Tasks
                         }
                     }
                 }
+
+                Handler.Selected_BodyPart = null;
             }
             else
             {

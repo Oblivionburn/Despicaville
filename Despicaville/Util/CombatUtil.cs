@@ -173,8 +173,7 @@ namespace Despicaville.Util
         {
             List<string> parts = new List<string>();
 
-            Property agi = attacker.GetStat("Agility");
-            int agi_boost = (int)(agi.Value / 5);
+            int agi_boost = (int)(attacker.Stats.Agility / 5);
 
             if (Utility.RandomPercent(20 + agi_boost))
             {
@@ -293,15 +292,9 @@ namespace Despicaville.Util
                 base_chance = 25;
             }
 
-            Property attacker_agility = attacker.GetStat("Agility");
-            Property defender_agility = defender.GetStat("Agility");
-            float agi_chance = attacker_agility.Value - defender_agility.Value;
-
-            Property attacker_perception = attacker.GetStat("Perception");
-            float per_chance = attacker_perception.Value / 10;
-
-            Property attacker_luck = attacker.GetStat("Luck");
-            float luk_chance = attacker_luck.Value / 10;
+            float agi_chance = attacker.Stats.Agility - defender.Stats.Agility;
+            float per_chance = attacker.Stats.Perception / 10;
+            float luk_chance = attacker.Stats.Luck / 10;
 
             int distance = WorldUtil.GetDistance(attacker.Location, defender.Location);
             int distance_penalty = distance * 2;
@@ -337,24 +330,20 @@ namespace Despicaville.Util
                 base_speed = 4000;
             }
 
-            Property strength = character.GetStat("Strength");
-            int strength_bonus = (int)strength.Value;
+            int strength = (int)character.Stats.Strength;
             if (attack_type == "Shoot")
             {
-                strength_bonus = 0;
+                strength = 0;
             }
 
-            Property perception = character.GetStat("Perception");
-            int perception_bonus = (int)(perception.Value / 2);
+            int perception = (int)character.Stats.Perception;
+            int agility = (int)character.Stats.Agility;
 
-            Property agility = character.GetStat("Agility");
-            int agility_bonus = (int)agility.Value;
-
-            int speed = base_speed - strength_bonus - agility_bonus;
+            int speed = base_speed - strength - agility;
             if (attack_type == "Shoot" ||
                 attack_type == "Throw")
             {
-                speed -= perception_bonus;
+                speed -= perception;
             }
 
             return speed;
@@ -447,7 +436,6 @@ namespace Despicaville.Util
         public static void DoDamage(Character attacker, Character defender, string weapon, string action, string body_part)
         {
             BodyPart bodyPart = defender.GetBodyPart(body_part);
-            Property strength = attacker.GetStat("Strength");
 
             string wound = "";
 
@@ -463,17 +451,17 @@ namespace Despicaville.Util
                 Property wound_gunshot = item.GetProperty("Gunshot");
 
                 if (wound_sever != null &&
-                    Utility.RandomPercent(strength.Value))
+                    Utility.RandomPercent(attacker.Stats.Strength))
                 {
                     wound = "Sever";
                 }
                 else if (wound_break != null &&
-                         Utility.RandomPercent(strength.Value))
+                         Utility.RandomPercent(attacker.Stats.Strength))
                 {
                     wound = "Break";
                 }
                 else if (wound_fracture != null &&
-                         Utility.RandomPercent(strength.Value))
+                         Utility.RandomPercent(attacker.Stats.Strength))
                 {
                     wound = "Fracture";
                 }
@@ -507,13 +495,13 @@ namespace Despicaville.Util
             }
             else if (action == "Punch")
             {
-                if (strength.Value >= 80)
+                if (attacker.Stats.Strength >= 80)
                 {
-                    if (Utility.RandomPercent(strength.Value / 2))
+                    if (Utility.RandomPercent(attacker.Stats.Strength / 2))
                     {
                         wound = "Break";
                     }
-                    else if (Utility.RandomPercent(strength.Value))
+                    else if (Utility.RandomPercent(attacker.Stats.Strength))
                     {
                         wound = "Fracture";
                     }
@@ -522,9 +510,9 @@ namespace Despicaville.Util
                         wound = "Bruise";
                     }
                 }
-                else if (strength.Value >= 60)
+                else if (attacker.Stats.Strength >= 60)
                 {
-                    if (Utility.RandomPercent(strength.Value / 2))
+                    if (Utility.RandomPercent(attacker.Stats.Strength / 2))
                     {
                         wound = "Fracture";
                     }

@@ -1736,9 +1736,6 @@ namespace Despicaville.Util
             if (new_tile.Name.Contains("Wall") ||
                 new_tile.Name.Contains("Fence") ||
                 new_tile.Name.Contains("Fridge") ||
-                new_tile.Name.Contains("Lamp") ||
-                new_tile.Name.Contains("StreetLight") ||
-                new_tile.Name.Contains("TV") ||
                 new_tile.Name.Contains("Tree") ||
                 new_tile.Name.Contains("Counter") ||
                 new_tile.Name.Contains("Table") ||
@@ -1746,26 +1743,34 @@ namespace Despicaville.Util
             {
                 new_tile.BlocksMovement = true;
                 new_tile.BlocksSight = WorldUtil.BlocksSight(new_tile.Name);
+            }
+            else if (new_tile.Name.Contains("StreetLight"))
+            {
+                new_tile.BlocksMovement = true;
+                new_tile.BlocksSight = WorldUtil.BlocksSight(new_tile.Name);
+                new_tile.IsLightSource = true;
 
-                if (new_tile.Name.Contains("StreetLight"))
-                {
-                    new_tile.IsLightSource = true;
-                    Handler.light_sources.Add(new Point((int)new_tile.Location.X, (int)new_tile.Location.Y));
-                }
-                else if (new_tile.Name.Contains("Lamp") ||
-                         new_tile.Name.Contains("TV"))
-                {
-                    new_tile.CanMove = true;
-                    new_tile.IsLightSource = true;
-                    Handler.light_sources.Add(new Point((int)new_tile.Location.X, (int)new_tile.Location.Y));
-                }
+                Handler.light_sources.Add(new Point((int)new_tile.Location.X, (int)new_tile.Location.Y));
+            }
+            else if (new_tile.Name.Contains("Lamp") ||
+                     new_tile.Name.Contains("TV"))
+            {
+                new_tile.BlocksMovement = true;
+                new_tile.CanMove = true;
+                new_tile.IsLightSource = true;
+
+                Handler.light_sources.Add(new Point((int)new_tile.Location.X, (int)new_tile.Location.Y));
+            }
+            else if (new_tile.Name.Contains("Bookshelf") ||
+                     new_tile.Name.Contains("ComputerDesk") ||
+                     new_tile.Name.Contains("Dresser"))
+            {
+                new_tile.BlocksMovement = true;
+                new_tile.CanMove = true;
             }
             else if (new_tile.Name.Contains("Chair") ||
                      new_tile.Name.Contains("Bench") ||
-                     new_tile.Name.Contains("Bookshelf") ||
-                     new_tile.Name.Contains("ComputerDesk") ||
                      new_tile.Name.Contains("Couch") ||
-                     new_tile.Name.Contains("Dresser") ||
                      new_tile.Name.Contains("Loveseat") ||
                      new_tile.Name.Contains("NiceChair"))
             {

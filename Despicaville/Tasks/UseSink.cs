@@ -63,16 +63,13 @@ namespace Despicaville.Tasks
                 }
             }
 
-            Property thirst = character.GetStat("Thirst");
-            Property bladder = character.GetStat("Bladder");
-
-            bladder.Value += thirst.Value / 2;
-            if (bladder.Value > bladder.Max_Value)
+            character.Stats.Bladder += character.Stats.Thirst / 2;
+            if (character.Stats.Bladder > 100)
             {
-                bladder.Value = bladder.Max_Value;
+                character.Stats.Bladder = 100;
             }
 
-            thirst.Value = 0;
+            character.Stats.Thirst = 0;
 
             if (character.Type == "Player")
             {

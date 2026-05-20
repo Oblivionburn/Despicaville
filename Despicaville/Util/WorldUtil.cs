@@ -79,6 +79,8 @@ namespace Despicaville.Util
                 //Check for held thing colliding when pushed
                 if (Handler.Holding_Character != null)
                 {
+                    #region Character
+
                     size = new Region(Handler.Holding_Character.Location.X, Handler.Holding_Character.Location.Y, 0, 0);
                     newLocation = new Location(Handler.Holding_Character.Location.X, Handler.Holding_Character.Location.Y, 0);
 
@@ -143,9 +145,13 @@ namespace Despicaville.Util
                             newLocation.Y--;
                         }
                     }
+
+                    #endregion
                 }
                 else if (Handler.Holding_Tile != null)
                 {
+                    #region Tile
+
                     size = GetSize(Handler.Holding_Tile);
                     newLocation = new Location(Handler.Holding_Tile.Location.X, Handler.Holding_Tile.Location.Y, 0);
 
@@ -210,6 +216,8 @@ namespace Despicaville.Util
                             newLocation.Y--;
                         }
                     }
+
+                    #endregion
                 }
                 
                 if (size != null &&
@@ -269,8 +277,9 @@ namespace Despicaville.Util
             return true;
         }
 
-        public static bool Blocked(Map map, Location location, bool forTile)
+        public static Tile GetTile(Location location)
         {
+            Map map = GetMap();
             Layer bottom_tiles = map.GetLayer("BottomTiles");
 
             //Check bottom tiles
@@ -282,7 +291,7 @@ namespace Despicaville.Util
                 {
                     if (current.BlocksMovement)
                     {
-                        return true;
+                        return current;
                     }
                 }
             }
@@ -292,27 +301,14 @@ namespace Despicaville.Util
             if (furniture != null)
             {
                 if (!furniture.Name.Contains("Open") &&
-                    !furniture.Name.Contains("Broken"))
+                    !furniture.Name.Contains("Broken") &&
+                    !furniture.Name.Contains("Window"))
                 {
-                    if (forTile)
-                    {
-                        return true;
-                    }
-                    else if (furniture.BlocksMovement)
-                    {
-                        return true;
-                    }
+                    return furniture;
                 }
             }
 
-            //Check for characters
-            Character character = GetCharacter(location);
-            if (character != null)
-            {
-                return true;
-            }
-
-            return false;
+            return null;
         }
 
         public static bool InRange(Location location, Location source, int distance)
@@ -428,16 +424,16 @@ namespace Despicaville.Util
             return x_diff + y_diff;
         }
 
-        public static void UpdateWorld(World world, Character player)
+        public static void UpdateWorld(World world)
         {
             if (world.Visible)
             {
                 Army characters = CharacterManager.GetArmy("Characters");
 
                 List<Tile> visible = new List<Tile>();
-                if (Handler.VisibleTiles.ContainsKey(player.ID))
+                if (Handler.VisibleTiles.ContainsKey(Handler.Player.ID))
                 {
-                    visible = Handler.VisibleTiles[player.ID];
+                    visible = Handler.VisibleTiles[Handler.Player.ID];
                 }
 
                 Map map = world.Maps[0];
@@ -447,12 +443,12 @@ namespace Despicaville.Util
                 Layer top_tiles = map.GetLayer("TopTiles");
                 Layer roof_tiles = map.GetLayer("RoofTiles");
 
-                int start_y = (int)player.Location.Y - Handler.SightDistance - 1;
-                int end_y = (int)player.Location.Y + Handler.SightDistance + 1;
-                int start_x = (int)player.Location.X - Handler.SightDistance - 1;
-                int end_x = (int)player.Location.X + Handler.SightDistance + 1;
+                int start_y = (int)Handler.Player.Location.Y - Handler.SightDistance - 1;
+                int end_y = (int)Handler.Player.Location.Y + Handler.SightDistance + 1;
+                int start_x = (int)Handler.Player.Location.X - Handler.SightDistance - 1;
+                int end_x = (int)Handler.Player.Location.X + Handler.SightDistance + 1;
 
-                if (!player.Unconscious)
+                if (!Handler.Player.Unconscious)
                 {
                     for (int y = start_y; y <= end_y; y++)
                     {
@@ -463,7 +459,7 @@ namespace Despicaville.Util
                             Tile tile = bottom_tiles.GetTile(location);
                             if (tile != null)
                             {
-                                tile.InSight = Location_IsVisible(player.ID, tile.Location);
+                                tile.InSight = Location_IsVisible(Handler.Player.ID, tile.Location);
 
                                 Tile middle_tile = middle_tiles.GetTile(location);
                                 middle_tile.InSight = tile.InSight;
@@ -486,8 +482,8 @@ namespace Despicaville.Util
                     {
                         foreach (Character character in squad.Characters)
                         {
-                            if (Location_IsVisible(player.ID, character.Location) ||
-                                Location_IsVisible(player.ID, character.Destination))
+                            if (Location_IsVisible(Handler.Player.ID, character.Location) ||
+                                Location_IsVisible(Handler.Player.ID, character.Destination))
                             {
                                 character.InSight = true;
                             }
@@ -591,7 +587,7 @@ namespace Despicaville.Util
             return false;
         }
 
-        public static void PullHeld_Tile(Character character, Direction direction, bool behind)
+        public static void HeldTile_SetLocation(Character character, Direction direction, bool behind)
         {
             if (Handler.Holding_Tile != null)
             {
@@ -753,7 +749,7 @@ namespace Despicaville.Util
             }
         }
 
-        public static void PullHeld_Character(Character character, Direction direction, bool behind)
+        public static void HeldCharacter_SetLocation(Character character, Direction direction, bool behind)
         {
             if (Handler.Holding_Character != null)
             {
@@ -807,6 +803,67 @@ namespace Despicaville.Util
                     else
                     {
                         Handler.Holding_Character.Location.X = (int)character.Location.X - 1;
+                    }
+                }
+
+                CharacterUtil.UpdateGear(Handler.Holding_Character);
+            }
+        }
+
+        public static void HeldCharacter_SetDestination(Character character, Direction direction, bool behind)
+        {
+            if (Handler.Holding_Character != null)
+            {
+                if (direction == Direction.North)
+                {
+                    Handler.Holding_Character.Destination.X = (int)character.Location.X;
+
+                    if (behind)
+                    {
+                        Handler.Holding_Character.Destination.Y = (int)character.Location.Y;
+                    }
+                    else
+                    {
+                        Handler.Holding_Character.Destination.Y = (int)character.Location.Y - 1;
+                    }
+                }
+                else if (direction == Direction.East)
+                {
+                    Handler.Holding_Character.Destination.Y = (int)character.Location.Y;
+
+                    if (behind)
+                    {
+                        Handler.Holding_Character.Destination.X = (int)character.Location.X;
+                    }
+                    else
+                    {
+                        Handler.Holding_Character.Destination.X = (int)character.Location.X + 1;
+                    }
+                }
+                else if (direction == Direction.South)
+                {
+                    Handler.Holding_Character.Destination.X = (int)character.Location.X;
+
+                    if (behind)
+                    {
+                        Handler.Holding_Character.Destination.Y = (int)character.Location.Y;
+                    }
+                    else
+                    {
+                        Handler.Holding_Character.Destination.Y = (int)character.Location.Y + 1;
+                    }
+                }
+                else if (direction == Direction.West)
+                {
+                    Handler.Holding_Character.Destination.Y = (int)character.Location.Y;
+
+                    if (behind)
+                    {
+                        Handler.Holding_Character.Destination.X = (int)character.Location.X;
+                    }
+                    else
+                    {
+                        Handler.Holding_Character.Destination.X = (int)character.Location.X - 1;
                     }
                 }
 
@@ -931,15 +988,6 @@ namespace Despicaville.Util
                 Tile tile = bottom_tiles.GetTile(location.ToVector2);
                 if (tile != null)
                 {
-                    float center_x = Handler.Player.Region.X + (Handler.Player.Region.Width / 2);
-                    float center_y = Handler.Player.Region.Y + (Handler.Player.Region.Height / 2);
-
-                    if (center_x >= tile.Region.X && center_x < tile.Region.X + tile.Region.Width &&
-                        center_y >= tile.Region.Y && center_y < tile.Region.Y + tile.Region.Height)
-                    {
-                        return Handler.Player;
-                    }
-
                     Army army = CharacterManager.GetArmy("Characters");
                     Squad citizens = army.GetSquad("Citizens");
 
@@ -947,6 +995,15 @@ namespace Despicaville.Util
                     if (character != null)
                     {
                         return character;
+                    }
+
+                    float center_x = Handler.Player.Region.X + (Handler.Player.Region.Width / 2);
+                    float center_y = Handler.Player.Region.Y + (Handler.Player.Region.Height / 2);
+
+                    if (center_x >= tile.Region.X && center_x < tile.Region.X + tile.Region.Width &&
+                        center_y >= tile.Region.Y && center_y < tile.Region.Y + tile.Region.Height)
+                    {
+                        return Handler.Player;
                     }
                 }
             }
@@ -1748,9 +1805,6 @@ namespace Despicaville.Util
         {
             if (character != null)
             {
-                Property stat = Handler.Player.GetStat("Perception");
-                int perception = (int)stat.Value;
-
                 string description = "You see ";
                 string he_she = "He";
                 string his_her = "His";
@@ -1979,7 +2033,7 @@ namespace Despicaville.Util
 
                 foreach (string detail in details)
                 {
-                    if (Utility.RandomPercent(perception))
+                    if (Utility.RandomPercent(character.Stats.Perception))
                     {
                         description += " " + detail;
                     }

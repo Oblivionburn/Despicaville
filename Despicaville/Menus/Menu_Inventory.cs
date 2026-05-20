@@ -1021,7 +1021,7 @@ namespace Despicaville.Menus
                 Property hunger = item.GetProperty("Hunger");
                 if (hunger != null)
                 {
-                    if (Handler.Player.GetStat("Hunger").Value < 100)
+                    if (Handler.Player.Stats.Hunger < 100)
                     {
                         okay = true;
 
@@ -1040,7 +1040,7 @@ namespace Despicaville.Menus
                     Property thirst = item.GetProperty("Thirst");
                     if (thirst != null)
                     {
-                        if (Handler.Player.GetStat("Thirst").Value < 100)
+                        if (Handler.Player.Stats.Thirst < 100)
                         {
                             okay = true;
 
@@ -1073,7 +1073,7 @@ namespace Despicaville.Menus
                 Property hunger = item.GetProperty("Hunger");
                 if (hunger != null)
                 {
-                    if (Handler.Player.GetStat("Hunger").Value >= 100)
+                    if (Handler.Player.Stats.Hunger >= 100)
                     {
                         GameUtil.AddMessage("You are not hungry enough to eat the " + item.Name.ToLower() + ".");
                     }
@@ -1083,7 +1083,7 @@ namespace Despicaville.Menus
                     Property thirst = item.GetProperty("Thirst");
                     if (thirst != null)
                     {
-                        if (Handler.Player.GetStat("Thirst").Value >= 100)
+                        if (Handler.Player.Stats.Thirst >= 100)
                         {
                             GameUtil.AddMessage("You are not thirsty enough to drink the " + item.Name.ToLower() + ".");
                         }

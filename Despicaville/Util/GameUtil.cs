@@ -44,7 +44,7 @@ namespace Despicaville.Util
             CenterToPlayer_OnFrame();
             CharacterUtil.UpdateSight(Handler.Player);
 
-            WorldUtil.UpdateWorld(scene.World, Handler.Player);
+            WorldUtil.UpdateWorld(scene.World);
         }
 
         public static void ReturnToTitle()
@@ -90,46 +90,48 @@ namespace Despicaville.Util
 
         public static void ResetArmy()
         {
-            CharacterManager.Armies.Clear();
+            CharacterManager.Armies = new List<Army>
+            {
+                new Army
+                {
+                    ID = Handler.GetID(),
+                    Name = "Characters",
+                    Squads = new List<Squad>
+                    {
+                        new Squad
+                        {
+                            ID = Handler.GetID(),
+                            Name = "Players",
+                            Characters = new List<Character>
+                            {
+                                Handler.Player
+                            }
+                        },
+                        new Squad
+                        {
+                            ID = Handler.GetID(),
+                            Name = "Citizens"
+                        }
+                    }
+                }
+            };
 
             for (int i = 0; i < InventoryManager.Inventories.Count; i++)
             {
-                foreach (Inventory existing in InventoryManager.Inventories)
+                Inventory inventory = InventoryManager.Inventories[i];
+                if (inventory.Name != "Assets")
                 {
-                    if (existing.Name != "Assets")
-                    {
-                        InventoryManager.Inventories.Remove(existing);
-                        break;
-                    }
+                    InventoryManager.Inventories.Remove(inventory);
+                    i--;
                 }
             }
-
-            Army characters = new Army();
-            characters.ID = Handler.GetID();
-            characters.Name = "Characters";
-            CharacterManager.Armies.Add(characters);
-
-            Squad players = new Squad();
-            players.ID = Handler.GetID();
-            players.Name = "Players";
-            characters.Squads.Add(players);
-
-            Squad citizens = new Squad();
-            citizens.ID = Handler.GetID();
-            citizens.Name = "Citizens";
-            characters.Squads.Add(citizens);
-
-            Squad animals = new Squad();
-            animals.ID = Handler.GetID();
-            animals.Name = "Animals";
-            characters.Squads.Add(animals);
         }
 
         public static void CenterToPlayer_OnStart()
         {
             Army army = CharacterManager.GetArmy("Characters");
 
-            Handler.Player.Speed = (Main.Game.TileSize.X / 32);
+            Handler.Player.MoveSpeed = (Main.Game.TileSize.X / 32);
             Handler.Player.Move_TotalDistance = Main.Game.TileSize.X;
 
             Handler.Player.Region.X = (Main.Game.ScreenWidth / 2) - (Main.Game.TileSize.X / 2);
@@ -336,7 +338,7 @@ namespace Despicaville.Util
                                             if (character.Location.X == tile.Location.X &&
                                                 character.Location.Y == tile.Location.Y)
                                             {
-                                                character.Speed = 1;
+                                                character.MoveSpeed = 1;
                                                 character.Move_TotalDistance = Main.Game.TileSize.X;
 
                                                 character.Region.X = tile.Region.X;

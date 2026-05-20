@@ -1,4 +1,5 @@
-﻿using OP_Engine.Characters;
+﻿using System;
+using OP_Engine.Characters;
 using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
@@ -17,16 +18,24 @@ namespace Despicaville.Tasks
         public float travelled;
         public bool moved;
         public bool isBlocked;
+        public bool fall;
 
         public override void Action_Start()
         {
+            Character owner = GetOwner();
+            if (owner == null)
+            {
+                return;
+            }
+
             character = null;
             tile = null;
             destination = null;
             newLocation = null;
             travelled = 0;
             moved = false;
-            isBlocked = true;
+            isBlocked = false;
+            fall = false;
 
             character = WorldUtil.GetCharacter(Location);
             if (character == null)
@@ -38,6 +47,8 @@ namespace Despicaville.Tasks
 
             if (character != null)
             {
+                #region Character
+
                 newLocation = new Location(character.Location.X, character.Location.Y, 0);
 
                 if (Direction == Direction.Up)
@@ -57,14 +68,48 @@ namespace Despicaville.Tasks
                     destination = new Location(character.Location.X - 1, character.Location.Y, 0);
                 }
 
-                isBlocked = WorldUtil.Blocked(map, destination, false);
-                if (isBlocked)
+                Tile blockingTile = WorldUtil.GetTile(destination);
+                if (blockingTile != null)
                 {
-                    EndTime = new TimeHandler(TimeManager.Now);
+                    if (blockingTile.BlocksMovement)
+                    {
+                        isBlocked = true;
+                        EndTime = new TimeHandler(TimeManager.Now);
+
+                        string bodyPart = CombatUtil.RandomBodyPart(owner, character);
+                        CombatUtil.AddWound(owner, character, character.GetBodyPart(bodyPart), "Bruise");
+                    }
+                    else if (blockingTile.Layer.Name != "BottomTiles")
+                    {
+                        fall = true;
+                    }
                 }
+
+                if (blockingTile == null)
+                {
+                    Character blockingCharacter = WorldUtil.GetCharacter(destination);
+                    if (blockingCharacter != null)
+                    {
+                        isBlocked = true;
+                        EndTime = new TimeHandler(TimeManager.Now);
+                    }
+                }
+                
+                if (!isBlocked)
+                {
+                    character.ResetAnimation();
+                    character.Path.Clear();
+                    character.Job.Tasks.Clear();
+                    character.Moving = false;
+                    character.Moved = 0;
+                }
+
+                #endregion
             }
             else if (tile != null)
             {
+                #region Tile
+
                 newLocation = new Location(tile.Location.X, tile.Location.Y, 0);
 
                 if (Direction == Direction.Up)
@@ -84,11 +129,107 @@ namespace Despicaville.Tasks
                     destination = new Location(tile.Location.X - 1, tile.Location.Y, 0);
                 }
 
-                isBlocked = WorldUtil.Blocked(map, destination, true);
-                if (isBlocked)
+                Region size = WorldUtil.GetSize(tile);
+                for (int y = 0; y <= size.Height; y++)
                 {
-                    EndTime = new TimeHandler(TimeManager.Now);
+                    float Y = destination.Y + y;
+
+                    for (int x = 0; x <= size.Width; x++)
+                    {
+                        float X = destination.X + x;
+
+                        Location location = new Location(X, Y, 0);
+
+                        Tile blockingTile = WorldUtil.GetTile(location);
+                        if (blockingTile != null &&
+                            blockingTile.ID != tile.ID &&
+                            (blockingTile.Layer.Name == "MiddleTiles" ||
+                             blockingTile.BlocksMovement))
+                        {
+                            isBlocked = true;
+                            EndTime = new TimeHandler(TimeManager.Now);
+                            break;
+                        }
+
+                        if (!isBlocked)
+                        {
+                            Character blockingCharacter = WorldUtil.GetCharacter(location);
+                            if (blockingCharacter != null)
+                            {
+                                if (tile.BlocksMovement)
+                                {
+                                    isBlocked = true;
+                                    EndTime = new TimeHandler(TimeManager.Now);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (isBlocked)
+                    {
+                        break;
+                    }
                 }
+
+                #endregion
+            }
+
+            if (!isBlocked &&
+                destination != null)
+            {
+                #region Break Window
+
+                Layer middle_tiles = map.GetLayer("MiddleTiles");
+
+                if (character != null)
+                {
+                    Tile middle_tile = middle_tiles.GetTile(destination.ToVector2);
+                    if (middle_tile != null)
+                    {
+                        if (middle_tile.Name.Contains("Window") &&
+                            middle_tile.Name.Contains("Closed"))
+                        {
+                            Tasker.BreakWindow(destination.ToVector2, Direction);
+                        }
+                    }
+                }
+                else if (tile != null)
+                {
+                    bool foundWindow = false;
+
+                    Region size = WorldUtil.GetSize(tile);
+                    for (int y = 0; y <= size.Height; y++)
+                    {
+                        float Y = destination.Y + y;
+
+                        for (int x = 0; x <= size.Width; x++)
+                        {
+                            float X = destination.X + x;
+
+                            Location location = new Location(X, Y, 0);
+
+                            Tile middle_tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, location);
+                            if (middle_tile != null)
+                            {
+                                if (middle_tile.Name.Contains("Window") &&
+                                    middle_tile.Name.Contains("Closed"))
+                                {
+                                    foundWindow = true;
+                                    Tasker.BreakWindow(location.ToVector2, Direction);
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (foundWindow)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                #endregion
             }
         }
 
@@ -109,6 +250,8 @@ namespace Despicaville.Tasks
                 if (destination.X > newLocation.X)
                 {
                     character.Region.X += speed;
+                    CharacterUtil.UpdateGear(character);
+
                     travelled += speed;
 
                     if (travelled == distance)
@@ -120,6 +263,8 @@ namespace Despicaville.Tasks
                 else if (destination.X < newLocation.X)
                 {
                     character.Region.X -= speed;
+                    CharacterUtil.UpdateGear(character);
+
                     travelled += speed;
 
                     if (travelled == distance)
@@ -133,6 +278,8 @@ namespace Despicaville.Tasks
                     if (destination.Y > newLocation.Y)
                     {
                         character.Region.Y += speed;
+                        CharacterUtil.UpdateGear(character);
+
                         travelled += speed;
 
                         if (travelled == distance)
@@ -144,6 +291,8 @@ namespace Despicaville.Tasks
                     else if (destination.Y < newLocation.Y)
                     {
                         character.Region.Y -= speed;
+                        CharacterUtil.UpdateGear(character);
+
                         travelled += speed;
 
                         if (travelled == distance)
@@ -230,15 +379,76 @@ namespace Despicaville.Tasks
 
         public override void Action_End()
         {
+            Character owner = GetOwner();
+            if (owner == null)
+            {
+                return;
+            }
+
             if (moved)
             {
                 if (character != null)
                 {
                     WorldUtil.Push_Character(character, newLocation);
+
+                    Map map = WorldUtil.GetMap();
+                    Layer bottom_tiles = map.GetLayer("BottomTiles");
+                    Tile bottom_tile = bottom_tiles.GetTile(character.Location.ToVector2);
+                    if (bottom_tile != null)
+                    {
+                        character.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
+                        CharacterUtil.UpdateGear(character);
+                    }
+
+                    if (fall ||
+                        Utility.RandomPercent(owner.Stats.Strength))
+                    {
+                        character.Laying = true;
+
+                        float standTime = CharacterUtil.GetStandTime(character);
+                        character.Job.Tasks.Add(new Stand
+                        {
+                            Name = "Stand",
+                            OwnerID = character.ID,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(standTime)),
+                            Direction = character.Direction
+                        });
+                    }
                 }
                 else if (tile != null)
                 {
                     WorldUtil.Push_Tile(tile, newLocation);
+
+                    Character blockingCharacter = WorldUtil.GetCharacter(tile.Location);
+                    if (blockingCharacter != null)
+                    {
+                        blockingCharacter.ResetAnimation();
+                        blockingCharacter.Path.Clear();
+                        blockingCharacter.Job.Tasks.Clear();
+
+                        blockingCharacter.Moving = false;
+                        blockingCharacter.Laying = true;
+
+                        Map map = WorldUtil.GetMap();
+                        Layer bottom_tiles = map.GetLayer("BottomTiles");
+                        Tile bottom_tile = bottom_tiles.GetTile(blockingCharacter.Location.ToVector2);
+                        if (bottom_tile != null)
+                        {
+                            blockingCharacter.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
+                            CharacterUtil.UpdateGear(blockingCharacter);
+                        }
+
+                        float standTime = CharacterUtil.GetStandTime(blockingCharacter);
+                        blockingCharacter.Job.Tasks.Add(new Stand
+                        {
+                            Name = "Stand",
+                            OwnerID = blockingCharacter.ID,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(standTime)),
+                            Direction = blockingCharacter.Direction
+                        });
+                    }
                 }
             }
         }
