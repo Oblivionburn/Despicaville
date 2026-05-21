@@ -51,25 +51,25 @@ namespace Despicaville.Tasks
                 AssetManager.PlaySound_Random_AtDistance("DoorOpen", Handler.Player.Location.ToVector2, Location.ToVector2, 8);
             }
 
-            if (character.Direction == Direction.Up)
+            if (character.Direction == Direction.North)
             {
                 tile.Texture = AssetManager.Textures["Door_NorthSouth"];
                 tile.Region = new Region(tile.Region.X + (tile.Region.Width / 2), tile.Region.Y + (tile.Region.Height / 2), tile.Region.Width, tile.Region.Height);
                 tile.Name = "Door_WestEast_Open";
             }
-            else if (character.Direction == Direction.Right)
+            else if (character.Direction == Direction.East)
             {
                 tile.Texture = AssetManager.Textures["Door_WestEast"];
                 tile.Region = new Region(tile.Region.X + (tile.Region.Width / 2), tile.Region.Y - (tile.Region.Height / 2), tile.Region.Width, tile.Region.Height);
                 tile.Name = "Door_NorthSouth_Open";
             }
-            else if (character.Direction == Direction.Down)
+            else if (character.Direction == Direction.South)
             {
                 tile.Texture = AssetManager.Textures["Door_NorthSouth"];
                 tile.Region = new Region(tile.Region.X + (tile.Region.Width / 2), tile.Region.Y + (tile.Region.Height / 2), tile.Region.Width, tile.Region.Height);
                 tile.Name = "Door_WestEast_Open";
             }
-            else if (character.Direction == Direction.Left)
+            else if (character.Direction == Direction.West)
             {
                 tile.Texture = AssetManager.Textures["Door_WestEast"];
                 tile.Region = new Region(tile.Region.X + (tile.Region.Width / 2), tile.Region.Y - (tile.Region.Height / 2), tile.Region.Width, tile.Region.Height);
@@ -84,24 +84,9 @@ namespace Despicaville.Tasks
                 CharacterUtil.UpdateSight(Handler.Player);
             }
 
-            if (character.Type == "Player")
+            if (!Handler.Player.Unconscious)
             {
-                if (loudness == 1)
-                {
-                    GameUtil.AddMessage("You quietly opened a door.");
-                }
-                else if (loudness == 2)
-                {
-                    GameUtil.AddMessage("You opened a door.");
-                }
-                else if (loudness == 3)
-                {
-                    GameUtil.AddMessage("You loudly opened a door.");
-                }
-            }
-            else if (!Handler.Player.Unconscious)
-            {
-                Direction direction = WorldUtil.GetDirection(Location, Handler.Player.Location, true);
+                Direction direction = WorldUtil.GetDirection(Location, Handler.Player.Location);
 
                 if (loudness == 1 &&
                     WorldUtil.InRange(Handler.Player.Location, Location, 2))

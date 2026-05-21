@@ -2,9 +2,7 @@
 using System.IO;
 using System.Xml;
 using System.Collections.Generic;
-
 using Microsoft.Xna.Framework;
-
 using OP_Engine.Tiles;
 using OP_Engine.Utility;
 using OP_Engine.Scenes;
@@ -30,6 +28,7 @@ namespace Despicaville.Util
 
         public static List<Map> Residential = new List<Map>();
         public static List<Map> Commercial = new List<Map>();
+        public static List<Map> Service = new List<Map>();
         public static List<Map> Parks = new List<Map>();
         public static List<Map> Roads = new List<Map>();
         public static Dictionary<long, List<Map>> Rooms = new Dictionary<long, List<Map>>();
@@ -151,26 +150,7 @@ namespace Despicaville.Util
                         break;
 
                     case "Direction":
-                        string value = reader.Value;
-                        if (value == "North")
-                        {
-                            value = "Up";
-                        }
-                        else if (value == "East")
-                        {
-                            value = "Right";
-                        }
-                        else if (value == "South")
-                        {
-                            value = "Down";
-                        }
-                        else if (value == "West")
-                        {
-                            value = "Left";
-                        }
-
-                        Direction direction;
-                        if (Enum.TryParse(value, out direction))
+                        if (Enum.TryParse(reader.Value, out Direction direction))
                         {
                             map.Direction = direction;
                         }
@@ -470,6 +450,7 @@ namespace Despicaville.Util
 
             Residential.Clear();
             Commercial.Clear();
+            Service.Clear();
             Parks.Clear();
             Roads.Clear();
             Rooms.Clear();
@@ -480,13 +461,16 @@ namespace Despicaville.Util
                 {
                     ParkBlocks.Add(block);
                 }
-                else if (block.Type == "Commercial")
+                else if (block.Type == "Service")
                 {
                     if (block.Name.Contains("Police"))
                     {
                         PoliceBlocks.Add(block);
                     }
-                    else if (block.Name.Contains("Grocery"))
+                }
+                else if (block.Type == "Commercial")
+                {
+                    if (block.Name.Contains("Grocery"))
                     {
                         GroceryBlocks.Add(block);
                     }
@@ -1127,29 +1111,48 @@ namespace Despicaville.Util
                 {
                     bool force_park = false;
 
-                    if (open_count <= 3 &&
-                        (PoliceBlocks.Count > 0 ||
-                         GroceryBlocks.Count > 0 ||
-                         DinerBlocks.Count > 0))
+                    if (open_count <= 1 &&
+                        PoliceBlocks.Count > 0)
                     {
                         Map block = null;
 
-                        //Force commercial
+                        //Force police
                         if (PoliceBlocks.Count > 0)
                         {
                             block = GetRandomBlock(PoliceBlocks, tile.Location);
                             if (block != null)
                             {
-                                map.Name = block.Name;
                                 PoliceBlocks.Clear();
                             }
                         }
-                        else if (GroceryBlocks.Count > 0)
+
+                        if (block != null)
+                        {
+                            map.Name = block.Name;
+                            map.Type = "Map_Service";
+                            map.Texture = AssetManager.Textures[map.Type];
+                            map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
+                            Service.Add(map);
+                            open_count--;
+                        }
+                        else
+                        {
+                            force_park = true;
+                        }
+                    }
+
+                    if (open_count <= 2 &&
+                        (GroceryBlocks.Count > 0 ||
+                         DinerBlocks.Count > 0))
+                    {
+                        Map block = null;
+
+                        //Force commercial
+                        if (GroceryBlocks.Count > 0)
                         {
                             block = GetRandomBlock(GroceryBlocks, tile.Location);
                             if (block != null)
                             {
-                                map.Name = block.Name;
                                 GroceryBlocks.Clear();
                             }
                         }
@@ -1158,7 +1161,6 @@ namespace Despicaville.Util
                             block = GetRandomBlock(DinerBlocks, tile.Location);
                             if (block != null)
                             {
-                                map.Name = block.Name;
                                 DinerBlocks.Clear();
                             }
                         }
@@ -1211,10 +1213,10 @@ namespace Despicaville.Util
                                 if (block != null)
                                 {
                                     map.Name = block.Name;
-                                    map.Type = "Map_Commercial";
+                                    map.Type = "Map_Service";
                                     map.Texture = AssetManager.Textures[map.Type];
                                     map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
-                                    Commercial.Add(map);
+                                    Service.Add(map);
                                     open_count--;
 
                                     PoliceBlocks.Clear();
@@ -1358,22 +1360,22 @@ namespace Despicaville.Util
                     if (tile.Location.Y == location.Y - 1 &&
                         tile.Location.X == location.X)
                     {
-                        blocked_directions.Add(Direction.Up);
+                        blocked_directions.Add(Direction.North);
                     }
                     else if (tile.Location.Y == location.Y &&
                              tile.Location.X == location.X + 1)
                     {
-                        blocked_directions.Add(Direction.Right);
+                        blocked_directions.Add(Direction.East);
                     }
                     else if (tile.Location.Y == location.Y + 1 &&
                              tile.Location.X == location.X)
                     {
-                        blocked_directions.Add(Direction.Down);
+                        blocked_directions.Add(Direction.South);
                     }
                     else if (tile.Location.Y == location.Y &&
                              tile.Location.X == location.X - 1)
                     {
-                        blocked_directions.Add(Direction.Left);
+                        blocked_directions.Add(Direction.West);
                     }
                 }
             }
@@ -1716,79 +1718,51 @@ namespace Despicaville.Util
             new_tile.Image = new Rectangle(0, 0, new_tile.Texture.Width, new_tile.Texture.Height);
             new_tile.Region = new Region((int)new_tile.Location.X * Main.Game.TileSize.X, (int)new_tile.Location.Y * Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
 
-            if (new_tile.Name.Contains("North"))
+            Tile existing = null;
+
+            int count = Handler.Furniture.Count;
+            for (int i = 0; i < count; i++)
             {
-                new_tile.Direction = Direction.Up;
-            }
-            else if (new_tile.Name.Contains("East"))
-            {
-                new_tile.Direction = Direction.Right;
-            }
-            else if (new_tile.Name.Contains("South"))
-            {
-                new_tile.Direction = Direction.Down;
-            }
-            else if (new_tile.Name.Contains("West"))
-            {
-                new_tile.Direction = Direction.Left;
+                Tile furniture = Handler.Furniture[i];
+                if (furniture.Texture.Name == new_tile.Texture.Name)
+                {
+                    existing = furniture;
+                    break;
+                }
             }
 
-            if (new_tile.Name.Contains("Wall") ||
-                new_tile.Name.Contains("Fence") ||
-                new_tile.Name.Contains("Fridge") ||
-                new_tile.Name.Contains("Tree") ||
-                new_tile.Name.Contains("Counter") ||
-                new_tile.Name.Contains("Table") ||
-                new_tile.Name.Contains("Stove"))
+            if (existing != null)
+            {
+                new_tile.Name = existing.Name;
+                if (new_tile.Name.Contains("Door") ||
+                    new_tile.Name.Contains("Window"))
+                {
+                    new_tile.Name += "_Closed";
+                }
+
+                new_tile.Direction = existing.Direction;
+                new_tile.BlocksMovement = existing.BlocksMovement;
+                new_tile.BlocksSight = existing.BlocksSight;
+                new_tile.CanUse = existing.CanUse;
+                new_tile.CanMove = existing.CanMove;
+
+                new_tile.IsLightSource = existing.IsLightSource;
+                if (new_tile.IsLightSource)
+                {
+                    Handler.light_sources.Add(new Point((int)new_tile.Location.X, (int)new_tile.Location.Y));
+                }
+
+                new_tile.LightColor = existing.LightColor;
+            }
+            else if (new_tile.Name.Contains("Wall"))
             {
                 new_tile.BlocksMovement = true;
                 new_tile.BlocksSight = WorldUtil.BlocksSight(new_tile.Name);
             }
-            else if (new_tile.Name.Contains("StreetLight"))
-            {
-                new_tile.BlocksMovement = true;
-                new_tile.BlocksSight = WorldUtil.BlocksSight(new_tile.Name);
-                new_tile.IsLightSource = true;
 
-                Handler.light_sources.Add(new Point((int)new_tile.Location.X, (int)new_tile.Location.Y));
-            }
-            else if (new_tile.Name.Contains("Lamp") ||
-                     new_tile.Name.Contains("TV"))
-            {
-                new_tile.BlocksMovement = true;
-                new_tile.CanMove = true;
-                new_tile.IsLightSource = true;
-
-                Handler.light_sources.Add(new Point((int)new_tile.Location.X, (int)new_tile.Location.Y));
-            }
-            else if (new_tile.Name.Contains("Bookshelf") ||
-                     new_tile.Name.Contains("ComputerDesk") ||
-                     new_tile.Name.Contains("Dresser"))
-            {
-                new_tile.BlocksMovement = true;
-                new_tile.CanMove = true;
-            }
-            else if (new_tile.Name.Contains("Chair") ||
-                     new_tile.Name.Contains("Bench") ||
-                     new_tile.Name.Contains("Couch") ||
-                     new_tile.Name.Contains("Loveseat") ||
-                     new_tile.Name.Contains("NiceChair"))
-            {
-                new_tile.CanMove = true;
-            }
-            else if (new_tile.Name.Contains("Door"))
-            {
-                new_tile.Name += "_Closed";
-                new_tile.BlocksMovement = true;
-                new_tile.BlocksSight = true;
-            }
-            else if (new_tile.Name.Contains("Window"))
-            {
-                new_tile.Name += "_Closed";
-            }
-            else if (new_tile.Name.Contains("Bed") &&
-                     !new_tile.Name.Contains("RoomType") &&
-                     !blockName.Contains("Police"))
+            if (new_tile.Name.Contains("Bed") &&
+                !new_tile.Name.Contains("RoomType") &&
+                !blockName.Contains("Police"))
             {
                 Squad citizens = CharacterManager.GetArmy("Characters").GetSquad("Citizens");
                 if (citizens.Characters.Count < Handler.MaxPop)
@@ -1796,29 +1770,29 @@ namespace Despicaville.Util
                     Character character = CharacterUtil.GenCharacter(last_name);
                     character.Direction = new_tile.Direction;
 
-                    if (new_tile.Direction == Direction.Up)
+                    if (new_tile.Direction == Direction.North)
                     {
                         character.FaceNorth();
                     }
-                    else if (new_tile.Direction == Direction.Right)
+                    else if (new_tile.Direction == Direction.East)
                     {
                         character.FaceEast();
                     }
-                    else if (new_tile.Direction == Direction.Down)
+                    else if (new_tile.Direction == Direction.South)
                     {
                         character.FaceSouth();
                     }
-                    else if (new_tile.Direction == Direction.Left)
+                    else if (new_tile.Direction == Direction.West)
                     {
                         character.FaceWest();
                     }
 
-                    if (new_tile.Direction == Direction.Up)
+                    if (new_tile.Direction == Direction.North)
                     {
                         character.Location = new Location(new_tile.Location.X, new_tile.Location.Y + 1, new_tile.Location.Z);
                         character.Region = new Region(new_tile.Region.X, new_tile.Region.Y + Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
                     }
-                    else if (new_tile.Direction == Direction.Left)
+                    else if (new_tile.Direction == Direction.West)
                     {
                         character.Location = new Location(new_tile.Location.X + 1, new_tile.Location.Y, new_tile.Location.Z);
                         character.Region = new Region(new_tile.Region.X + Main.Game.TileSize.X, new_tile.Region.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
@@ -1883,6 +1857,22 @@ namespace Despicaville.Util
                     if (commercial.ID == worldTile.ID)
                     {
                         Layer map_layer = commercial.GetLayer(layer.Name);
+                        if (map_layer != null)
+                        {
+                            map_layer.Tiles.Add(new_tile);
+                        }
+
+                        break;
+                    }
+                }
+            }
+            else if (worldTile.Type.Contains("Service"))
+            {
+                foreach (Map service in Service)
+                {
+                    if (service.ID == worldTile.ID)
+                    {
+                        Layer map_layer = service.GetLayer(layer.Name);
                         if (map_layer != null)
                         {
                             map_layer.Tiles.Add(new_tile);

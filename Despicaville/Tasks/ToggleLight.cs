@@ -25,18 +25,6 @@ namespace Despicaville.Tasks
             Layer middle_tiles = map.GetLayer("MiddleTiles");
             Tile tile = middle_tiles.GetTile(Location.ToVector2);
             tile.IsLightSource = !tile.IsLightSource;
-
-            if (character.Type == "Player")
-            {
-                if (tile.IsLightSource)
-                {
-                    GameUtil.AddMessage("You turned on a light.");
-                }
-                else
-                {
-                    GameUtil.AddMessage("You turned off a light.");
-                }
-            }
         }
 
         public Character GetOwner()

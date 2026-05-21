@@ -244,19 +244,19 @@ namespace Despicaville.Scenes
                                             {
                                                 Rectangle image = new Rectangle();
 
-                                                if (character.Direction == Direction.Up)
+                                                if (character.Direction == Direction.North)
                                                 {
                                                     image = new Rectangle(0, 0, 128, 128);
                                                 }
-                                                else if (character.Direction == Direction.Right)
+                                                else if (character.Direction == Direction.East)
                                                 {
                                                     image = new Rectangle(128, 0, 128, 128);
                                                 }
-                                                else if (character.Direction == Direction.Down)
+                                                else if (character.Direction == Direction.South)
                                                 {
                                                     image = new Rectangle(256, 0, 128, 128);
                                                 }
-                                                else if (character.Direction == Direction.Left)
+                                                else if (character.Direction == Direction.West)
                                                 {
                                                     image = new Rectangle(384, 0, 128, 128);
                                                 }
@@ -429,7 +429,7 @@ namespace Despicaville.Scenes
 
             if (Handler.Player.Job.Tasks.Count == 0)
             {
-                #region Holding
+                #region Pull
 
                 if (!Handler.Combat)
                 {
@@ -439,19 +439,19 @@ namespace Despicaville.Scenes
                             InventoryUtil.HasEmptyHand(Handler.Player))
                         {
                             Location location = new Location();
-                            if (Handler.Player.Direction == Direction.Up)
+                            if (Handler.Player.Direction == Direction.North)
                             {
                                 location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y - 1, 0);
                             }
-                            else if (Handler.Player.Direction == Direction.Right)
+                            else if (Handler.Player.Direction == Direction.East)
                             {
                                 location = new Location(Handler.Player.Location.X + 1, Handler.Player.Location.Y, 0);
                             }
-                            else if (Handler.Player.Direction == Direction.Down)
+                            else if (Handler.Player.Direction == Direction.South)
                             {
                                 location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y + 1, 0);
                             }
-                            else if (Handler.Player.Direction == Direction.Left)
+                            else if (Handler.Player.Direction == Direction.West)
                             {
                                 location = new Location(Handler.Player.Location.X - 1, Handler.Player.Location.Y, 0);
                             }
@@ -599,7 +599,7 @@ namespace Despicaville.Scenes
                             Name = "Run",
                             OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.Up
+                            Direction = Direction.North
                         });
                     }
                     else if (Handler.Player.Crouching)
@@ -609,7 +609,7 @@ namespace Despicaville.Scenes
                             Name = "Sneak",
                             OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.Up
+                            Direction = Direction.North
                         });
                     }
                     else
@@ -619,7 +619,7 @@ namespace Despicaville.Scenes
                             Name = "Walk",
                             OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.Up
+                            Direction = Direction.North
                         });
                     }
                 }
@@ -632,7 +632,7 @@ namespace Despicaville.Scenes
                             Name = "Run",
                             OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.Right
+                            Direction = Direction.East
                         });
                     }
                     else if (Handler.Player.Crouching)
@@ -642,7 +642,7 @@ namespace Despicaville.Scenes
                             Name = "Sneak",
                             OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.Right
+                            Direction = Direction.East
                         });
                     }
                     else
@@ -652,7 +652,7 @@ namespace Despicaville.Scenes
                             Name = "Walk",
                             OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.Right
+                            Direction = Direction.East
                         });
                     }
                 }
@@ -665,7 +665,7 @@ namespace Despicaville.Scenes
                             Name = "Run",
                             OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.Down
+                            Direction = Direction.South
                         });
                     }
                     else if (Handler.Player.Crouching)
@@ -675,7 +675,7 @@ namespace Despicaville.Scenes
                             Name = "Sneak",
                             OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.Down
+                            Direction = Direction.South
                         });
                     }
                     else
@@ -685,7 +685,7 @@ namespace Despicaville.Scenes
                             Name = "Walk",
                             OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.Down
+                            Direction = Direction.South
                         });
                     }
                 }
@@ -698,7 +698,7 @@ namespace Despicaville.Scenes
                             Name = "Run",
                             OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.Left
+                            Direction = Direction.West
                         });
                     }
                     else if (Handler.Player.Crouching)
@@ -708,7 +708,7 @@ namespace Despicaville.Scenes
                             Name = "Sneak",
                             OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.Left
+                            Direction = Direction.West
                         });
                     }
                     else
@@ -718,7 +718,7 @@ namespace Despicaville.Scenes
                             Name = "Walk",
                             OwnerID = Handler.Player.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.Left
+                            Direction = Direction.West
                         });
                     }
                 }
@@ -742,16 +742,16 @@ namespace Despicaville.Scenes
                         {
                             if (InputManager.Mouse.X <= Handler.Player.Region.X + (Handler.Player.Region.Width / 2))
                             {
-                                if (Handler.Player.Direction != Direction.Left)
+                                if (Handler.Player.Direction != Direction.West)
                                 {
-                                    direction = Direction.Left;
+                                    direction = Direction.West;
                                 }
                             }
                             else if (InputManager.Mouse.X > Handler.Player.Region.X + (Handler.Player.Region.Width / 2))
                             {
-                                if (Handler.Player.Direction != Direction.Right)
+                                if (Handler.Player.Direction != Direction.East)
                                 {
-                                    direction = Direction.Right;
+                                    direction = Direction.East;
                                 }
                             }
                         }
@@ -759,16 +759,16 @@ namespace Despicaville.Scenes
                         {
                             if (InputManager.Mouse.Y <= Handler.Player.Region.Y + (Handler.Player.Region.Height / 2))
                             {
-                                if (Handler.Player.Direction != Direction.Up)
+                                if (Handler.Player.Direction != Direction.North)
                                 {
-                                    direction = Direction.Up;
+                                    direction = Direction.North;
                                 }
                             }
                             else if (InputManager.Mouse.Y > Handler.Player.Region.Y + (Handler.Player.Region.Height / 2))
                             {
-                                if (Handler.Player.Direction != Direction.Down)
+                                if (Handler.Player.Direction != Direction.South)
                                 {
-                                    direction = Direction.Down;
+                                    direction = Direction.South;
                                 }
                             }
                         }
@@ -814,19 +814,19 @@ namespace Despicaville.Scenes
                                 }
                                 else
                                 {
-                                    if (Handler.Player.Direction == Direction.Up)
+                                    if (Handler.Player.Direction == Direction.North)
                                     {
                                         location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y - 1, 1);
                                     }
-                                    else if (Handler.Player.Direction == Direction.Right)
+                                    else if (Handler.Player.Direction == Direction.East)
                                     {
                                         location = new Location(Handler.Player.Location.X + 1, Handler.Player.Location.Y, 1);
                                     }
-                                    else if (Handler.Player.Direction == Direction.Down)
+                                    else if (Handler.Player.Direction == Direction.South)
                                     {
                                         location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y + 1, 1);
                                     }
-                                    else if (Handler.Player.Direction == Direction.Left)
+                                    else if (Handler.Player.Direction == Direction.West)
                                     {
                                         location = new Location(Handler.Player.Location.X - 1, Handler.Player.Location.Y, 1);
                                     }
@@ -872,19 +872,19 @@ namespace Despicaville.Scenes
                                     location.X == -1 &&
                                     location.Y == -1)
                                 {
-                                    if (Handler.Player.Direction == Direction.Up)
+                                    if (Handler.Player.Direction == Direction.North)
                                     {
                                         location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y - 1);
                                     }
-                                    else if (Handler.Player.Direction == Direction.Right)
+                                    else if (Handler.Player.Direction == Direction.East)
                                     {
                                         location = new Location(Handler.Player.Location.X + 1, Handler.Player.Location.Y);
                                     }
-                                    else if (Handler.Player.Direction == Direction.Down)
+                                    else if (Handler.Player.Direction == Direction.South)
                                     {
                                         location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y + 1);
                                     }
-                                    else if (Handler.Player.Direction == Direction.Left)
+                                    else if (Handler.Player.Direction == Direction.West)
                                     {
                                         location = new Location(Handler.Player.Location.X - 1, Handler.Player.Location.Y);
                                     }
@@ -985,19 +985,19 @@ namespace Despicaville.Scenes
 
                             Location location = null;
 
-                            if (Handler.Player.Direction == Direction.Up)
+                            if (Handler.Player.Direction == Direction.North)
                             {
                                 location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y - 1, 1);
                             }
-                            else if (Handler.Player.Direction == Direction.Right)
+                            else if (Handler.Player.Direction == Direction.East)
                             {
                                 location = new Location(Handler.Player.Location.X + 1, Handler.Player.Location.Y, 1);
                             }
-                            else if (Handler.Player.Direction == Direction.Down)
+                            else if (Handler.Player.Direction == Direction.South)
                             {
                                 location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y + 1, 1);
                             }
-                            else if (Handler.Player.Direction == Direction.Left)
+                            else if (Handler.Player.Direction == Direction.West)
                             {
                                 location = new Location(Handler.Player.Location.X - 1, Handler.Player.Location.Y, 1);
                             }

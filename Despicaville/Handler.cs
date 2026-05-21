@@ -66,9 +66,11 @@ namespace Despicaville
         public static Dictionary<Vector2, List<Tile>> light_maps = new Dictionary<Vector2, List<Tile>>();
         public static List<Point> light_sources = new List<Point>();
 
+        public static Dictionary<long, List<Tile>> VisibleTiles = new Dictionary<long, List<Tile>>();
+
+        public static List<Tile> Furniture = new List<Tile>();
         public static List<Tile> TopFurniture = new List<Tile>();
         public static List<Tile> MiddleFurniture = new List<Tile>();
-        public static Dictionary<long, List<Tile>> VisibleTiles = new Dictionary<long, List<Tile>>();
         public static Dictionary<long, List<Tile>> OwnedFurniture = new Dictionary<long, List<Tile>>();
 
         public static Dictionary<string, string> Stats = new Dictionary<string, string>();

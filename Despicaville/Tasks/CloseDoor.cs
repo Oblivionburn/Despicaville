@@ -55,22 +55,22 @@ namespace Despicaville.Tasks
             Tile bottom_tile = bottom_tiles.GetTile(tile.Location.ToVector2);
             tile.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
 
-            if (character.Direction == Direction.Up)
+            if (character.Direction == Direction.North)
             {
                 tile.Texture = AssetManager.Textures["Door_WestEast"];
                 tile.Name = "Door_WestEast_Closed";
             }
-            else if (character.Direction == Direction.Right)
+            else if (character.Direction == Direction.East)
             {
                 tile.Texture = AssetManager.Textures["Door_NorthSouth"];
                 tile.Name = "Door_NorthSouth_Closed";
             }
-            else if (character.Direction == Direction.Down)
+            else if (character.Direction == Direction.South)
             {
                 tile.Texture = AssetManager.Textures["Door_WestEast"];
                 tile.Name = "Door_WestEast_Closed";
             }
-            else if (character.Direction == Direction.Left)
+            else if (character.Direction == Direction.West)
             {
                 tile.Texture = AssetManager.Textures["Door_NorthSouth"];
                 tile.Name = "Door_NorthSouth_Closed";
@@ -84,24 +84,9 @@ namespace Despicaville.Tasks
                 CharacterUtil.UpdateSight(Handler.Player);
             }
 
-            if (character.Type == "Player")
+            if (!Handler.Player.Unconscious)
             {
-                if (loudness == 1)
-                {
-                    GameUtil.AddMessage("You softly closed a door.");
-                }
-                else if (loudness == 2)
-                {
-                    GameUtil.AddMessage("You closed a door.");
-                }
-                else if (loudness == 3)
-                {
-                    GameUtil.AddMessage("You slammed a door shut.");
-                }
-            }
-            else if (!Handler.Player.Unconscious)
-            {
-                Direction direction = WorldUtil.GetDirection(Location, Handler.Player.Location, true);
+                Direction direction = WorldUtil.GetDirection(Location, Handler.Player.Location);
 
                 if (loudness == 1 &&
                     WorldUtil.InRange(Handler.Player.Location, Location, 2))

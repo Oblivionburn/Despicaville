@@ -84,8 +84,8 @@ namespace Despicaville.Util
                     size = new Region(Handler.Holding_Character.Location.X, Handler.Holding_Character.Location.Y, 0, 0);
                     newLocation = new Location(Handler.Holding_Character.Location.X, Handler.Holding_Character.Location.Y, 0);
 
-                    Direction direction = GetDirection(character.Destination, character.Location, false);
-                    if (direction == Direction.Up)
+                    Direction direction = GetDirection(character.Destination, character.Location);
+                    if (direction == Direction.North)
                     {
                         if (Handler.Holding_Character.Location.X == character.Location.X)
                         {
@@ -100,7 +100,7 @@ namespace Despicaville.Util
                             newLocation.X--;
                         }
                     }
-                    else if (direction == Direction.Right)
+                    else if (direction == Direction.East)
                     {
                         if (Handler.Holding_Character.Location.Y == character.Location.Y)
                         {
@@ -115,7 +115,7 @@ namespace Despicaville.Util
                             newLocation.Y--;
                         }
                     }
-                    else if (direction == Direction.Down)
+                    else if (direction == Direction.South)
                     {
                         if (Handler.Holding_Character.Location.X == character.Location.X)
                         {
@@ -130,7 +130,7 @@ namespace Despicaville.Util
                             newLocation.X--;
                         }
                     }
-                    else if (direction == Direction.Left)
+                    else if (direction == Direction.West)
                     {
                         if (Handler.Holding_Character.Location.Y == character.Location.Y)
                         {
@@ -155,8 +155,8 @@ namespace Despicaville.Util
                     size = GetSize(Handler.Holding_Tile);
                     newLocation = new Location(Handler.Holding_Tile.Location.X, Handler.Holding_Tile.Location.Y, 0);
 
-                    Direction direction = GetDirection(character.Destination, character.Location, false);
-                    if (direction == Direction.Up)
+                    Direction direction = GetDirection(character.Destination, character.Location);
+                    if (direction == Direction.North)
                     {
                         if (Handler.Holding_Tile.Location.X == character.Location.X)
                         {
@@ -171,7 +171,7 @@ namespace Despicaville.Util
                             newLocation.X--;
                         }
                     }
-                    else if (direction == Direction.Right)
+                    else if (direction == Direction.East)
                     {
                         if (Handler.Holding_Tile.Location.Y == character.Location.Y)
                         {
@@ -186,7 +186,7 @@ namespace Despicaville.Util
                             newLocation.Y--;
                         }
                     }
-                    else if (direction == Direction.Down)
+                    else if (direction == Direction.South)
                     {
                         if (Handler.Holding_Tile.Location.X == character.Location.X)
                         {
@@ -201,7 +201,7 @@ namespace Despicaville.Util
                             newLocation.X--;
                         }
                     }
-                    else if (direction == Direction.Left)
+                    else if (direction == Direction.West)
                     {
                         if (Handler.Holding_Tile.Location.Y == character.Location.Y)
                         {
@@ -335,72 +335,47 @@ namespace Despicaville.Util
             return false;
         }
 
-        public static Direction GetDirection(Location target, Location source, bool compass_directions)
+        public static Direction GetDirection(Location target, Location source)
         {
-            if (compass_directions)
+            if (target.X > source.X)
             {
-                if (target.X > source.X)
+                if (target.Y > source.Y)
                 {
-                    if (target.Y > source.Y)
-                    {
-                        return Direction.SouthEast;
-                    }
-                    else if (target.Y < source.Y)
-                    {
-                        return Direction.NorthEast;
-                    }
-                    else if (target.Y == source.Y)
-                    {
-                        return Direction.East;
-                    }
+                    return Direction.SouthEast;
                 }
-                else if (target.X < source.X)
+                else if (target.Y < source.Y)
                 {
-                    if (target.Y > source.Y)
-                    {
-                        return Direction.SouthWest;
-                    }
-                    else if (target.Y < source.Y)
-                    {
-                        return Direction.NorthWest;
-                    }
-                    else if (target.Y == source.Y)
-                    {
-                        return Direction.West;
-                    }
+                    return Direction.NorthEast;
                 }
-                else if (target.X == source.X)
+                else if (target.Y == source.Y)
                 {
-                    if (target.Y > source.Y)
-                    {
-                        return Direction.South;
-                    }
-                    else if (target.Y < source.Y)
-                    {
-                        return Direction.North;
-                    }
+                    return Direction.East;
                 }
             }
-            else
+            else if (target.X < source.X)
             {
-                if (target.X > source.X)
+                if (target.Y > source.Y)
                 {
-                    return Direction.Right;
+                    return Direction.SouthWest;
                 }
-                else if (target.X < source.X)
+                else if (target.Y < source.Y)
                 {
-                    return Direction.Left;
+                    return Direction.NorthWest;
                 }
-                else if (target.X == source.X)
+                else if (target.Y == source.Y)
                 {
-                    if (target.Y > source.Y)
-                    {
-                        return Direction.Down;
-                    }
-                    else if (target.Y < source.Y)
-                    {
-                        return Direction.Up;
-                    }
+                    return Direction.West;
+                }
+            }
+            else if (target.X == source.X)
+            {
+                if (target.Y > source.Y)
+                {
+                    return Direction.South;
+                }
+                else if (target.Y < source.Y)
+                {
+                    return Direction.North;
                 }
             }
 
@@ -1158,7 +1133,7 @@ namespace Despicaville.Util
                 }
                 else if (existing.Region.Height == width)
                 {
-                    if (existing.Direction == Direction.Right)
+                    if (existing.Direction == Direction.East)
                     {
                         if (existing.Region.Width == width_double)
                         {
@@ -1169,7 +1144,7 @@ namespace Despicaville.Util
                             }
                         }
                     }
-                    else if (existing.Direction == Direction.Left)
+                    else if (existing.Direction == Direction.West)
                     {
                         if (existing.Region.Width == width_double)
                         {
@@ -1180,8 +1155,8 @@ namespace Despicaville.Util
                             }
                         }
                     }
-                    else if (existing.Direction == Direction.Up ||
-                             existing.Direction == Direction.Down)
+                    else if (existing.Direction == Direction.North ||
+                             existing.Direction == Direction.South)
                     {
                         if (existing.Region.Width == width_double)
                         {
@@ -1203,7 +1178,7 @@ namespace Despicaville.Util
                 }
                 else if (existing.Region.Width == width)
                 {
-                    if (existing.Direction == Direction.Up)
+                    if (existing.Direction == Direction.North)
                     {
                         if (existing.Region.Height == width_double)
                         {
@@ -1214,7 +1189,7 @@ namespace Despicaville.Util
                             }
                         }
                     }
-                    else if (existing.Direction == Direction.Down)
+                    else if (existing.Direction == Direction.South)
                     {
                         if (existing.Region.Height == width_double)
                         {
@@ -1225,8 +1200,8 @@ namespace Despicaville.Util
                             }
                         }
                     }
-                    else if (existing.Direction == Direction.Left ||
-                             existing.Direction == Direction.Right)
+                    else if (existing.Direction == Direction.West ||
+                             existing.Direction == Direction.East)
                     {
                         if (existing.Region.Height == width_double)
                         {
@@ -1291,7 +1266,7 @@ namespace Despicaville.Util
                 }
                 else if (existing.Region.Height == width)
                 {
-                    if (existing.Direction == Direction.Right)
+                    if (existing.Direction == Direction.East)
                     {
                         if (existing.Region.Width == width_double)
                         {
@@ -1302,7 +1277,7 @@ namespace Despicaville.Util
                             }
                         }
                     }
-                    else if (existing.Direction == Direction.Left)
+                    else if (existing.Direction == Direction.West)
                     {
                         if (existing.Region.Width == width_double)
                         {
@@ -1313,8 +1288,8 @@ namespace Despicaville.Util
                             }
                         }
                     }
-                    else if (existing.Direction == Direction.Up ||
-                             existing.Direction == Direction.Down)
+                    else if (existing.Direction == Direction.North ||
+                             existing.Direction == Direction.South)
                     {
                         if (existing.Region.Width == width_double)
                         {
@@ -1336,7 +1311,7 @@ namespace Despicaville.Util
                 }
                 else if (existing.Region.Width == width)
                 {
-                    if (existing.Direction == Direction.Up)
+                    if (existing.Direction == Direction.North)
                     {
                         if (existing.Region.Height == width_double)
                         {
@@ -1347,7 +1322,7 @@ namespace Despicaville.Util
                             }
                         }
                     }
-                    else if (existing.Direction == Direction.Down)
+                    else if (existing.Direction == Direction.South)
                     {
                         if (existing.Region.Height == width_double)
                         {
@@ -1358,8 +1333,8 @@ namespace Despicaville.Util
                             }
                         }
                     }
-                    else if (existing.Direction == Direction.Left ||
-                             existing.Direction == Direction.Right)
+                    else if (existing.Direction == Direction.West ||
+                             existing.Direction == Direction.East)
                     {
                         if (existing.Region.Height == width_double)
                         {
@@ -1485,21 +1460,21 @@ namespace Despicaville.Util
         {
             if (tile.Location.X > character.Location.X)
             {
-                return Direction.Right;
+                return Direction.East;
             }
             else if (tile.Location.X < character.Location.X)
             {
-                return Direction.Left;
+                return Direction.West;
             }
             else if (tile.Location.X == character.Location.X)
             {
                 if (tile.Location.Y > character.Location.Y)
                 {
-                    return Direction.Down;
+                    return Direction.South;
                 }
                 else if (tile.Location.Y < character.Location.Y)
                 {
-                    return Direction.Up;
+                    return Direction.North;
                 }
             }
 
@@ -2080,9 +2055,9 @@ namespace Despicaville.Util
             }
         }
 
-        public static void AssignPlayerBed(World world, Character player)
+        public static void AssignPlayerBed(World world)
         {
-            player.Relationships.Clear();
+            Handler.Player.Relationships.Clear();
 
             Army army = CharacterManager.GetArmy("Characters");
             Squad squad = army.GetSquad("Citizens");
@@ -2124,16 +2099,16 @@ namespace Despicaville.Util
                 if (bed_count == 1)
                 {
                     Location bed_location = null;
-                    if (possibleBed.Direction == Direction.Up)
+                    if (possibleBed.Direction == Direction.North)
                     {
                         bed_location = new Location(possibleBed.Location.X, possibleBed.Location.Y + 1, 0);
                     }
-                    else if (possibleBed.Direction == Direction.Right ||
-                             possibleBed.Direction == Direction.Down)
+                    else if (possibleBed.Direction == Direction.East ||
+                             possibleBed.Direction == Direction.South)
                     {
                         bed_location = new Location(possibleBed.Location.X, possibleBed.Location.Y, 0);
                     }
-                    else if (possibleBed.Direction == Direction.Left)
+                    else if (possibleBed.Direction == Direction.West)
                     {
                         bed_location = new Location(possibleBed.Location.X + 1, possibleBed.Location.Y, 0);
                     }
@@ -2174,16 +2149,16 @@ namespace Despicaville.Util
                     if (bed_count >= 1)
                     {
                         Location bed_location = default;
-                        if (possibleBed.Direction == Direction.Up)
+                        if (possibleBed.Direction == Direction.North)
                         {
                             bed_location = new Location(possibleBed.Location.X, possibleBed.Location.Y + 1, 0);
                         }
-                        else if (possibleBed.Direction == Direction.Right ||
-                                 possibleBed.Direction == Direction.Down)
+                        else if (possibleBed.Direction == Direction.East ||
+                                 possibleBed.Direction == Direction.South)
                         {
                             bed_location = new Location(possibleBed.Location.X, possibleBed.Location.Y, 0);
                         }
-                        else if (possibleBed.Direction == Direction.Left)
+                        else if (possibleBed.Direction == Direction.West)
                         {
                             bed_location = new Location(possibleBed.Location.X + 1, possibleBed.Location.Y, 0);
                         }
@@ -2235,16 +2210,16 @@ namespace Despicaville.Util
                         newHome = home;
 
                         Location bed_location = default;
-                        if (bed.Direction == Direction.Up)
+                        if (bed.Direction == Direction.North)
                         {
                             bed_location = new Location(bed.Location.X, bed.Location.Y + 1, 0);
                         }
-                        else if (bed.Direction == Direction.Right ||
-                                 bed.Direction == Direction.Down)
+                        else if (bed.Direction == Direction.East ||
+                                 bed.Direction == Direction.South)
                         {
                             bed_location = new Location(bed.Location.X, bed.Location.Y, 0);
                         }
-                        else if (bed.Direction == Direction.Left)
+                        else if (bed.Direction == Direction.West)
                         {
                             bed_location = new Location(bed.Location.X + 1, bed.Location.Y, 0);
                         }
@@ -2270,59 +2245,59 @@ namespace Despicaville.Util
                     Handler.OwnedFurniture.Remove(replacement.ID);
                     squad.Characters.Remove(replacement);
 
-                    player.Location = new Location(replacement.Location.X, replacement.Location.Y, 0);
+                    Handler.Player.Location = new Location(replacement.Location.X, replacement.Location.Y, 0);
                 }
                 else if (mate != null)
                 {
-                    if (mate.Direction == Direction.Up ||
-                        mate.Direction == Direction.Down)
+                    if (mate.Direction == Direction.North ||
+                        mate.Direction == Direction.South)
                     {
-                        player.Location = new Location(mate.Location.X + 1, mate.Location.Y, 0);
+                        Handler.Player.Location = new Location(mate.Location.X + 1, mate.Location.Y, 0);
                     }
-                    else if (mate.Direction == Direction.Right ||
-                             mate.Direction == Direction.Left)
+                    else if (mate.Direction == Direction.East ||
+                             mate.Direction == Direction.West)
                     {
-                        player.Location = new Location(mate.Location.X, mate.Location.Y + 1, 0);
+                        Handler.Player.Location = new Location(mate.Location.X, mate.Location.Y + 1, 0);
                     }
                 }
                 else
                 {
-                    if (bed.Direction == Direction.Up)
+                    if (bed.Direction == Direction.North)
                     {
-                        player.Location = new Location(bed.Location.X, bed.Location.Y + 1, 0);
+                        Handler.Player.Location = new Location(bed.Location.X, bed.Location.Y + 1, 0);
                     }
-                    else if (bed.Direction == Direction.Right ||
-                             bed.Direction == Direction.Down)
+                    else if (bed.Direction == Direction.East ||
+                             bed.Direction == Direction.South)
                     {
-                        player.Location = new Location(bed.Location.X, bed.Location.Y, 0);
+                        Handler.Player.Location = new Location(bed.Location.X, bed.Location.Y, 0);
                     }
-                    else if (bed.Direction == Direction.Left)
+                    else if (bed.Direction == Direction.West)
                     {
-                        player.Location = new Location(bed.Location.X + 1, bed.Location.Y, 0);
+                        Handler.Player.Location = new Location(bed.Location.X + 1, bed.Location.Y, 0);
                     }
                 }
 
-                if (!Handler.OwnedFurniture.ContainsKey(player.ID))
+                if (!Handler.OwnedFurniture.ContainsKey(Handler.Player.ID))
                 {
-                    Handler.OwnedFurniture.Add(player.ID, new List<Tile>());
+                    Handler.OwnedFurniture.Add(Handler.Player.ID, new List<Tile>());
                 }
 
                 foreach (Tile tile in middle_furniture)
                 {
-                    Handler.OwnedFurniture[player.ID].Add(tile);
+                    Handler.OwnedFurniture[Handler.Player.ID].Add(tile);
                 }
 
                 foreach (Tile tile in top_furniture)
                 {
-                    Handler.OwnedFurniture[player.ID].Add(tile);
+                    Handler.OwnedFurniture[Handler.Player.ID].Add(tile);
                 }
 
-                string last_name = player.Name.Split(' ')[1].Trim();
+                string last_name = Handler.Player.Name.Split(' ')[1].Trim();
 
                 List<Character> characters = GetAllCharacters(map_coords);
                 foreach (Character existing in characters)
                 {
-                    if (!player.Relationships.ContainsKey(existing.ID))
+                    if (!Handler.Player.Relationships.ContainsKey(existing.ID))
                     {
                         string first_name = existing.Name.Split(' ')[0].Trim();
                         existing.Name = first_name + " " + last_name;
@@ -2336,22 +2311,22 @@ namespace Despicaville.Util
                             {
                                 if (relative == 0)
                                 {
-                                    player.Relationships.Add(existing.ID, "Husband");
+                                    Handler.Player.Relationships.Add(existing.ID, "Husband");
                                 }
                                 else
                                 {
-                                    player.Relationships.Add(existing.ID, "Boyfriend");
+                                    Handler.Player.Relationships.Add(existing.ID, "Boyfriend");
                                 }
                             }
                             else
                             {
                                 if (relative == 0)
                                 {
-                                    player.Relationships.Add(existing.ID, "Wife");
+                                    Handler.Player.Relationships.Add(existing.ID, "Wife");
                                 }
                                 else
                                 {
-                                    player.Relationships.Add(existing.ID, "Girlfriend");
+                                    Handler.Player.Relationships.Add(existing.ID, "Girlfriend");
                                 }
                             }
                         }
@@ -2361,22 +2336,22 @@ namespace Despicaville.Util
                             {
                                 if (relative == 0)
                                 {
-                                    player.Relationships.Add(existing.ID, "Father");
+                                    Handler.Player.Relationships.Add(existing.ID, "Father");
                                 }
                                 else
                                 {
-                                    player.Relationships.Add(existing.ID, "Brother");
+                                    Handler.Player.Relationships.Add(existing.ID, "Brother");
                                 }
                             }
                             else
                             {
                                 if (relative == 0)
                                 {
-                                    player.Relationships.Add(existing.ID, "Mother");
+                                    Handler.Player.Relationships.Add(existing.ID, "Mother");
                                 }
                                 else
                                 {
-                                    player.Relationships.Add(existing.ID, "Sister");
+                                    Handler.Player.Relationships.Add(existing.ID, "Sister");
                                 }
                             }
                         }
@@ -2446,19 +2421,19 @@ namespace Despicaville.Util
         public static bool PassedOpenDoor(Layer middle_tiles, Character character)
         {
             Vector2 tile_location = character.Location.ToVector2;
-            if (character.Direction == Direction.Up)
+            if (character.Direction == Direction.North)
             {
                 tile_location.Y++;
             }
-            else if (character.Direction == Direction.Right)
+            else if (character.Direction == Direction.East)
             {
                 tile_location.X--;
             }
-            else if (character.Direction == Direction.Down)
+            else if (character.Direction == Direction.South)
             {
                 tile_location.Y--;
             }
-            else if (character.Direction == Direction.Left)
+            else if (character.Direction == Direction.West)
             {
                 tile_location.X++;
             }
@@ -2479,19 +2454,19 @@ namespace Despicaville.Util
         public static bool PassedOpenWindow(Layer middle_tiles, Character character)
         {
             Vector2 tile_location = character.Location.ToVector2;
-            if (character.Direction == Direction.Up)
+            if (character.Direction == Direction.North)
             {
                 tile_location.Y++;
             }
-            else if (character.Direction == Direction.Right)
+            else if (character.Direction == Direction.East)
             {
                 tile_location.X--;
             }
-            else if (character.Direction == Direction.Down)
+            else if (character.Direction == Direction.South)
             {
                 tile_location.Y--;
             }
-            else if (character.Direction == Direction.Left)
+            else if (character.Direction == Direction.West)
             {
                 tile_location.X++;
             }
@@ -2786,20 +2761,20 @@ namespace Despicaville.Util
 
                 switch (tile.Direction)
                 {
-                    case Direction.Up:
+                    case Direction.North:
                     default:
                         rotation = 0f;
                         break;
 
-                    case Direction.Right:
+                    case Direction.East:
                         rotation = 1.5f;
                         break;
 
-                    case Direction.Down:
+                    case Direction.South:
                         rotation = 3f;
                         break;
 
-                    case Direction.Left:
+                    case Direction.West:
                         rotation = 4.5f;
                         break;
                 }

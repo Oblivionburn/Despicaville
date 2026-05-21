@@ -22,20 +22,20 @@ namespace Despicaville.Tasks
 
             if (CharacterUtil.HeldByPlayer(character))
             {
-                Direction direction = WorldUtil.GetDirection(Handler.Player.Location, character.Location, false);
-                if (direction == Direction.Up)
+                Direction direction = WorldUtil.GetDirection(Handler.Player.Location, character.Location);
+                if (direction == Direction.North)
                 {
                     character.FaceNorth();
                 }
-                else if (direction == Direction.Right)
+                else if (direction == Direction.East)
                 {
                     character.FaceEast();
                 }
-                else if (direction == Direction.Down)
+                else if (direction == Direction.South)
                 {
                     character.FaceSouth();
                 }
-                else if (direction == Direction.Left)
+                else if (direction == Direction.West)
                 {
                     character.FaceWest();
                 }
@@ -55,19 +55,19 @@ namespace Despicaville.Tasks
                 character.MoveSpeed = 2;
             }
 
-            if (Direction == Direction.Up)
+            if (Direction == Direction.North)
             {
                 character.Destination = new Location(character.Location.X, character.Location.Y - 1, character.Location.Z);
             }
-            else if (Direction == Direction.Right)
+            else if (Direction == Direction.East)
             {
                 character.Destination = new Location(character.Location.X + 1, character.Location.Y, character.Location.Z);
             }
-            else if (Direction == Direction.Down)
+            else if (Direction == Direction.South)
             {
                 character.Destination = new Location(character.Location.X, character.Location.Y + 1, character.Location.Z);
             }
-            else if (Direction == Direction.Left)
+            else if (Direction == Direction.West)
             {
                 character.Destination = new Location(character.Location.X - 1, character.Location.Y, character.Location.Z);
             }
@@ -638,22 +638,22 @@ namespace Despicaville.Tasks
 
                 if (!reached_destination)
                 {
-                    Direction direction = WorldUtil.GetDirection(destination, character.Location, false);
+                    Direction direction = WorldUtil.GetDirection(destination, character.Location);
                     if (direction == character.Direction)
                     {
-                        if (direction == Direction.Up)
+                        if (direction == Direction.North)
                         {
                             character.Destination = new Location(character.Location.X, character.Location.Y - 1, character.Location.Z);
                         }
-                        else if (direction == Direction.Right)
+                        else if (direction == Direction.East)
                         {
                             character.Destination = new Location(character.Location.X + 1, character.Location.Y, character.Location.Z);
                         }
-                        else if (direction == Direction.Down)
+                        else if (direction == Direction.South)
                         {
                             character.Destination = new Location(character.Location.X, character.Location.Y + 1, character.Location.Z);
                         }
-                        else if (direction == Direction.Left)
+                        else if (direction == Direction.West)
                         {
                             character.Destination = new Location(character.Location.X - 1, character.Location.Y, character.Location.Z);
                         }

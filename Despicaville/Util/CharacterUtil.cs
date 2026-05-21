@@ -22,7 +22,7 @@ namespace Despicaville.Util
                 Frames = 4,
                 MoveSpeed = 1,
                 Move_TotalDistance = Main.Game.TileSize.X,
-                Direction = Direction.Down,
+                Direction = Direction.South,
                 Visible = true
             };
             character.Inventory.ID = Handler.GetID();
@@ -762,9 +762,9 @@ namespace Despicaville.Util
             Vector2 left_corner;
             Vector2 right_corner;
 
-            if (character.Direction == Direction.Up)
+            if (character.Direction == Direction.North)
             {
-                #region Up
+                #region North
 
                 left_corner = new Vector2(character.Location.X - (Handler.SightDistance * 2), character.Location.Y - Handler.SightDistance);
                 right_corner = new Vector2(character.Location.X + (Handler.SightDistance * 2) + 2, character.Location.Y - Handler.SightDistance);
@@ -815,9 +815,9 @@ namespace Despicaville.Util
 
                 #endregion
             }
-            else if (character.Direction == Direction.Right)
+            else if (character.Direction == Direction.East)
             {
-                #region Right
+                #region East
 
                 left_corner = new Vector2(character.Location.X + Handler.SightDistance, character.Location.Y - (Handler.SightDistance * 2));
                 right_corner = new Vector2(character.Location.X + Handler.SightDistance, character.Location.Y + (Handler.SightDistance * 2) + 2);
@@ -868,9 +868,9 @@ namespace Despicaville.Util
 
                 #endregion
             }
-            else if (character.Direction == Direction.Down)
+            else if (character.Direction == Direction.South)
             {
-                #region Down
+                #region South
 
                 left_corner = new Vector2(character.Location.X - (Handler.SightDistance * 2), character.Location.Y + Handler.SightDistance);
                 right_corner = new Vector2(character.Location.X + (Handler.SightDistance * 2) + 2, character.Location.Y + Handler.SightDistance);
@@ -921,9 +921,9 @@ namespace Despicaville.Util
 
                 #endregion
             }
-            else if (character.Direction == Direction.Left)
+            else if (character.Direction == Direction.West)
             {
-                #region Left
+                #region West
 
                 left_corner = new Vector2(character.Location.X - Handler.SightDistance, character.Location.Y + (Handler.SightDistance * 2) + 2);
                 right_corner = new Vector2(character.Location.X - Handler.SightDistance, character.Location.Y - (Handler.SightDistance * 2));
@@ -1425,25 +1425,25 @@ namespace Despicaville.Util
                         if (character.Moving &&
                             total >= 0.001f)
                         {
-                            if (character.Direction == Direction.Up &&
+                            if (character.Direction == Direction.North &&
                                 !trail_north_found)
                             {
-                                WorldUtil.AddEffect(character.Location.ToVector3, "Trail of Blood North", "Blood_Trail_Up");
+                                WorldUtil.AddEffect(character.Location.ToVector3, "Trail of Blood North", "Blood_Trail_North");
                             }
-                            else if (character.Direction == Direction.Right &&
+                            else if (character.Direction == Direction.East &&
                                      !trail_east_found)
                             {
-                                WorldUtil.AddEffect(character.Location.ToVector3, "Trail of Blood East", "Blood_Trail_Right");
+                                WorldUtil.AddEffect(character.Location.ToVector3, "Trail of Blood East", "Blood_Trail_East");
                             }
-                            else if (character.Direction == Direction.Down &&
+                            else if (character.Direction == Direction.South &&
                                      !trail_south_found)
                             {
-                                WorldUtil.AddEffect(character.Location.ToVector3, "Trail of Blood South", "Blood_Trail_Down");
+                                WorldUtil.AddEffect(character.Location.ToVector3, "Trail of Blood South", "Blood_Trail_South");
                             }
-                            else if (character.Direction == Direction.Left &&
+                            else if (character.Direction == Direction.West &&
                                      !trail_west_found)
                             {
-                                WorldUtil.AddEffect(character.Location.ToVector3, "Trail of Blood West", "Blood_Trail_Left");
+                                WorldUtil.AddEffect(character.Location.ToVector3, "Trail of Blood West", "Blood_Trail_West");
                             }
                         }
                     }

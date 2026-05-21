@@ -4,7 +4,9 @@ using System.IO;
 using System.Xml;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using OP_Engine.Enums;
 using OP_Engine.Inventories;
+using OP_Engine.Tiles;
 using OP_Engine.Utility;
 
 namespace Despicaville.Util
@@ -16,6 +18,7 @@ namespace Despicaville.Util
         private static List<FileInfo> Textures = new List<FileInfo>();
         private static List<FileInfo> Items = new List<FileInfo>();
         private static List<FileInfo> Maps = new List<FileInfo>();
+        private static List<FileInfo> Furniture = new List<FileInfo>();
 
         #endregion
 
@@ -26,7 +29,10 @@ namespace Despicaville.Util
             Textures.Clear();
             Items.Clear();
             Maps.Clear();
+            Furniture.Clear();
+
             WorldGen.Blocks.Clear();
+            Handler.Furniture.Clear();
 
             DirectoryInfo modsBaseDir = new DirectoryInfo(AssetManager.Directories["Mods"]);
             DirectoryInfo[] modsDirs = modsBaseDir.GetDirectories();
@@ -49,6 +55,13 @@ namespace Despicaville.Util
                     ScanItems(dir);
                 }
                 LoadItems(modName);
+
+                //Load Furniture
+                foreach (DirectoryInfo dir in modDirs)
+                {
+                    ScanFurniture(dir);
+                }
+                LoadFurniture(modName);
 
                 //Load Maps
                 foreach (DirectoryInfo dir in modDirs)
@@ -384,6 +397,135 @@ namespace Despicaville.Util
                         {
                             item.Categories.Add(name);
                         }
+                        break;
+                }
+            }
+        }
+
+        private static void ScanFurniture(DirectoryInfo dir)
+        {
+            FileInfo[] files = dir.GetFiles("*.furniture");
+
+            int count = files.Length;
+            for (int i = 0; i < count; i++)
+            {
+                Furniture.Add(files[i]);
+            }
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            foreach (DirectoryInfo subDir in dirs)
+            {
+                ScanFurniture(subDir);
+            }
+        }
+
+        private static void LoadFurniture(string modName)
+        {
+            Handler.Loading_Percent = 0;
+            Handler.Loading_Message = "Loading " + modName + " Furniture...";
+
+            int current = 0;
+            int total = Furniture.Count;
+
+            for (int i = 0; i < total; i++)
+            {
+                FileInfo fileInfo = Furniture[i];
+
+                using (XmlTextReader reader = new XmlTextReader(File.OpenRead(fileInfo.FullName)))
+                {
+                    try
+                    {
+                        while (reader.Read())
+                        {
+                            switch (reader.Name)
+                            {
+                                case "Furniture":
+                                    LoadFurniture(reader);
+
+                                    current++;
+                                    Handler.Loading_Percent = (current * 100) / total;
+                                    break;
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Main.Game.CrashHandler(e);
+                    }
+                }
+            }
+        }
+
+        private static void LoadFurniture(XmlTextReader reader)
+        {
+            while (reader.Read())
+            {
+                if (reader.Name == "Furniture" && reader.NodeType == XmlNodeType.EndElement)
+                    break;
+
+                switch (reader.Name)
+                {
+                    case "Properties":
+                        Tile tile = new Tile();
+                        LoadFurnitureProperties(reader, tile);
+                        Handler.Furniture.Add(tile);
+                        break;
+                }
+            }
+        }
+
+        private static void LoadFurnitureProperties(XmlTextReader reader, Tile tile)
+        {
+            while (reader.MoveToNextAttribute())
+            {
+                switch (reader.Name)
+                {
+                    case "Name":
+                        tile.Name = reader.Value;
+                        break;
+
+                    case "Texture":
+                        string texture = reader.Value;
+
+                        tile.Texture = AssetManager.Textures[texture];
+                        tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+                        tile.DrawColor = Color.White;
+                        break;
+
+                    case "Direction":
+                        if (Enum.TryParse(reader.Value, out Direction direction))
+                        {
+                            tile.Direction = direction;
+                        }
+                        break;
+
+                    case "BlocksMovement":
+                        tile.BlocksMovement = reader.Value == "True";
+                        break;
+
+                    case "BlocksSight":
+                        tile.BlocksSight = reader.Value == "True";
+                        break;
+
+                    case "Usable":
+                        tile.CanUse = reader.Value == "True";
+                        break;
+
+                    case "Movable":
+                        tile.CanMove = reader.Value == "True";
+                        break;
+
+                    case "LightSource":
+                        tile.IsLightSource = reader.Value == "True";
+                        break;
+
+                    case "LightColor":
+                        string[] values = reader.Value.Split(',');
+                        int R = int.Parse(values[0]);
+                        int G = int.Parse(values[1]);
+                        int B = int.Parse(values[2]);
+
+                        tile.LightColor = new Color(R, G, B, 255);
                         break;
                 }
             }

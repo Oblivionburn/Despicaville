@@ -836,6 +836,9 @@ namespace Despicaville.Scenes
 
         private void Finish()
         {
+            Squad players = CharacterManager.GetArmy("Characters").GetSquad("Players");
+            players.Characters.Clear();
+
             float x = (Main.Game.ScreenWidth / 2) - (Main.Game.TileSize.X / 2);
             float y = (Main.Game.ScreenHeight / 2) - (Main.Game.TileSize.Y / 2) - (Main.Game.TileSize.Y * 2);
 
@@ -846,12 +849,12 @@ namespace Despicaville.Scenes
                 Type = "Player",
                 MoveSpeed = 1,
                 Move_TotalDistance = Main.Game.TileSize.X,
-                Direction = Direction.Down,
+                Direction = Direction.South,
                 Region = new Region(x, y, Main.Game.TileSize_X, Main.Game.TileSize_Y),
                 Visible = true,
                 Frames = 4
             };
-            CharacterManager.GetArmy("Characters").GetSquad("Players").Characters[0] = Handler.Player;
+            players.Characters.Add(Handler.Player);
 
             LoadInventory(Handler.Player);
             CharacterUtil.LoadStats(Handler.Player, Stats);

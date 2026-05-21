@@ -51,37 +51,22 @@ namespace Despicaville.Tasks
                 AssetManager.PlaySound_Random_AtDistance("WindowOpen", Handler.Player.Location.ToVector2, Location.ToVector2, 8);
             }
 
-            if (character.Direction == Direction.Up ||
-                character.Direction == Direction.Down)
+            if (character.Direction == Direction.North ||
+                character.Direction == Direction.South)
             {
                 tile.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width / 8, tile.Region.Height);
                 tile.Name = "Window_WestEast_Open";
             }
-            else if (character.Direction == Direction.Right ||
-                     character.Direction == Direction.Left)
+            else if (character.Direction == Direction.East ||
+                     character.Direction == Direction.West)
             {
                 tile.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width, tile.Region.Height / 8);
                 tile.Name = "Window_NorthSouth_Open";
             }
 
-            if (character.Type == "Player")
+            if (!Handler.Player.Unconscious)
             {
-                if (loudness == 1)
-                {
-                    GameUtil.AddMessage("You quietly opened a window.");
-                }
-                else if (loudness == 2)
-                {
-                    GameUtil.AddMessage("You opened a window.");
-                }
-                else if (loudness == 3)
-                {
-                    GameUtil.AddMessage("You loudly opened a window.");
-                }
-            }
-            else if (!Handler.Player.Unconscious)
-            {
-                Direction direction = WorldUtil.GetDirection(Location, Handler.Player.Location, true);
+                Direction direction = WorldUtil.GetDirection(Location, Handler.Player.Location);
 
                 if (loudness == 1 &&
                     WorldUtil.InRange(Handler.Player.Location, Location, 2))

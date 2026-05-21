@@ -17,19 +17,19 @@ namespace Despicaville.Tasks
 
             if (Direction != character.Direction)
             {
-                if (Direction == Direction.Up)
+                if (Direction == Direction.North)
                 {
                     character.FaceNorth();
                 }
-                else if (Direction == Direction.Right)
+                else if (Direction == Direction.East)
                 {
                     character.FaceEast();
                 }
-                else if (Direction == Direction.Down)
+                else if (Direction == Direction.South)
                 {
                     character.FaceSouth();
                 }
-                else if (Direction == Direction.Left)
+                else if (Direction == Direction.West)
                 {
                     character.FaceWest();
                 }

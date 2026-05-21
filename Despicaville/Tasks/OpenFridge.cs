@@ -52,50 +52,35 @@ namespace Despicaville.Tasks
                 AssetManager.PlaySound_Random_AtDistance("DoorOpen", Handler.Player.Location.ToVector2, Location.ToVector2, 8);
             }
 
-            if (character.Direction == Direction.Up &&
-                tile.Direction == Direction.Down)
+            if (character.Direction == Direction.North &&
+                tile.Direction == Direction.South)
             {
                 tile.Texture = AssetManager.Textures["Fridge_South_Used"];
                 tile.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width, Main.Game.TileSize.Y * 2);
             }
-            else if (character.Direction == Direction.Right &&
-                     tile.Direction == Direction.Left)
+            else if (character.Direction == Direction.East &&
+                     tile.Direction == Direction.West)
             {
                 tile.Texture = AssetManager.Textures["Fridge_West_Used"];
                 tile.Region = new Region(tile.Region.X - Main.Game.TileSize.X, tile.Region.Y, Main.Game.TileSize.X * 2, tile.Region.Height);
             }
-            else if (character.Direction == Direction.Down &&
-                     tile.Direction == Direction.Up)
+            else if (character.Direction == Direction.South &&
+                     tile.Direction == Direction.North)
             {
                 tile.Texture = AssetManager.Textures["Fridge_North_Used"];
                 tile.Region = new Region(tile.Region.X, tile.Region.Y - Main.Game.TileSize.Y, tile.Region.Width, Main.Game.TileSize.Y * 2);
             }
-            else if (character.Direction == Direction.Left &&
-                     tile.Direction == Direction.Right)
+            else if (character.Direction == Direction.West &&
+                     tile.Direction == Direction.East)
             {
                 tile.Texture = AssetManager.Textures["Fridge_East_Used"];
                 tile.Region = new Region(tile.Region.X, tile.Region.Y, Main.Game.TileSize.X * 2, tile.Region.Height);
             }
             tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
 
-            if (character.Type == "Player")
+            if (!Handler.Player.Unconscious)
             {
-                if (loudness == 1)
-                {
-                    GameUtil.AddMessage("You quietly opened a fridge.");
-                }
-                else if (loudness == 2)
-                {
-                    GameUtil.AddMessage("You opened a fridge.");
-                }
-                else if (loudness == 3)
-                {
-                    GameUtil.AddMessage("You loudly opened a fridge.");
-                }
-            }
-            else if (!Handler.Player.Unconscious)
-            {
-                Direction direction = WorldUtil.GetDirection(Location, Handler.Player.Location, true);
+                Direction direction = WorldUtil.GetDirection(Location, Handler.Player.Location);
 
                 if (loudness == 1 &&
                     WorldUtil.InRange(Handler.Player.Location, Location, 2))

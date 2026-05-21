@@ -48,22 +48,22 @@ namespace Despicaville.Tasks
             {
                 if (nextTo)
                 {
-                    Direction furniture_direction = WorldUtil.GetDirection(toilet.Location, character.Location, false);
+                    Direction furniture_direction = WorldUtil.GetDirection(toilet.Location, character.Location);
                     if (character.Direction != furniture_direction)
                     {
-                        if (furniture_direction == Direction.Up)
+                        if (furniture_direction == Direction.North)
                         {
                             character.FaceNorth();
                         }
-                        else if (furniture_direction == Direction.Right)
+                        else if (furniture_direction == Direction.East)
                         {
                             character.FaceEast();
                         }
-                        else if (furniture_direction == Direction.Down)
+                        else if (furniture_direction == Direction.South)
                         {
                             character.FaceSouth();
                         }
-                        else if (furniture_direction == Direction.Left)
+                        else if (furniture_direction == Direction.West)
                         {
                             character.FaceWest();
                         }
@@ -73,19 +73,19 @@ namespace Despicaville.Tasks
                 {
                     if (character.Direction != toilet.Direction)
                     {
-                        if (toilet.Direction == Direction.Up)
+                        if (toilet.Direction == Direction.North)
                         {
                             character.FaceNorth();
                         }
-                        else if (toilet.Direction == Direction.Right)
+                        else if (toilet.Direction == Direction.East)
                         {
                             character.FaceEast();
                         }
-                        else if (toilet.Direction == Direction.Down)
+                        else if (toilet.Direction == Direction.South)
                         {
                             character.FaceSouth();
                         }
-                        else if (toilet.Direction == Direction.Left)
+                        else if (toilet.Direction == Direction.West)
                         {
                             character.FaceWest();
                         }
@@ -125,13 +125,9 @@ namespace Despicaville.Tasks
             {
                 AssetManager.PlaySound_Random_AtDistance("Flush", Handler.Player.Location.ToVector2, toilet.Location.ToVector2, 5);
 
-                if (character.Type == "Player")
+                if (character.Type != "Player")
                 {
-                    GameUtil.AddMessage("You used a toilet.");
-                }
-                else
-                {
-                    Direction direction = WorldUtil.GetDirection(toilet.Location, Handler.Player.Location, true);
+                    Direction direction = WorldUtil.GetDirection(toilet.Location, Handler.Player.Location);
                     if (WorldUtil.InRange(Handler.Player.Location, toilet.Location, 5))
                     {
                         GameUtil.AddMessage("You hear a toilet flush to the " + direction.ToString() + ".");

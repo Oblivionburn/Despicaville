@@ -57,6 +57,7 @@ namespace Despicaville.Util
             Handler.light_maps.Clear();
             Handler.light_sources.Clear();
             ResetArmy();
+            ResetInventories();
 
             Handler.CharGen_Stage = 0;
             Handler.Loading_Stage = 3;
@@ -101,11 +102,7 @@ namespace Despicaville.Util
                         new Squad
                         {
                             ID = Handler.GetID(),
-                            Name = "Players",
-                            Characters = new List<Character>
-                            {
-                                Handler.Player
-                            }
+                            Name = "Players"
                         },
                         new Squad
                         {
@@ -115,7 +112,10 @@ namespace Despicaville.Util
                     }
                 }
             };
+        }
 
+        public static void ResetInventories()
+        {
             for (int i = 0; i < InventoryManager.Inventories.Count; i++)
             {
                 Inventory inventory = InventoryManager.Inventories[i];
@@ -221,40 +221,40 @@ namespace Despicaville.Util
                                             middle_tile.Region.Height = Main.Game.TileSize.Y * 3;
                                         }
                                         else if (middle_tile.Name.Contains("Bench") ||
-                                                    middle_tile.Name.Contains("Couch"))
+                                                 middle_tile.Name.Contains("Couch"))
                                         {
-                                            if (middle_tile.Direction == Direction.Up ||
-                                                middle_tile.Direction == Direction.Down)
+                                            if (middle_tile.Direction == Direction.North ||
+                                                middle_tile.Direction == Direction.South)
                                             {
                                                 middle_tile.Region.Width = Main.Game.TileSize.X * 3;
                                                 middle_tile.Region.Height = Main.Game.TileSize.Y;
                                             }
-                                            else if (middle_tile.Direction == Direction.Left ||
-                                                        middle_tile.Direction == Direction.Right)
+                                            else if (middle_tile.Direction == Direction.West ||
+                                                     middle_tile.Direction == Direction.East)
                                             {
                                                 middle_tile.Region.Width = Main.Game.TileSize.X;
                                                 middle_tile.Region.Height = Main.Game.TileSize.Y * 3;
                                             }
                                         }
                                         else if (middle_tile.Name.Contains("Dresser") ||
-                                                    middle_tile.Name.Contains("Loveseat"))
+                                                 middle_tile.Name.Contains("Loveseat"))
                                         {
-                                            if (middle_tile.Direction == Direction.Up ||
-                                                middle_tile.Direction == Direction.Down)
+                                            if (middle_tile.Direction == Direction.North ||
+                                                middle_tile.Direction == Direction.South)
                                             {
                                                 middle_tile.Region.Width = Main.Game.TileSize.X * 2;
                                                 middle_tile.Region.Height = Main.Game.TileSize.Y;
                                             }
-                                            else if (middle_tile.Direction == Direction.Left ||
-                                                        middle_tile.Direction == Direction.Right)
+                                            else if (middle_tile.Direction == Direction.West ||
+                                                     middle_tile.Direction == Direction.East)
                                             {
                                                 middle_tile.Region.Width = Main.Game.TileSize.X;
                                                 middle_tile.Region.Height = Main.Game.TileSize.Y * 2;
                                             }
                                         }
                                         else if (middle_tile.Name.Contains("Bath") ||
-                                                    middle_tile.Name.Contains("Bed") ||
-                                                    middle_tile.Name.Contains("ComputerDesk"))
+                                                 middle_tile.Name.Contains("Bed") ||
+                                                 middle_tile.Name.Contains("ComputerDesk"))
                                         {
                                             if (middle_tile.Name.Contains("DoubleBed"))
                                             {
@@ -263,14 +263,14 @@ namespace Despicaville.Util
                                             }
                                             else if (middle_tile.Name.Contains("ComputerDesk"))
                                             {
-                                                if (middle_tile.Direction == Direction.Up ||
-                                                    middle_tile.Direction == Direction.Down)
+                                                if (middle_tile.Direction == Direction.North ||
+                                                    middle_tile.Direction == Direction.South)
                                                 {
                                                     middle_tile.Region.Width = Main.Game.TileSize.X * 2;
                                                     middle_tile.Region.Height = Main.Game.TileSize.Y;
                                                 }
-                                                else if (middle_tile.Direction == Direction.Right ||
-                                                            middle_tile.Direction == Direction.Left)
+                                                else if (middle_tile.Direction == Direction.East ||
+                                                         middle_tile.Direction == Direction.West)
                                                 {
                                                     middle_tile.Region.Width = Main.Game.TileSize.X;
                                                     middle_tile.Region.Height = Main.Game.TileSize.Y * 2;
@@ -278,14 +278,14 @@ namespace Despicaville.Util
                                             }
                                             else
                                             {
-                                                if (middle_tile.Direction == Direction.Up ||
-                                                    middle_tile.Direction == Direction.Down)
+                                                if (middle_tile.Direction == Direction.North ||
+                                                    middle_tile.Direction == Direction.South)
                                                 {
                                                     middle_tile.Region.Width = Main.Game.TileSize.X;
                                                     middle_tile.Region.Height = Main.Game.TileSize.Y * 2;
                                                 }
-                                                else if (middle_tile.Direction == Direction.Right ||
-                                                            middle_tile.Direction == Direction.Left)
+                                                else if (middle_tile.Direction == Direction.East ||
+                                                         middle_tile.Direction == Direction.West)
                                                 {
                                                     middle_tile.Region.Width = Main.Game.TileSize.X * 2;
                                                     middle_tile.Region.Height = Main.Game.TileSize.Y;

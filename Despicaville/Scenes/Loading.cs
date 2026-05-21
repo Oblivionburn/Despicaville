@@ -325,7 +325,7 @@ namespace Despicaville.Scenes
         {
             World world = SceneManager.GetScene("Gameplay").World;
 
-            WorldUtil.AssignPlayerBed(world, Handler.Player);
+            WorldUtil.AssignPlayerBed(world);
             if (Handler.Player.Location == null)
             {
                 Handler.Player.Location = new Location(0, 0, 0);

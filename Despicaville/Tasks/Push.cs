@@ -51,19 +51,19 @@ namespace Despicaville.Tasks
 
                 newLocation = new Location(character.Location.X, character.Location.Y, 0);
 
-                if (Direction == Direction.Up)
+                if (Direction == Direction.North)
                 {
                     destination = new Location(character.Location.X, character.Location.Y - 1, 0);
                 }
-                else if (Direction == Direction.Right)
+                else if (Direction == Direction.East)
                 {
                     destination = new Location(character.Location.X + 1, character.Location.Y, 0);
                 }
-                else if (Direction == Direction.Down)
+                else if (Direction == Direction.South)
                 {
                     destination = new Location(character.Location.X, character.Location.Y + 1, 0);
                 }
-                else if (Direction == Direction.Left)
+                else if (Direction == Direction.West)
                 {
                     destination = new Location(character.Location.X - 1, character.Location.Y, 0);
                 }
@@ -112,19 +112,19 @@ namespace Despicaville.Tasks
 
                 newLocation = new Location(tile.Location.X, tile.Location.Y, 0);
 
-                if (Direction == Direction.Up)
+                if (Direction == Direction.North)
                 {
                     destination = new Location(tile.Location.X, tile.Location.Y - 1, 0);
                 }
-                else if (Direction == Direction.Right)
+                else if (Direction == Direction.East)
                 {
                     destination = new Location(tile.Location.X + 1, tile.Location.Y, 0);
                 }
-                else if (Direction == Direction.Down)
+                else if (Direction == Direction.South)
                 {
                     destination = new Location(tile.Location.X, tile.Location.Y + 1, 0);
                 }
-                else if (Direction == Direction.Left)
+                else if (Direction == Direction.West)
                 {
                     destination = new Location(tile.Location.X - 1, tile.Location.Y, 0);
                 }

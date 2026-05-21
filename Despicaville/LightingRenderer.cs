@@ -6,7 +6,6 @@ using OP_Engine.Rendering;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
 using OP_Engine.Scenes;
-using Despicaville.Util;
 
 namespace Despicaville
 {
@@ -68,15 +67,7 @@ namespace Despicaville
                     {
                         if (source_tile.IsLightSource)
                         {
-                            Color drawColor = Color.White;
-                            if (source_tile.Name.Contains("TV"))
-                            {
-                                drawColor = new Color(0, 255, 255, 255);
-                            }
-                            else if (source_tile.Name.Contains("Lamp"))
-                            {
-                                drawColor = new Color(255, 240, 160, 255);
-                            }
+                            Color drawColor = source_tile.LightColor;
 
                             int distance = Main.light_tile_distance;
                             int full_width = (int)(distance * Main.Game.TileSize.X);
@@ -156,7 +147,7 @@ namespace Despicaville
                                                 if (middle_tile != null)
                                                 {
                                                     if (middle_tile.BlocksMovement &&
-                                                        WorldUtil.BlocksSight(middle_tile.Name))
+                                                        middle_tile.BlocksSight)
                                                     {
                                                         break;
                                                     }

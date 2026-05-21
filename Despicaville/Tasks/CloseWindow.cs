@@ -55,35 +55,20 @@ namespace Despicaville.Tasks
             Tile bottom_tile = bottom_tiles.GetTile(tile.Location.ToVector2);
             tile.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
 
-            if (character.Direction == Direction.Up ||
-                character.Direction == Direction.Down)
+            if (character.Direction == Direction.North ||
+                character.Direction == Direction.South)
             {
                 tile.Name = "Window_WestEast_Closed";
             }
-            else if (character.Direction == Direction.Right ||
-                     character.Direction == Direction.Left)
+            else if (character.Direction == Direction.East ||
+                     character.Direction == Direction.West)
             {
                 tile.Name = "Window_NorthSouth_Closed";
             }
 
-            if (character.Type == "Player")
+            if (!Handler.Player.Unconscious)
             {
-                if (loudness == 1)
-                {
-                    GameUtil.AddMessage("You softly closed a window.");
-                }
-                else if (loudness == 2)
-                {
-                    GameUtil.AddMessage("You closed a window.");
-                }
-                else if (loudness == 3)
-                {
-                    GameUtil.AddMessage("You slammed a window shut.");
-                }
-            }
-            else if (!Handler.Player.Unconscious)
-            {
-                Direction direction = WorldUtil.GetDirection(Location, Handler.Player.Location, true);
+                Direction direction = WorldUtil.GetDirection(Location, Handler.Player.Location);
 
                 if (loudness == 1 &&
                     WorldUtil.InRange(Handler.Player.Location, Location, 2))

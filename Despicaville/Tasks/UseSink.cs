@@ -34,7 +34,7 @@ namespace Despicaville.Tasks
 
                         if (character.Type != "Player")
                         {
-                            Direction direction = WorldUtil.GetDirection(sink.Location, Handler.Player.Location, true);
+                            Direction direction = WorldUtil.GetDirection(sink.Location, Handler.Player.Location);
                             if (WorldUtil.InRange(Handler.Player.Location, sink.Location, 5))
                             {
                                 GameUtil.AddMessage("You hear a sink running to the " + direction.ToString() + ".");
@@ -70,12 +70,6 @@ namespace Despicaville.Tasks
             }
 
             character.Stats.Thirst = 0;
-
-            if (character.Type == "Player")
-            {
-                GameUtil.AddMessage("You drank water from a sink.");
-            }
-
             SoundManager.StopSound("WaterRunning");
         }
 

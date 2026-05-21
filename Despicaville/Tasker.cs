@@ -75,7 +75,7 @@ namespace Despicaville
             Character target = WorldUtil.GetCharacter_Target(character);
             if (target != null)
             {
-                Direction direction = WorldUtil.GetDirection(target.Location, character.Location, false);
+                Direction direction = WorldUtil.GetDirection(target.Location, character.Location);
 
                 if (direction != character.Direction)
                 {
@@ -101,19 +101,19 @@ namespace Despicaville
                 else
                 {
                     Location location = new Location();
-                    if (character.Direction == Direction.Up)
+                    if (character.Direction == Direction.North)
                     {
                         location = new Location(character.Location.X, character.Location.Y - 1, 1);
                     }
-                    else if (character.Direction == Direction.Right)
+                    else if (character.Direction == Direction.East)
                     {
                         location = new Location(character.Location.X + 1, character.Location.Y, 1);
                     }
-                    else if (character.Direction == Direction.Down)
+                    else if (character.Direction == Direction.South)
                     {
                         location = new Location(character.Location.X, character.Location.Y + 1, 1);
                     }
-                    else if (character.Direction == Direction.Left)
+                    else if (character.Direction == Direction.West)
                     {
                         location = new Location(character.Location.X - 1, character.Location.Y, 1);
                     }
@@ -431,24 +431,24 @@ namespace Despicaville
             Direction direction = Direction.Nowhere;
             Location location = null;
 
-            if (character.Direction == Direction.Up)
+            if (character.Direction == Direction.North)
             {
-                direction = Direction.Down;
+                direction = Direction.South;
                 location = new Location(character.Location.X, character.Location.Y + 1, 0);
             }
-            else if (character.Direction == Direction.Right)
+            else if (character.Direction == Direction.East)
             {
-                direction = Direction.Left;
+                direction = Direction.West;
                 location = new Location(character.Location.X - 1, character.Location.Y, 0);
             }
-            else if (character.Direction == Direction.Down)
+            else if (character.Direction == Direction.South)
             {
-                direction = Direction.Up;
+                direction = Direction.North;
                 location = new Location(character.Location.X, character.Location.Y - 1, 0);
             }
-            else if (character.Direction == Direction.Left)
+            else if (character.Direction == Direction.West)
             {
-                direction = Direction.Right;
+                direction = Direction.East;
                 location = new Location(character.Location.X + 1, character.Location.Y, 0);
             }
 
@@ -469,24 +469,24 @@ namespace Despicaville
             Direction direction = Direction.Nowhere;
             Location location = null;
 
-            if (character.Direction == Direction.Up)
+            if (character.Direction == Direction.North)
             {
-                direction = Direction.Down;
+                direction = Direction.South;
                 location = new Location(character.Location.X, character.Location.Y + 1, 0);
             }
-            else if (character.Direction == Direction.Right)
+            else if (character.Direction == Direction.East)
             {
-                direction = Direction.Left;
+                direction = Direction.West;
                 location = new Location(character.Location.X - 1, character.Location.Y, 0);
             }
-            else if (character.Direction == Direction.Down)
+            else if (character.Direction == Direction.South)
             {
-                direction = Direction.Up;
+                direction = Direction.North;
                 location = new Location(character.Location.X, character.Location.Y - 1, 0);
             }
-            else if (character.Direction == Direction.Left)
+            else if (character.Direction == Direction.West)
             {
-                direction = Direction.Right;
+                direction = Direction.East;
                 location = new Location(character.Location.X + 1, character.Location.Y, 0);
             }
 
@@ -510,19 +510,19 @@ namespace Despicaville
             int choice = random.Next(1, 101);
             if (choice <= 28)
             {
-                direction = Direction.Up;
+                direction = Direction.North;
             }
             else if (choice <= 50)
             {
-                direction = Direction.Right;
+                direction = Direction.East;
             }
             else if (choice <= 72)
             {
-                direction = Direction.Down;
+                direction = Direction.South;
             }
             else if (choice <= 100)
             {
-                direction = Direction.Left;
+                direction = Direction.West;
             }
 
             random = new CryptoRandom();
@@ -568,11 +568,11 @@ namespace Despicaville
             Layer middle_tiles = map.GetLayer("MiddleTiles");
             Tile tile = middle_tiles.GetTile(destination);
 
-            if (tile.Direction == Direction.Up)
+            if (tile.Direction == Direction.North)
             {
                 tile.Name = "Window_NorthSouth_Broken";
             }
-            else if (tile.Direction == Direction.Right)
+            else if (tile.Direction == Direction.East)
             {
                 tile.Name = "Window_WestEast_Broken";
             }
@@ -581,19 +581,19 @@ namespace Despicaville
             tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
 
             Vector2 location = new Vector2(destination.X, destination.Y);
-            if (direction == Direction.Up)
+            if (direction == Direction.North)
             {
                 location.Y--;
             }
-            else if (direction == Direction.Right)
+            else if (direction == Direction.East)
             {
                 location.X++;
             }
-            else if (direction == Direction.Down)
+            else if (direction == Direction.South)
             {
                 location.Y++;
             }
-            else if (direction == Direction.Left)
+            else if (direction == Direction.West)
             {
                 location.X--;
             }
@@ -1023,20 +1023,20 @@ namespace Despicaville
 
         private static void ContinuePathing(Character character, bool desperate)
         {
-            Direction direction = WorldUtil.GetDirection(new Location(character.Path[0].X, character.Path[0].Y, 0), character.Location, false);
-            if (direction == Direction.Up)
+            Direction direction = WorldUtil.GetDirection(new Location(character.Path[0].X, character.Path[0].Y, 0), character.Location);
+            if (direction == Direction.North)
             {
                 character.Destination = new Location(character.Location.X, character.Location.Y - 1, character.Location.Z);
             }
-            else if (direction == Direction.Right)
+            else if (direction == Direction.East)
             {
                 character.Destination = new Location(character.Location.X + 1, character.Location.Y, character.Location.Z);
             }
-            else if (direction == Direction.Down)
+            else if (direction == Direction.South)
             {
                 character.Destination = new Location(character.Location.X, character.Location.Y + 1, character.Location.Z);
             }
-            else if (direction == Direction.Left)
+            else if (direction == Direction.West)
             {
                 character.Destination = new Location(character.Location.X - 1, character.Location.Y, character.Location.Z);
             }
