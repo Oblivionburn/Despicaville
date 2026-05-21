@@ -3,7 +3,6 @@ using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
 using OP_Engine.Scenes;
-using Despicaville.Util;
 
 namespace Despicaville.Tasks
 {

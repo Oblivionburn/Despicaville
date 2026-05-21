@@ -78,7 +78,8 @@ namespace Despicaville.Tasks
             }
             tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
 
-            if (!Handler.Player.Unconscious)
+            if (character.Type != "Player" &&
+                !Handler.Player.Unconscious)
             {
                 Direction direction = WorldUtil.GetDirection(Location, Handler.Player.Location);
 

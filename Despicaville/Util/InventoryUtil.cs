@@ -39,6 +39,9 @@ namespace Despicaville.Util
             copy.Assignment = original.Assignment;
             copy.Task = original.Task;
 
+            copy.Sound = original.Sound;
+            copy.SoundRange = original.SoundRange;
+
             copy.Inventory.Name = original.Inventory.Name;
             copy.Inventory.Max_Value = original.Inventory.Max_Value;
 
@@ -474,58 +477,6 @@ namespace Despicaville.Util
 
                             Item new_item = CopyItem(possible_items[choice], true);
                             new_item.Location = new Location(X, Y, 0);
-
-                            if (new_item.Name == "Small Backpack" ||
-                                new_item.Name == "Cape" ||
-                                new_item.Name == "Boots" ||
-                                new_item.Name == "Vest" ||
-                                new_item.Name == "Glove - Left" ||
-                                new_item.Name == "Glove - Right" ||
-                                new_item.Name == "Mitten - Left" ||
-                                new_item.Name == "Mitten - Right" ||
-                                new_item.Name == "Hat" ||
-                                new_item.Name == "Winter Hat" ||
-                                new_item.Name == "Pants" ||
-                                new_item.Name == "Shorts" ||
-                                new_item.Name == "Skirt" ||
-                                new_item.Name == "Present" ||
-                                new_item.Name == "Ribbon" ||
-                                new_item.Name == "Corset" ||
-                                new_item.Name == "Dress" ||
-                                new_item.Name == "Gown" ||
-                                new_item.Name == "Hoodie" ||
-                                new_item.Name == "Jersey" ||
-                                new_item.Name == "Shirt" ||
-                                new_item.Name == "Tank Top" ||
-                                new_item.Name == "Shoes" ||
-                                new_item.Name == "Sandals" ||
-                                new_item.Name == "Bunny Slippers")
-                            {
-                                if (new_item.Name == "Hat")
-                                {
-                                    new_item.Texture = AssetManager.Textures["Hat"];
-                                    new_item.Visible = true;
-                                }
-                                else if (new_item.Name == "Shirt")
-                                {
-                                    new_item.Texture = AssetManager.Textures["Shirt"];
-                                    new_item.Visible = true;
-                                }
-
-                                random = new CryptoRandom();
-                                int color_choice = random.Next(0, Handler.Colors.Length);
-                                Color new_color = GameUtil.ColorFromName(Handler.Colors[color_choice]);
-
-                                new_item.Name = Handler.Colors[color_choice] + " " + new_item.Name;
-
-                                if (new_item.Type == "Container")
-                                {
-                                    new_item.Inventory.Name = new_item.Name;
-                                }
-
-                                new_item.DrawColor = new_color;
-                                new_item.Icon_DrawColor = new_color;
-                            }
 
                             items.Add(new_item);
 

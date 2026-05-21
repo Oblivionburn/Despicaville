@@ -254,14 +254,15 @@ namespace Despicaville.Util
                                         }
                                         else if (middle_tile.Name.Contains("Bath") ||
                                                  middle_tile.Name.Contains("Bed") ||
-                                                 middle_tile.Name.Contains("ComputerDesk"))
+                                                 middle_tile.Name.Contains("Desk"))
                                         {
-                                            if (middle_tile.Name.Contains("DoubleBed"))
+                                            if (middle_tile.Name.Contains("Bed") &&
+                                                middle_tile.Name.Contains("Double"))
                                             {
                                                 middle_tile.Region.Width = Main.Game.TileSize.X * 2;
                                                 middle_tile.Region.Height = Main.Game.TileSize.Y * 2;
                                             }
-                                            else if (middle_tile.Name.Contains("ComputerDesk"))
+                                            else if (middle_tile.Name.Contains("Desk"))
                                             {
                                                 if (middle_tile.Direction == Direction.North ||
                                                     middle_tile.Direction == Direction.South)

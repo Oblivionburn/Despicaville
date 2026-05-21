@@ -30,14 +30,14 @@ namespace Despicaville.Tasks
 
                     if (!Handler.Player.Unconscious)
                     {
-                        AssetManager.PlaySound_Random_AtDistance("WaterRunning", Handler.Player.Location.ToVector2, sink.Location.ToVector2, 5);
+                        AssetManager.PlaySound_Random_AtDistance(sink.Sound, Handler.Player.Location.ToVector2, sink.Location.ToVector2, sink.SoundRange);
 
                         if (character.Type != "Player")
                         {
                             Direction direction = WorldUtil.GetDirection(sink.Location, Handler.Player.Location);
                             if (WorldUtil.InRange(Handler.Player.Location, sink.Location, 5))
                             {
-                                GameUtil.AddMessage("You hear a sink running to the " + direction.ToString() + ".");
+                                GameUtil.AddMessage("You hear a sink to the " + direction.ToString() + ".");
                             }
                         }
                     }

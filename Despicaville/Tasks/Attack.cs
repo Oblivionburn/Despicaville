@@ -6,6 +6,7 @@ using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
 using OP_Engine.Time;
+using OP_Engine.Inventories;
 using Despicaville.Util;
 
 namespace Despicaville.Tasks
@@ -23,6 +24,7 @@ namespace Despicaville.Tasks
             }
 
             AttackingWith = CombatUtil.AttackChoice(character);
+            string weapon = AttackingWith.ElementAt(0).Key;
             string action = AttackingWith.ElementAt(0).Value;
 
             if (action == "Punch" ||
@@ -39,7 +41,18 @@ namespace Despicaville.Tasks
             }
             else if (action == "Throw")
             {
-                AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
+                AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 3);
+            }
+            else if (action == "Shoot")
+            {
+                if (weapon == "Sling")
+                {
+                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
+                }
+                else if (weapon.Contains("Bow"))
+                {
+                    AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
+                }
             }
         }
 
@@ -53,6 +66,17 @@ namespace Despicaville.Tasks
 
             string weapon = AttackingWith.ElementAt(0).Key;
             string action = AttackingWith.ElementAt(0).Value;
+
+            Item weaponItem = null;
+            for (int i = 0; i < character.Inventory.Items.Count; i++)
+            {
+                Item item = character.Inventory.Items[i];
+                if (item.Name == weapon)
+                {
+                    weaponItem = item;
+                    break;
+                }
+            }
 
             Character target = WorldUtil.GetCharacter(Location);
             if (target != null)
@@ -98,7 +122,15 @@ namespace Despicaville.Tasks
                 float hitChance = CombatUtil.ChanceToHitBodyPart(character, target, bodyPart);
                 if (Utility.RandomPercent(hitChance))
                 {
-                    CombatUtil.AttackSound_Hit(target, null, weapon, action);
+                    if (weaponItem != null)
+                    {
+                        AssetManager.PlaySound_Random_AtDistance(weaponItem.Sound, Handler.Player.Location.ToVector2, target.Location.ToVector2, weaponItem.SoundRange);
+                    }
+                    else
+                    {
+                        AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, target.Location.ToVector2, 2);
+                    }
+
                     CombatUtil.DoDamage(character, target, weapon, action, bodyPart);
 
                     if (target.Unconscious)
@@ -149,7 +181,13 @@ namespace Despicaville.Tasks
                                 break;
 
                             case "Shoot":
-                                CombatUtil.AttackSound_Hit(target, null, weapon, action);
+                                if (weaponItem != null &&
+                                    weapon != "Sling" &&
+                                    !weapon.Contains("Bow"))
+                                {
+                                    AssetManager.PlaySound_Random_AtDistance(weaponItem.Sound, Handler.Player.Location.ToVector2, target.Location.ToVector2, weaponItem.SoundRange);
+                                }
+
                                 GameUtil.AddMessage("You tried to " + action.ToLower() + " their " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
                                 break;
 
@@ -169,7 +207,13 @@ namespace Despicaville.Tasks
                                 break;
 
                             case "Shoot":
-                                CombatUtil.AttackSound_Hit(target, null, weapon, action);
+                                if (weaponItem != null &&
+                                    weapon != "Sling" &&
+                                    !weapon.Contains("Bow"))
+                                {
+                                    AssetManager.PlaySound_Random_AtDistance(weaponItem.Sound, Handler.Player.Location.ToVector2, character.Location.ToVector2, weaponItem.SoundRange);
+                                }
+
                                 GameUtil.AddMessage(character.Name + " tried to " + action.ToLower() + " your " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
                                 break;
 
@@ -214,7 +258,14 @@ namespace Despicaville.Tasks
 
                 if (tile != null)
                 {
-                    CombatUtil.AttackSound_Hit(null, tile, weapon, action);
+                    if (weaponItem != null)
+                    {
+                        AssetManager.PlaySound_Random_AtDistance(weaponItem.Sound, Handler.Player.Location.ToVector2, tile.Location.ToVector2, weaponItem.SoundRange);
+                    }
+                    else
+                    {
+                        AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 2);
+                    }
 
                     if (character.Type == "Player")
                     {

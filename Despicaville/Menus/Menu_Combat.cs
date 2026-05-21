@@ -12,6 +12,7 @@ using OP_Engine.Utility;
 using OP_Engine.Time;
 using Despicaville.Util;
 using Despicaville.Tasks;
+using OP_Engine.Inventories;
 
 namespace Despicaville.Menus
 {
@@ -198,7 +199,29 @@ namespace Despicaville.Menus
             }
             else
             {
-                CombatUtil.AttackSound_Hit(Handler.Interaction_Character, null, weapon, action);
+                //CombatUtil.AttackSound_Hit(Handler.Interaction_Character, null, weapon, action);
+
+                Item weaponItem = null;
+                for (int i = 0; i < Handler.Player.Inventory.Items.Count; i++)
+                {
+                    Item item = Handler.Player.Inventory.Items[i];
+                    if (item.Name == weapon)
+                    {
+                        weaponItem = item;
+                        break;
+                    }
+                }
+
+                if (weaponItem != null)
+                {
+                    AssetManager.PlaySound_Random_AtDistance(weaponItem.Sound, Handler.Player.Location.ToVector2,
+                        Handler.Interaction_Character.Location.ToVector2, weaponItem.SoundRange);
+                }
+                else
+                {
+                    AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, Handler.Interaction_Character.Location.ToVector2, 2);
+                }
+
                 GameUtil.AddMessage("You missed the shot at their " + CharacterUtil.BodyPartToName(button.Name).ToLower() + ".");
 
                 Handler.Player.Job.Tasks.Add(new Wait

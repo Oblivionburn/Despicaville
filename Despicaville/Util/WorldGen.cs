@@ -1743,8 +1743,11 @@ namespace Despicaville.Util
                 new_tile.Direction = existing.Direction;
                 new_tile.BlocksMovement = existing.BlocksMovement;
                 new_tile.BlocksSight = existing.BlocksSight;
-                new_tile.CanUse = existing.CanUse;
                 new_tile.CanMove = existing.CanMove;
+
+                new_tile.CanUse = existing.CanUse;
+                new_tile.Sound = existing.Sound;
+                new_tile.SoundRange = existing.SoundRange;
 
                 new_tile.IsLightSource = existing.IsLightSource;
                 if (new_tile.IsLightSource)

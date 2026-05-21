@@ -149,18 +149,11 @@ namespace Despicaville
             {
                 "Colors",
                 "Controls",
-                "Foliage",
-                "Furniture",
                 "Hairs",
-                "Hats",
-                "Pants",
                 "Paperdoll",
                 "RoomTypes",
                 "Screens",
-                "Shirts",
-                "Shoes",
-                "Skins",
-                "Tiles"
+                "Skins"
             };
             foreach (string dir in textures)
             {
@@ -172,24 +165,13 @@ namespace Despicaville
 
             string[] sounds =
             {
-                "Bow",
                 "Click",
                 "DoorClose",
                 "DoorOpen",
                 "Equip",
-                "Explode",
-                "Flush",
                 "GlassBreak",
-                "Pistol",
                 "Punch",
                 "Purchase",
-                "Rifle",
-                "Shotgun",
-                "Stab",
-                "Swing",
-                "Sword",
-                "Thunder",
-                "WaterRunning",
                 "WindowClose",
                 "WindowOpen"
             };

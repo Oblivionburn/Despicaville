@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using OP_Engine.Enums;
 using OP_Engine.Inventories;
+using OP_Engine.Sounds;
 using OP_Engine.Tiles;
 using OP_Engine.Utility;
 
@@ -16,6 +18,7 @@ namespace Despicaville.Util
         #region Variables
 
         private static List<FileInfo> Textures = new List<FileInfo>();
+        private static List<FileInfo> Sounds = new List<FileInfo>();
         private static List<FileInfo> Items = new List<FileInfo>();
         private static List<FileInfo> Maps = new List<FileInfo>();
         private static List<FileInfo> Furniture = new List<FileInfo>();
@@ -27,6 +30,7 @@ namespace Despicaville.Util
         public static void LoadMods()
         {
             Textures.Clear();
+            Sounds.Clear();
             Items.Clear();
             Maps.Clear();
             Furniture.Clear();
@@ -48,6 +52,13 @@ namespace Despicaville.Util
                     ScanTextures(dir);
                 }
                 LoadTextures(modName);
+
+                //Load Sounds
+                foreach (DirectoryInfo dir in modDirs)
+                {
+                    ScanSounds(dir);
+                }
+                LoadSounds(modName);
 
                 //Load Items
                 foreach (DirectoryInfo dir in modDirs)
@@ -114,6 +125,78 @@ namespace Despicaville.Util
                     current++;
                     Handler.Loading_Percent = (current * 100) / total;
                 }
+            }
+        }
+
+        private static void ScanSounds(DirectoryInfo dir)
+        {
+            List<FileInfo> Files = new List<FileInfo>();
+
+            FileInfo[] files = dir.GetFiles();
+            for (int i = 0; i < files.Length; i++)
+            {
+                FileInfo file = files[i];
+
+                if (AssetManager.SoundExtensions.Contains(file.Extension))
+                {
+                    //mp3, wma, wav, or ogg
+                    Files.Add(file);
+                }
+            }
+
+            int count = Files.Count;
+            for (int i = 0; i < count; i++)
+            {
+                Sounds.Add(Files[i]);
+            }
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            foreach (DirectoryInfo subDir in dirs)
+            {
+                ScanSounds(subDir);
+            }
+        }
+
+        private static void LoadSounds(string modName)
+        {
+            Handler.Loading_Percent = 0;
+            Handler.Loading_Message = "Loading " + modName + " Sounds...";
+
+            int current = 0;
+            int total = Sounds.Count;
+
+            for (int i = 0; i < total; i++)
+            {
+                FileInfo fileInfo = Sounds[i];
+
+                Sound sound = new Sound
+                {
+                    Extension = fileInfo.Extension,
+                    Name = Path.GetFileNameWithoutExtension(fileInfo.FullName),
+                    Directory = Path.GetDirectoryName(fileInfo.FullName)
+                };
+
+                //Assumes your sound files end with numbers for variations of each sound
+                //because nobody likes hearing the same sound repeatedly for hours
+                //Example: Hit1.mp3, Hit2.mp3, Hit3.mp3,etc
+                sound.Type = sound.Name.Substring(0, sound.Name.Length - 1);
+
+                if (!AssetManager.Sounds.ContainsKey(sound.Type))
+                {
+                    Dictionary<string, Sound> sounds = new Dictionary<string, Sound>
+                    {
+                        { sound.Name, sound }
+                    };
+
+                    AssetManager.Sounds.Add(sound.Type, sounds);
+                }
+                else if (!AssetManager.Sounds[sound.Type].ContainsKey(sound.Name))
+                {
+                    AssetManager.Sounds[sound.Type].Add(sound.Name, sound);
+                }
+
+                current++;
+                Handler.Loading_Percent = (current * 100) / total;
             }
         }
 
@@ -296,6 +379,14 @@ namespace Despicaville.Util
 
                     case "Action":
                         item.Task = reader.Value;
+                        break;
+
+                    case "Sound":
+                        item.Sound = reader.Value;
+                        break;
+
+                    case "SoundRange":
+                        item.SoundRange = int.Parse(reader.Value);
                         break;
                 }
             }
@@ -509,6 +600,14 @@ namespace Despicaville.Util
 
                     case "Usable":
                         tile.CanUse = reader.Value == "True";
+                        break;
+
+                    case "Sound":
+                        tile.Sound = reader.Value;
+                        break;
+
+                    case "SoundRange":
+                        tile.SoundRange = int.Parse(reader.Value);
                         break;
 
                     case "Movable":

@@ -64,7 +64,8 @@ namespace Despicaville.Tasks
                 tile.Name = "Window_NorthSouth_Open";
             }
 
-            if (!Handler.Player.Unconscious)
+            if (character.Type != "Player" &&
+                !Handler.Player.Unconscious)
             {
                 Direction direction = WorldUtil.GetDirection(Location, Handler.Player.Location);
 

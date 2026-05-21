@@ -117,20 +117,20 @@ namespace Despicaville.Tasks
                     string[] name_parts = toilet.Texture.Name.Split('_');
                     toilet.Texture = AssetManager.Textures[name_parts[0] + "_" + name_parts[1]];
                 }
-            }
 
-            character.Stats.Bladder = 0;
+                character.Stats.Bladder = 0;
 
-            if (!Handler.Player.Unconscious)
-            {
-                AssetManager.PlaySound_Random_AtDistance("Flush", Handler.Player.Location.ToVector2, toilet.Location.ToVector2, 5);
-
-                if (character.Type != "Player")
+                if (!Handler.Player.Unconscious)
                 {
-                    Direction direction = WorldUtil.GetDirection(toilet.Location, Handler.Player.Location);
-                    if (WorldUtil.InRange(Handler.Player.Location, toilet.Location, 5))
+                    AssetManager.PlaySound_Random_AtDistance(toilet.Sound, Handler.Player.Location.ToVector2, toilet.Location.ToVector2, toilet.SoundRange);
+
+                    if (character.Type != "Player")
                     {
-                        GameUtil.AddMessage("You hear a toilet flush to the " + direction.ToString() + ".");
+                        Direction direction = WorldUtil.GetDirection(toilet.Location, Handler.Player.Location);
+                        if (WorldUtil.InRange(Handler.Player.Location, toilet.Location, 5))
+                        {
+                            GameUtil.AddMessage("You hear a toilet to the " + direction.ToString() + ".");
+                        }
                     }
                 }
             }

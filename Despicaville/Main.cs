@@ -2,10 +2,8 @@
 using System.Reflection;
 using System.Diagnostics;
 using System.Windows.Forms;
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-
 using OP_Engine.Scenes;
 using OP_Engine.Menus;
 using OP_Engine.Inputs;
@@ -15,7 +13,6 @@ using OP_Engine.Inventories;
 using OP_Engine.Time;
 using OP_Engine.Rendering;
 using OP_Engine.Weathers;
-
 using Despicaville.Scenes;
 using Despicaville.Menus;
 

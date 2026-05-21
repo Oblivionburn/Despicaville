@@ -82,26 +82,26 @@ namespace Despicaville.Tasks
             if (character.Type != "Player")
             {
                 CharacterUtil.UpdateSight(Handler.Player);
-            }
 
-            if (!Handler.Player.Unconscious)
-            {
-                Direction direction = WorldUtil.GetDirection(Location, Handler.Player.Location);
+                if (!Handler.Player.Unconscious)
+                {
+                    Direction direction = WorldUtil.GetDirection(Location, Handler.Player.Location);
 
-                if (loudness == 1 &&
-                    WorldUtil.InRange(Handler.Player.Location, Location, 2))
-                {
-                    GameUtil.AddMessage("You hear a door softly closed to the " + direction.ToString() + ".");
-                }
-                else if (loudness == 2 &&
-                         WorldUtil.InRange(Handler.Player.Location, Location, 4))
-                {
-                    GameUtil.AddMessage("You hear a door close to the " + direction.ToString() + ".");
-                }
-                else if (loudness == 3 &&
-                         WorldUtil.InRange(Handler.Player.Location, Location, 8))
-                {
-                    GameUtil.AddMessage("You hear a door slammed shut to the " + direction.ToString() + ".");
+                    if (loudness == 1 &&
+                        WorldUtil.InRange(Handler.Player.Location, Location, 2))
+                    {
+                        GameUtil.AddMessage("You hear a door softly closed to the " + direction.ToString() + ".");
+                    }
+                    else if (loudness == 2 &&
+                             WorldUtil.InRange(Handler.Player.Location, Location, 4))
+                    {
+                        GameUtil.AddMessage("You hear a door close to the " + direction.ToString() + ".");
+                    }
+                    else if (loudness == 3 &&
+                             WorldUtil.InRange(Handler.Player.Location, Location, 8))
+                    {
+                        GameUtil.AddMessage("You hear a door slammed shut to the " + direction.ToString() + ".");
+                    }
                 }
             }
         }
