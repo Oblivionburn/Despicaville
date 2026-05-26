@@ -331,6 +331,7 @@ namespace Despicaville.Util
                 {
                     case "Name":
                         item.Name = reader.Value;
+                        item.DrawColor = Color.White;
                         break;
 
                     case "Icon":
@@ -354,17 +355,11 @@ namespace Despicaville.Util
 
                         item.Texture = AssetManager.Textures[texture];
                         item.Image = new Rectangle(0, 0, item.Texture.Width, item.Texture.Height);
-                        item.DrawColor = Color.White;
+                        item.Visible = true;
                         break;
 
                     case "Type":
                         item.Type = reader.Value;
-
-                        if (item.Type == "Container")
-                        {
-                            item.Inventory.ID = Handler.GetID();
-                            item.Inventory.Name = item.Name;
-                        }
                         break;
 
                     case "Tier":
@@ -372,9 +367,11 @@ namespace Despicaville.Util
                         break;
 
                     case "InventorySlots":
-                        item.Inventory.ID = Handler.GetID();
-                        item.Inventory.Name = item.Name;
-                        item.Inventory.Max_Value = int.Parse(reader.Value);
+                        item.Inventory = new Inventory
+                        {
+                            Name = item.Name,
+                            Max_Value = int.Parse(reader.Value)
+                        };
                         break;
 
                     case "Action":
@@ -612,6 +609,14 @@ namespace Despicaville.Util
 
                     case "Movable":
                         tile.CanMove = reader.Value == "True";
+                        break;
+
+                    case "InventorySlots":
+                        tile.Inventory = new Inventory
+                        {
+                            Name = tile.Name,
+                            Max_Value = int.Parse(reader.Value)
+                        };
                         break;
 
                     case "LightSource":

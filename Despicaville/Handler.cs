@@ -13,6 +13,8 @@ using OP_Engine.Inputs;
 using OP_Engine.Characters;
 using OP_Engine.Inventories;
 using OP_Engine.Tiles;
+using OP_Engine.Controls;
+using OP_Engine.Menus;
 using Despicaville.Util;
 
 namespace Despicaville
@@ -38,10 +40,10 @@ namespace Despicaville
         public static bool WorldMap_Visible;
         public static bool Combat;
 
-        public static bool Holding;
-        public static long Holding_ID;
-        public static Tile Holding_Tile;
-        public static Character Holding_Character;
+        public static bool Pull;
+        public static long Pull_ID;
+        public static Tile Pull_Tile;
+        public static Character Pull_Character;
 
         public static bool Trading;
         public static List<long> Trading_InventoryID = new List<long>();
@@ -346,6 +348,18 @@ namespace Despicaville
         {
             ID++;
             return ID;
+        }
+
+        public static void ResetPull()
+        {
+            Pull = false;
+            Pull_ID = 0;
+            Pull_Tile = null;
+            Pull_Character = null;
+
+            Label label = MenuManager.GetMenu("UI").GetLabel("Pulling");
+            label.Opacity = 0.6f;
+            label.TextColor = Color.White;
         }
 
         #endregion

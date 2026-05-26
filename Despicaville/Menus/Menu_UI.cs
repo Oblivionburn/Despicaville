@@ -58,7 +58,7 @@ namespace Despicaville.Menus
                 if (hoveringLabel == null ||
                     hoveringLabel?.Name == "Crouching" ||
                     hoveringLabel?.Name == "Running" ||
-                    hoveringLabel?.Name == "Holding" ||
+                    hoveringLabel?.Name == "Pulling" ||
                     hoveringLabel?.Name == "Combat")
                 {
                     GetLabel("Examine").Visible = false;
@@ -375,8 +375,8 @@ namespace Despicaville.Menus
             {
                 font = AssetManager.Fonts["ControlFont"],
                 id = Handler.GetID(),
-                name = "Holding",
-                text = "Holding",
+                name = "Pulling",
+                text = "Pulling",
                 text_color = Color.White,
                 opacity = 0.6f,
                 visible = true
@@ -505,7 +505,7 @@ namespace Despicaville.Menus
 
             GetLabel("Crouching").Region = new Region(x, y + (height * 6), panel_width, height);
             GetLabel("Running").Region = new Region(x, y + (height * 7), panel_width, height);
-            GetLabel("Holding").Region = new Region(x, y + (height * 8), panel_width, height);
+            GetLabel("Pulling").Region = new Region(x, y + (height * 8), panel_width, height);
             GetLabel("Combat").Region = new Region(x, y + (height * 9), panel_width, height);
 
             GetProgressBar("Blood").Base_Region = new Region(x, y + (height * 10), panel_width, height);

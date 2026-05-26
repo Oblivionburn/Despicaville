@@ -903,9 +903,7 @@ namespace Despicaville.Menus
 
                             if (item.Type == "Weapon" ||
                                 item.Name.Contains("Bag") ||
-                                item.Name == "Briefcase" ||
-                                item.Name == "Suitcase" ||
-                                item.Name == "Cooler")
+                                item.Name.Contains("Box"))
                             {
                                 if (HoveringSlot("Right Weapon Slot"))
                                 {
@@ -927,6 +925,10 @@ namespace Despicaville.Menus
                             else if (item.Type.Contains("Shirt"))
                             {
                                 slot = GetPicture("Shirt Slot");
+                            }
+                            else if (item.Type.Contains("Hat"))
+                            {
+                                slot = GetPicture("Hat Slot");
                             }
                             else if (item.Name.Contains("Backpack"))
                             {
@@ -1249,33 +1251,9 @@ namespace Despicaville.Menus
 
             if (slot == null)
             {
-                if (item.Type == "Gloves")
-                {
-                    if (item.Name.Contains("Right"))
-                    {
-                        Picture right_glove_slot = GetPicture("Right Glove Slot");
-                        if (right_glove_slot != null)
-                        {
-                            slots.Add(right_glove_slot);
-                        }
-                    }
-                    else if (item.Name.Contains("Left"))
-                    {
-                        Picture left_glove_slot = GetPicture("Left Glove Slot");
-                        if (left_glove_slot != null)
-                        {
-                            slots.Add(left_glove_slot);
-                        }
-                    }
-                }
-                else if (item.Type == "Weapon" ||
-                         item.Type == "Tool" ||
-                         item.Name.Contains("Bag") ||
-                         item.Name == "Basket" ||
-                         item.Name == "Briefcase" ||
-                         item.Name == "Purse" ||
-                         item.Name == "Cooler" ||
-                         item.Name == "First Aid Kit")
+                if (item.Type == "Weapon" ||
+                    item.Name.Contains("Bag") ||
+                    item.Name.Contains("Box"))
                 {
                     Picture right_weapon_slot = GetPicture("Right Weapon Slot");
                     if (right_weapon_slot != null)
@@ -1290,13 +1268,44 @@ namespace Despicaville.Menus
                     }
                 }
                 else if (item.Name.Contains("Backpack") ||
-                         item.Name == "Quiver" ||
                          item.Type == "Back")
                 {
                     Picture backpack_slot = GetPicture("Backpack Slot");
                     if (backpack_slot != null)
                     {
                         slots.Add(backpack_slot);
+                    }
+                }
+                else if (item.Type.Contains("Shoes"))
+                {
+                    Picture shoes_slot = GetPicture("Shoes Slot");
+                    if (shoes_slot != null)
+                    {
+                        slots.Add(shoes_slot);
+                    }
+                }
+                else if (item.Type.Contains("Pants"))
+                {
+                    Picture pants_slot = GetPicture("Pants Slot");
+                    if (pants_slot != null)
+                    {
+                        slots.Add(pants_slot);
+                    }
+                }
+                else if (item.Type.Contains("Shirt"))
+                {
+                    Picture shirt_slot = GetPicture("Shirt Slot");
+                    if (shirt_slot != null)
+                    {
+                        slots.Add(shirt_slot);
+                    }
+                }
+                else if (item.Type.Contains("Hat"))
+                {
+                    Picture hat_slot = GetPicture("Hat Slot");
+                    if (hat_slot != null)
+                    {
+                        slots.Add(hat_slot);
                     }
                 }
             }

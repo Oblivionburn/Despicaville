@@ -34,7 +34,7 @@ namespace Despicaville.Tasks
 
                         if (character.Type != "Player")
                         {
-                            Direction direction = WorldUtil.GetDirection(sink.Location, Handler.Player.Location);
+                            Direction direction = WorldUtil.GetDirection(Handler.Player.Location, sink.Location);
                             if (WorldUtil.InRange(Handler.Player.Location, sink.Location, 5))
                             {
                                 GameUtil.AddMessage("You hear a sink to the " + direction.ToString() + ".");

@@ -77,7 +77,7 @@ namespace Despicaville.Tasks
                         EndTime = new TimeHandler(TimeManager.Now);
 
                         string bodyPart = CombatUtil.RandomBodyPart(owner, character);
-                        CombatUtil.AddWound(owner, character, character.GetBodyPart(bodyPart), "Bruise");
+                        CombatUtil.AddWound(owner, character, character.GetBodyPart(bodyPart), "Bruise", true);
                     }
                     else if (blockingTile.Layer.Name != "BottomTiles")
                     {

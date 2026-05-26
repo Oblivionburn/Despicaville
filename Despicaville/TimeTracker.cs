@@ -43,10 +43,7 @@ namespace Despicaville
                     continue;
                 }
 
-                if (Handler.Action)
-                {
-                    character.Job.Update(TimeManager.Now);
-                }
+                character.Job.Update(TimeManager.Now);
 
                 if (character.Moving)
                 {
@@ -59,8 +56,7 @@ namespace Despicaville
                     continue;
                 }
 
-                if (character.Unconscious &&
-                    Handler.Action)
+                if (character.Unconscious)
                 {
                     CharacterUtil.Rest(character);
                     continue;
@@ -68,7 +64,7 @@ namespace Despicaville
 
                 if (task == null &&
                     !character.Unconscious &&
-                    !CharacterUtil.HeldByPlayer(character))
+                    !CharacterUtil.PulledByPlayer(character))
                 {
                     Tasker.GiveTask_Citizen(character);
                 }

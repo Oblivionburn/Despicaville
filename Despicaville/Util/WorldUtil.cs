@@ -51,7 +51,7 @@ namespace Despicaville.Util
             {
                 if (!furniture.Name.Contains("Open"))
                 {
-                    if (Handler.Holding_ID != furniture.ID &&
+                    if (Handler.Pull_ID != furniture.ID &&
                         furniture.BlocksMovement)
                     {
                         return false;
@@ -68,153 +68,75 @@ namespace Despicaville.Util
             Character other = GetCharacter(destination);
             if (other != null)
             {
-                return false;
+                if (Handler.Pull_Character != null)
+                {
+                    if (Handler.Pull_Character.ID != other.ID)
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    return false;
+                }
             }
 
-            if (Handler.Holding)
+            if (Handler.Pull)
             {
                 Location newLocation = null;
                 Region size = null;
 
-                //Check for held thing colliding when pushed
-                if (Handler.Holding_Character != null)
+                //Check for collision
+                if (Handler.Pull_Character != null)
                 {
                     #region Character
 
-                    size = new Region(Handler.Holding_Character.Location.X, Handler.Holding_Character.Location.Y, 0, 0);
-                    newLocation = new Location(Handler.Holding_Character.Location.X, Handler.Holding_Character.Location.Y, 0);
+                    size = new Region(Handler.Pull_Character.Location.X, Handler.Pull_Character.Location.Y, 0, 0);
+                    newLocation = new Location(Handler.Pull_Character.Location.X, Handler.Pull_Character.Location.Y, 0);
 
-                    Direction direction = GetDirection(character.Destination, character.Location);
+                    Direction direction = GetDirection(character.Location, character.Destination);
                     if (direction == Direction.North)
                     {
-                        if (Handler.Holding_Character.Location.X == character.Location.X)
-                        {
-                            newLocation.Y--;
-                        }
-                        else if (Handler.Holding_Character.Location.X < character.Location.X)
-                        {
-                            newLocation.X++;
-                        }
-                        else if (Handler.Holding_Character.Location.X > character.Location.X)
-                        {
-                            newLocation.X--;
-                        }
+                        newLocation.Y--;
                     }
                     else if (direction == Direction.East)
                     {
-                        if (Handler.Holding_Character.Location.Y == character.Location.Y)
-                        {
-                            newLocation.X++;
-                        }
-                        else if (Handler.Holding_Character.Location.Y < character.Location.Y)
-                        {
-                            newLocation.Y++;
-                        }
-                        else if (Handler.Holding_Character.Location.Y > character.Location.Y)
-                        {
-                            newLocation.Y--;
-                        }
+                        newLocation.X++;
                     }
                     else if (direction == Direction.South)
                     {
-                        if (Handler.Holding_Character.Location.X == character.Location.X)
-                        {
-                            newLocation.Y++;
-                        }
-                        else if (Handler.Holding_Character.Location.X < character.Location.X)
-                        {
-                            newLocation.X++;
-                        }
-                        else if (Handler.Holding_Character.Location.X > character.Location.X)
-                        {
-                            newLocation.X--;
-                        }
+                        newLocation.Y++;
                     }
                     else if (direction == Direction.West)
                     {
-                        if (Handler.Holding_Character.Location.Y == character.Location.Y)
-                        {
-                            newLocation.X--;
-                        }
-                        else if (Handler.Holding_Character.Location.Y < character.Location.Y)
-                        {
-                            newLocation.Y++;
-                        }
-                        else if (Handler.Holding_Character.Location.Y > character.Location.Y)
-                        {
-                            newLocation.Y--;
-                        }
+                        newLocation.X--;
                     }
 
                     #endregion
                 }
-                else if (Handler.Holding_Tile != null)
+                else if (Handler.Pull_Tile != null)
                 {
                     #region Tile
 
-                    size = GetSize(Handler.Holding_Tile);
-                    newLocation = new Location(Handler.Holding_Tile.Location.X, Handler.Holding_Tile.Location.Y, 0);
+                    size = GetSize(Handler.Pull_Tile);
+                    newLocation = new Location(Handler.Pull_Tile.Location.X, Handler.Pull_Tile.Location.Y, 0);
 
-                    Direction direction = GetDirection(character.Destination, character.Location);
+                    Direction direction = GetDirection(character.Location, character.Destination);
                     if (direction == Direction.North)
                     {
-                        if (Handler.Holding_Tile.Location.X == character.Location.X)
-                        {
-                            newLocation.Y--;
-                        }
-                        else if (Handler.Holding_Tile.Location.X < character.Location.X)
-                        {
-                            newLocation.X++;
-                        }
-                        else if (Handler.Holding_Tile.Location.X > character.Location.X)
-                        {
-                            newLocation.X--;
-                        }
+                        newLocation.Y--;
                     }
                     else if (direction == Direction.East)
                     {
-                        if (Handler.Holding_Tile.Location.Y == character.Location.Y)
-                        {
-                            newLocation.X++;
-                        }
-                        else if (Handler.Holding_Tile.Location.Y < character.Location.Y)
-                        {
-                            newLocation.Y++;
-                        }
-                        else if (Handler.Holding_Tile.Location.Y > character.Location.Y)
-                        {
-                            newLocation.Y--;
-                        }
+                        newLocation.X++;
                     }
                     else if (direction == Direction.South)
                     {
-                        if (Handler.Holding_Tile.Location.X == character.Location.X)
-                        {
-                            newLocation.Y++;
-                        }
-                        else if (Handler.Holding_Tile.Location.X < character.Location.X)
-                        {
-                            newLocation.X++;
-                        }
-                        else if (Handler.Holding_Tile.Location.X > character.Location.X)
-                        {
-                            newLocation.X--;
-                        }
+                        newLocation.Y++;
                     }
                     else if (direction == Direction.West)
                     {
-                        if (Handler.Holding_Tile.Location.Y == character.Location.Y)
-                        {
-                            newLocation.X--;
-                        }
-                        else if (Handler.Holding_Tile.Location.Y < character.Location.Y)
-                        {
-                            newLocation.Y++;
-                        }
-                        else if (Handler.Holding_Tile.Location.Y > character.Location.Y)
-                        {
-                            newLocation.Y--;
-                        }
+                        newLocation.X--;
                     }
 
                     #endregion
@@ -246,18 +168,18 @@ namespace Despicaville.Util
 
                             Tile middle = GetFurniture(Handler.MiddleFurniture, new Location(X, Y, 0));
                             if (middle != null &&
-                                middle.ID != Handler.Holding_ID &&
+                                middle.ID != Handler.Pull_ID &&
                                 !middle.Name.Contains("Open") &&
                                 !middle.Name.Contains("Broken"))
                             {
-                                if (Handler.Holding_Character != null)
+                                if (Handler.Pull_Character != null)
                                 {
                                     if (middle.BlocksMovement)
                                     {
                                         return false;
                                     }
                                 }
-                                else if (Handler.Holding_Tile != null)
+                                else if (Handler.Pull_Tile != null)
                                 {
                                     return false;
                                 }
@@ -335,7 +257,7 @@ namespace Despicaville.Util
             return false;
         }
 
-        public static Direction GetDirection(Location target, Location source)
+        public static Direction GetDirection(Location source, Location target)
         {
             if (target.X > source.X)
             {
@@ -562,287 +484,97 @@ namespace Despicaville.Util
             return false;
         }
 
-        public static void HeldTile_SetLocation(Character character, Direction direction, bool behind)
+        public static void PullTile_SetLocation(Direction direction)
         {
-            if (Handler.Holding_Tile != null)
+            if (Handler.Pull_Tile != null)
             {
-                Location location = new Location(Handler.Holding_Tile.Location.X, Handler.Holding_Tile.Location.Y, 0);
-                if (direction == Direction.North)
+                Location newLocation = new Location(Handler.Pull_Tile.Location.X, Handler.Pull_Tile.Location.Y);
+                switch (direction)
                 {
-                    if (Handler.Holding_Tile.IsLightSource)
-                    {
-                        for (int l = 0; l < Handler.light_sources.Count; l++)
+                    case Direction.North:
+                        if (Handler.Pull_Tile.IsLightSource)
                         {
-                            Point source = Handler.light_sources[l];
-                            if (source.X == location.X &&
-                                source.Y == location.Y)
+                            for (int l = 0; l < Handler.light_sources.Count; l++)
                             {
-                                source.X = (int)character.Location.X;
-
-                                if (behind)
+                                Point source = Handler.light_sources[l];
+                                if (source.X == Handler.Pull_Tile.Location.X &&
+                                    source.Y == Handler.Pull_Tile.Location.Y)
                                 {
-                                    source.Y = (int)character.Location.Y + 1;
-                                }
-                                else
-                                {
-                                    source.Y = (int)character.Location.Y - 1;
-                                }
+                                    source.Y--;
 
-                                Handler.light_sources[l] = new Point(source.X, source.Y);
-                                break;
+                                    Handler.light_sources[l] = new Point(source.X, source.Y);
+                                    break;
+                                }
                             }
                         }
-                    }
 
-                    location.X = (int)character.Location.X;
+                        newLocation.Y--;
+                        SwapTiles(GetMap().GetLayer("MiddleTiles"), Handler.Pull_Tile, newLocation);
+                        break;
 
-                    if (behind)
-                    {
-                        location.Y = (int)character.Location.Y + 1;
-                    }
-                    else
-                    {
-                        location.Y = (int)character.Location.Y - 1;
-                    }
-                }
-                else if (direction == Direction.East)
-                {
-                    if (Handler.Holding_Tile.IsLightSource)
-                    {
-                        for (int l = 0; l < Handler.light_sources.Count; l++)
+                    case Direction.East:
+                        if (Handler.Pull_Tile.IsLightSource)
                         {
-                            Point source = Handler.light_sources[l];
-                            if (source.X == location.X &&
-                                source.Y == location.Y)
+                            for (int l = 0; l < Handler.light_sources.Count; l++)
                             {
-                                source.Y = (int)character.Location.Y;
-
-                                if (behind)
+                                Point source = Handler.light_sources[l];
+                                if (source.X == Handler.Pull_Tile.Location.X &&
+                                    source.Y == Handler.Pull_Tile.Location.Y)
                                 {
-                                    source.X = (int)character.Location.X - 1;
-                                }
-                                else
-                                {
-                                    source.X = (int)character.Location.X + 1;
-                                }
+                                    source.X++;
 
-                                Handler.light_sources[l] = new Point(source.X, source.Y);
-                                break;
+                                    Handler.light_sources[l] = new Point(source.X, source.Y);
+                                    break;
+                                }
                             }
                         }
-                    }
 
-                    location.Y = (int)character.Location.Y;
+                        newLocation.X++;
+                        SwapTiles(GetMap().GetLayer("MiddleTiles"), Handler.Pull_Tile, newLocation);
+                        break;
 
-                    if (behind)
-                    {
-                        location.X = (int)character.Location.X - 1;
-                    }
-                    else
-                    {
-                        location.X = (int)character.Location.X + 1;
-                    }
-                }
-                else if (direction == Direction.South)
-                {
-                    if (Handler.Holding_Tile.IsLightSource)
-                    {
-                        for (int l = 0; l < Handler.light_sources.Count; l++)
+                    case Direction.South:
+                        if (Handler.Pull_Tile.IsLightSource)
                         {
-                            Point source = Handler.light_sources[l];
-                            if (source.X == location.X &&
-                                source.Y == location.Y)
+                            for (int l = 0; l < Handler.light_sources.Count; l++)
                             {
-                                source.X = (int)character.Location.X;
-
-                                if (behind)
+                                Point source = Handler.light_sources[l];
+                                if (source.X == Handler.Pull_Tile.Location.X &&
+                                    source.Y == Handler.Pull_Tile.Location.Y)
                                 {
-                                    source.Y = (int)character.Location.Y - 1;
-                                }
-                                else
-                                {
-                                    source.Y = (int)character.Location.Y + 1;
-                                }
+                                    source.Y++;
 
-                                Handler.light_sources[l] = new Point(source.X, source.Y);
-                                break;
+                                    Handler.light_sources[l] = new Point(source.X, source.Y);
+                                    break;
+                                }
                             }
                         }
-                    }
 
-                    location.X = (int)character.Location.X;
+                        newLocation.Y++;
+                        SwapTiles(GetMap().GetLayer("MiddleTiles"), Handler.Pull_Tile, newLocation);
+                        break;
 
-                    if (behind)
-                    {
-                        location.Y = (int)character.Location.Y - 1;
-                    }
-                    else
-                    {
-                        location.Y = (int)character.Location.Y + 1;
-                    }
-                }
-                else if (direction == Direction.West)
-                {
-                    if (Handler.Holding_Tile.IsLightSource)
-                    {
-                        for (int l = 0; l < Handler.light_sources.Count; l++)
+                    case Direction.West:
+                        if (Handler.Pull_Tile.IsLightSource)
                         {
-                            Point source = Handler.light_sources[l];
-                            if (source.X == location.X &&
-                                source.Y == location.Y)
+                            for (int l = 0; l < Handler.light_sources.Count; l++)
                             {
-                                source.Y = (int)character.Location.Y;
-
-                                if (behind)
+                                Point source = Handler.light_sources[l];
+                                if (source.X == Handler.Pull_Tile.Location.X &&
+                                    source.Y == Handler.Pull_Tile.Location.Y)
                                 {
-                                    source.X = (int)character.Location.X + 1;
-                                }
-                                else
-                                {
-                                    source.X = (int)character.Location.X - 1;
-                                }
+                                    source.X--;
 
-                                Handler.light_sources[l] = new Point(source.X, source.Y);
-                                break;
+                                    Handler.light_sources[l] = new Point(source.X, source.Y);
+                                    break;
+                                }
                             }
                         }
-                    }
 
-                    location.Y = (int)character.Location.Y;
-
-                    if (behind)
-                    {
-                        location.X = (int)character.Location.X + 1;
-                    }
-                    else
-                    {
-                        location.X = (int)character.Location.X - 1;
-                    }
+                        newLocation.X--;
+                        SwapTiles(GetMap().GetLayer("MiddleTiles"), Handler.Pull_Tile, newLocation);
+                        break;
                 }
-
-                SwapTiles(GetMap().GetLayer("MiddleTiles"), Handler.Holding_Tile, location);
-            }
-        }
-
-        public static void HeldCharacter_SetLocation(Character character, Direction direction, bool behind)
-        {
-            if (Handler.Holding_Character != null)
-            {
-                if (direction == Direction.North)
-                {
-                    Handler.Holding_Character.Location.X = (int)character.Location.X;
-
-                    if (behind)
-                    {
-                        Handler.Holding_Character.Location.Y = (int)character.Location.Y + 1;
-                    }
-                    else
-                    {
-                        Handler.Holding_Character.Location.Y = (int)character.Location.Y - 1;
-                    }
-                }
-                else if (direction == Direction.East)
-                {
-                    Handler.Holding_Character.Location.Y = (int)character.Location.Y;
-
-                    if (behind)
-                    {
-                        Handler.Holding_Character.Location.X = (int)character.Location.X - 1;
-                    }
-                    else
-                    {
-                        Handler.Holding_Character.Location.X = (int)character.Location.X + 1;
-                    }
-                }
-                else if (direction == Direction.South)
-                {
-                    Handler.Holding_Character.Location.X = (int)character.Location.X;
-
-                    if (behind)
-                    {
-                        Handler.Holding_Character.Location.Y = (int)character.Location.Y - 1;
-                    }
-                    else
-                    {
-                        Handler.Holding_Character.Location.Y = (int)character.Location.Y + 1;
-                    }
-                }
-                else if (direction == Direction.West)
-                {
-                    Handler.Holding_Character.Location.Y = (int)character.Location.Y;
-
-                    if (behind)
-                    {
-                        Handler.Holding_Character.Location.X = (int)character.Location.X + 1;
-                    }
-                    else
-                    {
-                        Handler.Holding_Character.Location.X = (int)character.Location.X - 1;
-                    }
-                }
-
-                CharacterUtil.UpdateGear(Handler.Holding_Character);
-            }
-        }
-
-        public static void HeldCharacter_SetDestination(Character character, Direction direction, bool behind)
-        {
-            if (Handler.Holding_Character != null)
-            {
-                if (direction == Direction.North)
-                {
-                    Handler.Holding_Character.Destination.X = (int)character.Location.X;
-
-                    if (behind)
-                    {
-                        Handler.Holding_Character.Destination.Y = (int)character.Location.Y;
-                    }
-                    else
-                    {
-                        Handler.Holding_Character.Destination.Y = (int)character.Location.Y - 1;
-                    }
-                }
-                else if (direction == Direction.East)
-                {
-                    Handler.Holding_Character.Destination.Y = (int)character.Location.Y;
-
-                    if (behind)
-                    {
-                        Handler.Holding_Character.Destination.X = (int)character.Location.X;
-                    }
-                    else
-                    {
-                        Handler.Holding_Character.Destination.X = (int)character.Location.X + 1;
-                    }
-                }
-                else if (direction == Direction.South)
-                {
-                    Handler.Holding_Character.Destination.X = (int)character.Location.X;
-
-                    if (behind)
-                    {
-                        Handler.Holding_Character.Destination.Y = (int)character.Location.Y;
-                    }
-                    else
-                    {
-                        Handler.Holding_Character.Destination.Y = (int)character.Location.Y + 1;
-                    }
-                }
-                else if (direction == Direction.West)
-                {
-                    Handler.Holding_Character.Destination.Y = (int)character.Location.Y;
-
-                    if (behind)
-                    {
-                        Handler.Holding_Character.Destination.X = (int)character.Location.X;
-                    }
-                    else
-                    {
-                        Handler.Holding_Character.Destination.X = (int)character.Location.X - 1;
-                    }
-                }
-
-                CharacterUtil.UpdateGear(Handler.Holding_Character);
             }
         }
 
@@ -1817,6 +1549,212 @@ namespace Despicaville.Util
                     description += " " + he_she + " is dead.";
                 }
 
+                #region Hair
+
+                Item hair = InventoryUtil.Get_EquippedItem(character, "Hair");
+                if (hair != null)
+                {
+                    details.Add(he_she + " has " + hair.Name.ToLower() + ".");
+                }
+                else
+                {
+                    details.Add(he_she + " is bald.");
+                }
+
+                #endregion
+
+                #region Shoes
+
+                Item shoes_item = InventoryUtil.Get_EquippedItem(character, "Shoes Slot");
+                if (shoes_item != null)
+                {
+                    string item_description = shoes_item.Name.ToLower();
+
+                    CryptoRandom random = new CryptoRandom();
+                    int variation = random.Next(0, 10);
+                    if (variation == 0)
+                    {
+                        details.Add(he_she + " has " + item_description + " on.");
+                    }
+                    else if (variation == 1)
+                    {
+                        details.Add(he_she + " is wearing " + item_description + ".");
+                    }
+                    else if (variation == 2)
+                    {
+                        details.Add("You see " + item_description + " on " + him_her.ToLower() + ".");
+                    }
+                    else if (variation == 3)
+                    {
+                        details.Add("There are " + item_description + " on " + him_her.ToLower() + ".");
+                    }
+                    else if (variation == 4)
+                    {
+                        details.Add(he_she + " has " + item_description + ".");
+                    }
+                    else if (variation == 5)
+                    {
+                        details.Add("You see " + item_description + ".");
+                    }
+                    else if (variation == 6)
+                    {
+                        details.Add(he_she + " has " + item_description + " on " + his_her.ToLower() + " feet.");
+                    }
+                    else if (variation == 7)
+                    {
+                        details.Add(he_she + " is wearing " + item_description + " on " + his_her.ToLower() + " feet.");
+                    }
+                    else if (variation == 8)
+                    {
+                        details.Add("You see " + item_description + " on " + his_her.ToLower() + " feet.");
+                    }
+                    else if (variation == 9)
+                    {
+                        details.Add("There is " + item_description + " on " + his_her.ToLower() + " feet.");
+                    }
+                }
+
+                #endregion
+
+                #region Pants
+
+                Item pants_item = InventoryUtil.Get_EquippedItem(character, "Pants Slot");
+                if (pants_item != null)
+                {
+                    string item_description = pants_item.Name.ToLower();
+
+                    CryptoRandom random = new CryptoRandom();
+                    int variation = random.Next(0, 3);
+                    if (variation == 0)
+                    {
+                        details.Add(he_she + " has " + item_description + " on.");
+                    }
+                    else if (variation == 1)
+                    {
+                        details.Add(he_she + " is wearing " + item_description + ".");
+                    }
+                    else if (variation == 2)
+                    {
+                        details.Add(he_she + " has " + item_description + ".");
+                    }
+                }
+                else
+                {
+                    details.Add(he_she + " is not wearing pants.");
+                }
+
+                #endregion
+
+                #region Shirt
+
+                Item shirt_item = InventoryUtil.Get_EquippedItem(character, "Shirt Slot");
+                if (shirt_item != null)
+                {
+                    string item_description;
+                    if (GameUtil.NameStartsWithVowel(shirt_item.Name))
+                    {
+                        item_description = "an " + shirt_item.Name.ToLower();
+                    }
+                    else
+                    {
+                        item_description = "a " + shirt_item.Name.ToLower();
+                    }
+
+                    CryptoRandom random = new CryptoRandom();
+                    int variation = random.Next(0, 6);
+                    if (variation == 0)
+                    {
+                        details.Add(he_she + " has " + item_description + " on.");
+                    }
+                    else if (variation == 1)
+                    {
+                        details.Add(he_she + " is wearing " + item_description + ".");
+                    }
+                    else if (variation == 2)
+                    {
+                        details.Add("You see " + item_description + " on " + him_her.ToLower() + ".");
+                    }
+                    else if (variation == 3)
+                    {
+                        details.Add("There is " + item_description + " on " + him_her.ToLower() + ".");
+                    }
+                    else if (variation == 4)
+                    {
+                        details.Add(he_she + " has " + item_description + ".");
+                    }
+                    else if (variation == 5)
+                    {
+                        details.Add("You see " + item_description + ".");
+                    }
+                }
+                else
+                {
+                    details.Add(he_she + " is not wearing a shirt.");
+                }
+
+                #endregion
+
+                #region Hat
+
+                Item hat_item = InventoryUtil.Get_EquippedItem(character, "Hat Slot");
+                if (hat_item != null)
+                {
+                    string item_description;
+                    if (GameUtil.NameStartsWithVowel(hat_item.Name))
+                    {
+                        item_description = "an " + hat_item.Name.ToLower();
+                    }
+                    else
+                    {
+                        item_description = "a " + hat_item.Name.ToLower();
+                    }
+
+                    CryptoRandom random = new CryptoRandom();
+                    int variation = random.Next(0, 10);
+                    if (variation == 0)
+                    {
+                        details.Add(he_she + " has " + item_description + " on.");
+                    }
+                    else if (variation == 1)
+                    {
+                        details.Add(he_she + " is wearing " + item_description + ".");
+                    }
+                    else if (variation == 2)
+                    {
+                        details.Add("You see " + item_description + " on " + him_her.ToLower() + ".");
+                    }
+                    else if (variation == 3)
+                    {
+                        details.Add("There is " + item_description + " on " + him_her.ToLower() + ".");
+                    }
+                    else if (variation == 4)
+                    {
+                        details.Add(he_she + " has " + item_description + ".");
+                    }
+                    else if (variation == 5)
+                    {
+                        details.Add("You see " + item_description + ".");
+                    }
+                    else if (variation == 6)
+                    {
+                        details.Add(he_she + " has " + item_description + " on " + his_her.ToLower() + " head.");
+                    }
+                    else if (variation == 7)
+                    {
+                        details.Add(he_she + " is wearing " + item_description + " on " + his_her.ToLower() + " head.");
+                    }
+                    else if (variation == 8)
+                    {
+                        details.Add("You see " + item_description + " on " + his_her.ToLower() + " head.");
+                    }
+                    else if (variation == 9)
+                    {
+                        details.Add("There is " + item_description + " on " + his_her.ToLower() + " head.");
+                    }
+                }
+
+                #endregion
+
                 #region Left Hand
 
                 Item left_hand_item = InventoryUtil.Get_EquippedItem(character, "Left Weapon Slot");
@@ -1833,7 +1771,7 @@ namespace Despicaville.Util
                     }
 
                     CryptoRandom random = new CryptoRandom();
-                    int variation = random.Next(1, 4);
+                    int variation = random.Next(0, 4);
                     if (variation == 0)
                     {
                         details.Add(he_she + " is holding " + item_description + " in " + his_her.ToLower() + " left hand.");
@@ -1870,7 +1808,7 @@ namespace Despicaville.Util
                     }
 
                     CryptoRandom random = new CryptoRandom();
-                    int variation = random.Next(1, 4);
+                    int variation = random.Next(0, 4);
                     if (variation == 0)
                     {
                         details.Add(he_she + " is holding " + item_description + " in " + his_her.ToLower() + " right hand.");
@@ -1896,27 +1834,18 @@ namespace Despicaville.Util
                 Item mask_item = InventoryUtil.Get_EquippedItem(character, "Mask Slot");
                 if (mask_item != null)
                 {
-                    int words = mask_item.Name.Split(' ').Length;
-
                     string item_description;
-                    if (words > 1)
+                    if (GameUtil.NameStartsWithVowel(mask_item.Name))
                     {
-                        if (GameUtil.NameStartsWithVowel(mask_item.Name))
-                        {
-                            item_description = "an " + mask_item.Name.ToLower();
-                        }
-                        else
-                        {
-                            item_description = "a " + mask_item.Name.ToLower();
-                        }
+                        item_description = "an " + mask_item.Name.ToLower();
                     }
                     else
                     {
-                        item_description = mask_item.Name.ToLower();
+                        item_description = "a " + mask_item.Name.ToLower();
                     }
 
                     CryptoRandom random = new CryptoRandom();
-                    int variation = random.Next(1, 6);
+                    int variation = random.Next(0, 6);
                     if (variation == 0)
                     {
                         details.Add(he_she + " is wearing " + item_description + " on " + his_her.ToLower() + " face.");
@@ -1961,7 +1890,7 @@ namespace Despicaville.Util
                     }
 
                     CryptoRandom random = new CryptoRandom();
-                    int variation = random.Next(1, 10);
+                    int variation = random.Next(0, 10);
                     if (variation == 0)
                     {
                         details.Add(he_she + " has " + item_description + " on.");
@@ -2276,6 +2205,27 @@ namespace Despicaville.Util
                         Handler.Player.Location = new Location(bed.Location.X + 1, bed.Location.Y, 0);
                     }
                 }
+
+                Handler.Player.Direction = bed.Direction;
+                switch (bed.Direction)
+                {
+                    case Direction.North:
+                        Handler.Player.FaceNorth();
+                        break;
+
+                    case Direction.East:
+                        Handler.Player.FaceEast();
+                        break;
+
+                    case Direction.South:
+                        Handler.Player.FaceSouth();
+                        break;
+
+                    case Direction.West:
+                        Handler.Player.FaceWest();
+                        break;
+                }
+                CharacterUtil.UpdateGear(Handler.Player);
 
                 if (!Handler.OwnedFurniture.ContainsKey(Handler.Player.ID))
                 {

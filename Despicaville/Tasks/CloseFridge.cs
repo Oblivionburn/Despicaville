@@ -83,7 +83,7 @@ namespace Despicaville.Tasks
             if (character.Type != "Player" &&
                 !Handler.Player.Unconscious)
             {
-                Direction direction = WorldUtil.GetDirection(Location, Handler.Player.Location);
+                Direction direction = WorldUtil.GetDirection(Handler.Player.Location, Location);
 
                 if (loudness == 1 &&
                     WorldUtil.InRange(Handler.Player.Location, Location, 2))

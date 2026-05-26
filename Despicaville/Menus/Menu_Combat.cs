@@ -10,9 +10,9 @@ using OP_Engine.Menus;
 using OP_Engine.Characters;
 using OP_Engine.Utility;
 using OP_Engine.Time;
+using OP_Engine.Inventories;
 using Despicaville.Util;
 using Despicaville.Tasks;
-using OP_Engine.Inventories;
 
 namespace Despicaville.Menus
 {
@@ -52,11 +52,6 @@ namespace Despicaville.Menus
         {
             if (Visible)
             {
-                foreach (Picture picture in Pictures)
-                {
-                    picture.Draw(spriteBatch);
-                }
-
                 foreach (string body_part in Handler.BodyParts)
                 {
                     BodyPart part = Handler.Interaction_Character.GetBodyPart(body_part);
@@ -71,9 +66,23 @@ namespace Despicaville.Menus
                         continue;
                     }
 
-                    GetButton(body_part).Visible = hp.Value > 0;
-                    GetProgressBar(body_part).Visible = hp.Value > 0;
-                    //GetLabel(body_part).Visible = hp.Value > 0;
+                    if (part.GetWounds("Sever").Count > 0)
+                    {
+                        GetPicture(body_part).Visible = false;
+                        GetButton(body_part).Visible = false;
+                        GetProgressBar(body_part).Visible = false;
+                        GetLabel(body_part).Visible = false;
+                    }
+                    else
+                    {
+                        GetButton(body_part).Visible = hp.Value > 0;
+                        GetProgressBar(body_part).Visible = hp.Value > 0;
+                    }
+                }
+
+                foreach (Picture picture in Pictures)
+                {
+                    picture.Draw(spriteBatch);
                 }
 
                 foreach (Button button in Buttons)

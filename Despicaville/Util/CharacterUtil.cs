@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using OP_Engine.Characters;
 using OP_Engine.Controls;
 using OP_Engine.Inventories;
@@ -7,7 +8,6 @@ using OP_Engine.Scenes;
 using OP_Engine.Tiles;
 using OP_Engine.Utility;
 using OP_Engine.Enums;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace Despicaville.Util
 {
@@ -93,44 +93,38 @@ namespace Despicaville.Util
             
             if (hair_length > 0)
             {
-                Item hair = new Item();
-                hair.Equipped = true;
-                hair.Image = character.Image;
-                hair.Region = character.Region;
-                hair.DrawColor = Color.White;
-                hair.Visible = true;
-
                 random = new CryptoRandom();
                 int hair_color = random.Next(0, Handler.HairColor.Length);
 
-                hair.Type = "Hair_" + Handler.HairLength[hair_length] + "_" + Handler.HairColor[hair_color];
-                hair.Texture = AssetManager.Textures[hair.Type];
+                string hairType = "Hair_" + Handler.HairLength[hair_length] + "_" + Handler.HairColor[hair_color];
 
-                hair.Name = Handler.HairLength[hair_length] + " " + Handler.HairColor[hair_color] + " Hair";
-
+                Item hair = new Item
+                {
+                    Name = Handler.HairLength[hair_length] + " " + Handler.HairColor[hair_color] + " Hair",
+                    Type = hairType,
+                    Equipped = true,
+                    Assignment = "Hair",
+                    Texture = AssetManager.Textures[hairType],
+                    Image = character.Image,
+                    Region = character.Region,
+                    DrawColor = Color.White,
+                    Visible = true
+                };
                 character.Inventory.Items.Add(hair);
             }
+
+            Inventory assets = InventoryManager.GetInventory("Assets");
 
             if (Utility.RandomPercent(10))
             {
                 random = new CryptoRandom();
                 int hat_color = random.Next(0, Handler.Colors.Length);
 
-                Item hat = new Item();
-                hat.ID = Handler.GetID();
-                hat.Name = Handler.Colors[hat_color] + " Hat";
-                hat.Type = "Hat_" + Handler.Colors[hat_color];
+                Item hat = InventoryUtil.NewItem(assets.GetItem(Handler.Colors[hat_color] + " Hat"));
                 hat.Equipped = true;
                 hat.Assignment = "Hat Slot";
-                hat.Icon = AssetManager.Textures["Hat_Cap_" + Handler.Colors[hat_color]];
-                hat.Icon_Image = new Rectangle(0, 0, hat.Icon.Width, hat.Icon.Height);
-                hat.Icon_DrawColor = Color.White;
-                hat.Icon_Visible = true;
-                hat.Texture = AssetManager.Textures["Hat_" + Handler.Colors[hat_color]];
                 hat.Image = character.Image;
-                hat.DrawColor = Color.White;
                 hat.Region = character.Region;
-                hat.Visible = true;
                 character.Inventory.Items.Add(hat);
             }
 
@@ -138,44 +132,23 @@ namespace Despicaville.Util
             random = new CryptoRandom();
             int shirt_color = random.Next(0, Handler.Colors.Length);
 
-            Item shirt = new Item();
-            shirt.ID = Handler.GetID();
-            shirt.Name = Handler.Colors[shirt_color] + " Shirt";
-            shirt.Type = "Shirt_" + Handler.Colors[shirt_color];
-            shirt.Icon = AssetManager.Textures["Shirt_T-Shirt_" + Handler.Colors[shirt_color]];
-            shirt.Icon_Image = new Rectangle(0, 0, shirt.Icon.Width, shirt.Icon.Height);
-            shirt.Icon_DrawColor = Color.White;
-            shirt.Icon_Visible = true;
-            shirt.Texture = AssetManager.Textures["Shirt_" + Handler.Colors[shirt_color]];
-            shirt.Image = character.Image;
-            shirt.DrawColor = Color.White;
-            shirt.Region = character.Region;
+            Item shirt = InventoryUtil.NewItem(assets.GetItem(Handler.Colors[shirt_color] + " Shirt"));
             shirt.Equipped = true;
             shirt.Assignment = "Shirt Slot";
-            shirt.Visible = true;
+            shirt.Image = character.Image;
+            shirt.Region = character.Region;
             character.Inventory.Items.Add(shirt);
 
             //Get Pants
             random = new CryptoRandom();
             int pants_color = random.Next(0, Handler.Colors.Length);
 
-            Item pants = new Item();
-            pants.ID = Handler.GetID();
-            pants.Name = Handler.Colors[pants_color] + " Pants";
-            pants.Type = "Pants_" + Handler.Colors[pants_color];
-            pants.Icon = AssetManager.Textures["Pants_Pants_" + Handler.Colors[pants_color]];
-            pants.Icon_Image = new Rectangle(0, 0, pants.Icon.Width, pants.Icon.Height);
-            pants.Icon_DrawColor = Color.White;
-            pants.Icon_Visible = true;
-            pants.Image = character.Image;
-            pants.DrawColor = Color.White;
-            pants.Region = character.Region;
+            Item pants = InventoryUtil.NewItem(assets.GetItem(Handler.Colors[pants_color] + " Pants"));
             pants.Equipped = true;
             pants.Assignment = "Pants Slot";
+            pants.Image = character.Image;
+            pants.Region = character.Region;
             pants.Visible = false;
-            pants.Inventory.ID = Handler.GetID();
-            pants.Inventory.Name = pants.Name;
-            pants.Inventory.Max_Value = 4;
             InventoryManager.Inventories.Add(pants.Inventory);
             character.Inventory.Items.Add(pants);
 
@@ -183,19 +156,11 @@ namespace Despicaville.Util
             random = new CryptoRandom();
             int shoes_color = random.Next(0, Handler.Colors.Length);
 
-            Item shoes = new Item();
-            shoes.ID = Handler.GetID();
-            shoes.Name = Handler.Colors[shoes_color] + " Shoes";
-            shoes.Type = "Shoes_" + Handler.Colors[shoes_color];
-            shoes.Icon = AssetManager.Textures["Shoes_Shoes_" + Handler.Colors[shoes_color]];
-            shoes.Icon_Image = new Rectangle(0, 0, shoes.Icon.Width, shoes.Icon.Height);
-            shoes.Icon_DrawColor = Color.White;
-            shoes.Icon_Visible = true;
-            shoes.Image = character.Image;
-            shoes.DrawColor = Color.White;
-            shoes.Region = character.Region;
+            Item shoes = InventoryUtil.NewItem(assets.GetItem(Handler.Colors[shoes_color] + " Shoes"));
             shoes.Equipped = true;
             shoes.Assignment = "Shoes Slot";
+            shoes.Image = character.Image;
+            shoes.Region = character.Region;
             shoes.Visible = false;
             character.Inventory.Items.Add(shoes);
 
@@ -1045,10 +1010,10 @@ namespace Despicaville.Util
             return his_her;
         }
 
-        public static bool HeldByPlayer(Character character)
+        public static bool PulledByPlayer(Character character)
         {
-            if (Handler.Holding &&
-                Handler.Holding_ID == character.ID)
+            if (Handler.Pull &&
+                Handler.Pull_ID == character.ID)
             {
                 return true;
             }

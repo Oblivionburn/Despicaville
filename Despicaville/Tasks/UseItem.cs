@@ -233,28 +233,28 @@ namespace Despicaville.Tasks
                     inventory.Items.Remove(item);
 
                     Inventory assets = InventoryManager.GetInventory("Assets");
-                    Item new_item = null;
+                    Item asset = null;
 
                     if (item.Name.Contains("Bottle"))
                     {
-                        new_item = assets.GetItem("Bottle");
+                        asset = assets.GetItem("Bottle");
                     }
                     else if (item.Name.Contains("Bucket"))
                     {
-                        new_item = assets.GetItem("Bucket");
+                        asset = assets.GetItem("Bucket");
                     }
                     else if (item.Name.Contains("Cannister"))
                     {
-                        new_item = assets.GetItem("Cannister");
+                        asset = assets.GetItem("Cannister");
                     }
                     else if (item.Name.Contains("Syringe"))
                     {
-                        new_item = assets.GetItem("Syringe");
+                        asset = assets.GetItem("Syringe");
                     }
 
-                    if (new_item != null)
+                    if (asset != null)
                     {
-                        Item copy = InventoryUtil.CopyItem(new_item, true);
+                        Item copy = InventoryUtil.NewItem(asset);
                         character.Inventory.Items.Add(copy);
                     }
                 }

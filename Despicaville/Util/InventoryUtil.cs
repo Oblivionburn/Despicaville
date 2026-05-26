@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-
 using Microsoft.Xna.Framework;
-
 using OP_Engine.Characters;
 using OP_Engine.Controls;
 using OP_Engine.Inventories;
@@ -12,85 +10,72 @@ namespace Despicaville.Util
 {
     public static class InventoryUtil
     {
-        public static Item CopyItem(Item original, bool new_item)
+        public static Item NewItem(Item asset)
         {
-            Item copy = new Item();
-
-            if (new_item)
+            Item new_item = new Item
             {
-                copy.ID = Handler.GetID();
-                copy.Inventory.ID = Handler.GetID();
-                copy.Visible = false;
-                copy.Amount = 1;
-            }
-            else
+                ID = Handler.GetID(),
+                Amount = 1,
+                Name = asset.Name,
+                Description = asset.Description,
+                Type = asset.Type,
+                Rarity = asset.Rarity,
+                Tier = asset.Tier,
+                Assignment = asset.Assignment,
+                Task = asset.Task,
+                Sound = asset.Sound,
+                SoundRange = asset.SoundRange,
+                Icon = asset.Icon,
+                Icon_Image = new Rectangle(asset.Icon_Image.X, asset.Icon_Image.Y, asset.Icon_Image.Width, asset.Icon_Image.Height),
+                Icon_DrawColor = new Color(asset.Icon_DrawColor.R, asset.Icon_DrawColor.G, asset.Icon_DrawColor.B, asset.Icon_DrawColor.A),
+                Texture = asset.Texture,
+                Image = new Rectangle(asset.Image.X, asset.Image.Y, asset.Image.Width, asset.Image.Height),
+                DrawColor = new Color(asset.DrawColor.R, asset.DrawColor.G, asset.DrawColor.B, asset.DrawColor.A),
+                Visible = asset.Visible
+            };
+            new_item.Inventory.ID = Handler.GetID();
+            new_item.Inventory.Name = asset.Inventory.Name;
+            new_item.Inventory.Max_Value = asset.Inventory.Max_Value;
+
+            foreach (string category in asset.Categories)
             {
-                copy.ID = original.ID;
-                copy.Inventory.ID = original.Inventory.ID;
-                copy.Amount = original.Amount;
-                copy.Visible = original.Visible;
-            }
-
-            copy.Name = original.Name;
-            copy.Description = original.Description;
-            copy.Type = original.Type;
-            copy.Rarity = original.Rarity;
-            copy.Tier = original.Tier;
-            copy.Assignment = original.Assignment;
-            copy.Task = original.Task;
-
-            copy.Sound = original.Sound;
-            copy.SoundRange = original.SoundRange;
-
-            copy.Inventory.Name = original.Inventory.Name;
-            copy.Inventory.Max_Value = original.Inventory.Max_Value;
-
-            foreach (string category in original.Categories)
-            {
-                copy.Categories.Add(category);
+                new_item.Categories.Add(category);
             }
 
-            foreach (string material in original.Materials)
+            foreach (string material in asset.Materials)
             {
-                copy.Materials.Add(material);
+                new_item.Materials.Add(material);
             }
 
-            foreach (Property property in original.Properties)
+            foreach (Property property in asset.Properties)
             {
-                copy.Properties.Add(CopyProperty(property, new_item));
+                new_item.Properties.Add(CopyProperty(property));
             }
 
-            if (original.Attachments != null)
+            if (asset.Attachments != null)
             {
-                copy.Attachments = new List<Item>();
+                new_item.Attachments = new List<Item>();
 
-                foreach (Item item in original.Attachments)
+                foreach (Item item in asset.Attachments)
                 {
-                    copy.Attachments.Add(CopyItem(item, new_item));
+                    new_item.Attachments.Add(NewItem(item));
                 }
             }
 
-            copy.Texture = original.Texture;
-            copy.Image = new Rectangle(original.Image.X, original.Image.Y, original.Image.Width, original.Image.Height);
-            copy.DrawColor = new Color(original.DrawColor.R, original.DrawColor.G, original.DrawColor.B, original.DrawColor.A);
-            copy.Icon = original.Icon;
-            copy.Icon_Image = new Rectangle(original.Icon_Image.X, original.Icon_Image.Y, original.Icon_Image.Width, original.Icon_Image.Height);
-            copy.Icon_DrawColor = new Color(original.Icon_DrawColor.R, original.Icon_DrawColor.G, original.Icon_DrawColor.B, original.Icon_DrawColor.A);
+            if (asset.Region != null)
+            {
+                new_item.Region = new Region(asset.Region.X, asset.Region.Y, asset.Region.Width, asset.Region.Height);
+            }
 
-            if (original.Region != null)
+            if (asset.Icon_Region != null)
             {
-                copy.Region = new Region(original.Region.X, original.Region.Y, original.Region.Width, original.Region.Height);
+                new_item.Icon_Region = new Region(asset.Icon_Region.X, asset.Icon_Region.Y, asset.Icon_Region.Width, asset.Icon_Region.Height);
             }
-            
-            if (original.Icon_Region != null)
-            {
-                copy.Icon_Region = new Region(original.Icon_Region.X, original.Icon_Region.Y, original.Icon_Region.Width, original.Icon_Region.Height);
-            }
-            
-            return copy;
+
+            return new_item;
         }
 
-        public static Property CopyProperty(Property original, bool new_property)
+        public static Property CopyProperty(Property original)
         {
             return new Property
             {
@@ -303,190 +288,62 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static List<Item> GetLoot(string category, string container, int max_items)
+        public static List<Item> GenLoot(string category, string container, int max_items)
         {
             List<Item> items = new List<Item>();
-            
-            Inventory assets = InventoryManager.GetInventory("Assets");
-            if (assets != null)
-            {
-                List<Item> item_pool = new List<Item>();
 
-                foreach (Item item in assets.Items)
+            if (string.IsNullOrEmpty(category) ||
+                string.IsNullOrEmpty(container))
+            {
+                return items;
+            }
+
+            Inventory assets = InventoryManager.GetInventory("Assets");
+            if (assets?.Items.Count == 0)
+            {
+                return items;
+            }
+
+            CryptoRandom random = new CryptoRandom();
+
+            List<Item> item_pool = new List<Item>();
+
+            foreach (Item item in assets.Items)
+            {
+                if (item.Categories.Contains(category) &&
+                    item.Categories.Contains(container))
                 {
-                    if (item.Categories.Contains(category))
+                    random = new CryptoRandom();
+                    int tier = random.Next(0, 101);
+
+                    if (item.Tier <= tier)
                     {
-                        if (container != null)
-                        {
-                            if (container == "Large Backpack" ||
-                                container == "Duffel Bag" ||
-                                container == "Gym Bag" ||
-                                container == "Medium Backpack" ||
-                                container == "Suitcase" ||
-                                container == "Small Backpack")
-                            {
-                                if (item.Type == "Boots" ||
-                                    item.Type == "Pants" ||
-                                    item.Type == "Shirt" ||
-                                    item.Type == "Mask" ||
-                                    item.Type == "Hat" ||
-                                    item.Type == "Back" ||
-                                    item.Type == "Gloves")
-                                {
-                                    item_pool.Add(item);
-                                }
-                            }
-                            else if (container.Contains("Wooden Chest") ||
-                                     container == "Barrel" ||
-                                     container == "Wooden Crate" ||
-                                     container == "Safe" ||
-                                     container.Contains("Cardboard Box"))
-                            {
-                                if (item.Type == "Misc" ||
-                                    item.Type == "Weapon" ||
-                                    item.Type == "Ammo" ||
-                                    item.Type == "Tool")
-                                {
-                                    item_pool.Add(item);
-                                }
-                            }
-                            else if (container == "Briefcase" ||
-                                     container == "Purse")
-                            {
-                                if (item.Type == "Misc")
-                                {
-                                    item_pool.Add(item);
-                                }
-                            }
-                            else if (container == "Present")
-                            {
-                                item_pool.Add(item);
-                            }
-                            else if (container == "First Aid Kit")
-                            {
-                                if (item.Type == "Medical")
-                                {
-                                    item_pool.Add(item);
-                                }
-                            }
-                            else if (container.Contains("Cardboard Box"))
-                            {
-                                if (item.Type == "Misc" ||
-                                    item.Type == "Ammo")
-                                {
-                                    item_pool.Add(item);
-                                }
-                            }
-                            else if (container == "Counter" ||
-                                     container == "Desk")
-                            {
-                                if (item.Type == "Misc" ||
-                                    item.Type == "Weapon" ||
-                                    item.Type == "Container" ||
-                                    item.Type == "Tool")
-                                {
-                                    item_pool.Add(item);
-                                }
-                                else if (category == "Bathroom" &&
-                                         item.Type == "Medical")
-                                {
-                                    item_pool.Add(item);
-                                }
-                                else if (item.Type == "Ammo")
-                                {
-                                    if (category == "Office" ||
-                                        category == "Store Counter" ||
-                                        category == "Bedroom")
-                                    {
-                                        item_pool.Add(item);
-                                    }
-                                }
-                            }
-                            else if (container == "Bookshelf")
-                            {
-                                if (item.Type == "Misc")
-                                {
-                                    item_pool.Add(item);
-                                }
-                            }
-                            else if (container == "Fridge" ||
-                                     container == "Cooler")
-                            {
-                                if (item.Type == "Food")
-                                {
-                                    item_pool.Add(item);
-                                }
-                            }
-                            else if (container == "Dresser")
-                            {
-                                if (item.Type.Contains("Shoes") ||
-                                    item.Type.Contains("Pants") ||
-                                    item.Type.Contains("Shirt"))
-                                {
-                                    item_pool.Add(item);
-                                }
-                            }
-                        }
-                        else if (category == "Outdoors")
-                        {
-                            if (item.Type == "Misc" ||
-                                item.Type == "Weapon" ||
-                                item.Type == "Tool")
-                            {
-                                item_pool.Add(item);
-                            }
-                        }
+                        item_pool.Add(item);
                     }
                 }
+            }
 
-                if (item_pool.Count > 0)
+            if (item_pool.Count > 0)
+            {
+                int X = 0;
+                int Y = 0;
+
+                int amount = random.Next(0, max_items + 1);
+                for (int i = 0; i < amount; i++)
                 {
-                    int X = 0;
-                    int Y = 0;
+                    random = new CryptoRandom();
+                    int choice = random.Next(0, item_pool.Count);
 
-                    CryptoRandom random = new CryptoRandom();
+                    Item new_item = NewItem(item_pool[choice]);
+                    new_item.Location = new Location(X, Y, 0);
 
-                    int amount;
-                    if (category == "Outdoors")
+                    items.Add(new_item);
+
+                    X++;
+                    if (X > 7)
                     {
-                        amount = random.Next(0, 3);
-                    }
-                    else
-                    {
-                        amount = random.Next(0, max_items + 1);
-                    }
-
-                    for (int i = 0; i < amount; i++)
-                    {
-                        random = new CryptoRandom();
-                        int tier = random.Next(0, 101);
-
-                        List<Item> possible_items = new List<Item>();
-                        foreach (Item existing in item_pool)
-                        {
-                            if (existing.Tier <= tier)
-                            {
-                                possible_items.Add(existing);
-                            }
-                        }
-
-                        if (possible_items.Count > 0)
-                        {
-                            random = new CryptoRandom();
-                            int choice = random.Next(0, possible_items.Count);
-
-                            Item new_item = CopyItem(possible_items[choice], true);
-                            new_item.Location = new Location(X, Y, 0);
-
-                            items.Add(new_item);
-
-                            X++;
-                            if (X > 7)
-                            {
-                                X = 0;
-                                Y++;
-                            }
-                        }
+                        X = 0;
+                        Y++;
                     }
                 }
             }

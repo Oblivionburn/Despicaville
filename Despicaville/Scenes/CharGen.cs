@@ -10,6 +10,7 @@ using OP_Engine.Inventories;
 using OP_Engine.Utility;
 using OP_Engine.Enums;
 using Despicaville.Util;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Despicaville.Scenes
 {
@@ -856,7 +857,7 @@ namespace Despicaville.Scenes
             };
             players.Characters.Add(Handler.Player);
 
-            LoadInventory(Handler.Player);
+            LoadInventory();
             CharacterUtil.LoadStats(Handler.Player, Stats);
 
             Reset();
@@ -867,104 +868,71 @@ namespace Despicaville.Scenes
             SceneManager.ChangeScene("Loading");
         }
 
-        private void LoadInventory(Character player)
+        private void LoadInventory()
         {
-            player.Gender = Gender;
-            player.Texture = AssetManager.Textures["Naked_" + Handler.SkinColors[SkinColor_Value]];
-            player.Image = new Rectangle(0, 0, player.Texture.Width / 4, player.Texture.Height / 4);
-            player.Inventory.ID = Handler.GetID();
-            player.Inventory.Name = player.Name;
+            Inventory assets = InventoryManager.GetInventory("Assets");
+
+            Handler.Player.Gender = Gender;
+            Handler.Player.Texture = AssetManager.Textures["Naked_" + Handler.SkinColors[SkinColor_Value]];
+            Handler.Player.Image = new Rectangle(0, 0, Handler.Player.Texture.Width / 4, Handler.Player.Texture.Height / 4);
+            Handler.Player.Inventory.ID = Handler.GetID();
+            Handler.Player.Inventory.Name = Handler.Player.Name;
 
             if (HairLength_Value > 0)
             {
-                Item hair = new Item();
-                hair.Name = Handler.HairLength[HairLength_Value] + " " + Handler.HairColor[HairColor_Value] + " Hair";
-                hair.Equipped = true;
-                hair.Type = "Hair_" + Handler.HairLength[HairLength_Value] + "_" + Handler.HairColor[HairColor_Value];
-                hair.Texture = AssetManager.Textures[hair.Type];
-                hair.DrawColor = Color.White;
-                hair.Image = player.Image;
-                hair.Region = player.Region;
-                hair.Visible = true;
-                player.Inventory.Items.Add(hair);
+                string hairType = "Hair_" + Handler.HairLength[HairLength_Value] + "_" + Handler.HairColor[HairColor_Value];
+                Texture2D hairTexture = AssetManager.Textures[hairType];
+
+                Item hair = new Item
+                {
+                    Name = Handler.HairLength[HairLength_Value] + " " + Handler.HairColor[HairColor_Value] + " Hair",
+                    Equipped = true,
+                    Assignment = "Hair",
+                    Type = hairType,
+                    Texture = hairTexture,
+                    Image = Handler.Player.Image,
+                    Region = Handler.Player.Region,
+                    DrawColor = Color.White,
+                    Visible = true
+                };
+                Handler.Player.Inventory.Items.Add(hair);
             }
 
             if (HatColor_Value > 0)
             {
-                Item hat = new Item();
-                hat.ID = Handler.GetID();
-                hat.Name = HatColors[HatColor_Value] + " Hat";
-                hat.Type = "Hat";
+                Item hat = InventoryUtil.NewItem(assets.GetItem(HatColors[HatColor_Value] + " Hat"));
                 hat.Equipped = true;
                 hat.Assignment = "Hat Slot";
-                hat.Icon = AssetManager.Textures["Hat_Cap_" + HatColors[HatColor_Value]];
-                hat.Icon_Image = new Rectangle(0, 0, hat.Icon.Width, hat.Icon.Height);
-                hat.Icon_DrawColor = Color.White;
-                hat.Icon_Visible = true;
-                hat.Texture = AssetManager.Textures["Hat_" + HatColors[HatColor_Value]];
-                hat.Image = player.Image;
-                hat.Region = player.Region;
-                hat.DrawColor = Color.White;
-                hat.Visible = true;
-                player.Inventory.Items.Add(hat);
+                hat.Image = Handler.Player.Image;
+                hat.Region = Handler.Player.Region;
+                Handler.Player.Inventory.Items.Add(hat);
             }
 
-            Item shirt = new Item();
-            shirt.ID = Handler.GetID();
-            shirt.Name = Handler.Colors[ShirtColor_Value] + " Shirt";
-            shirt.Type = "Shirt";
-            shirt.Icon = AssetManager.Textures["Shirt_T-Shirt_" + Handler.Colors[ShirtColor_Value]];
-            shirt.Icon_Image = new Rectangle(0, 0, shirt.Icon.Width, shirt.Icon.Height);
-            shirt.Icon_DrawColor = Color.White;
-            shirt.Icon_Visible = true;
-            shirt.Texture = AssetManager.Textures["Shirt_" + Handler.Colors[ShirtColor_Value]];
-            shirt.Image = player.Image;
-            shirt.Region = player.Region;
-            shirt.DrawColor = Color.White;
+            Item shirt = InventoryUtil.NewItem(assets.GetItem(Handler.Colors[ShirtColor_Value] + " Shirt"));
             shirt.Equipped = true;
             shirt.Assignment = "Shirt Slot";
-            shirt.Visible = true;
-            player.Inventory.Items.Add(shirt);
+            shirt.Image = Handler.Player.Image;
+            shirt.Region = Handler.Player.Region;
+            Handler.Player.Inventory.Items.Add(shirt);
 
-            Item pants = new Item();
-            pants.ID = Handler.GetID();
-            pants.Name = Handler.Colors[PantsColor_Value] + " Pants";
-            pants.Type = "Pants";
-            pants.Icon = AssetManager.Textures["Pants_Pants_" + Handler.Colors[PantsColor_Value]];
-            pants.Icon_Image = new Rectangle(0, 0, pants.Icon.Width, pants.Icon.Height);
-            pants.Icon_DrawColor = Color.White;
-            pants.Icon_Visible = true;
-            pants.Texture = AssetManager.Textures["Pants_" + Handler.Colors[PantsColor_Value] + "_Down"];
-            pants.Image = player.Image;
-            pants.Region = player.Region;
-            pants.DrawColor = Color.White;
+            Item pants = InventoryUtil.NewItem(assets.GetItem(Handler.Colors[PantsColor_Value] + " Pants"));
             pants.Equipped = true;
             pants.Assignment = "Pants Slot";
+            pants.Image = Handler.Player.Image;
+            pants.Region = Handler.Player.Region;
             pants.Visible = false;
-            pants.Inventory.ID = Handler.GetID();
-            pants.Inventory.Name = pants.Name;
-            pants.Inventory.Max_Value = 4;
             InventoryManager.Inventories.Add(pants.Inventory);
-            player.Inventory.Items.Add(pants);
+            Handler.Player.Inventory.Items.Add(pants);
 
-            Item shoes = new Item();
-            shoes.ID = Handler.GetID();
-            shoes.Name = Handler.Colors[ShoesColor_Value] + " Shoes";
-            shoes.Type = "Shoes";
-            shoes.Icon = AssetManager.Textures["Shoes_Shoes_" + Handler.Colors[ShoesColor_Value]];
-            shoes.Icon_Image = new Rectangle(0, 0, shoes.Icon.Width, shoes.Icon.Height);
-            shoes.Icon_DrawColor = Color.White;
-            shoes.Icon_Visible = true;
-            shoes.Texture = AssetManager.Textures["Shoes_" + Handler.Colors[ShoesColor_Value] + "_Down"];
-            shoes.Image = player.Image;
-            shoes.Region = player.Region;
-            shoes.DrawColor = Color.White;
+            Item shoes = InventoryUtil.NewItem(assets.GetItem(Handler.Colors[ShoesColor_Value] + " Shoes"));
             shoes.Equipped = true;
             shoes.Assignment = "Shoes Slot";
+            shoes.Image = Handler.Player.Image;
+            shoes.Region = Handler.Player.Region;
             shoes.Visible = false;
-            player.Inventory.Items.Add(shoes);
+            Handler.Player.Inventory.Items.Add(shoes);
 
-            InventoryManager.Inventories.Add(player.Inventory);
+            InventoryManager.Inventories.Add(Handler.Player.Inventory);
         }
 
         public override void Load()

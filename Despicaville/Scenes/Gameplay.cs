@@ -96,8 +96,6 @@ namespace Despicaville.Scenes
 
                     Layer bottom_tiles = map.GetLayer("BottomTiles");
                     Layer room_tiles = map.GetLayer("RoomTiles");
-                    //Layer middle_tiles = map.GetLayer("MiddleTiles");
-                    //Layer top_tiles = map.GetLayer("TopTiles");
                     Layer effect_tiles = map.GetLayer("EffectTiles");
 
                     int bottom_count = bottom_tiles.Tiles.Count;
@@ -280,10 +278,22 @@ namespace Despicaville.Scenes
                                         }
                                         else
                                         {
-                                            character.Draw(spriteBatch, resolution, color);
+                                            Property damage = character.GetStatusEffect("Damage");
+                                            if (damage != null)
+                                            {
+                                                CombatUtil.DrawDamage(spriteBatch, character, resolution, color);
+                                            }
+                                            else
+                                            {
+                                                character.Draw(spriteBatch, resolution, color);
 
-                                            Task task = character.Job.CurrentTask;
-                                            task?.TaskBar?.Draw(spriteBatch);
+                                                Task task = character.Job.CurrentTask;
+                                                if (task != null &&
+                                                    task.TaskBar != null)
+                                                {
+                                                    task.TaskBar.Draw(spriteBatch);
+                                                }
+                                            } 
                                         }
                                     }
                                     else if (WorldUtil.InRange(character.Location, Handler.Player.Location, Handler.HearingDistance) &&
@@ -429,15 +439,48 @@ namespace Despicaville.Scenes
 
             if (Handler.Player.Job.Tasks.Count == 0)
             {
+                #region Run
+
+                if (!Handler.Pull)
+                {
+                    if (InputManager.KeyDown("Run"))
+                    {
+                        if (!Handler.Player.Running &&
+                            !Handler.Pull)
+                        {
+                            Handler.Player.Running = true;
+
+                            Label label = ui.GetLabel("Running");
+                            label.Opacity = 1;
+                            label.TextColor = Color.Red;
+                        }
+                    }
+                    else
+                    {
+                        if (Handler.Player.Running)
+                        {
+                            Handler.Player.Running = false;
+
+                            Label label = ui.GetLabel("Running");
+                            label.Opacity = 0.6f;
+                            label.TextColor = Color.White;
+                        }
+                    }
+                }
+
+                #endregion
+
                 #region Pull
 
                 if (!Handler.Combat)
                 {
                     if (InputManager.Mouse_RB_Held)
                     {
-                        if (!Handler.Holding &&
+                        if (!Handler.Pull &&
                             InventoryUtil.HasEmptyHand(Handler.Player))
                         {
+                            Handler.ResetPull();
+
                             Location location = new Location();
                             if (Handler.Player.Direction == Direction.North)
                             {
@@ -456,8 +499,6 @@ namespace Despicaville.Scenes
                                 location = new Location(Handler.Player.Location.X - 1, Handler.Player.Location.Y, 0);
                             }
 
-                            bool holding = false;
-
                             Army army = CharacterManager.GetArmy("Characters");
                             Squad citizens = army.GetSquad("Citizens");
 
@@ -466,97 +507,59 @@ namespace Despicaville.Scenes
                             {
                                 Map map = World.Maps[0];
                                 Layer bottom_tiles = map.GetLayer("BottomTiles");
-                                Tile tile = bottom_tiles.GetTile(character.Location.ToVector2);
+                                Tile tile = bottom_tiles.GetTile(location.ToVector2);
                                 character.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width, tile.Region.Height);
 
                                 CharacterUtil.UpdateGear(character);
 
-                                Handler.Holding = true;
-                                Handler.Holding_ID = character.ID;
-                                Handler.Holding_Character = character;
+                                Handler.Pull = true;
+                                Handler.Pull_ID = character.ID;
+                                Handler.Pull_Character = character;
 
                                 Tasker.AbortTask(character);
                                 character.Moved = 0;
                                 character.Moving = false;
 
-                                Label label = ui.GetLabel("Holding");
+                                Label label = ui.GetLabel("Pulling");
                                 label.Opacity = 1;
-                                label.TextColor = Color.Lime;
+                                label.TextColor = Color.Red;
                             }
 
-                            if (!holding)
+                            if (!Handler.Pull)
                             {
                                 Tile middle_tile = WorldUtil.GetFurniture_Movable(Handler.MiddleFurniture, location);
                                 if (middle_tile != null)
                                 {
-                                    if (middle_tile.CanMove)
-                                    {
-                                        Handler.Holding = true;
-                                        Handler.Holding_ID = middle_tile.ID;
-                                        Handler.Holding_Tile = middle_tile;
+                                    Handler.Pull = true;
+                                    Handler.Pull_ID = middle_tile.ID;
+                                    Handler.Pull_Tile = middle_tile;
 
-                                        Label label = ui.GetLabel("Holding");
-                                        label.Opacity = 1;
-                                        label.TextColor = Color.Red;
-                                    }
+                                    Label label = ui.GetLabel("Pulling");
+                                    label.Opacity = 1;
+                                    label.TextColor = Color.Red;
                                 }
+                            }
+
+                            if (Handler.Pull &&
+                                Handler.Player.Running)
+                            {
+                                Handler.Player.Running = false;
+
+                                Label label = ui.GetLabel("Running");
+                                label.Opacity = 0.6f;
+                                label.TextColor = Color.White;
                             }
                         }
                     }
-                    else
+                    else if (Handler.Pull)
                     {
-                        if (Handler.Holding)
-                        {
-                            Handler.Holding = false;
-                            Handler.Holding_ID = 0;
-                            Handler.Holding_Tile = null;
-                            Handler.Holding_Character = null;
-
-                            Label label = ui.GetLabel("Holding");
-                            label.Opacity = 0.6f;
-                            label.TextColor = Color.White;
-                        }
+                        Handler.ResetPull();
                     }
                 }
-                else if (Handler.Holding &&
+                else if (Handler.Pull &&
                          !Handler.Player.Moving)
                 {
-                    Handler.Holding = false;
-                    Handler.Holding_ID = 0;
-                    Handler.Holding_Tile = null;
-                    Handler.Holding_Character = null;
-
-                    Label label = ui.GetLabel("Holding");
-                    label.Opacity = 0.6f;
-                    label.TextColor = Color.White;
-                }
-
-                #endregion
-
-                #region Run
-
-                if (InputManager.KeyDown("Run"))
-                {
-                    if (!Handler.Player.Running &&
-                        !Handler.Holding)
-                    {
-                        Handler.Player.Running = true;
-
-                        Label label = ui.GetLabel("Running");
-                        label.Opacity = 1;
-                        label.TextColor = Color.Red;
-                    }
-                }
-                else
-                {
-                    if (Handler.Player.Running)
-                    {
-                        Handler.Player.Running = false;
-
-                        Label label = ui.GetLabel("Running");
-                        label.Opacity = 0.6f;
-                        label.TextColor = Color.White;
-                    }
+                    Handler.ResetPull();
                 }
 
                 #endregion

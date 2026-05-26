@@ -1756,6 +1756,16 @@ namespace Despicaville.Util
                 }
 
                 new_tile.LightColor = existing.LightColor;
+
+                if (existing.Inventory != null)
+                {
+                    new_tile.Inventory = new Inventory()
+                    {
+                        ID = Handler.GetID(),
+                        Name = existing.Inventory.Name,
+                        Max_Value = existing.Inventory.Max_Value
+                    };
+                }
             }
             else if (new_tile.Name.Contains("Wall"))
             {
@@ -1820,12 +1830,11 @@ namespace Despicaville.Util
                     Handler.MiddleFurniture.Add(new_tile);
                 }
 
-                new_tile.Inventory = new Inventory
+                if (new_tile.Inventory != null)
                 {
-                    ID = Handler.GetID(),
-                    Location = new Location(x, y, 0)
-                };
-                InventoryManager.Inventories.Add(new_tile.Inventory);
+                    new_tile.Inventory.Location = new Location(x, y, 0);
+                    InventoryManager.Inventories.Add(new_tile.Inventory);
+                }
             }
 
             if (layer.Name == "TopTiles")
@@ -2182,69 +2191,11 @@ namespace Despicaville.Util
             Handler.Loading_Percent = 0;
             Handler.Loading_Message = "Generating loot...";
 
-            World world = SceneManager.GetScene("Gameplay").World;
-            Map map = world.Maps[0];
+            Map map = WorldUtil.GetMap();
 
             Layer room_tiles = map.GetLayer("RoomTiles");
             if (room_tiles != null)
             {
-                Layer bottom_tiles = map.GetLayer("BottomTiles");
-                if (bottom_tiles != null)
-                {
-                    total = bottom_tiles.Tiles.Count * 2;
-                    current = 0;
-
-                    foreach (Tile bottom_tile in bottom_tiles.Tiles)
-                    {
-                        current++;
-                        Handler.Loading_Percent = (current * 100) / total;
-
-                        Tile room_tile = room_tiles.GetTile(bottom_tile.Location.ToVector2);
-                        if (room_tile != null)
-                        {
-                            if (!string.IsNullOrEmpty(room_tile.Name))
-                            {
-                                Inventory inventory = null;
-
-                                string category = InventoryUtil.GetCategory_FromTile(room_tile);
-                                if (!string.IsNullOrEmpty(category))
-                                {
-                                    inventory = bottom_tile.Inventory;
-
-                                    if (bottom_tile.Name.Contains("Grass"))
-                                    {
-                                        inventory.Name = "Grass";
-                                        inventory.Max_Value = 49;
-                                    }
-
-                                    if (inventory != null)
-                                    {
-                                        List<Item> loot = InventoryUtil.GetLoot(category, inventory.Name, (int)inventory.Max_Value);
-                                        foreach (Item item in loot)
-                                        {
-                                            inventory.Items.Add(item);
-
-                                            if (item.Type == "Container")
-                                            {
-                                                if (!InventoryManager.Inventories.Contains(item.Inventory))
-                                                {
-                                                    InventoryManager.Inventories.Add(item.Inventory);
-                                                }
-
-                                                List<Item> item_loot = InventoryUtil.GetLoot(category, inventory.Name, (int)inventory.Max_Value);
-                                                foreach (Item sub_item in item_loot)
-                                                {
-                                                    item.Inventory.Items.Add(sub_item);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
                 Layer middle_tiles = map.GetLayer("MiddleTiles");
                 if (middle_tiles != null)
                 {
@@ -2260,57 +2211,32 @@ namespace Despicaville.Util
                             {
                                 if (!string.IsNullOrEmpty(room_tile.Name))
                                 {
-                                    Inventory inventory = null;
-
                                     string category = InventoryUtil.GetCategory_FromTile(room_tile);
-                                    if (!string.IsNullOrEmpty(category))
+                                    if (!string.IsNullOrEmpty(category) &&
+                                        category != "Outdoors")
                                     {
-                                        inventory = middle_tile.Inventory;
-
-                                        if (middle_tile.Name.Contains("Counter"))
+                                        if (middle_tile.Inventory != null)
                                         {
-                                            inventory.Name = "Counter";
-                                            inventory.Max_Value = 21;
-                                        }
-                                        else if (middle_tile.Name.Contains("Fridge"))
-                                        {
-                                            inventory.Name = "Fridge";
-                                            inventory.Max_Value = 35;
-                                        }
-                                        else if (middle_tile.Name.Contains("Dresser"))
-                                        {
-                                            inventory.Name = "Dresser";
-                                            inventory.Max_Value = 28;
-                                        }
-                                        else if (middle_tile.Name.Contains("Desk"))
-                                        {
-                                            inventory.Name = "Desk";
-                                            inventory.Max_Value = 21;
-                                        }
-                                        else if (middle_tile.Name.Contains("Bookshelf"))
-                                        {
-                                            inventory.Name = "Bookshelf";
-                                            inventory.Max_Value = 14;
-                                        }
-
-                                        if (inventory != null)
-                                        {
-                                            List<Item> loot = InventoryUtil.GetLoot(category, inventory.Name, (int)inventory.Max_Value);
-                                            foreach (Item item in loot)
+                                            string container = middle_tile.Inventory.Name;
+                                            if (!string.IsNullOrEmpty(container))
                                             {
-                                                inventory.Items.Add(item);
-
-                                                if (item.Type == "Container")
+                                                List<Item> loot = InventoryUtil.GenLoot(category, container, (int)middle_tile.Inventory.Max_Value);
+                                                foreach (Item item in loot)
                                                 {
-                                                    if (!InventoryManager.Inventories.Contains(item.Inventory))
-                                                    {
-                                                        InventoryManager.Inventories.Add(item.Inventory);
-                                                    }
+                                                    middle_tile.Inventory.Items.Add(item);
 
-                                                    List<Item> item_loot = InventoryUtil.GetLoot(category, item.Name, (int)item.Inventory.Max_Value);
-                                                    foreach (Item sub_item in item_loot)
+                                                    if (item.Type == "Container")
                                                     {
-                                                        item.Inventory.Items.Add(sub_item);
+                                                        if (!InventoryManager.Inventories.Contains(item.Inventory))
+                                                        {
+                                                            InventoryManager.Inventories.Add(item.Inventory);
+                                                        }
+
+                                                        List<Item> item_loot = InventoryUtil.GenLoot(category, item.Name, (int)item.Inventory.Max_Value);
+                                                        foreach (Item sub_item in item_loot)
+                                                        {
+                                                            item.Inventory.Items.Add(sub_item);
+                                                        }
                                                     }
                                                 }
                                             }

@@ -75,7 +75,7 @@ namespace Despicaville
             Character target = WorldUtil.GetCharacter_Target(character);
             if (target != null)
             {
-                Direction direction = WorldUtil.GetDirection(target.Location, character.Location);
+                Direction direction = WorldUtil.GetDirection(character.Location, target.Location);
 
                 if (direction != character.Direction)
                 {
@@ -153,12 +153,15 @@ namespace Despicaville
                 Property thirst = existing.GetProperty("Thirst");
                 if (thirst != null)
                 {
+                    TimeSpan duration = TimeSpan.FromMilliseconds(thirst.Value * -10 * 1000);
+
                     character.Job.Tasks.Add(new UseItem
                     {
                         Name = "UseItem_" + existing.ID,
                         OwnerID = character.ID,
                         StartTime = new TimeHandler(TimeManager.Now),
-                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(thirst.Value * -10)),
+                        EndTime = new TimeHandler(TimeManager.Now, duration),
+                        TaskBar = CharacterUtil.GenTaskbar(character, (int)duration.TotalMilliseconds)
                     });
 
                     return;
@@ -195,7 +198,7 @@ namespace Despicaville
                         }
                         else if (!sink.Texture.Name.Contains("Used"))
                         {
-                            TimeSpan duration = TimeSpan.FromSeconds(character.Stats.Thirst);
+                            TimeSpan duration = TimeSpan.FromMilliseconds(character.Stats.Thirst * 1000);
 
                             character.Job.Tasks.Add(new UseSink
                             {
@@ -321,12 +324,15 @@ namespace Despicaville
                 Property hunger = existing.GetProperty("Hunger");
                 if (hunger != null)
                 {
+                    TimeSpan duration = TimeSpan.FromMilliseconds(hunger.Value * -10 * 1000);
+
                     character.Job.Tasks.Add(new UseItem
                     {
                         Name = "UseItem_" + existing.ID,
                         OwnerID = character.ID,
                         StartTime = new TimeHandler(TimeManager.Now),
-                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(hunger.Value * -10)),
+                        EndTime = new TimeHandler(TimeManager.Now, duration),
+                        TaskBar = CharacterUtil.GenTaskbar(character, (int)duration.TotalMilliseconds)
                     });
 
                     return;
@@ -919,7 +925,7 @@ namespace Despicaville
             {
                 if (WorldUtil.Furniture_InRoom(furniture, character))
                 {
-                    int distance = WorldUtil.GetDistance(furniture.Location, character.Location) * 4;
+                    int distance = WorldUtil.GetDistance(character.Location, furniture.Location) * 5;
                     path = DPathing.GetPath(bottom_tiles, middle_tiles, character, furniture, distance, true);
                 }
                 else
@@ -929,9 +935,9 @@ namespace Despicaville
                     {
                         Tile tile = null;
 
-                        if (!string.IsNullOrEmpty(exit.Name))
+                        if (!string.IsNullOrEmpty(exit.Texture?.Name))
                         {
-                            if (exit.Name.Contains("NorthSouth"))
+                            if (exit.Texture.Name.Contains("NorthSouth"))
                             {
                                 if (exit.Location.X < character.Location.X)
                                 {
@@ -942,7 +948,7 @@ namespace Despicaville
                                     tile = bottom_tiles.GetTile(new Vector2(exit.Location.X + 1, exit.Location.Y));
                                 }
                             }
-                            else if (exit.Name.Contains("WestEast"))
+                            else if (exit.Texture.Name.Contains("WestEast"))
                             {
                                 if (exit.Location.Y < character.Location.Y)
                                 {
@@ -961,7 +967,7 @@ namespace Despicaville
 
                         if (tile != null)
                         {
-                            int distance = WorldUtil.GetDistance(tile.Location, character.Location) * 4;
+                            int distance = WorldUtil.GetDistance(character.Location, tile.Location) * 10;
                             path = DPathing.GetPath(bottom_tiles, middle_tiles, character, tile, distance, false);
                         }
                     }
@@ -996,7 +1002,7 @@ namespace Despicaville
                 }
                 else
                 {
-                    int distance = WorldUtil.GetDistance(furniture.Location, character.Location) * 4;
+                    int distance = WorldUtil.GetDistance(character.Location, furniture.Location) * 20;
                     path = DPathing.GetPath(bottom_tiles, middle_tiles, character, furniture, distance, true);
                 }
             }
@@ -1023,7 +1029,7 @@ namespace Despicaville
 
         private static void ContinuePathing(Character character, bool desperate)
         {
-            Direction direction = WorldUtil.GetDirection(new Location(character.Path[0].X, character.Path[0].Y, 0), character.Location);
+            Direction direction = WorldUtil.GetDirection(character.Location, new Location(character.Path[0].X, character.Path[0].Y, 0));
             if (direction == Direction.North)
             {
                 character.Destination = new Location(character.Location.X, character.Location.Y - 1, character.Location.Z);

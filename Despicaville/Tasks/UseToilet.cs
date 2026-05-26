@@ -48,7 +48,7 @@ namespace Despicaville.Tasks
             {
                 if (nextTo)
                 {
-                    Direction furniture_direction = WorldUtil.GetDirection(toilet.Location, character.Location);
+                    Direction furniture_direction = WorldUtil.GetDirection(character.Location, toilet.Location);
                     if (character.Direction != furniture_direction)
                     {
                         if (furniture_direction == Direction.North)
@@ -126,7 +126,7 @@ namespace Despicaville.Tasks
 
                     if (character.Type != "Player")
                     {
-                        Direction direction = WorldUtil.GetDirection(toilet.Location, Handler.Player.Location);
+                        Direction direction = WorldUtil.GetDirection(Handler.Player.Location, toilet.Location);
                         if (WorldUtil.InRange(Handler.Player.Location, toilet.Location, 5))
                         {
                             GameUtil.AddMessage("You hear a toilet to the " + direction.ToString() + ".");
