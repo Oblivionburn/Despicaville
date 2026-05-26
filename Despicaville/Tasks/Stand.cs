@@ -1,5 +1,6 @@
 ﻿using OP_Engine.Characters;
 using OP_Engine.Jobs;
+using Despicaville.Util;
 
 namespace Despicaville.Tasks
 {
@@ -13,7 +14,24 @@ namespace Despicaville.Tasks
                 return;
             }
 
-            character.Laying = false;
+            if (character.Unconscious)
+            {
+                character.Unconscious = false;
+
+                if (character.Type == "Player")
+                {
+                    GameUtil.AddMessage("You regained consciousness.");
+                }
+            }
+            else if (character.Laying)
+            {
+                character.Laying = false;
+
+                if (character.Type == "Player")
+                {
+                    GameUtil.AddMessage("You rose to your feet.");
+                }
+            }
         }
 
         public Character GetOwner()

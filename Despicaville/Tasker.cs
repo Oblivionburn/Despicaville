@@ -939,24 +939,52 @@ namespace Despicaville
                         {
                             if (exit.Texture.Name.Contains("NorthSouth"))
                             {
-                                if (exit.Location.X < character.Location.X)
+                                if (exit.Name.Contains("Open"))
                                 {
-                                    tile = bottom_tiles.GetTile(new Vector2(exit.Location.X - 1, exit.Location.Y));
+                                    if (exit.Location.Y < character.Location.Y)
+                                    {
+                                        tile = bottom_tiles.GetTile(new Vector2(exit.Location.X, exit.Location.Y - 1));
+                                    }
+                                    else if (exit.Location.Y > character.Location.Y)
+                                    {
+                                        tile = bottom_tiles.GetTile(new Vector2(exit.Location.X, exit.Location.Y + 1));
+                                    }
                                 }
-                                else if (exit.Location.X > character.Location.X)
+                                else
                                 {
-                                    tile = bottom_tiles.GetTile(new Vector2(exit.Location.X + 1, exit.Location.Y));
+                                    if (exit.Location.X < character.Location.X)
+                                    {
+                                        tile = bottom_tiles.GetTile(new Vector2(exit.Location.X - 1, exit.Location.Y));
+                                    }
+                                    else if (exit.Location.X > character.Location.X)
+                                    {
+                                        tile = bottom_tiles.GetTile(new Vector2(exit.Location.X + 1, exit.Location.Y));
+                                    }
                                 }
                             }
                             else if (exit.Texture.Name.Contains("WestEast"))
                             {
-                                if (exit.Location.Y < character.Location.Y)
+                                if (exit.Name.Contains("Open"))
                                 {
-                                    tile = bottom_tiles.GetTile(new Vector2(exit.Location.X, exit.Location.Y - 1));
+                                    if (exit.Location.X < character.Location.X)
+                                    {
+                                        tile = bottom_tiles.GetTile(new Vector2(exit.Location.X - 1, exit.Location.Y));
+                                    }
+                                    else if (exit.Location.X > character.Location.X)
+                                    {
+                                        tile = bottom_tiles.GetTile(new Vector2(exit.Location.X + 1, exit.Location.Y));
+                                    }
                                 }
-                                else if (exit.Location.Y > character.Location.Y)
+                                else
                                 {
-                                    tile = bottom_tiles.GetTile(new Vector2(exit.Location.X, exit.Location.Y + 1));
+                                    if (exit.Location.Y < character.Location.Y)
+                                    {
+                                        tile = bottom_tiles.GetTile(new Vector2(exit.Location.X, exit.Location.Y - 1));
+                                    }
+                                    else if (exit.Location.Y > character.Location.Y)
+                                    {
+                                        tile = bottom_tiles.GetTile(new Vector2(exit.Location.X, exit.Location.Y + 1));
+                                    }
                                 }
                             }
                         }

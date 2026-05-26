@@ -71,7 +71,8 @@ namespace Despicaville.Scenes
                     if (!Handler.Player.Dead)
                     {
                         if (!Handler.Player.Moving &&
-                            !Handler.Player.Unconscious)
+                            !Handler.Player.Unconscious &&
+                            !Handler.Player.Laying)
                         {
                             UpdatePlayerControls();
                         }
@@ -1122,6 +1123,11 @@ namespace Despicaville.Scenes
                     {
                         TimeTracker.Tick(Handler.ActionRate * 5);
                         CharacterUtil.Sleep(Handler.Player);
+                    }
+                    else if (Handler.Player.Laying)
+                    {
+                        TimeTracker.Tick(Handler.ActionRate * 5);
+                        CharacterUtil.Rest(Handler.Player);
                     }
                     else
                     {

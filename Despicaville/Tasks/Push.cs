@@ -403,17 +403,7 @@ namespace Despicaville.Tasks
                     if (fall ||
                         Utility.RandomPercent(owner.Stats.Strength))
                     {
-                        character.Laying = true;
-
-                        float standTime = CharacterUtil.GetStandTime(character);
-                        character.Job.Tasks.Add(new Stand
-                        {
-                            Name = "Stand",
-                            OwnerID = character.ID,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(standTime)),
-                            Direction = character.Direction
-                        });
+                        CharacterUtil.Fall(character);
                     }
                 }
                 else if (tile != null)
@@ -426,9 +416,8 @@ namespace Despicaville.Tasks
                         blockingCharacter.ResetAnimation();
                         blockingCharacter.Path.Clear();
                         blockingCharacter.Job.Tasks.Clear();
-
                         blockingCharacter.Moving = false;
-                        blockingCharacter.Laying = true;
+                        blockingCharacter.Moved = 0;
 
                         Map map = WorldUtil.GetMap();
                         Layer bottom_tiles = map.GetLayer("BottomTiles");
@@ -439,15 +428,7 @@ namespace Despicaville.Tasks
                             CharacterUtil.UpdateGear(blockingCharacter);
                         }
 
-                        float standTime = CharacterUtil.GetStandTime(blockingCharacter);
-                        blockingCharacter.Job.Tasks.Add(new Stand
-                        {
-                            Name = "Stand",
-                            OwnerID = blockingCharacter.ID,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(standTime)),
-                            Direction = blockingCharacter.Direction
-                        });
+                        CharacterUtil.Fall(blockingCharacter);
                     }
                 }
             }

@@ -15,6 +15,10 @@ namespace Despicaville.Tasks
     {
         Dictionary<string, string> AttackingWith = null;
 
+        Item rightHandItem = null;
+        Item leftHandItem = null;
+        bool dual_wield = false;
+
         public override void Action_Start()
         {
             Character character = GetOwner();
@@ -23,35 +27,119 @@ namespace Despicaville.Tasks
                 return;
             }
 
-            AttackingWith = CombatUtil.AttackChoice(character);
-            string weapon = AttackingWith.ElementAt(0).Key;
-            string action = AttackingWith.ElementAt(0).Value;
+            rightHandItem = InventoryUtil.Get_EquippedItem(character, "Right Weapon Slot");
+            leftHandItem = InventoryUtil.Get_EquippedItem(character, "Left Weapon Slot");
 
-            if (action == "Punch" ||
-                action == "Swing" ||
-                action == "Stab" ||
-                action == "Cut")
+            dual_wield = false;
+
+            if (rightHandItem != null &&
+                InventoryUtil.IsWeapon(rightHandItem) &&
+                leftHandItem != null &&
+                InventoryUtil.IsWeapon(leftHandItem))
             {
-                AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
-
-                TimeSpan startTime = TimeSpan.FromMilliseconds(StartTime.TotalMilliseconds);
-                int duration = (int)(EndTime.TotalMilliseconds - StartTime.TotalMilliseconds);
-
-                WorldUtil.AddEffect_Animated(Location.ToVector3, Direction, "Swing", startTime, duration);
+                dual_wield = true;
             }
-            else if (action == "Throw")
+
+            if (dual_wield)
             {
-                AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 3);
-            }
-            else if (action == "Shoot")
-            {
-                if (weapon == "Sling")
+                bool effect = false;
+
+                string rightWeapon = rightHandItem.Name;
+                string rightAction = rightHandItem.Task;
+
+                if (rightAction == "Swing" ||
+                    rightAction == "Stab" ||
+                    rightAction == "Cut")
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
+                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
+
+                    effect = true;
+                    TimeSpan startTime = TimeSpan.FromMilliseconds(StartTime.TotalMilliseconds);
+                    int duration = (int)(EndTime.TotalMilliseconds - StartTime.TotalMilliseconds);
+
+                    WorldUtil.AddEffect_Animated(Location.ToVector3, Direction, "Swing", startTime, duration);
                 }
-                else if (weapon.Contains("Bow"))
+                else if (rightAction == "Throw")
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
+                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 3);
+                }
+                else if (rightAction == "Shoot")
+                {
+                    if (rightWeapon == "Sling")
+                    {
+                        AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
+                    }
+                    else if (rightWeapon.Contains("Bow"))
+                    {
+                        AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
+                    }
+                }
+
+                string leftWeapon = leftHandItem.Name;
+                string leftAction = leftHandItem.Task;
+
+                if (leftAction == "Swing" ||
+                    leftAction == "Stab" ||
+                    leftAction == "Cut")
+                {
+                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
+
+                    if (!effect)
+                    {
+                        TimeSpan startTime = TimeSpan.FromMilliseconds(StartTime.TotalMilliseconds);
+                        int duration = (int)(EndTime.TotalMilliseconds - StartTime.TotalMilliseconds);
+
+                        WorldUtil.AddEffect_Animated(Location.ToVector3, Direction, "Swing", startTime, duration);
+                    }
+                }
+                else if (leftAction == "Throw")
+                {
+                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 3);
+                }
+                else if (leftAction == "Shoot")
+                {
+                    if (leftWeapon == "Sling")
+                    {
+                        AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
+                    }
+                    else if (leftWeapon.Contains("Bow"))
+                    {
+                        AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
+                    }
+                }
+            }
+            else
+            {
+                AttackingWith = CombatUtil.AttackChoice(character);
+                string weapon = AttackingWith.ElementAt(0).Key;
+                string action = AttackingWith.ElementAt(0).Value;
+
+                if (action == "Punch" ||
+                    action == "Swing" ||
+                    action == "Stab" ||
+                    action == "Cut")
+                {
+                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
+
+                    TimeSpan startTime = TimeSpan.FromMilliseconds(StartTime.TotalMilliseconds);
+                    int duration = (int)(EndTime.TotalMilliseconds - StartTime.TotalMilliseconds);
+
+                    WorldUtil.AddEffect_Animated(Location.ToVector3, Direction, "Swing", startTime, duration);
+                }
+                else if (action == "Throw")
+                {
+                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 3);
+                }
+                else if (action == "Shoot")
+                {
+                    if (weapon == "Sling")
+                    {
+                        AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
+                    }
+                    else if (weapon.Contains("Bow"))
+                    {
+                        AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
+                    }
                 }
             }
         }
@@ -64,163 +152,36 @@ namespace Despicaville.Tasks
                 return;
             }
 
-            string weapon = AttackingWith.ElementAt(0).Key;
-            string action = AttackingWith.ElementAt(0).Value;
-
-            Item weaponItem = null;
-            for (int i = 0; i < character.Inventory.Items.Count; i++)
-            {
-                Item item = character.Inventory.Items[i];
-                if (item.Name == weapon)
-                {
-                    weaponItem = item;
-                    break;
-                }
-            }
-
             Character target = WorldUtil.GetCharacter(Location);
             if (target != null)
             {
-                string bodyPart = Handler.Selected_BodyPart;
-                if (string.IsNullOrEmpty(bodyPart))
+                if (dual_wield)
                 {
-                    bodyPart = CombatUtil.RandomBodyPart(character, target);
-                }
-
-                int maxStunTime = 0;
-
-                switch (bodyPart)
-                {
-                    case "Neck":
-                    case "Groin":
-                        maxStunTime = 5;
-                        break;
-
-                    case "Head":
-                        maxStunTime = 4;
-                        break;
-
-                    case "Right_Hand":
-                    case "Left_Hand":
-                    case "Right_Foot":
-                    case "Left_Foot":
-                        maxStunTime = 3;
-                        break;
-
-                    case "Right_Arm":
-                    case "Left_Arm":
-                    case "Right_Leg":
-                    case "Left_Leg":
-                        maxStunTime = 2;
-                        break;
-
-                    case "Torso":
-                        maxStunTime = 1;
-                        break;
-                }
-
-                float hitChance = CombatUtil.ChanceToHitBodyPart(character, target, bodyPart);
-                if (Utility.RandomPercent(hitChance))
-                {
-                    if (weaponItem != null)
-                    {
-                        AssetManager.PlaySound_Random_AtDistance(weaponItem.Sound, Handler.Player.Location.ToVector2, target.Location.ToVector2, weaponItem.SoundRange);
-                    }
-                    else
-                    {
-                        AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, target.Location.ToVector2, 2);
-                    }
-
-                    CombatUtil.DoDamage(character, target, weapon, action, bodyPart);
-
-                    if (target.Unconscious)
-                    {
-                        if (character.Type != "Player")
-                        {
-                            character.InCombat = false;
-                            character.Target_ID = -1;
-                        }
-
-                        target.InCombat = false;
-                        target.Target_ID = -1;
-                    }
-                    else if (target.Type != "Player")
-                    {
-                        target.Target_ID = character.ID;
-                        target.InCombat = true;
-                    }
-
-                    CryptoRandom random = new CryptoRandom();
-                    int stunTime = random.Next(0, maxStunTime);
-                    if (stunTime > 0)
-                    {
-                        target.Job.Tasks.Add(new Wait
-                        {
-                            Name = "Wait",
-                            OwnerID = target.ID,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(stunTime))
-                        });
-
-                        if (target.Type == "Player")
-                        {
-                            TimeTracker.Tick(stunTime);
-                        }
-                    }
+                    WeaponAttack_Character(character, target, rightHandItem);
+                    WeaponAttack_Character(character, target, leftHandItem);
                 }
                 else
                 {
-                    if (character.Type == "Player")
+                    string weapon = AttackingWith.ElementAt(0).Key;
+
+                    Item weaponItem = null;
+                    for (int i = 0; i < character.Inventory.Items.Count; i++)
                     {
-                        switch (action)
+                        Item item = character.Inventory.Items[i];
+                        if (item.Name == weapon)
                         {
-                            case "Punch":
-                            case "Stab":
-                            case "Cut":
-                                GameUtil.AddMessage("You tried to " + action.ToLower() + " their " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
-                                break;
-
-                            case "Shoot":
-                                if (weaponItem != null &&
-                                    weapon != "Sling" &&
-                                    !weapon.Contains("Bow"))
-                                {
-                                    AssetManager.PlaySound_Random_AtDistance(weaponItem.Sound, Handler.Player.Location.ToVector2, target.Location.ToVector2, weaponItem.SoundRange);
-                                }
-
-                                GameUtil.AddMessage("You tried to " + action.ToLower() + " their " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
-                                break;
-
-                            default:
-                                GameUtil.AddMessage("You tried to hit their " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
-                                break;
+                            weaponItem = item;
+                            break;
                         }
                     }
-                    else if (target.Type == "Player")
+
+                    if (weaponItem != null)
                     {
-                        switch (action)
-                        {
-                            case "Punch":
-                            case "Stab":
-                            case "Cut":
-                                GameUtil.AddMessage(character.Name + " tried to " + action.ToLower() + " your " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
-                                break;
-
-                            case "Shoot":
-                                if (weaponItem != null &&
-                                    weapon != "Sling" &&
-                                    !weapon.Contains("Bow"))
-                                {
-                                    AssetManager.PlaySound_Random_AtDistance(weaponItem.Sound, Handler.Player.Location.ToVector2, character.Location.ToVector2, weaponItem.SoundRange);
-                                }
-
-                                GameUtil.AddMessage(character.Name + " tried to " + action.ToLower() + " your " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
-                                break;
-
-                            default:
-                                GameUtil.AddMessage(character.Name + " tried to hit your " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
-                                break;
-                        }
+                        WeaponAttack_Character(character, target, weaponItem);
+                    }
+                    else
+                    {
+                        MeleeAttack_Character(character, target);
                     }
                 }
 
@@ -258,38 +219,33 @@ namespace Despicaville.Tasks
 
                 if (tile != null)
                 {
-                    if (weaponItem != null)
+                    if (dual_wield)
                     {
-                        AssetManager.PlaySound_Random_AtDistance(weaponItem.Sound, Handler.Player.Location.ToVector2, tile.Location.ToVector2, weaponItem.SoundRange);
+                        WeaponAttack_Tile(character, tile, rightHandItem);
+                        WeaponAttack_Tile(character, tile, leftHandItem);
                     }
                     else
                     {
-                        AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 2);
-                    }
+                        string weapon = AttackingWith.ElementAt(0).Key;
 
-                    if (character.Type == "Player")
-                    {
-                        switch (action)
+                        Item weaponItem = null;
+                        for (int i = 0; i < character.Inventory.Items.Count; i++)
                         {
-                            case "Punch":
-                                GameUtil.AddMessage("You punched a " + WorldUtil.GetTile_Name(tile) + ".");
+                            Item item = character.Inventory.Items[i];
+                            if (item.Name == weapon)
+                            {
+                                weaponItem = item;
                                 break;
+                            }
+                        }
 
-                            case "Stab":
-                                GameUtil.AddMessage("You stabbed a " + WorldUtil.GetTile_Name(tile) + ".");
-                                break;
-
-                            case "Cut":
-                                GameUtil.AddMessage("You cut a " + WorldUtil.GetTile_Name(tile) + ".");
-                                break;
-
-                            case "Shoot":
-                                GameUtil.AddMessage("You shot a " + WorldUtil.GetTile_Name(tile) + ".");
-                                break;
-
-                            default:
-                                GameUtil.AddMessage("You hit a " + WorldUtil.GetTile_Name(tile) + ".");
-                                break;
+                        if (weaponItem != null)
+                        {
+                            WeaponAttack_Tile(character, tile, weaponItem);
+                        }
+                        else
+                        {
+                            MeleeAttack_Tile(character, tile);
                         }
                     }
                 }
@@ -309,6 +265,269 @@ namespace Despicaville.Tasks
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(waitTime))
                     });
                 }
+            }
+        }
+
+        public void WeaponAttack_Character(Character attacker, Character defender, Item weapon)
+        {
+            string bodyPart = Handler.Selected_BodyPart;
+            if (string.IsNullOrEmpty(bodyPart))
+            {
+                bodyPart = CombatUtil.RandomBodyPart(attacker, defender);
+            }
+
+            int maxStunTime = 0;
+
+            switch (bodyPart)
+            {
+                case "Neck":
+                case "Groin":
+                    maxStunTime = 5;
+                    break;
+
+                case "Head":
+                    maxStunTime = 4;
+                    break;
+
+                case "Right_Hand":
+                case "Left_Hand":
+                case "Right_Foot":
+                case "Left_Foot":
+                    maxStunTime = 3;
+                    break;
+
+                case "Right_Arm":
+                case "Left_Arm":
+                case "Right_Leg":
+                case "Left_Leg":
+                    maxStunTime = 2;
+                    break;
+
+                case "Torso":
+                    maxStunTime = 1;
+                    break;
+            }
+
+            float hitChance = CombatUtil.ChanceToHitBodyPart(attacker, defender, bodyPart);
+            if (Utility.RandomPercent(hitChance))
+            {
+                AssetManager.PlaySound_Random_AtDistance(weapon.Sound, Handler.Player.Location.ToVector2, defender.Location.ToVector2, weapon.SoundRange);
+
+                CombatUtil.DoDamage(attacker, defender, weapon.Name, weapon.Task, bodyPart);
+
+                if (defender.Unconscious)
+                {
+                    if (attacker.Type != "Player")
+                    {
+                        attacker.InCombat = false;
+                        attacker.Target_ID = -1;
+                    }
+
+                    defender.InCombat = false;
+                    defender.Target_ID = -1;
+                }
+                else if (defender.Type != "Player")
+                {
+                    defender.Target_ID = attacker.ID;
+                    defender.InCombat = true;
+                }
+
+                CryptoRandom random = new CryptoRandom();
+                int stunTime = random.Next(0, maxStunTime);
+                if (stunTime > 0)
+                {
+                    defender.Job.Tasks.Add(new Wait
+                    {
+                        Name = "Wait",
+                        OwnerID = defender.ID,
+                        StartTime = new TimeHandler(TimeManager.Now),
+                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(stunTime))
+                    });
+
+                    if (defender.Type == "Player")
+                    {
+                        TimeTracker.Tick(stunTime);
+                    }
+                }
+            }
+            else if (attacker.Type == "Player")
+            {
+                switch (weapon.Task)
+                {
+                    case "Punch":
+                    case "Stab":
+                    case "Cut":
+                        GameUtil.AddMessage("You tried to " + weapon.Task.ToLower() + " their " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                        break;
+
+                    case "Shoot":
+                        if (weapon != null &&
+                            weapon.Name != "Sling" &&
+                            !weapon.Name.Contains("Bow"))
+                        {
+                            AssetManager.PlaySound_Random_AtDistance(weapon.Sound, Handler.Player.Location.ToVector2, defender.Location.ToVector2, weapon.SoundRange);
+                        }
+
+                        GameUtil.AddMessage("You tried to " + weapon.Task.ToLower() + " their " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                        break;
+
+                    default:
+                        GameUtil.AddMessage("You tried to hit their " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                        break;
+                }
+            }
+            else if (defender.Type == "Player")
+            {
+                switch (weapon.Task)
+                {
+                    case "Punch":
+                    case "Stab":
+                    case "Cut":
+                        GameUtil.AddMessage(attacker.Name + " tried to " + weapon.Task.ToLower() + " your " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                        break;
+
+                    case "Shoot":
+                        if (weapon.Name != "Sling" &&
+                            !weapon.Name.Contains("Bow"))
+                        {
+                            AssetManager.PlaySound_Random_AtDistance(weapon.Sound, Handler.Player.Location.ToVector2, attacker.Location.ToVector2, weapon.SoundRange);
+                        }
+
+                        GameUtil.AddMessage(attacker.Name + " tried to " + weapon.Task.ToLower() + " your " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                        break;
+
+                    default:
+                        GameUtil.AddMessage(attacker.Name + " tried to hit your " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                        break;
+                }
+            }
+        }
+
+        public void WeaponAttack_Tile(Character attacker, Tile tile, Item weapon)
+        {
+            AssetManager.PlaySound_Random_AtDistance(weapon.Sound, Handler.Player.Location.ToVector2, tile.Location.ToVector2, weapon.SoundRange);
+
+            if (attacker.Type == "Player")
+            {
+                switch (weapon.Task)
+                {
+                    case "Stab":
+                        GameUtil.AddMessage("You stabbed a " + WorldUtil.GetTile_Name(tile) + ".");
+                        break;
+
+                    case "Cut":
+                        GameUtil.AddMessage("You cut a " + WorldUtil.GetTile_Name(tile) + ".");
+                        break;
+
+                    case "Shoot":
+                        GameUtil.AddMessage("You shot a " + WorldUtil.GetTile_Name(tile) + ".");
+                        break;
+
+                    default:
+                        GameUtil.AddMessage("You hit a " + WorldUtil.GetTile_Name(tile) + ".");
+                        break;
+                }
+            }
+        }
+
+        public void MeleeAttack_Character(Character attacker, Character defender)
+        {
+            string bodyPart = Handler.Selected_BodyPart;
+            if (string.IsNullOrEmpty(bodyPart))
+            {
+                bodyPart = CombatUtil.RandomBodyPart(attacker, defender);
+            }
+
+            int maxStunTime = 0;
+
+            switch (bodyPart)
+            {
+                case "Neck":
+                case "Groin":
+                    maxStunTime = 5;
+                    break;
+
+                case "Head":
+                    maxStunTime = 4;
+                    break;
+
+                case "Right_Hand":
+                case "Left_Hand":
+                case "Right_Foot":
+                case "Left_Foot":
+                    maxStunTime = 3;
+                    break;
+
+                case "Right_Arm":
+                case "Left_Arm":
+                case "Right_Leg":
+                case "Left_Leg":
+                    maxStunTime = 2;
+                    break;
+
+                case "Torso":
+                    maxStunTime = 1;
+                    break;
+            }
+
+            float hitChance = CombatUtil.ChanceToHitBodyPart(attacker, defender, bodyPart);
+            if (Utility.RandomPercent(hitChance))
+            {
+                AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 2);
+                CombatUtil.DoDamage(attacker, defender, "Right Hand", "Punch", bodyPart);
+
+                if (defender.Unconscious)
+                {
+                    if (attacker.Type != "Player")
+                    {
+                        attacker.InCombat = false;
+                        attacker.Target_ID = -1;
+                    }
+
+                    defender.InCombat = false;
+                    defender.Target_ID = -1;
+                }
+                else if (defender.Type != "Player")
+                {
+                    defender.Target_ID = attacker.ID;
+                    defender.InCombat = true;
+                }
+
+                CryptoRandom random = new CryptoRandom();
+                int stunTime = random.Next(0, maxStunTime);
+                if (stunTime > 0)
+                {
+                    defender.Job.Tasks.Add(new Wait
+                    {
+                        Name = "Wait",
+                        OwnerID = defender.ID,
+                        StartTime = new TimeHandler(TimeManager.Now),
+                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(stunTime))
+                    });
+
+                    if (defender.Type == "Player")
+                    {
+                        TimeTracker.Tick(stunTime);
+                    }
+                }
+            }
+            else if (attacker.Type == "Player")
+            {
+                GameUtil.AddMessage("You tried to punch their " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+            }
+            else if (defender.Type == "Player")
+            {
+                GameUtil.AddMessage(attacker.Name + " tried to punch your " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+            }
+        }
+
+        public void MeleeAttack_Tile(Character attacker, Tile tile)
+        {
+            AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 2);
+            
+            if (attacker.Type == "Player")
+            {
+                GameUtil.AddMessage("You punched a " + WorldUtil.GetTile_Name(tile) + ".");
             }
         }
 

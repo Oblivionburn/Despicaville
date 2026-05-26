@@ -99,10 +99,14 @@ namespace Despicaville.Tasks
                     if (character.Type == "Player" &&
                         Handler.Pull_Character != null)
                     {
-                        float break_chance = (100 - character.Stats.Strength) / 10;
-                        if (Utility.RandomPercent(break_chance))
+                        if (!Handler.Pull_Character.Unconscious &&
+                            !Handler.Pull_Character.Dead)
                         {
-                            Handler.ResetPull();
+                            float break_chance = (100 - character.Stats.Strength) / 10;
+                            if (Utility.RandomPercent(break_chance))
+                            {
+                                Handler.ResetPull();
+                            }
                         }
 
                         if (Handler.Pull_Character != null)

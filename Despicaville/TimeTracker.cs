@@ -58,12 +58,18 @@ namespace Despicaville
 
                 if (character.Unconscious)
                 {
+                    CharacterUtil.Sleep(character);
+                    continue;
+                }
+                else if ( character.Laying)
+                {
                     CharacterUtil.Rest(character);
                     continue;
                 }
 
                 if (task == null &&
                     !character.Unconscious &&
+                    !character.Laying &&
                     !CharacterUtil.PulledByPlayer(character))
                 {
                     Tasker.GiveTask_Citizen(character);
@@ -88,21 +94,19 @@ namespace Despicaville
             Army army = CharacterManager.GetArmy("Characters");
             foreach (Squad squad in army.Squads)
             {
-                Character[] characters = squad.Characters.ToArray();
-
-                for (int i = 0; i < characters.Length; i++)
+                for (int i = 0; i < squad.Characters.Count; i++)
                 {
-                    Character character = characters[i];
-
-                    if (character.Stats.Blood <= 0)
-                    {
-                        CharacterUtil.Kill(character);
-                        squad.Characters.Remove(character);
-                        i--;
-                    }
+                    Character character = squad.Characters[i];
 
                     if (character.Dead)
                     {
+                        continue;
+                    }
+
+                    if (character.Stats.Blood <= 0)
+                    {
+                        character.Dead = true;
+                        i--;
                         continue;
                     }
 

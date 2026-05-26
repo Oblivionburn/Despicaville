@@ -8,6 +8,9 @@ using OP_Engine.Scenes;
 using OP_Engine.Tiles;
 using OP_Engine.Utility;
 using OP_Engine.Enums;
+using Despicaville.Tasks;
+using OP_Engine.Time;
+using System;
 
 namespace Despicaville.Util
 {
@@ -1053,22 +1056,21 @@ namespace Despicaville.Util
             if (character.Stats.Consciousness <= 0 &&
                 !character.Unconscious)
             {
-                character.Unconscious = true;
-
-                if (character.Type == "Player")
-                {
-                    GameUtil.AddMessage("You fell unconscious.");
-                }
+                KnockOut(character);
             }
             else if (character.Stats.Consciousness >= 20 &&
-                     character.Unconscious)
+                     character.Unconscious &&
+                     character.Job.Tasks.Count == 0)
             {
-                character.Unconscious = false;
-
-                if (character.Type == "Player")
+                float standTime = GetStandTime(character);
+                character.Job.Tasks.Add(new Stand
                 {
-                    GameUtil.AddMessage("You regained consciousness.");
-                }
+                    Name = "Stand",
+                    OwnerID = character.ID,
+                    StartTime = new TimeHandler(TimeManager.Now),
+                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(standTime)),
+                    Direction = character.Direction
+                });
             }
         }
 
@@ -1456,10 +1458,34 @@ namespace Despicaville.Util
             }
         }
 
-        public static void Kill(Character character)
+        public static void Fall(Character character)
         {
-            character.Unconscious = false;
-            character.Dead = true;
+            character.Laying = true;
+
+            if (character.Type == "Player")
+            {
+                GameUtil.AddMessage("You fell to the ground.");
+            }
+
+            float standTime = GetStandTime(character);
+            character.Job.Tasks.Add(new Stand
+            {
+                Name = "Stand",
+                OwnerID = character.ID,
+                StartTime = new TimeHandler(TimeManager.Now),
+                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(standTime)),
+                Direction = character.Direction
+            });
+        }
+
+        public static void KnockOut(Character character)
+        {
+            character.Unconscious = true;
+
+            if (character.Type == "Player")
+            {
+                GameUtil.AddMessage("You fell unconscious.");
+            }
         }
     }
 }
