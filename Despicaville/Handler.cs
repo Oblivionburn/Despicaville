@@ -15,6 +15,7 @@ using OP_Engine.Inventories;
 using OP_Engine.Tiles;
 using OP_Engine.Controls;
 using OP_Engine.Menus;
+using OP_Engine.Jobs;
 using Despicaville.Util;
 
 namespace Despicaville
@@ -78,6 +79,8 @@ namespace Despicaville
         public static float ThirstRate = 0.0013888f;
         public static float ComfortRate = 0.00556f;
         public static float BoredomRate = 0.00695f;
+
+        public static List<JobTask> Jobs = new List<JobTask>();
 
         public static int CharGen_Stage;
         public static string Selected_BodyPart;

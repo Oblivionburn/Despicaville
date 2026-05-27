@@ -4,9 +4,9 @@ using OP_Engine.Inventories;
 using OP_Engine.Jobs;
 using OP_Engine.Utility;
 
-namespace Despicaville.Tasks
+namespace Despicaville.JobTasks
 {
-    public class UseItem : Task
+    public class UseItem : JobTask
     {
         public override void Action_End()
         {
@@ -296,23 +296,21 @@ namespace Despicaville.Tasks
 
         public Character GetOwner()
         {
-            Army army = CharacterManager.GetArmy("Characters");
-            if (army != null)
+            if (Handler.Player.ID == OwnerID)
             {
-                int squadCount = army.Squads.Count;
-                for (int s = 0; s < squadCount; s++)
-                {
-                    Squad squad = army.Squads[s];
+                return Handler.Player;
+            }
 
-                    int charCount = squad.Characters.Count;
-                    for (int c = 0; c < charCount; c++)
-                    {
-                        Character existing = squad.Characters[c];
-                        if (existing.ID == OwnerID)
-                        {
-                            return existing;
-                        }
-                    }
+            Army army = CharacterManager.Armies[0];
+            Squad citizens = army.Squads[1];
+
+            int count = citizens.Characters.Count;
+            for (int c = 0; c < count; c++)
+            {
+                Character citizen = citizens.Characters[c];
+                if (citizen.ID == OwnerID)
+                {
+                    return citizen;
                 }
             }
 

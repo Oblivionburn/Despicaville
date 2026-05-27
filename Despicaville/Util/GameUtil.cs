@@ -367,7 +367,7 @@ namespace Despicaville.Util
                                                     }
                                                 }
 
-                                                Task task = character.Job.CurrentTask;
+                                                JobTask task = character.Job.CurrentTask;
                                                 if (task != null)
                                                 {
                                                     ProgressBar taskbar = task.TaskBar;
@@ -464,7 +464,7 @@ namespace Despicaville.Util
                         character.Region.X += x_diff;
                         character.Region.Y += y_diff;
 
-                        Task task = character.Job.CurrentTask;
+                        JobTask task = character.Job.CurrentTask;
                         if (task != null)
                         {
                             ProgressBar taskbar = task.TaskBar;

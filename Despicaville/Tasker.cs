@@ -10,7 +10,7 @@ using OP_Engine.Inventories;
 using OP_Engine.Inputs;
 using OP_Engine.Enums;
 using Despicaville.Util;
-using Despicaville.Tasks;
+using Despicaville.JobTasks;
 
 namespace Despicaville
 {

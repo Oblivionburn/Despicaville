@@ -6,9 +6,9 @@ using OP_Engine.Enums;
 using OP_Engine.Scenes;
 using Despicaville.Util;
 
-namespace Despicaville.Tasks
+namespace Despicaville.JobTasks
 {
-    public class OpenWindow : Task
+    public class CloseWindow : JobTask
     {
         public override void Action_End()
         {
@@ -23,7 +23,7 @@ namespace Despicaville.Tasks
 
             Layer middle_tiles = map.GetLayer("MiddleTiles");
             Tile tile = middle_tiles.GetTile(Location.ToVector2);
-            if (tile.Name.Contains("Open"))
+            if (tile.Name.Contains("Closed"))
             {
                 return;
             }
@@ -40,28 +40,30 @@ namespace Despicaville.Tasks
 
             if (loudness == 1)
             {
-                AssetManager.PlaySound_Random_AtDistance("WindowOpen", Handler.Player.Location.ToVector2, Location.ToVector2, 2);
+                AssetManager.PlaySound_Random_AtDistance("WindowClose", Handler.Player.Location.ToVector2, Location.ToVector2, 2);
             }
             else if (loudness == 2)
             {
-                AssetManager.PlaySound_Random_AtDistance("WindowOpen", Handler.Player.Location.ToVector2, Location.ToVector2, 4);
+                AssetManager.PlaySound_Random_AtDistance("WindowClose", Handler.Player.Location.ToVector2, Location.ToVector2, 4);
             }
             else if (loudness == 3)
             {
-                AssetManager.PlaySound_Random_AtDistance("WindowOpen", Handler.Player.Location.ToVector2, Location.ToVector2, 8);
+                AssetManager.PlaySound_Random_AtDistance("WindowClose", Handler.Player.Location.ToVector2, Location.ToVector2, 8);
             }
+
+            Layer bottom_tiles = map.GetLayer("BottomTiles");
+            Tile bottom_tile = bottom_tiles.GetTile(tile.Location.ToVector2);
+            tile.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
 
             if (character.Direction == Direction.North ||
                 character.Direction == Direction.South)
             {
-                tile.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width / 8, tile.Region.Height);
-                tile.Name = "Window_WestEast_Open";
+                tile.Name = "Window_WestEast_Closed";
             }
             else if (character.Direction == Direction.East ||
                      character.Direction == Direction.West)
             {
-                tile.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width, tile.Region.Height / 8);
-                tile.Name = "Window_NorthSouth_Open";
+                tile.Name = "Window_NorthSouth_Closed";
             }
 
             if (character.Type != "Player" &&
@@ -72,40 +74,38 @@ namespace Despicaville.Tasks
                 if (loudness == 1 &&
                     WorldUtil.InRange(Handler.Player.Location, Location, 2))
                 {
-                    GameUtil.AddMessage("You hear a window quietly open to the " + direction.ToString() + ".");
+                    GameUtil.AddMessage("You hear a window softly closed to the " + direction.ToString() + ".");
                 }
                 else if (loudness == 2 &&
                          WorldUtil.InRange(Handler.Player.Location, Location, 4))
                 {
-                    GameUtil.AddMessage("You hear a window open to the " + direction.ToString() + ".");
+                    GameUtil.AddMessage("You hear a window close to the " + direction.ToString() + ".");
                 }
                 else if (loudness == 3 &&
                          WorldUtil.InRange(Handler.Player.Location, Location, 8))
                 {
-                    GameUtil.AddMessage("You hear a window loudly open to the " + direction.ToString() + ".");
+                    GameUtil.AddMessage("You hear a window slammed shut to the " + direction.ToString() + ".");
                 }
             }
         }
 
         public Character GetOwner()
         {
-            Army army = CharacterManager.GetArmy("Characters");
-            if (army != null)
+            if (Handler.Player.ID == OwnerID)
             {
-                int squadCount = army.Squads.Count;
-                for (int s = 0; s < squadCount; s++)
-                {
-                    Squad squad = army.Squads[s];
+                return Handler.Player;
+            }
 
-                    int charCount = squad.Characters.Count;
-                    for (int c = 0; c < charCount; c++)
-                    {
-                        Character existing = squad.Characters[c];
-                        if (existing.ID == OwnerID)
-                        {
-                            return existing;
-                        }
-                    }
+            Army army = CharacterManager.Armies[0];
+            Squad citizens = army.Squads[1];
+
+            int count = citizens.Characters.Count;
+            for (int c = 0; c < count; c++)
+            {
+                Character citizen = citizens.Characters[c];
+                if (citizen.ID == OwnerID)
+                {
+                    return citizen;
                 }
             }
 

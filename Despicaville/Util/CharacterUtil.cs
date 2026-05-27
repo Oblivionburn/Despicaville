@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using OP_Engine.Characters;
@@ -8,9 +9,8 @@ using OP_Engine.Scenes;
 using OP_Engine.Tiles;
 using OP_Engine.Utility;
 using OP_Engine.Enums;
-using Despicaville.Tasks;
 using OP_Engine.Time;
-using System;
+using Despicaville.JobTasks;
 
 namespace Despicaville.Util
 {

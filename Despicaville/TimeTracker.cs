@@ -50,7 +50,7 @@ namespace Despicaville
                     continue;
                 }
 
-                Task task = character.Job.CurrentTask;
+                JobTask task = character.Job.CurrentTask;
                 if (task?.Name == "Sleep")
                 {
                     continue;
@@ -76,7 +76,7 @@ namespace Despicaville
                 }
             }
 
-            Task playerTask = Handler.Player.Job.CurrentTask;
+            JobTask playerTask = Handler.Player.Job.CurrentTask;
             if (playerTask != null)
             {
                 if (playerTask.Name != "Sneak" &&
@@ -110,7 +110,7 @@ namespace Despicaville
                         continue;
                     }
 
-                    Task task = character.Job.CurrentTask;
+                    JobTask task = character.Job.CurrentTask;
                     if (task?.Name == "Sleep")
                     {
                         CharacterUtil.Sleep(character);

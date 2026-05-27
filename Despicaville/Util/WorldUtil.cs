@@ -46,17 +46,20 @@ namespace Despicaville.Util
             }
 
             //Check middle tiles
-            Tile furniture = GetFurniture(Handler.MiddleFurniture, destination);
-            if (furniture != null)
+            Layer middle_tiles = map.GetLayer("MiddleTiles");
+            List<Tile> furniture = GetFurniture_Nearby(middle_tiles, destination);
+
+            Tile middle_tile = GetFurniture(furniture, destination);
+            if (middle_tile != null)
             {
-                if (!furniture.Name.Contains("Open"))
+                if (!middle_tile.Name.Contains("Open"))
                 {
-                    if (Handler.Pull_ID != furniture.ID &&
-                        furniture.BlocksMovement)
+                    if (Handler.Pull_ID != middle_tile.ID &&
+                        middle_tile.BlocksMovement)
                     {
                         return false;
                     }
-                    else if (furniture.Name.Contains("Window") &&
+                    else if (middle_tile.Name.Contains("Window") &&
                              character.Type != "Player")
                     {
                         return false;
@@ -83,10 +86,11 @@ namespace Despicaville.Util
 
             if (Handler.Pull)
             {
+                #region Pull Collision Check
+
                 Location newLocation = null;
                 Region size = null;
 
-                //Check for collision
                 if (Handler.Pull_Character != null)
                 {
                     #region Character
@@ -166,7 +170,7 @@ namespace Despicaville.Util
                                 return false;
                             }
 
-                            Tile middle = GetFurniture(Handler.MiddleFurniture, new Location(X, Y, 0));
+                            Tile middle = GetFurniture(furniture, new Location(X, Y, 0));
                             if (middle != null &&
                                 middle.ID != Handler.Pull_ID &&
                                 !middle.Name.Contains("Open") &&
@@ -194,6 +198,8 @@ namespace Despicaville.Util
                         }
                     }
                 }
+
+                #endregion
             }
 
             return true;
@@ -629,27 +635,23 @@ namespace Despicaville.Util
         {
             List<Character> result = new List<Character>();
 
-            Army army = CharacterManager.Armies[0];
-
-            Squad players = army.Squads[0];
-            Character player = players.Characters[0];
-            if (player.ID != ID)
+            if (NextTo(Handler.Player.Location, location))
             {
-                if (NextTo(player.Location, location))
-                {
-                    result.Add(player);
-                }
+                result.Add(Handler.Player);
             }
 
+            Army army = CharacterManager.Armies[0];
             Squad citizens = army.Squads[1];
-            for (int i = 0; i < citizens.Characters.Count; i++)
+
+            int count = citizens.Characters.Count;
+            for (int i = 0; i < count; i++)
             {
-                Character existing = citizens.Characters[i];
-                if (existing.ID != ID)
+                Character citizen = citizens.Characters[i];
+                if (citizen.ID != ID)
                 {
-                    if (NextTo(existing.Location, location))
+                    if (NextTo(citizen.Location, location))
                     {
-                        result.Add(existing);
+                        result.Add(citizen);
                     }
                 }
             }
@@ -667,8 +669,8 @@ namespace Despicaville.Util
                 Tile tile = bottom_tiles.GetTile(location.ToVector2);
                 if (tile != null)
                 {
-                    Army army = CharacterManager.GetArmy("Characters");
-                    Squad citizens = army.GetSquad("Citizens");
+                    Army army = CharacterManager.Armies[0];
+                    Squad citizens = army.Squads[1];
 
                     Character character = GetCharacter(citizens.Characters, tile);
                     if (character != null)
@@ -811,127 +813,145 @@ namespace Despicaville.Util
             return null;
         }
 
+        public static List<Tile> GetFurniture_Nearby(Layer middle_tiles, Location location)
+        {
+            List<Tile> furniture = new List<Tile>();
+
+            int min_y = (int)location.Y - 3;
+            int max_y = (int)location.Y + 3;
+            int min_x = (int)location.X - 3;
+            int max_x = (int)location.X + 3;
+
+            for (int y = min_y; y < max_y; y++)
+            {
+                for (int x = min_x; x < max_x; x++)
+                {
+                    Vector2 loc = new Vector2(x, y);
+
+                    Tile tile = middle_tiles.GetTile(loc);
+                    if (tile?.Texture != null)
+                    {
+                        furniture.Add(tile);
+                    }
+                }
+            }
+
+            return furniture;
+        }
+
         public static Tile GetFurniture(List<Tile> furniture, Location location)
         {
             int width = (int)Main.Game.TileSize_X;
             int width_double = width * 2;
             int width_triple = width * 3;
 
-            float dest_x = location.X;
-            float dest_y = location.Y;
+            float loc_x = location.X;
+            float loc_y = location.Y;
 
             Tile[] tiles = furniture.ToArray();
 
             int count = tiles.Length;
             for (int i = 0; i < count; i++)
             {
-                Tile existing = tiles[i];
+                Tile tile = tiles[i];
 
-                float x = existing.Location.X;
-                float y = existing.Location.Y;
+                Location tile_location = tile.Location;
 
-                if (dest_x == x &&
-                    dest_y == y)
+                float x = tile_location.X;
+                float y = tile_location.Y;
+
+                if (loc_x == x &&
+                    loc_y == y)
                 {
-                    return existing;
+                    return tile;
                 }
-                else if (existing.Region.Height == width)
+                else if (tile.Region.Height == width)
                 {
-                    if (existing.Direction == Direction.East)
+                    if (tile.Direction == Direction.East ||
+                        tile.Direction == Direction.West)
                     {
-                        if (existing.Region.Width == width_double)
+                        if (tile.Region.Width == width_double)
                         {
-                            if (dest_x >= x && dest_x <= x + 1 &&
-                                dest_y == y)
+                            if (loc_x >= x && loc_x <= x + 1 &&
+                                loc_y == y)
                             {
-                                return existing;
+                                return tile;
                             }
                         }
                     }
-                    else if (existing.Direction == Direction.West)
+                    else if (tile.Direction == Direction.North ||
+                             tile.Direction == Direction.South)
                     {
-                        if (existing.Region.Width == width_double)
+                        if (tile.Region.Width == width_double)
                         {
-                            if (dest_x >= x - 1 && dest_x <= x &&
-                                dest_y == y)
+                            if (loc_x >= x && loc_x <= x + 1 &&
+                                loc_y == y)
                             {
-                                return existing;
+                                return tile;
                             }
                         }
-                    }
-                    else if (existing.Direction == Direction.North ||
-                             existing.Direction == Direction.South)
-                    {
-                        if (existing.Region.Width == width_double)
+                        else if (tile.Region.Width == width_triple)
                         {
-                            if (dest_x >= x && dest_x <= x + 1 &&
-                                dest_y == y)
+                            if (loc_x >= x - 1 && loc_x <= x + 1 &&
+                                loc_y == y)
                             {
-                                return existing;
-                            }
-                        }
-                        else if (existing.Region.Width == width_triple)
-                        {
-                            if (dest_x >= x - 1 && dest_x <= x + 1 &&
-                                dest_y == y)
-                            {
-                                return existing;
+                                return tile;
                             }
                         }
                     }
                 }
-                else if (existing.Region.Width == width)
+                else if (tile.Region.Width == width)
                 {
-                    if (existing.Direction == Direction.North)
+                    if (tile.Direction == Direction.North)
                     {
-                        if (existing.Region.Height == width_double)
+                        if (tile.Region.Height == width_double)
                         {
-                            if (dest_x == x &&
-                                dest_y >= y && dest_y <= y - 1)
+                            if (loc_x == x &&
+                                loc_y >= y && loc_y <= y - 1)
                             {
-                                return existing;
+                                return tile;
                             }
                         }
                     }
-                    else if (existing.Direction == Direction.South)
+                    else if (tile.Direction == Direction.South)
                     {
-                        if (existing.Region.Height == width_double)
+                        if (tile.Region.Height == width_double)
                         {
-                            if (dest_x == x &&
-                                dest_y >= y && dest_y <= y + 1)
+                            if (loc_x == x &&
+                                loc_y >= y && loc_y <= y + 1)
                             {
-                                return existing;
+                                return tile;
                             }
                         }
                     }
-                    else if (existing.Direction == Direction.West ||
-                             existing.Direction == Direction.East)
+                    else if (tile.Direction == Direction.West ||
+                             tile.Direction == Direction.East)
                     {
-                        if (existing.Region.Height == width_double)
+                        if (tile.Region.Height == width_double)
                         {
-                            if (dest_x == x &&
-                                dest_y >= y && dest_y <= y + 1)
+                            if (loc_x == x &&
+                                loc_y >= y && loc_y <= y + 1)
                             {
-                                return existing;
+                                return tile;
                             }
                         }
-                        else if (existing.Region.Height == width_triple)
+                        else if (tile.Region.Height == width_triple)
                         {
-                            if (dest_x == x &&
-                                dest_y >= y - 1 && dest_y <= y + 1)
+                            if (loc_x == x &&
+                                loc_y >= y - 1 && loc_y <= y + 1)
                             {
-                                return existing;
+                                return tile;
                             }
                         }
                     }
                 }
-                else if (existing.Region.Width == width_double &&
-                         existing.Region.Height == width_double)
+                else if (tile.Region.Width == width_double &&
+                         tile.Region.Height == width_double)
                 {
-                    if (dest_x >= x && dest_x <= x + 1 &&
-                        dest_y >= y && dest_y <= y + 1)
+                    if (loc_x >= x && loc_x <= x + 1 &&
+                        loc_y >= y && loc_y <= y + 1)
                     {
-                        return existing;
+                        return tile;
                     }
                 }
             }

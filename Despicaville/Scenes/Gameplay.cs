@@ -18,7 +18,7 @@ using OP_Engine.Inventories;
 using OP_Engine.Rendering;
 using OP_Engine.Enums;
 using Despicaville.Util;
-using Despicaville.Tasks;
+using Despicaville.JobTasks;
 
 namespace Despicaville.Scenes
 {
@@ -288,7 +288,7 @@ namespace Despicaville.Scenes
                                             {
                                                 character.Draw(spriteBatch, resolution, color);
 
-                                                Task task = character.Job.CurrentTask;
+                                                JobTask task = character.Job.CurrentTask;
                                                 if (task != null &&
                                                     task.TaskBar != null)
                                                 {
@@ -1131,7 +1131,7 @@ namespace Despicaville.Scenes
                     }
                     else
                     {
-                        Task task = Handler.Player.Job.CurrentTask;
+                        JobTask task = Handler.Player.Job.CurrentTask;
                         if (task != null)
                         {
                             if (task.Name == "Sneak" ||

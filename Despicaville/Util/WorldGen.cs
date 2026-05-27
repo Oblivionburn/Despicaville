@@ -1140,10 +1140,9 @@ namespace Despicaville.Util
                             force_park = true;
                         }
                     }
-
-                    if (open_count <= 2 &&
-                        (GroceryBlocks.Count > 0 ||
-                         DinerBlocks.Count > 0))
+                    else if (open_count <= 3 &&
+                             (GroceryBlocks.Count > 0 ||
+                             DinerBlocks.Count > 0))
                     {
                         Map block = null;
 

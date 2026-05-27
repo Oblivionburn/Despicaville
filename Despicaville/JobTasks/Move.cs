@@ -8,9 +8,9 @@ using OP_Engine.Scenes;
 using OP_Engine.Time;
 using Despicaville.Util;
 
-namespace Despicaville.Tasks
+namespace Despicaville.JobTasks
 {
-    public class Move : Task
+    public class Move : JobTask
     {
         public override void Action_Start()
         {
@@ -473,51 +473,46 @@ namespace Despicaville.Tasks
                 return;
             }
 
-            if (character.Moving)
+            if (character.Unconscious ||
+                !character.Moving)
             {
-                if (Name == "Sneak")
-                {
-                    character.Stats.Stamina -= (0.0385f / character.Stats.Endurance);
-                }
-                else if (Name == "Walk")
-                {
-                    character.Stats.Stamina -= (0.077f / character.Stats.Endurance);
-                }
-                else if (Name == "Run")
-                {
-                    character.Stats.Stamina -= (0.154f / character.Stats.Endurance);
-                }
-
-                if (character.Stats.Stamina < 0)
-                {
-                    character.Stats.Stamina = 0;
-                }
-
-                WorldUtil.SetCurrentMap(character);
+                return;
             }
 
-            character.Moved = 0;
-            character.Moving = false;
-            character.ResetAnimation();
-
             Map map = WorldUtil.GetMap();
+
+            if (Name == "Sneak")
+            {
+                character.Stats.Stamina -= (0.0385f / character.Stats.Endurance);
+            }
+            else if (Name == "Walk")
+            {
+                character.Stats.Stamina -= (0.077f / character.Stats.Endurance);
+            }
+            else if (Name == "Run")
+            {
+                character.Stats.Stamina -= (0.154f / character.Stats.Endurance);
+            }
+
+            if (character.Stats.Stamina < 0)
+            {
+                character.Stats.Stamina = 0;
+            }
+
             Layer bottom_tiles = map.GetLayer("BottomTiles");
             Tile bottom_tile = bottom_tiles.GetTile(character.Location.ToVector2);
             if (bottom_tile != null)
             {
                 character.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
             }
-
             CharacterUtil.UpdateGear(character);
 
-            if (character.Unconscious)
-            {
-                return;
-            }
-            else
-            {
-                CharacterUtil.UpdateSight(character);
-            }
+            WorldUtil.SetCurrentMap(character);
+            CharacterUtil.UpdateSight(character);
+
+            character.Moved = 0;
+            character.Moving = false;
+            character.ResetAnimation();
 
             if (character.InCombat)
             {
@@ -614,23 +609,21 @@ namespace Despicaville.Tasks
 
         public Character GetOwner()
         {
-            Army army = CharacterManager.GetArmy("Characters");
-            if (army != null)
+            if (Handler.Player.ID == OwnerID)
             {
-                int squadCount = army.Squads.Count;
-                for (int s = 0; s < squadCount; s++)
-                {
-                    Squad squad = army.Squads[s];
+                return Handler.Player;
+            }
 
-                    int charCount = squad.Characters.Count;
-                    for (int c = 0; c < charCount; c++)
-                    {
-                        Character existing = squad.Characters[c];
-                        if (existing.ID == OwnerID)
-                        {
-                            return existing;
-                        }
-                    }
+            Army army = CharacterManager.Armies[0];
+            Squad citizens = army.Squads[1];
+
+            int count = citizens.Characters.Count;
+            for (int c = 0; c < count; c++)
+            {
+                Character citizen = citizens.Characters[c];
+                if (citizen.ID == OwnerID)
+                {
+                    return citizen;
                 }
             }
 

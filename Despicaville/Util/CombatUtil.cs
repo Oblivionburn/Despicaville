@@ -712,7 +712,7 @@ namespace Despicaville.Util
                     }
                 }
 
-                Task task = character.Job.CurrentTask;
+                JobTask task = character.Job.CurrentTask;
                 task?.TaskBar?.Draw(spriteBatch);
 
                 if (stage == 2)

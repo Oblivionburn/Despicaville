@@ -9,7 +9,6 @@ namespace Despicaville.Util
     public static class DPathing
     {
         private static List<Character> nearby_characters;
-        public static Dictionary<long, List<Tile>> attempted_pathing = new Dictionary<long, List<Tile>>();
 
         public static List<ALocation> GetPath(Layer bottom_tiles, Layer middle_tiles, Character character, Tile tile, int max_distance, bool stop_next_to_tile)
         {
@@ -48,7 +47,7 @@ namespace Despicaville.Util
 
                     if (open.Count > 0)
                     {
-                        ALocation min = Get_MinLocation_Target(open, target, last_min);
+                        ALocation min = Get_MinLocation_Target(open);
                         open.Clear();
                         path.Add(min);
                         last_min = min;
@@ -56,12 +55,6 @@ namespace Despicaville.Util
                         if (DestinationReached(min, tile, stop_next_to_tile))
                         {
                             reached = true;
-
-                            if (attempted_pathing.ContainsKey(character.ID))
-                            {
-                                attempted_pathing[character.ID].Clear();
-                            }
-
                             break;
                         }
                     }
@@ -145,7 +138,7 @@ namespace Despicaville.Util
                 {
                     min = Get_MinLocation_Start(open);
                     open.Clear();
-                    possible = Path_RemoveTile(possible, min);
+                    //possible = Path_RemoveTile(possible, min);
                     path.Add(min);
                     last_min = min;
 
@@ -246,15 +239,22 @@ namespace Despicaville.Util
             return false;
         }
 
-        public static ALocation Get_MinLocation_Target(List<ALocation> locations, ALocation target, ALocation previous)
+        public static ALocation Get_MinLocation_Target(List<ALocation> locations)
         {
             ALocation current = locations[0];
+            if (current.Distance_ToDestination == 0)
+            {
+                return current;
+            }
 
             float current_near = current.Distance_ToDestination;
             float current_far = current.Distance_ToStart;
 
-            foreach (ALocation location in locations)
+            int count = locations.Count;
+            for (int i = 0; i < count; i++)
             {
+                ALocation location = locations[i];
+
                 float pref_near = location.Distance_ToDestination;
                 float pref_far = location.Distance_ToStart;
 
@@ -273,18 +273,27 @@ namespace Despicaville.Util
         public static ALocation Get_MinLocation_Start(List<ALocation> locations)
         {
             ALocation current = locations[0];
+            if (current.Distance_ToStart == 0)
+            {
+                return current;
+            }
 
-            int current_far = current.Distance_ToStart;
+            float current_near = current.Distance_ToDestination;
+            float current_far = current.Distance_ToStart;
 
             int count = locations.Count;
             for (int i = 0; i < count; i++)
             {
                 ALocation location = locations[i];
 
-                int pref_far = location.Distance_ToStart;
-                if (pref_far < current_far)
+                float pref_near = location.Distance_ToDestination;
+                float pref_far = location.Distance_ToStart;
+
+                if ((pref_far <= current_far && pref_near > current_near) ||
+                    pref_far < current_far)
                 {
                     current = location;
+                    current_near = pref_near;
                     current_far = pref_far;
                 }
             }
@@ -358,7 +367,7 @@ namespace Despicaville.Util
 
                 if (nearby_characters.Count > 0)
                 {
-                    Character other = WorldUtil.GetCharacter(nearby_characters, new Location(location.X, location.Y, 0));
+                    Character other = WorldUtil.GetCharacter(nearby_characters, new Location(location.X, location.Y));
                     if (other != null)
                     {
                         return false;

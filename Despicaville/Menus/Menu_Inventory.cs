@@ -11,7 +11,7 @@ using OP_Engine.Inventories;
 using OP_Engine.Characters;
 using OP_Engine.Time;
 using Despicaville.Util;
-using Despicaville.Tasks;
+using Despicaville.JobTasks;
 
 namespace Despicaville.Menus
 {

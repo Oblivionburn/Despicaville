@@ -12,7 +12,7 @@ using OP_Engine.Utility;
 using OP_Engine.Time;
 using OP_Engine.Inventories;
 using Despicaville.Util;
-using Despicaville.Tasks;
+using Despicaville.JobTasks;
 
 namespace Despicaville.Menus
 {
