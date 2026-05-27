@@ -1770,7 +1770,7 @@ namespace Despicaville.Util
             else if (new_tile.Name.Contains("Wall"))
             {
                 new_tile.BlocksMovement = true;
-                new_tile.BlocksSight = WorldUtil.BlocksSight(new_tile.Name);
+                new_tile.BlocksSight = true;
             }
 
             if (new_tile.Name.Contains("Bed") &&

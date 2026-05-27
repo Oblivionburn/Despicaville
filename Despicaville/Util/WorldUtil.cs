@@ -456,34 +456,6 @@ namespace Despicaville.Util
             return false;
         }
 
-        public static bool BlocksSight(string name)
-        {
-            int count = Handler.SeeThrough.Length;
-            for (int i = 0; i < count; i++)
-            {
-                string furniture = Handler.SeeThrough[i];
-                if (name.Contains(furniture))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public static bool CanSearch(string name)
-        {
-            for (int i = 0; i < Handler.Searchable.Length; i++)
-            {
-                if (name.Contains(Handler.Searchable[i]))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         public static void PullTile_SetLocation(Direction direction)
         {
             if (Handler.Pull_Tile != null)

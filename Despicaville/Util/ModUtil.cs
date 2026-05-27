@@ -595,10 +595,6 @@ namespace Despicaville.Util
                         tile.BlocksSight = reader.Value == "True";
                         break;
 
-                    case "Usable":
-                        tile.CanUse = reader.Value == "True";
-                        break;
-
                     case "Sound":
                         tile.Sound = reader.Value;
                         break;
@@ -609,6 +605,10 @@ namespace Despicaville.Util
 
                     case "Movable":
                         tile.CanMove = reader.Value == "True";
+                        break;
+
+                    case "Searchable":
+                        tile.CanUse = reader.Value == "True";
                         break;
 
                     case "InventorySlots":

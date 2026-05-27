@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
 using OP_Engine.Controls;
 using OP_Engine.Inputs;
 using OP_Engine.Menus;
@@ -10,7 +11,6 @@ using OP_Engine.Inventories;
 using OP_Engine.Utility;
 using OP_Engine.Enums;
 using Despicaville.Util;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace Despicaville.Scenes
 {

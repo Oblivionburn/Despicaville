@@ -52,8 +52,6 @@ namespace Despicaville
         public static string[] HairLength = { "Bald", "Short", "Long" };
         public static string[] HairColor = { "Black", "Blonde", "Brown", "Grey", "Red", "White" };
         public static string[] Colors = { "Black", "Blue", "Brown", "Cyan", "Green", "Grey", "Orange", "Pink", "Purple", "Red", "White", "Yellow" };
-        public static string[] SeeThrough = { "Lamp", "StreetLight", "Counter", "TV", "Stove", "Table", "Dresser", "Bookshelf", "ComputerDesk" };
-        public static string[] Searchable = { "Counter", "Fridge", "Dresser", "Desk", "Bookshelf", "Grass" };
         public static string[] BodyParts = { "Head", "Neck", "Torso", "Groin", "Right_Arm", "Right_Hand", "Left_Arm", "Left_Hand", "Right_Leg", "Right_Foot", "Left_Leg", "Left_Foot" };
 
         public static int MessageMax = 6;

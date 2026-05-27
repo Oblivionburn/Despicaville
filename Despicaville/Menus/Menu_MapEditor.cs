@@ -229,14 +229,7 @@ namespace Despicaville.Menus
                     button.Draw(spriteBatch);
                 }
 
-                foreach (Label label in Labels)
-                {
-                    if (label.Name == "Examine")
-                    {
-                        label.Draw(spriteBatch);
-                        break;
-                    }
-                }
+                GetLabel("Examine")?.Draw(spriteBatch);
             }
         }
 
@@ -318,7 +311,9 @@ namespace Despicaville.Menus
                 }
             }
 
-            if (!hoveringButton)
+            if (!hoveringButton &&
+                !hoveringTile &&
+                !hoveringFurniture)
             { 
                 GetLabel("Examine").Visible = false;
             }
@@ -609,6 +604,8 @@ namespace Despicaville.Menus
                         highlight.DrawColor = Color.Blue;
                         highlight.Visible = true;
 
+                        GameUtil.Examine(this, tile.Texture.Name);
+
                         if (InputManager.Mouse_LB_Pressed)
                         {
                             AssetManager.PlaySound_Random("Click");
@@ -641,6 +638,8 @@ namespace Despicaville.Menus
                         highlight.Region = tile.Region;
                         highlight.DrawColor = Color.Blue;
                         highlight.Visible = true;
+
+                        GameUtil.Examine(this, tile.Texture.Name);
 
                         if (InputManager.Mouse_LB_Pressed)
                         {
@@ -1018,7 +1017,7 @@ namespace Despicaville.Menus
             string fileName = "";
 
             System.Windows.Forms.SaveFileDialog saveFile = new System.Windows.Forms.SaveFileDialog();
-            saveFile.InitialDirectory = AssetManager.Directories["Maps"];
+            saveFile.InitialDirectory = Path.Combine(AssetManager.Directories["Mods"], "Core", "Maps");
             saveFile.Filter = "Despicaville Map | *.blockmap";
             saveFile.DefaultExt = ".blockmap";
             saveFile.Title = "Save Despicaville Map";
@@ -1046,7 +1045,7 @@ namespace Despicaville.Menus
                     foreach (Tile tile in BottomTiles.Tiles)
                     {
                         EnterNode("BottomTile");
-                        Writer.WriteAttributeString("Texture", tile.Name);
+                        Writer.WriteAttributeString("Texture", tile.Texture?.Name);
                         Writer.WriteAttributeString("Location", tile.Location.X.ToString() + "," + tile.Location.Y.ToString());
                         ExitNode();
                     }
@@ -1056,7 +1055,7 @@ namespace Despicaville.Menus
                     foreach (Tile tile in MiddleTiles.Tiles)
                     {
                         EnterNode("MiddleTile");
-                        Writer.WriteAttributeString("Texture", tile.Name);
+                        Writer.WriteAttributeString("Texture", tile.Texture?.Name);
                         Writer.WriteAttributeString("Location", tile.Location.X.ToString() + "," + tile.Location.Y.ToString());
                         ExitNode();
                     }
@@ -1066,7 +1065,7 @@ namespace Despicaville.Menus
                     foreach (Tile tile in TopTiles.Tiles)
                     {
                         EnterNode("TopTile");
-                        Writer.WriteAttributeString("Texture", tile.Name);
+                        Writer.WriteAttributeString("Texture", tile.Texture?.Name);
                         Writer.WriteAttributeString("Location", tile.Location.X.ToString() + "," + tile.Location.Y.ToString());
                         ExitNode();
                     }
@@ -1076,7 +1075,7 @@ namespace Despicaville.Menus
                     foreach (Tile tile in RoomTiles.Tiles)
                     {
                         EnterNode("RoomTile");
-                        Writer.WriteAttributeString("Texture", tile.Name);
+                        Writer.WriteAttributeString("Texture", tile.Texture?.Name);
                         Writer.WriteAttributeString("Location", tile.Location.X.ToString() + "," + tile.Location.Y.ToString());
                         ExitNode();
                     }
@@ -1124,7 +1123,7 @@ namespace Despicaville.Menus
                             foreach (Tile tile in layer.Tiles)
                             {
                                 EnterNode("Tile");
-                                Writer.WriteAttributeString("Texture", tile.Name);
+                                Writer.WriteAttributeString("Texture", tile.Texture?.Name);
                                 Writer.WriteAttributeString("Location", tile.Location.X.ToString() + "," + tile.Location.Y.ToString());
                                 ExitNode();
                             }
@@ -2676,7 +2675,8 @@ namespace Despicaville.Menus
                             !north_bottom.Name.Contains("Wall"))
                         {
                             Tile north_middle = middle_tiles.GetTile(north3);
-                            if (north_middle.Name.Contains("Door"))
+                            if (!string.IsNullOrEmpty(north_middle.Name) &&
+                                north_middle.Name.Contains("Door"))
                             {
                                 if (!exits.Contains(north2))
                                 {
@@ -2714,7 +2714,8 @@ namespace Despicaville.Menus
                             !east_bottom.Name.Contains("Wall"))
                         {
                             Tile east_middle = middle_tiles.GetTile(east3);
-                            if (east_middle.Name.Contains("Door"))
+                            if (!string.IsNullOrEmpty(east_middle.Name) &&
+                                east_middle.Name.Contains("Door"))
                             {
                                 if (!exits.Contains(east2))
                                 {
@@ -2752,7 +2753,8 @@ namespace Despicaville.Menus
                             !south_bottom.Name.Contains("Wall"))
                         {
                             Tile south_middle = middle_tiles.GetTile(south3);
-                            if (south_middle.Name.Contains("Door"))
+                            if (!string.IsNullOrEmpty(south_middle.Name) &&
+                                south_middle.Name.Contains("Door"))
                             {
                                 if (!exits.Contains(south2))
                                 {
@@ -2790,7 +2792,8 @@ namespace Despicaville.Menus
                             !west_bottom.Name.Contains("Wall"))
                         {
                             Tile west_middle = middle_tiles.GetTile(west3);
-                            if (west_middle.Name.Contains("Door"))
+                            if (!string.IsNullOrEmpty(west_middle.Name) &&
+                                west_middle.Name.Contains("Door"))
                             {
                                 if (!exits.Contains(west2))
                                 {

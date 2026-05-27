@@ -855,7 +855,7 @@ namespace Despicaville
                         }
                     }
                 }
-                else if (WorldUtil.CanSearch(tile.Name))
+                else if (tile.CanUse)
                 {
                     if (InputManager.KeyDown("Crouch"))
                     {
@@ -925,7 +925,7 @@ namespace Despicaville
             {
                 if (WorldUtil.Furniture_InRoom(furniture, character))
                 {
-                    int distance = WorldUtil.GetDistance(character.Location, furniture.Location) * 5;
+                    int distance = WorldUtil.GetDistance(character.Location, furniture.Location) * 2;
                     path = DPathing.GetPath(bottom_tiles, middle_tiles, character, furniture, distance, true);
                 }
                 else
@@ -995,7 +995,7 @@ namespace Despicaville
 
                         if (tile != null)
                         {
-                            int distance = WorldUtil.GetDistance(character.Location, tile.Location) * 10;
+                            int distance = WorldUtil.GetDistance(character.Location, tile.Location) * 4;
                             path = DPathing.GetPath(bottom_tiles, middle_tiles, character, tile, distance, false);
                         }
                     }
@@ -1030,7 +1030,7 @@ namespace Despicaville
                 }
                 else
                 {
-                    int distance = WorldUtil.GetDistance(character.Location, furniture.Location) * 20;
+                    int distance = WorldUtil.GetDistance(character.Location, furniture.Location) * 8;
                     path = DPathing.GetPath(bottom_tiles, middle_tiles, character, furniture, distance, true);
                 }
             }
