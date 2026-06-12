@@ -159,7 +159,7 @@ namespace Despicaville.Util
 
         public static bool IsWoundType(Property property)
         {
-            if (property.Name.Contains("Sever") || 
+            if (property.Name.Contains("Sever") ||
                 property.Name.Contains("Break") ||
                 property.Name.Contains("Fracture") ||
                 property.Name.Contains("Bruise") ||
@@ -498,7 +498,7 @@ namespace Despicaville.Util
                 {
                     AddWound(attacker, defender, bodyPart, wound, true);
                 }
-                
+
                 CharacterUtil.UpdatePain(defender);
             }
             else if (action == "Punch")
@@ -1148,7 +1148,7 @@ namespace Despicaville.Util
             {
                 wound.Texture = AssetManager.Textures["Wound_" + wound_type];
             }
-            
+
             part.Wounds.Add(wound);
         }
     }

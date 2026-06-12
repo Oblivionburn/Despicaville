@@ -33,7 +33,7 @@ namespace Despicaville.Menus
         bool Selecting_Layer;
         string[] Layers = { "Bottom", "Middle", "Top", "Room" };
         List<Button> Buttons_Layer = new List<Button>();
-        
+
         bool Selecting_RoomType;
         List<string> RoomTypes;
         List<Button> Buttons_RoomType = new List<Button>();
@@ -314,7 +314,7 @@ namespace Despicaville.Menus
             if (!hoveringButton &&
                 !hoveringTile &&
                 !hoveringFurniture)
-            { 
+            {
                 GetLabel("Examine").Visible = false;
             }
 
@@ -712,7 +712,7 @@ namespace Despicaville.Menus
                     }
                     break;
             }
-            
+
             if (tile != null)
             {
                 Picture highlight = GetPicture("Highlight");
@@ -729,7 +729,7 @@ namespace Despicaville.Menus
                     else if (!TileToggle)
                     {
                         TileToggle = true;
-                
+
                         if (!RemovingTiles &&
                             tile.Texture != null)
                         {
@@ -980,7 +980,7 @@ namespace Despicaville.Menus
             Button roomType = GetButton("RoomType");
             roomType.Text = "Bathroom";
             roomType.Visible = false;
-            
+
             Button mapFacing = GetButton("MapFacing");
             mapFacing.Text = "North";
             mapFacing.Visible = false;
@@ -2253,7 +2253,7 @@ namespace Despicaville.Menus
                             tile.Texture = AssetManager.Textures[reader.Value];
                             tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
                         }
-                        
+
                         tile.DrawColor = Color.White;
                         break;
 

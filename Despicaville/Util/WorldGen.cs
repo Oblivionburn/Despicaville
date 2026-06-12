@@ -1198,7 +1198,7 @@ namespace Despicaville.Util
                             force_park = true;
                         }
                     }
-                    else 
+                    else
                     {
                         random = new CryptoRandom();
                         int block_choice = random.Next(0, 3);

@@ -145,7 +145,7 @@ namespace Despicaville.Util
 
                     #endregion
                 }
-                
+
                 if (size != null &&
                     newLocation != null)
                 {
@@ -2004,7 +2004,7 @@ namespace Despicaville.Util
                 Point map_coords = new Point((int)home.Location.X, (int)home.Location.Y);
 
                 middle_furniture = GetAllFurniture(middle_tiles, map_coords);
-                
+
                 int bed_count = 0;
                 Tile possibleBed = null;
 

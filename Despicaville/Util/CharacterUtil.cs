@@ -93,7 +93,7 @@ namespace Despicaville.Util
             //Get Hair
             random = new CryptoRandom();
             int hair_length = random.Next(0, 3);
-            
+
             if (hair_length > 0)
             {
                 random = new CryptoRandom();
@@ -665,7 +665,7 @@ namespace Despicaville.Util
 
             foreach (var stat in stats)
             {
-                switch(stat.Key)
+                switch (stat.Key)
                 {
                     case "Strength":
                         character.Stats.Strength = stat.Value;
@@ -1084,7 +1084,7 @@ namespace Despicaville.Util
 
                 Property pain = part.GetStat("Pain");
                 pain.Value = 0;
-                       
+
                 foreach (Wound wound in part.Wounds)
                 {
                     if (wound.Name == "Break")
@@ -1206,7 +1206,7 @@ namespace Despicaville.Util
         {
             int partCount = character.BodyParts.Count;
             for (int b = 0; b < partCount; b++)
-            { 
+            {
                 BodyPart part = character.BodyParts[b];
 
                 for (int w = 0; w < part.Wounds.Count; w++)
@@ -1243,7 +1243,7 @@ namespace Despicaville.Util
                         {
                             total += 0.000024f; //2 per day
                         }
-                        else if(wound.Name == "Covered")
+                        else if (wound.Name == "Covered")
                         {
                             total += 0.000058f; //5 per day
                         }
@@ -1350,7 +1350,7 @@ namespace Despicaville.Util
                         if (blood != null)
                         {
                             if (blood.Value > 0.05f)
-                            {             
+                            {
                                 if (blood.Value < 0.1f)
                                 {
                                     blood.Name = "Small Blood";

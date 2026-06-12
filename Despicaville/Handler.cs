@@ -48,7 +48,7 @@ namespace Despicaville
 
         public static bool Trading;
         public static List<long> Trading_InventoryID = new List<long>();
-        
+
         public static string[] SkinColors = { "Light", "Tan", "Dark" };
         public static string[] HairLength = { "Bald", "Short", "Long" };
         public static string[] HairColor = { "Black", "Blonde", "Brown", "Grey", "Red", "White" };

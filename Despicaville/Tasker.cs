@@ -30,7 +30,7 @@ namespace Despicaville
         }
 
         #endregion
-        
+
         #region Methods
 
         public static void GiveTask_Citizen(Character character)

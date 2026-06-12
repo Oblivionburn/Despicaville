@@ -13,7 +13,7 @@ namespace Despicaville
     {
         #region Variables
 
-        
+
 
         #endregion
 
@@ -21,7 +21,7 @@ namespace Despicaville
 
         public LightingRenderer() : base()
         {
-            
+
         }
 
         #endregion

@@ -61,7 +61,7 @@ namespace Despicaville
                     CharacterUtil.Sleep(character);
                     continue;
                 }
-                else if ( character.Laying)
+                else if (character.Laying)
                 {
                     CharacterUtil.Rest(character);
                     continue;
@@ -211,7 +211,7 @@ namespace Despicaville
                                 character.Stats.Stamina = 0;
                             }
                         }
-                    } 
+                    }
                 }
             }
         }

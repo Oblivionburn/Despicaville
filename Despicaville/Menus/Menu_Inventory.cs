@@ -65,7 +65,7 @@ namespace Despicaville.Menus
                 }
 
                 base.Update(gameRef, content);
-            } 
+            }
         }
 
         public override void Draw(SpriteBatch spriteBatch)
@@ -1151,7 +1151,7 @@ namespace Despicaville.Menus
 
             selected_Item = null;
             other_inventory = null;
-            
+
             if (!using_item)
             {
                 Handler.Trading = false;
@@ -1222,7 +1222,7 @@ namespace Despicaville.Menus
             }
 
             GetLabel("Name").Text = Handler.Player.Name;
-            
+
             Load_Inventory_Grids();
 
             if (other_inventory != null)

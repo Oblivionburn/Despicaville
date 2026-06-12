@@ -94,7 +94,7 @@ namespace Despicaville.JobTasks
                         EndTime = new TimeHandler(TimeManager.Now);
                     }
                 }
-                
+
                 if (!isBlocked)
                 {
                     character.ResetAnimation();

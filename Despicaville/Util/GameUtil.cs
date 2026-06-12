@@ -62,7 +62,7 @@ namespace Despicaville.Util
             Handler.CharGen_Stage = 0;
             Handler.Loading_Stage = 3;
             Handler.Loading_Percent = 0;
-            Handler.Loading_Message = "";            
+            Handler.Loading_Message = "";
 
             Toggle_MainMenu();
 
@@ -151,7 +151,7 @@ namespace Despicaville.Util
                     Layer top_tiles = map.GetLayer("TopTiles");
                     Layer effect_tiles = map.GetLayer("EffectTiles");
                     Layer roof_tiles = map.GetLayer("RoofTiles");
-                        
+
                     if (bottom_tiles != null)
                     {
                         Tile current = bottom_tiles.GetTile(Handler.Player.Location.ToVector2);
@@ -656,7 +656,7 @@ namespace Despicaville.Util
                     return true;
                 }
             }
-            
+
             return false;
         }
 

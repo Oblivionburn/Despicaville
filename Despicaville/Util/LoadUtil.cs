@@ -4,6 +4,7 @@ using System.Xml;
 using OP_Engine.Inputs;
 using OP_Engine.Sounds;
 using OP_Engine.Enums;
+using Keys = Microsoft.Xna.Framework.Input.Keys;
 
 namespace Despicaville.Util
 {
@@ -134,7 +135,7 @@ namespace Despicaville.Util
                 {
                     if ("Key_" + map.Key == reader.Name)
                     {
-                        InputManager.Keyboard.KeysMapped[map.Key] = InputManager.GetKey(reader.Value);
+                        InputManager.Keyboard.KeysMapped[map.Key] = (Keys)InputManager.GetKey(reader.Value);
                         break;
                     }
                 }

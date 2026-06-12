@@ -345,7 +345,7 @@ namespace Despicaville.Util
                         {
                             string error = ex.Message;
                         }
-                        
+
                         item.Icon_Image = new Rectangle(0, 0, item.Icon.Width, item.Icon.Height);
                         item.Icon_DrawColor = Color.White;
                         break;

@@ -294,7 +294,7 @@ namespace Despicaville.Scenes
                                                 {
                                                     task.TaskBar.Draw(spriteBatch);
                                                 }
-                                            } 
+                                            }
                                         }
                                     }
                                     else if (WorldUtil.InRange(character.Location, Handler.Player.Location, Handler.HearingDistance) &&
@@ -941,7 +941,7 @@ namespace Despicaville.Scenes
                                         {
                                             WorldUtil.GenDescription(interaction_tile);
                                         }
-                                    }                                        
+                                    }
                                 }
 
                                 #endregion
@@ -1230,7 +1230,7 @@ namespace Despicaville.Scenes
 
         public override void Load(ContentManager content)
         {
-            
+
         }
 
         public override void Resize(Point point)

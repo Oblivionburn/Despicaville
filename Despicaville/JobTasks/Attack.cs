@@ -524,7 +524,7 @@ namespace Despicaville.JobTasks
         public void MeleeAttack_Tile(Character attacker, Tile tile)
         {
             AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 2);
-            
+
             if (attacker.Type == "Player")
             {
                 GameUtil.AddMessage("You punched a " + WorldUtil.GetTile_Name(tile) + ".");
