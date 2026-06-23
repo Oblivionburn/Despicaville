@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Xml;
-
 using OP_Engine.Inputs;
 using OP_Engine.Sounds;
 using OP_Engine.Utility;
@@ -12,8 +11,8 @@ namespace Despicaville.Util
     {
         #region Variables
 
-        private static Stream SaveStream;
-        private static XmlWriter Writer;
+        private static Stream? SaveStream;
+        private static XmlWriter? Writer;
 
         #endregion
 
@@ -22,21 +21,23 @@ namespace Despicaville.Util
         private static void WriteStream(string path)
         {
             SaveStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
-            XmlWriterSettings xmlWriterSettings = new XmlWriterSettings();
-            xmlWriterSettings.Indent = true;
-            xmlWriterSettings.IndentChars = "\t";
+            XmlWriterSettings xmlWriterSettings = new()
+            {
+                Indent = true,
+                IndentChars = "\t"
+            };
             Writer = XmlWriter.Create(SaveStream, xmlWriterSettings);
             Writer.WriteStartDocument();
         }
 
         private static void EnterNode(string elementName)
         {
-            Writer.WriteStartElement(elementName);
+            Writer?.WriteStartElement(elementName);
         }
 
         private static void ExitNode()
         {
-            Writer.WriteEndElement();
+            Writer?.WriteEndElement();
         }
 
         private static void FinalizeWriting()
@@ -85,7 +86,13 @@ namespace Despicaville.Util
         }
 
         private static void SaveINI()
-        {
+        { 
+            if (Writer == null ||
+                Main.Game?.GraphicsManager == null)
+            {
+                return;
+            }
+
             EnterNode("Game");
 
             #region Options

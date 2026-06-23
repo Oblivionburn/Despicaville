@@ -12,25 +12,37 @@ namespace Despicaville.JobTasks
     {
         public override void Action_Start()
         {
-            Character character = GetOwner();
-            if (character == null)
+            if (Handler.Player?.Location == null)
             {
                 return;
             }
 
-            Map block_map = WorldUtil.GetCurrentMap(character);
-            Layer top_tiles = block_map.GetLayer("TopTiles");
+            Character? character = GetOwner();
+            if (character?.Location == null)
+            {
+                return;
+            }
 
-            Tile sink = WorldUtil.StandingByFurniture(top_tiles, character.Location, "Sink");
-            if (sink != null)
+            Map? block_map = WorldUtil.GetCurrentMap(character);
+            Layer? top_tiles = block_map?.GetLayer("TopTiles");
+            if (top_tiles == null)
+            {
+                return;
+            }
+
+            Tile? sink = WorldUtil.StandingByFurniture(top_tiles, character.Location, "Sink");
+            if (sink?.Texture != null)
             {
                 if (!sink.Texture.Name.Contains("Used"))
                 {
-                    sink.Texture = AssetManager.Textures[sink.Texture.Name + "_Used"];
+                    sink.Texture = Handler.GetTexture(sink.Texture.Name + "_Used");
 
                     if (!Handler.Player.Unconscious)
                     {
-                        AssetManager.PlaySound_Random_AtDistance(sink.Sound, Handler.Player.Location.ToVector2, sink.Location.ToVector2, sink.SoundRange);
+                        if (sink.Sound != null)
+                        {
+                            AssetManager.PlaySound_Random_AtDistance(sink.Sound, Handler.Player.Location.ToVector2, sink.Location.ToVector2, sink.SoundRange);
+                        }
 
                         if (character.Type != "Player")
                         {
@@ -47,19 +59,25 @@ namespace Despicaville.JobTasks
 
         public override void Action_End()
         {
-            Character character = GetOwner();
+            if (Location == null)
+            {
+                return;
+            }
+
+            Character? character = GetOwner();
             if (character == null)
             {
                 return;
             }
 
-            Tile sink = WorldUtil.GetFurniture(Handler.TopFurniture, Location);
-            if (sink != null)
+            Tile? sink = WorldUtil.GetFurniture(Handler.TopFurniture, Location);
+            if (sink?.Name != null)
             {
-                if (sink.Name.Contains("Sink"))
+                if (sink.Name.Contains("Sink") &&
+                    sink.Texture != null)
                 {
                     string[] name_parts = sink.Texture.Name.Split('_');
-                    sink.Texture = AssetManager.Textures[name_parts[0] + "_" + name_parts[1]];
+                    sink.Texture = Handler.GetTexture(name_parts[0] + "_" + name_parts[1]);
                 }
             }
 
@@ -73,9 +91,9 @@ namespace Despicaville.JobTasks
             SoundManager.StopSound("WaterRunning");
         }
 
-        public Character GetOwner()
+        public Character? GetOwner()
         {
-            if (Handler.Player.ID == OwnerID)
+            if (Handler.Player?.ID == OwnerID)
             {
                 return Handler.Player;
             }

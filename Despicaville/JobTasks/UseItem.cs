@@ -10,14 +10,14 @@ namespace Despicaville.JobTasks
     {
         public override void Action_End()
         {
-            Character character = GetOwner();
+            Character? character = GetOwner();
             if (character == null)
             {
                 return;
             }
 
-            Inventory inventory = null;
-            Item item = null;
+            Inventory? inventory = null;
+            Item? item = null;
 
             foreach (Item existing in character.Inventory.Items)
             {
@@ -46,195 +46,209 @@ namespace Despicaville.JobTasks
                 }
             }
 
+            if (inventory == null)
+            {
+                return;
+            }
+
             if (item == null)
             {
                 if (Handler.Trading)
                 {
-                    Inventory other_inventory = InventoryManager.GetInventory(Handler.Trading_InventoryID[Handler.Trading_InventoryID.Count - 1]);
-                    foreach (Item existing in other_inventory.Items)
+                    Inventory? other_inventory = InventoryManager.GetInventory(Handler.Trading_InventoryID[Handler.Trading_InventoryID.Count - 1]);
+                    if (other_inventory != null)
                     {
-                        if (InventoryUtil.IsContainer(existing))
+                        foreach (Item existing in other_inventory.Items)
                         {
-                            foreach (Item container_item in existing.Inventory.Items)
+                            if (InventoryUtil.IsContainer(existing))
                             {
-                                if (Name == "UseItem_" + container_item.ID)
+                                foreach (Item container_item in existing.Inventory.Items)
                                 {
-                                    item = container_item;
-                                    inventory = existing.Inventory;
+                                    if (Name == "UseItem_" + container_item.ID)
+                                    {
+                                        item = container_item;
+                                        inventory = existing.Inventory;
+                                        break;
+                                    }
+                                }
+
+                                if (item != null)
+                                {
                                     break;
                                 }
                             }
-
-                            if (item != null)
+                            else if (Name == "UseItem_" + existing.ID)
                             {
+                                item = existing;
+                                inventory = other_inventory;
                                 break;
                             }
-                        }
-                        else if (Name == "UseItem_" + existing.ID)
-                        {
-                            item = existing;
-                            inventory = other_inventory;
-                            break;
                         }
                     }
                 }
             }
 
-            if (item != null)
+            if (item == null)
             {
-                int eat = 0;
-                int drink = 0;
+                return;
+            }
 
-                if (InventoryUtil.IsFood(item) ||
-                    item.Task == "Inject")
+            int eat = 0;
+            int drink = 0;
+
+            if (InventoryUtil.IsFood(item) ||
+                item.Task == "Inject")
+            {
+                Property? hunger = item.GetProperty("Hunger");
+                if (hunger != null)
                 {
-                    Property hunger = item.GetProperty("Hunger");
-                    if (hunger != null)
+                    eat++;
+
+                    character.Stats.Hunger += hunger.Value;
+
+                    if (character.Stats.Hunger > 100)
                     {
-                        eat++;
+                        character.Stats.Hunger = 100;
+                    }
+                }
 
-                        character.Stats.Hunger += hunger.Value;
+                Property? thirst = item.GetProperty("Thirst");
+                if (thirst != null)
+                {
+                    drink++;
 
-                        if (character.Stats.Hunger > 100)
+                    character.Stats.Thirst += thirst.Value;
+
+                    if (character.Stats.Thirst > 100)
+                    {
+                        character.Stats.Thirst = 100;
+                    }
+                }
+
+                Property? stamina = item.GetProperty("Stamina");
+                if (stamina != null)
+                {
+                    eat++;
+                    drink++;
+
+                    character.Stats.Stamina += stamina.Value;
+
+                    if (character.Stats.Stamina > 100)
+                    {
+                        character.Stats.Stamina = 100;
+                    }
+                }
+
+                Property? consciousness = item.GetProperty("Consciousness");
+                if (consciousness != null)
+                {
+                    eat++;
+
+                    character.Stats.Consciousness += consciousness.Value;
+
+                    if (character.Stats.Consciousness > 100)
+                    {
+                        character.Stats.Consciousness = 100;
+                    }
+                }
+
+                Property? paranoia = item.GetProperty("Paranoia");
+                if (paranoia != null)
+                {
+                    eat++;
+
+                    character.Stats.Paranoia += paranoia.Value;
+
+                    if (character.Stats.Paranoia > 100)
+                    {
+                        character.Stats.Paranoia = 100;
+                    }
+                }
+
+                Property? bladder = item.GetProperty("Bladder");
+                if (bladder != null)
+                {
+                    drink++;
+
+                    character.Stats.Bladder += bladder.Value;
+
+                    if (character.Stats.Bladder > 100)
+                    {
+                        character.Stats.Bladder = 100;
+                    }
+                }
+
+                Property? blood = item.GetProperty("Blood");
+                if (blood != null)
+                {
+                    drink++;
+
+                    character.Stats.Blood += blood.Value;
+
+                    if (character.Stats.Blood > 100)
+                    {
+                        character.Stats.Blood = 100;
+                    }
+                }
+
+                Property? pain = item.GetProperty("Pain");
+                if (pain != null)
+                {
+                    eat++;
+
+                    Property? stat = character.GetStatusEffect("Painkiller");
+                    if (stat != null)
+                    {
+                        stat.Value += pain.Value;
+
+                        if (stat.Value > 100)
                         {
-                            character.Stats.Hunger = 100;
+                            stat.Value = 100;
                         }
                     }
-
-                    Property thirst = item.GetProperty("Thirst");
-                    if (thirst != null)
+                    else
                     {
-                        drink++;
-
-                        character.Stats.Thirst += thirst.Value;
-
-                        if (character.Stats.Thirst > 100)
+                        character.StatusEffects.Add(new Property
                         {
-                            character.Stats.Thirst = 100;
+                            Name = "Painkiller",
+                            Value = pain.Value
+                        });
+                    }
+                }
+
+                Property? poison = item.GetProperty("Poison");
+                if (poison != null)
+                {
+                    drink++;
+
+                    Property? stat = character.GetStatusEffect("Poisoned");
+                    if (stat != null)
+                    {
+                        stat.Value += poison.Value;
+
+                        if (stat.Value > stat.Max_Value)
+                        {
+                            stat.Value = stat.Max_Value;
                         }
                     }
-
-                    Property stamina = item.GetProperty("Stamina");
-                    if (stamina != null)
+                    else
                     {
-                        eat++;
-                        drink++;
-
-                        character.Stats.Stamina += stamina.Value;
-
-                        if (character.Stats.Stamina > 100)
+                        character.StatusEffects.Add(new Property
                         {
-                            character.Stats.Stamina = 100;
-                        }
+                            Name = "Poisoned",
+                            Value = poison.Value
+                        });
                     }
+                }
 
-                    Property consciousness = item.GetProperty("Consciousness");
-                    if (consciousness != null)
-                    {
-                        eat++;
+                inventory.Items.Remove(item);
 
-                        character.Stats.Consciousness += consciousness.Value;
+                Inventory? assets = InventoryManager.GetInventory("Assets");
+                Item? asset = null;
 
-                        if (character.Stats.Consciousness > 100)
-                        {
-                            character.Stats.Consciousness = 100;
-                        }
-                    }
-
-                    Property paranoia = item.GetProperty("Paranoia");
-                    if (paranoia != null)
-                    {
-                        eat++;
-
-                        character.Stats.Paranoia += paranoia.Value;
-
-                        if (character.Stats.Paranoia > 100)
-                        {
-                            character.Stats.Paranoia = 100;
-                        }
-                    }
-
-                    Property bladder = item.GetProperty("Bladder");
-                    if (bladder != null)
-                    {
-                        drink++;
-
-                        character.Stats.Bladder += bladder.Value;
-
-                        if (character.Stats.Bladder > 100)
-                        {
-                            character.Stats.Bladder = 100;
-                        }
-                    }
-
-                    Property blood = item.GetProperty("Blood");
-                    if (blood != null)
-                    {
-                        drink++;
-
-                        character.Stats.Blood += blood.Value;
-
-                        if (character.Stats.Blood > 100)
-                        {
-                            character.Stats.Blood = 100;
-                        }
-                    }
-
-                    Property pain = item.GetProperty("Pain");
-                    if (pain != null)
-                    {
-                        eat++;
-
-                        Property stat = character.GetStatusEffect("Painkiller");
-                        if (stat != null)
-                        {
-                            stat.Value += pain.Value;
-
-                            if (stat.Value > 100)
-                            {
-                                stat.Value = 100;
-                            }
-                        }
-                        else
-                        {
-                            character.StatusEffects.Add(new Property
-                            {
-                                Name = "Painkiller",
-                                Value = pain.Value
-                            });
-                        }
-                    }
-
-                    Property poison = item.GetProperty("Poison");
-                    if (poison != null)
-                    {
-                        drink++;
-
-                        Property stat = character.GetStatusEffect("Poisoned");
-                        if (stat != null)
-                        {
-                            stat.Value += poison.Value;
-
-                            if (stat.Value > stat.Max_Value)
-                            {
-                                stat.Value = stat.Max_Value;
-                            }
-                        }
-                        else
-                        {
-                            character.StatusEffects.Add(new Property
-                            {
-                                Name = "Poisoned",
-                                Value = poison.Value
-                            });
-                        }
-                    }
-
-                    inventory.Items.Remove(item);
-
-                    Inventory assets = InventoryManager.GetInventory("Assets");
-                    Item asset = null;
-
+                if (item.Name != null &&
+                    assets != null)
+                {
                     if (item.Name.Contains("Bottle"))
                     {
                         asset = assets.GetItem("Bottle");
@@ -251,52 +265,55 @@ namespace Despicaville.JobTasks
                     {
                         asset = assets.GetItem("Syringe");
                     }
+                }
 
-                    if (asset != null)
+                if (asset != null)
+                {
+                    Item? copy = InventoryUtil.NewItem(asset);
+                    if (copy != null)
                     {
-                        Item copy = InventoryUtil.NewItem(asset);
                         character.Inventory.Items.Add(copy);
                     }
                 }
+            }
 
-                if (character.Type == "Player")
+            if (character.Type == "Player")
+            {
+                if (InventoryUtil.IsFood(item))
                 {
-                    if (InventoryUtil.IsFood(item))
+                    if (item.Task == "Inject")
                     {
-                        if (item.Task == "Inject")
+                        GameUtil.AddMessage("You injected a " + item.Name + ".");
+                    }
+                    else if (eat >= drink)
+                    {
+                        if (GameUtil.NameStartsWithVowel(item.Name))
                         {
-                            GameUtil.AddMessage("You injected a " + item.Name + ".");
+                            GameUtil.AddMessage("You ate an " + item.Name + ".");
                         }
-                        else if (eat >= drink)
+                        else
                         {
-                            if (GameUtil.NameStartsWithVowel(item.Name))
-                            {
-                                GameUtil.AddMessage("You ate an " + item.Name + ".");
-                            }
-                            else
-                            {
-                                GameUtil.AddMessage("You ate a " + item.Name + ".");
-                            }
+                            GameUtil.AddMessage("You ate a " + item.Name + ".");
                         }
-                        else if (drink > eat)
+                    }
+                    else if (drink > eat)
+                    {
+                        if (GameUtil.NameStartsWithVowel(item.Name))
                         {
-                            if (GameUtil.NameStartsWithVowel(item.Name))
-                            {
-                                GameUtil.AddMessage("You drank an " + item.Name + ".");
-                            }
-                            else
-                            {
-                                GameUtil.AddMessage("You drank a " + item.Name + ".");
-                            }
+                            GameUtil.AddMessage("You drank an " + item.Name + ".");
+                        }
+                        else
+                        {
+                            GameUtil.AddMessage("You drank a " + item.Name + ".");
                         }
                     }
                 }
             }
         }
 
-        public Character GetOwner()
+        public Character? GetOwner()
         {
-            if (Handler.Player.ID == OwnerID)
+            if (Handler.Player?.ID == OwnerID)
             {
                 return Handler.Player;
             }

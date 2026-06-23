@@ -31,7 +31,7 @@ namespace Despicaville.Scenes
 
         #region Methods
 
-        public override void Update(Game gameRef, ContentManager content)
+        public override void Update(Game? gameRef, ContentManager? content)
         {
             if (Visible)
             {
@@ -44,7 +44,8 @@ namespace Despicaville.Scenes
 
         public override void DrawMenu(SpriteBatch spriteBatch)
         {
-            if (Visible)
+            if (Visible &&
+                Menu != null)
             {
                 foreach (Picture existing in Menu.Pictures)
                 {
@@ -60,16 +61,30 @@ namespace Despicaville.Scenes
 
         public override void Load(ContentManager content)
         {
-            Menu.Clear();
+            if (Main.Game == null)
+            {
+                return;
+            }
 
-            Menu.AddPicture(0, "Title", AssetManager.Textures["Title"], new Region(0, 0, 0, 0), Color.White, true);
+            Menu?.Clear();
+
+            Menu?.AddPicture(0, "Title", Handler.GetTexture("Title"), new Region(0, 0, 0, 0), Color.White, true);
 
             Resize(Main.Game.Resolution);
         }
 
         public override void Resize(Point point)
         {
-            Menu.GetPicture("Title").Region = new Region(0, 0, Main.Game.ScreenWidth, Main.Game.ScreenHeight);
+            if (Main.Game == null)
+            {
+                return;
+            }
+
+            Picture? title = Menu?.GetPicture("Title");
+            if (title != null)
+            {
+                title.Region = new Region(0, 0, Main.Game.ScreenWidth, Main.Game.ScreenHeight);
+            }
         }
 
         #endregion

@@ -19,20 +19,20 @@ namespace Despicaville.Menus
     {
         #region Variables
 
-        List<Picture> GridList = new List<Picture>();
-        List<Picture> Other_GridList = new List<Picture>();
+        List<Picture> GridList = [];
+        List<Picture> Other_GridList = [];
 
         bool using_item;
 
         bool moving;
         Rectangle starting_pos;
-        Item selected_Item;
+        Item? selected_Item;
 
-        List<Inventory> Inventories = new List<Inventory>();
+        List<Inventory> Inventories = [];
         int inventory_y;
         int inventory_x;
 
-        Inventory other_inventory;
+        Inventory? other_inventory;
         int other_inventory_y;
         int other_inventory_x;
 
@@ -40,7 +40,7 @@ namespace Despicaville.Menus
 
         #region Constructor
 
-        public Menu_Inventory(ContentManager content)
+        public Menu_Inventory()
         {
             ID = Handler.GetID();
             Name = "Inventory";
@@ -50,7 +50,7 @@ namespace Despicaville.Menus
 
         #region Methods
 
-        public override void Update(Game gameRef, ContentManager content)
+        public override void Update(Game? gameRef, ContentManager? content)
         {
             if (Visible ||
                 Active)
@@ -111,11 +111,14 @@ namespace Despicaville.Menus
                     }
                 }
 
-                foreach (Item item in Handler.Player.Inventory.Items)
+                if (Handler.Player != null)
                 {
-                    if (item.Icon_Visible)
+                    foreach (Item item in Handler.Player.Inventory.Items)
                     {
-                        spriteBatch.Draw(item.Icon, item.Icon_Region.ToRectangle, item.Icon_Image, item.Icon_DrawColor);
+                        if (item.Icon_Visible)
+                        {
+                            spriteBatch.Draw(item.Icon, item.Icon_Region.ToRectangle, item.Icon_Image, item.Icon_DrawColor);
+                        }
                     }
                 }
 
@@ -166,7 +169,7 @@ namespace Despicaville.Menus
                 !found_slot) ||
                 moving)
             {
-                Label label = GetLabel("Examine");
+                Label? label = GetLabel("Examine");
                 if (label != null)
                 {
                     label.Visible = false;
@@ -179,7 +182,7 @@ namespace Despicaville.Menus
                 !found_grid) ||
                 moving)
             {
-                Picture picture = GetPicture("Highlight");
+                Picture? picture = GetPicture("Highlight");
                 if (picture != null)
                 {
                     picture.Visible = false;
@@ -189,13 +192,13 @@ namespace Despicaville.Menus
             if (!found_item ||
                 moving)
             {
-                Picture highlight1 = GetPicture("SlotHighlight1");
+                Picture? highlight1 = GetPicture("SlotHighlight1");
                 if (highlight1 != null)
                 {
                     highlight1.Visible = false;
                 }
 
-                Picture highlight2 = GetPicture("SlotHighlight2");
+                Picture? highlight2 = GetPicture("SlotHighlight2");
                 if (highlight2 != null)
                 {
                     highlight2.Visible = false;
@@ -218,7 +221,8 @@ namespace Despicaville.Menus
                 if (button.Visible &&
                     button.Enabled)
                 {
-                    if (InputManager.MouseWithin(button.Region.ToRectangle))
+                    if (button.Region != null &&
+                        InputManager.MouseWithin(button.Region.ToRectangle))
                     {
                         found = true;
 
@@ -300,10 +304,11 @@ namespace Despicaville.Menus
         {
             bool found = false;
 
-            Picture slot = GetPicture(type);
+            Picture? slot = GetPicture(type);
             if (slot != null)
             {
-                if (InputManager.MouseWithin(slot.Region.ToRectangle))
+                if (slot.Region != null &&
+                    InputManager.MouseWithin(slot.Region.ToRectangle))
                 {
                     found = true;
 
@@ -312,9 +317,12 @@ namespace Despicaville.Menus
                         GameUtil.Examine(this, slot.Name);
                     }
 
-                    Picture highlight = GetPicture("Highlight");
-                    highlight.Region = slot.Region;
-                    highlight.Visible = true;
+                    Picture? highlight = GetPicture("Highlight");
+                    if (highlight != null)
+                    {
+                        highlight.Region = slot.Region;
+                        highlight.Visible = true;
+                    }
                 }
             }
 
@@ -323,6 +331,11 @@ namespace Despicaville.Menus
 
         private bool HoveringItem()
         {
+            if (Handler.Player == null)
+            {
+                return false;
+            }
+
             bool found = false;
             bool open_container = false;
             using_item = false;
@@ -337,9 +350,12 @@ namespace Despicaville.Menus
 
                         ExamineItem(item);
 
-                        Picture highlight = GetPicture("Highlight");
-                        highlight.Region = item.Icon_Region;
-                        highlight.Visible = true;
+                        Picture? highlight = GetPicture("Highlight");
+                        if (highlight != null)
+                        {
+                            highlight.Region = item.Icon_Region;
+                            highlight.Visible = true;
+                        }
 
                         if (InputManager.Mouse_LB_Held &&
                             InputManager.Mouse_Moved)
@@ -372,37 +388,57 @@ namespace Despicaville.Menus
 
                             ExamineItem(item);
 
-                            Picture highlight = GetPicture("Highlight");
-                            highlight.Region = item.Icon_Region;
-                            highlight.Visible = true;
+                            Picture? highlight = GetPicture("Highlight");
+                            if (highlight != null)
+                            {
+                                highlight.Region = item.Icon_Region;
+                                highlight.Visible = true;
+                            }
 
                             foreach (Picture grid in GridList)
                             {
-                                if (InputManager.MouseWithin(grid.Region.ToRectangle))
+                                if (grid.Region != null &&
+                                    InputManager.MouseWithin(grid.Region.ToRectangle))
                                 {
+                                    Picture? slotHighlight1 = GetPicture("SlotHighlight1");
+                                    Picture? slotHighlight2 = GetPicture("SlotHighlight2");
+
                                     List<Picture> slots = GetSlots(item);
                                     if (slots.Count == 0)
                                     {
-                                        GetPicture("SlotHighlight1").Visible = false;
-                                        GetPicture("SlotHighlight2").Visible = false;
+                                        if (slotHighlight1 != null)
+                                        {
+                                            slotHighlight1.Visible = false;
+                                        }
+                                        if (slotHighlight2 != null)
+                                        {
+                                            slotHighlight2.Visible = false;
+                                        }
                                     }
                                     else if (slots.Count == 1)
                                     {
-                                        Picture slot_highlight = GetPicture("SlotHighlight1");
-                                        slot_highlight.Region = slots[0].Region;
-                                        slot_highlight.Visible = true;
-
-                                        GetPicture("SlotHighlight2").Visible = false;
+                                        if (slotHighlight1 != null)
+                                        {
+                                            slotHighlight1.Region = slots[0].Region;
+                                            slotHighlight1.Visible = true;
+                                        }
+                                        if (slotHighlight2 != null)
+                                        {
+                                            slotHighlight2.Visible = false;
+                                        }
                                     }
                                     else if (slots.Count == 2)
                                     {
-                                        Picture slot_highlight1 = GetPicture("SlotHighlight1");
-                                        slot_highlight1.Region = slots[0].Region;
-                                        slot_highlight1.Visible = true;
-
-                                        Picture slot_highlight2 = GetPicture("SlotHighlight2");
-                                        slot_highlight2.Region = slots[1].Region;
-                                        slot_highlight2.Visible = true;
+                                        if (slotHighlight1 != null)
+                                        {
+                                            slotHighlight1.Region = slots[0].Region;
+                                            slotHighlight1.Visible = true;
+                                        }
+                                        if (slotHighlight2 != null)
+                                        {
+                                            slotHighlight2.Region = slots[1].Region;
+                                            slotHighlight2.Visible = true;
+                                        }
                                     }
 
                                     break;
@@ -430,7 +466,13 @@ namespace Despicaville.Menus
                                     open_container = true;
                                     Handler.Trading = true;
                                     Handler.Trading_InventoryID.Add(item.Inventory.ID);
-                                    GetButton("Back").Visible = true;
+
+                                    Button? back = GetButton("Back");
+                                    if (back != null)
+                                    {
+                                        back.Visible = true;
+                                    }
+                                    
                                     LoadInventories();
                                 }
                                 else if (InventoryUtil.UseableItem(item))
@@ -469,37 +511,57 @@ namespace Despicaville.Menus
 
                             ExamineItem(item);
 
-                            Picture highlight = GetPicture("Highlight");
-                            highlight.Region = item.Icon_Region;
-                            highlight.Visible = true;
+                            Picture? highlight = GetPicture("Highlight");
+                            if (highlight != null)
+                            {
+                                highlight.Region = item.Icon_Region;
+                                highlight.Visible = true;
+                            }
 
                             foreach (Picture grid in Other_GridList)
                             {
-                                if (InputManager.MouseWithin(grid.Region.ToRectangle))
+                                if (grid.Region != null &&
+                                    InputManager.MouseWithin(grid.Region.ToRectangle))
                                 {
+                                    Picture? slotHighlight1 = GetPicture("SlotHighlight1");
+                                    Picture? slotHighlight2 = GetPicture("SlotHighlight2");
+
                                     List<Picture> slots = GetSlots(item);
                                     if (slots.Count == 0)
                                     {
-                                        GetPicture("SlotHighlight1").Visible = false;
-                                        GetPicture("SlotHighlight2").Visible = false;
+                                        if (slotHighlight1 != null)
+                                        {
+                                            slotHighlight1.Visible = false;
+                                        }
+                                        if (slotHighlight2 != null)
+                                        {
+                                            slotHighlight2.Visible = false;
+                                        }
                                     }
                                     else if (slots.Count == 1)
                                     {
-                                        Picture slot_highlight = GetPicture("SlotHighlight1");
-                                        slot_highlight.Region = slots[0].Region;
-                                        slot_highlight.Visible = true;
-
-                                        GetPicture("SlotHighlight2").Visible = false;
+                                        if (slotHighlight1 != null)
+                                        {
+                                            slotHighlight1.Region = slots[0].Region;
+                                            slotHighlight1.Visible = true;
+                                        }
+                                        if (slotHighlight2 != null)
+                                        {
+                                            slotHighlight2.Visible = false;
+                                        }
                                     }
                                     else if (slots.Count == 2)
                                     {
-                                        Picture slot_highlight1 = GetPicture("SlotHighlight1");
-                                        slot_highlight1.Region = slots[0].Region;
-                                        slot_highlight1.Visible = true;
-
-                                        Picture slot_highlight2 = GetPicture("SlotHighlight2");
-                                        slot_highlight2.Region = slots[1].Region;
-                                        slot_highlight2.Visible = true;
+                                        if (slotHighlight1 != null)
+                                        {
+                                            slotHighlight1.Region = slots[0].Region;
+                                            slotHighlight1.Visible = true;
+                                        }
+                                        if (slotHighlight2 != null)
+                                        {
+                                            slotHighlight2.Region = slots[1].Region;
+                                            slotHighlight2.Visible = true;
+                                        }
                                     }
 
                                     break;
@@ -519,7 +581,13 @@ namespace Despicaville.Menus
                                     !Handler.Trading_InventoryID.Contains(item.Inventory.ID))
                                 {
                                     Handler.Trading_InventoryID.Add(item.Inventory.ID);
-                                    GetButton("Back").Visible = true;
+
+                                    Button? back = GetButton("Back");
+                                    if (back != null)
+                                    {
+                                        back.Visible = true;
+                                    }
+                                    
                                     LoadInventories();
                                 }
                                 else if (InventoryUtil.UseableItem(item))
@@ -547,13 +615,17 @@ namespace Despicaville.Menus
 
             foreach (Picture grid in GridList)
             {
-                if (InputManager.MouseWithin(grid.Region.ToRectangle))
+                if (grid.Region != null &&
+                    InputManager.MouseWithin(grid.Region.ToRectangle))
                 {
                     found = true;
 
-                    Picture highlight = GetPicture("Highlight");
-                    highlight.Region = grid.Region;
-                    highlight.Visible = true;
+                    Picture? highlight = GetPicture("Highlight");
+                    if (highlight != null)
+                    {
+                        highlight.Region = grid.Region;
+                        highlight.Visible = true;
+                    }
 
                     break;
                 }
@@ -563,13 +635,17 @@ namespace Despicaville.Menus
             {
                 foreach (Picture grid in Other_GridList)
                 {
-                    if (InputManager.MouseWithin(grid.Region.ToRectangle))
+                    if (grid.Region != null &&
+                        InputManager.MouseWithin(grid.Region.ToRectangle))
                     {
                         found = true;
 
-                        Picture highlight = GetPicture("Highlight");
-                        highlight.Region = grid.Region;
-                        highlight.Visible = true;
+                        Picture? highlight = GetPicture("Highlight");
+                        if (highlight != null)
+                        {
+                            highlight.Region = grid.Region;
+                            highlight.Visible = true;
+                        }
 
                         break;
                     }
@@ -581,8 +657,18 @@ namespace Despicaville.Menus
 
         private void MoveItem()
         {
-            Item item = null;
-            Inventory item_inventory = null;
+            if (Main.Game == null)
+            {
+                return;
+            }
+            if (Handler.Player == null ||
+                InputManager.Mouse == null)
+            {
+                return;
+            }
+
+            Item? item = null;
+            Inventory? item_inventory = null;
 
             bool equipped = false;
 
@@ -642,7 +728,11 @@ namespace Despicaville.Menus
                 if (!found_slot &&
                     !found_grid)
                 {
-                    GetPicture("Highlight").Visible = false;
+                    Picture? highlight = GetPicture("Highlight");
+                    if (highlight != null)
+                    {
+                        highlight.Visible = false;
+                    }
                 }
 
                 if (InputManager.Mouse_LB_Held)
@@ -668,9 +758,10 @@ namespace Despicaville.Menus
 
                             foreach (Picture grid in GridList)
                             {
-                                if (InputManager.MouseWithin(grid.Region.ToRectangle))
+                                if (grid.Region != null &&
+                                    InputManager.MouseWithin(grid.Region.ToRectangle))
                                 {
-                                    Inventory existing = InventoryUtil.GetInventory_FromGrid(grid);
+                                    Inventory? existing = InventoryUtil.GetInventory_FromGrid(grid);
                                     if (existing != null)
                                     {
                                         found = true;
@@ -679,7 +770,8 @@ namespace Despicaville.Menus
 
                                         foreach (Item existing_item in existing.Items)
                                         {
-                                            if (existing_item.Location.X == grid.Location.X &&
+                                            if (existing_item.Location != null &&
+                                                existing_item.Location.X == grid.Location.X &&
                                                 existing_item.Location.Y == grid.Location.Y)
                                             {
                                                 slot_empty = false;
@@ -697,7 +789,7 @@ namespace Despicaville.Menus
 
                                             InventoryUtil.TransferItem(Handler.Player.Inventory, existing, item);
 
-                                            Picture slot = GetPicture(item.Assignment);
+                                            Picture? slot = GetPicture(item.Assignment);
                                             if (slot != null)
                                             {
                                                 item.Assignment = "";
@@ -724,9 +816,10 @@ namespace Despicaville.Menus
                             {
                                 foreach (Picture grid in Other_GridList)
                                 {
-                                    if (InputManager.MouseWithin(grid.Region.ToRectangle))
+                                    if (grid.Region != null &&
+                                        InputManager.MouseWithin(grid.Region.ToRectangle))
                                     {
-                                        Inventory existing = InventoryUtil.GetInventory_FromGrid(grid);
+                                        Inventory? existing = InventoryUtil.GetInventory_FromGrid(grid);
                                         if (existing != null)
                                         {
                                             found = true;
@@ -735,7 +828,8 @@ namespace Despicaville.Menus
 
                                             foreach (Item existing_item in existing.Items)
                                             {
-                                                if (existing_item.Location.X == grid.Location.X &&
+                                                if (existing_item.Location != null &&
+                                                    existing_item.Location.X == grid.Location.X &&
                                                     existing_item.Location.Y == grid.Location.Y)
                                                 {
                                                     slot_empty = false;
@@ -753,7 +847,7 @@ namespace Despicaville.Menus
 
                                                 InventoryUtil.TransferItem(Handler.Player.Inventory, existing, item);
 
-                                                Picture slot = GetPicture(item.Assignment);
+                                                Picture? slot = GetPicture(item.Assignment);
                                                 if (slot != null)
                                                 {
                                                     item.Assignment = "";
@@ -792,12 +886,14 @@ namespace Despicaville.Menus
 
                             foreach (Picture grid in GridList)
                             {
-                                if (InputManager.MouseWithin(grid.Region.ToRectangle))
+                                if (grid.Region != null &&
+                                    InputManager.MouseWithin(grid.Region.ToRectangle))
                                 {
                                     found = true;
 
-                                    Inventory existing = InventoryUtil.GetInventory_FromGrid(grid);
-                                    if (existing != null)
+                                    Inventory? existing = InventoryUtil.GetInventory_FromGrid(grid);
+                                    if (existing != null &&
+                                        grid.Name != null)
                                     {
                                         string[] properties = grid.Name.Split(';');
                                         string[] coords = properties[1].Split(',');
@@ -811,7 +907,8 @@ namespace Despicaville.Menus
 
                                         foreach (Item existing_item in existing.Items)
                                         {
-                                            if (existing_item.Location.X == x &&
+                                            if (existing_item.Location != null &&
+                                                existing_item.Location.X == x &&
                                                 existing_item.Location.Y == y)
                                             {
                                                 slot_empty = false;
@@ -826,7 +923,8 @@ namespace Despicaville.Menus
 
                                             selected_Item = null;
 
-                                            if (existing.ID != item_inventory.ID)
+                                            if (item_inventory != null &&
+                                                existing.ID != item_inventory.ID)
                                             {
                                                 InventoryUtil.TransferItem(item_inventory, existing, item);
                                             }
@@ -846,12 +944,14 @@ namespace Despicaville.Menus
                             {
                                 foreach (Picture grid in Other_GridList)
                                 {
-                                    if (InputManager.MouseWithin(grid.Region.ToRectangle))
+                                    if (grid.Region != null &&
+                                        InputManager.MouseWithin(grid.Region.ToRectangle))
                                     {
                                         found = true;
 
-                                        Inventory existing = InventoryUtil.GetInventory_FromGrid(grid);
-                                        if (existing != null)
+                                        Inventory? existing = InventoryUtil.GetInventory_FromGrid(grid);
+                                        if (existing != null &&
+                                            grid.Name != null)
                                         {
                                             string[] properties = grid.Name.Split(';');
                                             string[] coords = properties[1].Split(',');
@@ -865,7 +965,8 @@ namespace Despicaville.Menus
 
                                             foreach (Item existing_item in existing.Items)
                                             {
-                                                if (existing_item.Location.X == x &&
+                                                if (existing_item.Location != null &&
+                                                    existing_item.Location.X == x &&
                                                     existing_item.Location.Y == y)
                                                 {
                                                     slot_empty = false;
@@ -880,7 +981,8 @@ namespace Despicaville.Menus
 
                                                 selected_Item = null;
 
-                                                if (existing.ID != item_inventory.ID)
+                                                if (item_inventory != null &&
+                                                    existing.ID != item_inventory.ID)
                                                 {
                                                     InventoryUtil.TransferItem(item_inventory, existing, item);
                                                 }
@@ -899,11 +1001,12 @@ namespace Despicaville.Menus
                         }
                         else if (found_slot)
                         {
-                            Picture slot = null;
+                            Picture? slot = null;
 
                             if (item.Type == "Weapon" ||
-                                item.Name.Contains("Bag") ||
-                                item.Name.Contains("Box"))
+                                (item.Name != null &&
+                                (item.Name.Contains("Bag") ||
+                                item.Name.Contains("Box"))))
                             {
                                 if (HoveringSlot("Right Weapon Slot"))
                                 {
@@ -914,23 +1017,28 @@ namespace Despicaville.Menus
                                     slot = GetPicture("Left Weapon Slot");
                                 }
                             }
-                            else if (item.Type.Contains("Shoes"))
+                            else if (item.Type != null &&
+                                     item.Type.Contains("Shoes"))
                             {
                                 slot = GetPicture("Shoes Slot");
                             }
-                            else if (item.Type.Contains("Pants"))
+                            else if (item.Type != null &&
+                                     item.Type.Contains("Pants"))
                             {
                                 slot = GetPicture("Pants Slot");
                             }
-                            else if (item.Type.Contains("Shirt"))
+                            else if (item.Type != null &&
+                                     item.Type.Contains("Shirt"))
                             {
                                 slot = GetPicture("Shirt Slot");
                             }
-                            else if (item.Type.Contains("Hat"))
+                            else if (item.Type != null &&
+                                     item.Type.Contains("Hat"))
                             {
                                 slot = GetPicture("Hat Slot");
                             }
-                            else if (item.Name.Contains("Backpack"))
+                            else if (item.Name != null &&
+                                     item.Name.Contains("Backpack"))
                             {
                                 slot = GetPicture("Backpack Slot");
                             }
@@ -939,7 +1047,7 @@ namespace Despicaville.Menus
                             {
                                 AssetManager.PlaySound_Random("Equip");
 
-                                Item equippedItem = null;
+                                Item? equippedItem = null;
 
                                 foreach (Item existing in Handler.Player.Inventory.Items)
                                 {
@@ -956,14 +1064,20 @@ namespace Despicaville.Menus
                                     selected_Item = null;
 
                                     item.Equipped = true;
-                                    item.Icon_Region = new Region(slot.Region.X, slot.Region.Y, slot.Region.Width, slot.Region.Height);
+
+                                    if (slot.Region != null)
+                                    {
+                                        item.Icon_Region = new Region(slot.Region.X, slot.Region.Y, slot.Region.Width, slot.Region.Height);
+                                    }
+                                    
                                     item.Assignment = slot.Name;
                                     if (item.Texture != null)
                                     {
                                         item.Region = Handler.Player.Region;
                                         item.Image = Handler.Player.Image;
 
-                                        if (!item.Name.Contains("Shoes") &&
+                                        if (item.Name != null &&
+                                            !item.Name.Contains("Shoes") &&
                                             !item.Name.Contains("Pants"))
                                         {
                                             item.Visible = true;
@@ -971,7 +1085,7 @@ namespace Despicaville.Menus
                                     }
                                     InventoryUtil.TransferItem(item_inventory, Handler.Player.Inventory, item);
 
-                                    slot.Texture = AssetManager.Textures["Slot_Empty"];
+                                    slot.Texture = Handler.GetTexture("Slot_Empty");
 
                                     LoadInventories();
                                 }
@@ -981,18 +1095,29 @@ namespace Despicaville.Menus
 
                                     equippedItem.Equipped = false;
                                     equippedItem.Assignment = null;
-                                    equippedItem.Location = new Location(item.Location.X, item.Location.Y);
+
+                                    if (item.Location != null)
+                                    {
+                                        equippedItem.Location = new Location(item.Location.X, item.Location.Y);
+                                    }
+                                    
                                     InventoryUtil.TransferItem(Handler.Player.Inventory, item_inventory, equippedItem);
 
                                     item.Equipped = true;
-                                    item.Icon_Region = new Region(slot.Region.X, slot.Region.Y, slot.Region.Width, slot.Region.Height);
+
+                                    if (slot.Region != null)
+                                    {
+                                        item.Icon_Region = new Region(slot.Region.X, slot.Region.Y, slot.Region.Width, slot.Region.Height);
+                                    }
+                                    
                                     item.Assignment = slot.Name;
                                     if (item.Texture != null)
                                     {
                                         item.Region = Handler.Player.Region;
                                         item.Image = Handler.Player.Image;
 
-                                        if (!item.Name.Contains("Shoes") &&
+                                        if (item.Name != null &&
+                                            !item.Name.Contains("Shoes") &&
                                             !item.Name.Contains("Pants"))
                                         {
                                             item.Visible = true;
@@ -1016,11 +1141,17 @@ namespace Despicaville.Menus
 
         private bool UseItem(Item item)
         {
+            if (Handler.Player == null ||
+                TimeManager.Now == null)
+            {
+                return false;
+            }
+
             bool okay = false;
 
             if (InventoryUtil.IsFood(item))
             {
-                Property hunger = item.GetProperty("Hunger");
+                Property? hunger = item.GetProperty("Hunger");
                 if (hunger != null)
                 {
                     if (Handler.Player.Stats.Hunger < 100)
@@ -1039,7 +1170,7 @@ namespace Despicaville.Menus
 
                 if (!okay)
                 {
-                    Property thirst = item.GetProperty("Thirst");
+                    Property? thirst = item.GetProperty("Thirst");
                     if (thirst != null)
                     {
                         if (Handler.Player.Stats.Thirst < 100)
@@ -1072,22 +1203,22 @@ namespace Despicaville.Menus
 
             if (!okay)
             {
-                Property hunger = item.GetProperty("Hunger");
+                Property? hunger = item.GetProperty("Hunger");
                 if (hunger != null)
                 {
                     if (Handler.Player.Stats.Hunger >= 100)
                     {
-                        GameUtil.AddMessage("You are not hungry enough to eat the " + item.Name.ToLower() + ".");
+                        GameUtil.AddMessage("You are not hungry enough to eat the " + item.Name?.ToLower() + ".");
                     }
                 }
                 else
                 {
-                    Property thirst = item.GetProperty("Thirst");
+                    Property? thirst = item.GetProperty("Thirst");
                     if (thirst != null)
                     {
                         if (Handler.Player.Stats.Thirst >= 100)
                         {
-                            GameUtil.AddMessage("You are not thirsty enough to drink the " + item.Name.ToLower() + ".");
+                            GameUtil.AddMessage("You are not thirsty enough to drink the " + item.Name?.ToLower() + ".");
                         }
                     }
                 }
@@ -1133,9 +1264,12 @@ namespace Despicaville.Menus
 
         public override void Close()
         {
-            foreach (Item item in Handler.Player.Inventory.Items)
+            if (Handler.Player != null)
             {
-                item.Icon_Visible = false;
+                foreach (Item item in Handler.Player.Inventory.Items)
+                {
+                    item.Icon_Visible = false;
+                }
             }
 
             foreach (Inventory inventory in Inventories)
@@ -1158,8 +1292,8 @@ namespace Despicaville.Menus
                 Handler.Trading_InventoryID.Clear();
             }
 
-            InputManager.Keyboard.Flush();
-            InputManager.Mouse.Flush();
+            InputManager.Keyboard?.Flush();
+            InputManager.Mouse?.Flush();
             TimeManager.Paused = false;
             Visible = false;
             Active = false;
@@ -1197,6 +1331,11 @@ namespace Despicaville.Menus
 
         private void LoadInventories()
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+
             Clear_Inventory_Grids();
             Inventories.Clear();
 
@@ -1211,17 +1350,24 @@ namespace Despicaville.Menus
 
             inventory_y = (int)((Main.Game.ScreenHeight / 2) - (Main.Game.MenuSize_Y * 4) - Main.Game.MenuSize_Y);
 
-            foreach (Item item in Handler.Player.Inventory.Items)
+            if (Handler.Player != null)
             {
-                if (item.Equipped &&
-                    InventoryUtil.IsContainer(item) &&
-                    item.ID != selected_Item?.ID)
+                foreach (Item item in Handler.Player.Inventory.Items)
                 {
-                    Inventories.Add(item.Inventory);
+                    if (item.Equipped &&
+                        InventoryUtil.IsContainer(item) &&
+                        item.ID != selected_Item?.ID)
+                    {
+                        Inventories.Add(item.Inventory);
+                    }
+                }
+
+                Label? name = GetLabel("Name");
+                if (name != null)
+                {
+                    name.Text = Handler.Player.Name;
                 }
             }
-
-            GetLabel("Name").Text = Handler.Player.Name;
 
             Load_Inventory_Grids();
 
@@ -1233,6 +1379,11 @@ namespace Despicaville.Menus
 
         private void ResizeInventories()
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+
             inventory_y = (int)((Main.Game.ScreenHeight / 2) - (Main.Game.MenuSize_Y * 4) - Main.Game.MenuSize_Y);
 
             Resize_Inventory_Grids();
@@ -1245,64 +1396,68 @@ namespace Despicaville.Menus
 
         private List<Picture> GetSlots(Item item)
         {
-            List<Picture> slots = new List<Picture>();
+            List<Picture> slots = [];
 
-            Picture slot = GetPicture(item.Type + " Slot");
-
+            Picture? slot = GetPicture(item.Type + " Slot");
             if (slot == null)
             {
                 if (item.Type == "Weapon" ||
-                    item.Name.Contains("Bag") ||
-                    item.Name.Contains("Box"))
+                    (item.Name != null &&
+                    (item.Name.Contains("Bag") ||
+                    item.Name.Contains("Box"))))
                 {
-                    Picture right_weapon_slot = GetPicture("Right Weapon Slot");
+                    Picture? right_weapon_slot = GetPicture("Right Weapon Slot");
                     if (right_weapon_slot != null)
                     {
                         slots.Add(right_weapon_slot);
                     }
 
-                    Picture left_weapon_slot = GetPicture("Left Weapon Slot");
+                    Picture? left_weapon_slot = GetPicture("Left Weapon Slot");
                     if (left_weapon_slot != null)
                     {
                         slots.Add(left_weapon_slot);
                     }
                 }
-                else if (item.Name.Contains("Backpack") ||
+                else if ((item.Name != null && item.Name.Contains("Backpack")) ||
                          item.Type == "Back")
                 {
-                    Picture backpack_slot = GetPicture("Backpack Slot");
+                    Picture? backpack_slot = GetPicture("Backpack Slot");
                     if (backpack_slot != null)
                     {
                         slots.Add(backpack_slot);
                     }
                 }
-                else if (item.Type.Contains("Shoes"))
+                else if (item.Type != null &&
+                         item.Type.Contains("Shoes"))
                 {
-                    Picture shoes_slot = GetPicture("Shoes Slot");
+                    Picture? shoes_slot = GetPicture("Shoes Slot");
                     if (shoes_slot != null)
                     {
                         slots.Add(shoes_slot);
                     }
                 }
-                else if (item.Type.Contains("Pants"))
+                else if (item.Type != null &&
+                         item.Type.Contains("Pants"))
                 {
-                    Picture pants_slot = GetPicture("Pants Slot");
+                    Picture? pants_slot = GetPicture("Pants Slot");
                     if (pants_slot != null)
                     {
                         slots.Add(pants_slot);
                     }
                 }
-                else if (item.Type.Contains("Shirt"))
+                else if (item.Type != null &&
+                         item.Type.Contains("Shirt"))
                 {
-                    Picture shirt_slot = GetPicture("Shirt Slot");
+                    Picture? shirt_slot = GetPicture("Shirt Slot");
                     if (shirt_slot != null)
                     {
                         slots.Add(shirt_slot);
                     }
                 }
-                else if (item.Type.Contains("Hat"))
+                else if (item.Type != null &&
+                         item.Type.Contains("Hat"))
                 {
-                    Picture hat_slot = GetPicture("Hat Slot");
+                    Picture? hat_slot = GetPicture("Hat Slot");
                     if (hat_slot != null)
                     {
                         slots.Add(hat_slot);
@@ -1317,31 +1472,43 @@ namespace Despicaville.Menus
             return slots;
         }
 
-        private void SetSlot(Character player, string slot)
+        private void SetSlot(Character? player, string? slot)
         {
-            Item equip = InventoryUtil.Get_EquippedItem(player, slot);
+            Item? equip = InventoryUtil.Get_EquippedItem(player, slot);
             if (equip != null)
             {
-                Picture slot_pic = GetPicture(slot);
+                Picture? slot_pic = GetPicture(slot);
                 if (slot_pic != null)
                 {
-                    equip.Icon_Region = new Region(slot_pic.Region.X, slot_pic.Region.Y, slot_pic.Region.Width, slot_pic.Region.Height);
-                    equip.Icon_Image = new Rectangle(0, 0, equip.Icon.Width, equip.Icon.Height);
-                    equip.Icon_Visible = true;
+                    if (slot_pic.Region != null)
+                    {
+                        equip.Icon_Region = new Region(slot_pic.Region.X, slot_pic.Region.Y, slot_pic.Region.Width, slot_pic.Region.Height);
 
-                    slot_pic.Texture = AssetManager.Textures["Grid"];
-                    slot_pic.Image = new Rectangle(0, 0, slot_pic.Texture.Width, slot_pic.Texture.Height);
+                        if (equip.Icon != null)
+                        {
+                            equip.Icon_Image = new Rectangle(0, 0, equip.Icon.Width, equip.Icon.Height);
+                            equip.Icon_Visible = true;
+                        }
+                    }
+                    
+                    slot_pic.Texture = Handler.GetTexture("Grid");
+                    if (slot_pic.Texture != null)
+                    {
+                        slot_pic.Image = new Rectangle(0, 0, slot_pic.Texture.Width, slot_pic.Texture.Height);
+                    }
                 }
             }
         }
 
-        private void ResizeSlot(Character player, string slot)
+        private void ResizeSlot(Character? player, string? slot)
         {
-            Item equip = InventoryUtil.Get_EquippedItem(player, slot);
+            Item? equip = InventoryUtil.Get_EquippedItem(player, slot);
             if (equip != null)
             {
-                Picture slot_pic = GetPicture(slot);
-                if (slot_pic != null)
+                Picture? slot_pic = GetPicture(slot);
+                if (slot_pic != null &&
+                    slot_pic.Region != null &&
+                    equip.Icon != null)
                 {
                     equip.Icon_Region = new Region(slot_pic.Region.X, slot_pic.Region.Y, slot_pic.Region.Width, slot_pic.Region.Height);
                     equip.Icon_Image = new Rectangle(0, 0, equip.Icon.Width, equip.Icon.Height);
@@ -1349,51 +1516,56 @@ namespace Despicaville.Menus
             }
         }
 
-        private void ResetSlot(Picture picture)
+        private void ResetSlot(Picture? picture)
         {
+            if (picture?.Name == null)
+            {
+                return;
+            }
+
             if (picture.Name.Contains("Mask"))
             {
-                picture.Texture = AssetManager.Textures["Slot_Mask"];
+                picture.Texture = Handler.GetTexture("Slot_Mask");
             }
             else if (picture.Name.Contains("Hat"))
             {
-                picture.Texture = AssetManager.Textures["Slot_Hat"];
+                picture.Texture = Handler.GetTexture("Slot_Hat");
             }
             else if (picture.Name.Contains("Coat"))
             {
-                picture.Texture = AssetManager.Textures["Slot_Coat"];
+                picture.Texture = Handler.GetTexture("Slot_Coat");
             }
             else if (picture.Name.Contains("Shirt"))
             {
-                picture.Texture = AssetManager.Textures["Slot_Shirt"];
+                picture.Texture = Handler.GetTexture("Slot_Shirt");
             }
             else if (picture.Name.Contains("Backpack"))
             {
-                picture.Texture = AssetManager.Textures["Slot_Backpack"];
+                picture.Texture = Handler.GetTexture("Slot_Backpack");
             }
             else if (picture.Name.Contains("Right Glove"))
             {
-                picture.Texture = AssetManager.Textures["Slot_Glove_Right"];
+                picture.Texture = Handler.GetTexture("Slot_Glove_Right");
             }
             else if (picture.Name.Contains("Pants"))
             {
-                picture.Texture = AssetManager.Textures["Slot_Pants"];
+                picture.Texture = Handler.GetTexture("Slot_Pants");
             }
             else if (picture.Name.Contains("Left Glove"))
             {
-                picture.Texture = AssetManager.Textures["Slot_Glove_Left"];
+                picture.Texture = Handler.GetTexture("Slot_Glove_Left");
             }
             else if (picture.Name.Contains("Right Weapon"))
             {
-                picture.Texture = AssetManager.Textures["Slot_Weapon_Right"];
+                picture.Texture = Handler.GetTexture("Slot_Weapon_Right");
             }
             else if (picture.Name.Contains("Shoes"))
             {
-                picture.Texture = AssetManager.Textures["Slot_Shoes"];
+                picture.Texture = Handler.GetTexture("Slot_Shoes");
             }
             else if (picture.Name.Contains("Left Weapon"))
             {
-                picture.Texture = AssetManager.Textures["Slot_Weapon_Left"];
+                picture.Texture = Handler.GetTexture("Slot_Weapon_Left");
             }
         }
 
@@ -1401,7 +1573,7 @@ namespace Despicaville.Menus
         {
             foreach (Inventory inventory in Inventories)
             {
-                Label label = GetLabel(inventory.Name);
+                Label? label = GetLabel(inventory.Name);
                 if (label != null)
                 {
                     Labels.Remove(label);
@@ -1412,7 +1584,7 @@ namespace Despicaville.Menus
                 {
                     for (int x = 0; x <= inventory.Max_Value; x++)
                     {
-                        Picture existing = GetPicture(inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString());
+                        Picture? existing = GetPicture(inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString());
                         if (existing != null)
                         {
                             Pictures.Remove(existing);
@@ -1432,7 +1604,7 @@ namespace Despicaville.Menus
 
             if (other_inventory != null)
             {
-                Label label = GetLabel(other_inventory.Name);
+                Label? label = GetLabel(other_inventory.Name);
                 if (label != null)
                 {
                     Labels.Remove(label);
@@ -1443,7 +1615,7 @@ namespace Despicaville.Menus
                 {
                     for (int x = 0; x <= other_inventory.Max_Value; x++)
                     {
-                        Picture existing = GetPicture(other_inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString());
+                        Picture? existing = GetPicture(other_inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString());
                         if (existing != null)
                         {
                             Pictures.Remove(existing);
@@ -1464,6 +1636,11 @@ namespace Despicaville.Menus
 
         private void Load_Inventory_Grids()
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+
             if (Inventories.Count > 0)
             {
                 foreach (Inventory inventory in Inventories)
@@ -1505,25 +1682,28 @@ namespace Despicaville.Menus
 
                             for (int x = 0; x < X; x++)
                             {
-                                AddPicture(Handler.GetID(), inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString(), AssetManager.Textures["Grid"],
+                                AddPicture(Handler.GetID(), inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString(), Handler.GetTexture("Grid"),
                                     new Region(starting_x + (Main.Game.MenuSize_X * x), starting_y + (Main.Game.MenuSize_Y * y), Main.Game.MenuSize_X, Main.Game.MenuSize_Y), Color.White, true);
 
-                                Picture grid = GetPicture(inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString());
+                                Picture? grid = GetPicture(inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString());
                                 if (grid != null)
                                 {
                                     grid.Location = new Location(x, y, 0);
                                     GridList.Add(grid);
-                                }
 
-                                foreach (Item item in inventory.Items)
-                                {
-                                    if (item.Location.X == x &&
-                                        item.Location.Y == y)
+                                    foreach (Item item in inventory.Items)
                                     {
-                                        item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
-                                        item.Icon_Image = new Rectangle(0, 0, item.Icon.Width, item.Icon.Height);
-                                        item.Icon_Visible = true;
-                                        break;
+                                        if (item.Location != null &&
+                                            grid.Region != null &&
+                                            item.Icon != null &&
+                                            item.Location.X == x &&
+                                            item.Location.Y == y)
+                                        {
+                                            item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
+                                            item.Icon_Image = new Rectangle(0, 0, item.Icon.Width, item.Icon.Height);
+                                            item.Icon_Visible = true;
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -1537,13 +1717,18 @@ namespace Despicaville.Menus
 
         private void Resize_Inventory_Grids()
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+
             if (Inventories.Count > 0)
             {
                 foreach (Inventory inventory in Inventories)
                 {
                     if (!string.IsNullOrEmpty(inventory.Name))
                     {
-                        Label label = GetLabel(inventory.Name);
+                        Label? label = GetLabel(inventory.Name);
                         if (label != null)
                         {
                             label.Region = new Region(inventory_x, inventory_y, (Main.Game.MenuSize_X * 4), Main.Game.MenuSize_Y);
@@ -1581,20 +1766,23 @@ namespace Despicaville.Menus
 
                             for (int x = 0; x < X; x++)
                             {
-                                Picture grid = GetPicture(inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString());
+                                Picture? grid = GetPicture(inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString());
                                 if (grid != null)
                                 {
                                     grid.Region = new Region(starting_x + (Main.Game.MenuSize_X * x), starting_y + (Main.Game.MenuSize_Y * y), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-                                }
 
-                                foreach (Item item in inventory.Items)
-                                {
-                                    if (item.Location.X == x &&
-                                        item.Location.Y == y)
+                                    foreach (Item item in inventory.Items)
                                     {
-                                        item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
-                                        item.Icon_Image = new Rectangle(0, 0, item.Icon.Width, item.Icon.Height);
-                                        break;
+                                        if (item.Location != null &&
+                                            grid.Region != null &&
+                                            item.Icon != null &&
+                                            item.Location.X == x &&
+                                            item.Location.Y == y)
+                                        {
+                                            item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
+                                            item.Icon_Image = new Rectangle(0, 0, item.Icon.Width, item.Icon.Height);
+                                            break;
+                                        }
                                     }
                                 }
                             }
@@ -1608,6 +1796,16 @@ namespace Despicaville.Menus
 
         private void Load_Other_Inventory_Grid()
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+
+            if (other_inventory == null)
+            {
+                return;
+            }
+
             AddLabel(AssetManager.Fonts["ControlFont"], other_inventory.ID, other_inventory.Name, other_inventory.Name, Color.White,
                 new Region(other_inventory_x, other_inventory_y, (Main.Game.MenuSize_X * 4), Main.Game.MenuSize_Y), true);
 
@@ -1634,6 +1832,8 @@ namespace Despicaville.Menus
                 X = (int)other_inventory.Max_Value;
             }
 
+            Texture2D? grid_texture = Handler.GetTexture("Grid");
+
             for (int y = 0; y < Y; y++)
             {
                 if ((y + 1) * X > other_inventory.Max_Value)
@@ -1643,25 +1843,28 @@ namespace Despicaville.Menus
 
                 for (int x = 0; x < X; x++)
                 {
-                    AddPicture(Handler.GetID(), other_inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString(), AssetManager.Textures["Grid"],
+                    AddPicture(Handler.GetID(), other_inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString(), grid_texture,
                         new Region(starting_x + (Main.Game.MenuSize_X * x), starting_y + (Main.Game.MenuSize_Y * y), Main.Game.MenuSize_X, Main.Game.MenuSize_Y), Color.White, true);
 
-                    Picture grid = GetPicture(other_inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString());
+                    Picture? grid = GetPicture(other_inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString());
                     if (grid != null)
                     {
                         grid.Location = new Location(x, y, 0);
                         Other_GridList.Add(grid);
-                    }
 
-                    foreach (Item item in other_inventory.Items)
-                    {
-                        if (item.Location.X == x &&
-                            item.Location.Y == y)
+                        foreach (Item item in other_inventory.Items)
                         {
-                            item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
-                            item.Icon_Image = new Rectangle(0, 0, item.Icon.Width, item.Icon.Height);
-                            item.Icon_Visible = true;
-                            break;
+                            if (item.Location != null &&
+                                grid.Region != null &&
+                                item.Icon != null &&
+                                item.Location.X == x &&
+                                item.Location.Y == y)
+                            {
+                                item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
+                                item.Icon_Image = new Rectangle(0, 0, item.Icon.Width, item.Icon.Height);
+                                item.Icon_Visible = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -1670,7 +1873,16 @@ namespace Despicaville.Menus
 
         private void Resize_Other_Inventory_Grid()
         {
-            Label label = GetLabel(other_inventory.Name);
+            if (Main.Game == null)
+            {
+                return;
+            }
+            if (other_inventory == null)
+            {
+                return;
+            }
+
+            Label? label = GetLabel(other_inventory.Name);
             if (label != null)
             {
                 label.Region = new Region(other_inventory_x, other_inventory_y, (Main.Game.MenuSize_X * 4), Main.Game.MenuSize_Y);
@@ -1708,20 +1920,23 @@ namespace Despicaville.Menus
 
                 for (int x = 0; x < X; x++)
                 {
-                    Picture grid = GetPicture(other_inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString());
+                    Picture? grid = GetPicture(other_inventory.ID + ";x:" + x.ToString() + ",y:" + y.ToString());
                     if (grid != null)
                     {
                         grid.Region = new Region(starting_x + (Main.Game.MenuSize_X * x), starting_y + (Main.Game.MenuSize_Y * y), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-                    }
 
-                    foreach (Item item in other_inventory.Items)
-                    {
-                        if (item.Location.X == x &&
-                            item.Location.Y == y)
+                        foreach (Item item in other_inventory.Items)
                         {
-                            item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
-                            item.Icon_Image = new Rectangle(0, 0, item.Icon.Width, item.Icon.Height);
-                            break;
+                            if (item.Location != null &&
+                                grid.Region != null &&
+                                item.Icon != null &&
+                                item.Location.X == x &&
+                                item.Location.Y == y)
+                            {
+                                item.Icon_Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
+                                item.Icon_Image = new Rectangle(0, 0, item.Icon.Width, item.Icon.Height);
+                                break;
+                            }
                         }
                     }
                 }
@@ -1730,10 +1945,22 @@ namespace Despicaville.Menus
 
         private void ExamineItem(Item item)
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+
+            Label? examine = GetLabel("Examine");
+            if (examine == null ||
+                InputManager.Mouse == null)
+            {
+                return;
+            }
+
             int width = (int)((Main.Game.MenuSize_X * 4) + (Main.Game.MenuSize_X / 2));
             int height = (int)(Main.Game.MenuSize_Y + (Main.Game.MenuSize_Y / 2));
 
-            string text = item.Name;
+            string? text = item.Name;
 
             for (int i = 0; i < item.Properties.Count; i++)
             {
@@ -1748,8 +1975,7 @@ namespace Despicaville.Menus
                     }
                 }
             }
-
-            Label examine = GetLabel("Examine");
+            
             examine.Text = text;
 
             int X = InputManager.Mouse.X - (width / 2);
@@ -1780,40 +2006,79 @@ namespace Despicaville.Menus
         {
             Clear();
 
-            AddButton(Handler.GetID(), "Close", AssetManager.Textures["Button_Back"], AssetManager.Textures["Button_Back_Hover"], AssetManager.Textures["Button_Back_Disabled"],
-                new Region(0, 0, 0, 0), Color.White, true);
-            GetButton("Close").HoverText = "Close";
+            Texture2D? frame = Handler.GetTexture("Frame");
+            Texture2D? grid_Hover = Handler.GetTexture("Grid_Hover");
+            Texture2D? highlight = Handler.GetTexture("Highlight");
 
-            AddButton(Handler.GetID(), "Back", AssetManager.Textures["Button_Back"], AssetManager.Textures["Button_Back_Hover"], AssetManager.Textures["Button_Back_Disabled"],
+            Texture2D? button_Back = Handler.GetTexture("Button_Back");
+            Texture2D? button_Back_Hover = Handler.GetTexture("Button_Back_Hover");
+            Texture2D? button_Back_Disabled = Handler.GetTexture("Button_Back_Disabled");
+
+            Texture2D? slot_Mask = Handler.GetTexture("Slot_Mask");
+            Texture2D? slot_Hat = Handler.GetTexture("Slot_Hat");
+            Texture2D? slot_Coat = Handler.GetTexture("Slot_Coat");
+            Texture2D? slot_Shirt = Handler.GetTexture("Slot_Shirt");
+            Texture2D? slot_Backpack = Handler.GetTexture("Slot_Backpack");
+            Texture2D? slot_Glove_Right = Handler.GetTexture("Slot_Glove_Right");
+            Texture2D? slot_Pants = Handler.GetTexture("Slot_Pants");
+            Texture2D? slot_Glove_Left = Handler.GetTexture("Slot_Glove_Left");
+            Texture2D? slot_Weapon_Right = Handler.GetTexture("Slot_Weapon_Right");
+            Texture2D? slot_Shoes = Handler.GetTexture("Slot_Shoes");
+            Texture2D? slot_Weapon_Left = Handler.GetTexture("Slot_Weapon_Left");
+
+            AddButton(Handler.GetID(), "Close", button_Back, button_Back_Hover, button_Back_Disabled,
+                new Region(0, 0, 0, 0), Color.White, true);
+
+            Button? close = GetButton("Close");
+            if (close != null)
+            {
+                close.HoverText = "Close";
+            }
+
+            AddButton(Handler.GetID(), "Back", button_Back, button_Back_Hover, button_Back_Disabled,
                 new Region(0, 0, 0, 0), Color.White, false);
-            GetButton("Back").HoverText = "Back";
+
+            Button? back = GetButton("Back");
+            if (back != null)
+            {
+                back.HoverText = "Back";
+            }
 
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Name", "", Color.White, new Region(0, 0, 0, 0), true);
-            AddPicture(Handler.GetID(), "Mask Slot", AssetManager.Textures["Slot_Mask"], new Region(0, 0, 0, 0), Color.White, true);
-            AddPicture(Handler.GetID(), "Hat Slot", AssetManager.Textures["Slot_Hat"], new Region(0, 0, 0, 0), Color.White, true);
-            AddPicture(Handler.GetID(), "Coat Slot", AssetManager.Textures["Slot_Coat"], new Region(0, 0, 0, 0), Color.White, true);
-            AddPicture(Handler.GetID(), "Shirt Slot", AssetManager.Textures["Slot_Shirt"], new Region(0, 0, 0, 0), Color.White, true);
-            AddPicture(Handler.GetID(), "Backpack Slot", AssetManager.Textures["Slot_Backpack"], new Region(0, 0, 0, 0), Color.White, true);
-            AddPicture(Handler.GetID(), "Right Glove Slot", AssetManager.Textures["Slot_Glove_Right"], new Region(0, 0, 0, 0), Color.White, true);
-            AddPicture(Handler.GetID(), "Pants Slot", AssetManager.Textures["Slot_Pants"], new Region(0, 0, 0, 0), Color.White, true);
-            AddPicture(Handler.GetID(), "Left Glove Slot", AssetManager.Textures["Slot_Glove_Left"], new Region(0, 0, 0, 0), Color.White, true);
-            AddPicture(Handler.GetID(), "Right Weapon Slot", AssetManager.Textures["Slot_Weapon_Right"], new Region(0, 0, 0, 0), Color.White, true);
-            AddPicture(Handler.GetID(), "Shoes Slot", AssetManager.Textures["Slot_Shoes"], new Region(0, 0, 0, 0), Color.White, true);
-            AddPicture(Handler.GetID(), "Left Weapon Slot", AssetManager.Textures["Slot_Weapon_Left"], new Region(0, 0, 0, 0), Color.White, true);
+            AddPicture(Handler.GetID(), "Mask Slot", slot_Mask, new Region(0, 0, 0, 0), Color.White, true);
+            AddPicture(Handler.GetID(), "Hat Slot", slot_Hat, new Region(0, 0, 0, 0), Color.White, true);
+            AddPicture(Handler.GetID(), "Coat Slot", slot_Coat, new Region(0, 0, 0, 0), Color.White, true);
+            AddPicture(Handler.GetID(), "Shirt Slot", slot_Shirt, new Region(0, 0, 0, 0), Color.White, true);
+            AddPicture(Handler.GetID(), "Backpack Slot", slot_Backpack, new Region(0, 0, 0, 0), Color.White, true);
+            AddPicture(Handler.GetID(), "Right Glove Slot", slot_Glove_Right, new Region(0, 0, 0, 0), Color.White, true);
+            AddPicture(Handler.GetID(), "Pants Slot", slot_Pants, new Region(0, 0, 0, 0), Color.White, true);
+            AddPicture(Handler.GetID(), "Left Glove Slot", slot_Glove_Left, new Region(0, 0, 0, 0), Color.White, true);
+            AddPicture(Handler.GetID(), "Right Weapon Slot", slot_Weapon_Right, new Region(0, 0, 0, 0), Color.White, true);
+            AddPicture(Handler.GetID(), "Shoes Slot", slot_Shoes, new Region(0, 0, 0, 0), Color.White, true);
+            AddPicture(Handler.GetID(), "Left Weapon Slot", slot_Weapon_Left, new Region(0, 0, 0, 0), Color.White, true);
 
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "", Color.White, AssetManager.Textures["Frame"], new Region(0, 0, 0, 0), false);
-            AddPicture(Handler.GetID(), "Highlight", AssetManager.Textures["Grid_Hover"], new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "SlotHighlight1", AssetManager.Textures["Highlight"], new Region(0, 0, 0, 0), new Color(0, 255, 0, 255), false);
-            AddPicture(Handler.GetID(), "SlotHighlight2", AssetManager.Textures["Highlight"], new Region(0, 0, 0, 0), new Color(0, 255, 0, 255), false);
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "", Color.White, frame, new Region(0, 0, 0, 0), false);
+            AddPicture(Handler.GetID(), "Highlight", grid_Hover, new Region(0, 0, 0, 0), Color.White, false);
+            AddPicture(Handler.GetID(), "SlotHighlight1", highlight, new Region(0, 0, 0, 0), new Color(0, 255, 0, 255), false);
+            AddPicture(Handler.GetID(), "SlotHighlight2", highlight, new Region(0, 0, 0, 0), new Color(0, 255, 0, 255), false);
 
             LoadEquipped();
             LoadInventories();
 
+            if (Main.Game == null)
+            {
+                return;
+            }
             Resize(Main.Game.Resolution);
         }
 
         public override void Resize(Point point)
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+
             int x = (int)((Main.Game.ScreenWidth / 2) - Main.Game.MenuSize_X - (Main.Game.MenuSize_X / 2));
             int y = (int)((Main.Game.ScreenHeight / 2) - (Main.Game.MenuSize_Y * 4));
 
@@ -1825,21 +2090,89 @@ namespace Despicaville.Menus
 
             if (Pictures.Count > 0)
             {
-                GetLabel("Name").Region = new Region(x, y - Main.Game.MenuSize_Y, Main.Game.MenuSize_X * 3, Main.Game.MenuSize_Y);
-                GetPicture("Mask Slot").Region = new Region(x, y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-                GetPicture("Hat Slot").Region = new Region(x + Main.Game.MenuSize_X, y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-                GetPicture("Coat Slot").Region = new Region(x, y + Main.Game.MenuSize_Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-                GetPicture("Shirt Slot").Region = new Region(x + Main.Game.MenuSize_X, y + Main.Game.MenuSize_Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-                GetPicture("Backpack Slot").Region = new Region(x + (Main.Game.MenuSize_X * 2), y + Main.Game.MenuSize_Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-                GetPicture("Right Glove Slot").Region = new Region(x, y + (Main.Game.MenuSize_Y * 2), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-                GetPicture("Pants Slot").Region = new Region(x + Main.Game.MenuSize_X, y + (Main.Game.MenuSize_Y * 2), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-                GetPicture("Left Glove Slot").Region = new Region(x + (Main.Game.MenuSize_X * 2), y + (Main.Game.MenuSize_Y * 2), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-                GetPicture("Right Weapon Slot").Region = new Region(x, y + (Main.Game.MenuSize_Y * 3), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-                GetPicture("Shoes Slot").Region = new Region(x + Main.Game.MenuSize_X, y + (Main.Game.MenuSize_Y * 3), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-                GetPicture("Left Weapon Slot").Region = new Region(x + (Main.Game.MenuSize_X * 2), y + (Main.Game.MenuSize_Y * 3), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+                Label? name = GetLabel("Name");
+                if (name != null)
+                {
+                    name.Region = new Region(x, y - Main.Game.MenuSize_Y, Main.Game.MenuSize_X * 3, Main.Game.MenuSize_Y);
+                }
+                
+                Picture? slot_Mask = GetPicture("Mask Slot");
+                if (slot_Mask != null)
+                {
+                    slot_Mask.Region = new Region(x, y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+                }
 
-                GetButton("Close").Region = new Region(x + Main.Game.MenuSize_X, y + (Main.Game.MenuSize_Y * 5), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-                GetButton("Back").Region = new Region(x - (Main.Game.MenuSize_X * 2), y + (Main.Game.MenuSize_Y * 5), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+                Picture? slot_Hat = GetPicture("Hat Slot");
+                if (slot_Hat != null)
+                {
+                    slot_Hat.Region = new Region(x + Main.Game.MenuSize_X, y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+                }
+
+                Picture? slot_Coat = GetPicture("Coat Slot");
+                if (slot_Coat != null)
+                {
+                    slot_Coat.Region = new Region(x, y + Main.Game.MenuSize_Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+                }
+
+                Picture? slot_Shirt = GetPicture("Shirt Slot");
+                if (slot_Shirt != null)
+                {
+                    slot_Shirt.Region = new Region(x + Main.Game.MenuSize_X, y + Main.Game.MenuSize_Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+                }
+
+                Picture? slot_Backpack = GetPicture("Backpack Slot");
+                if (slot_Backpack != null)
+                {
+                    slot_Backpack.Region = new Region(x + (Main.Game.MenuSize_X * 2), y + Main.Game.MenuSize_Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+                }
+
+                Picture? slot_Right_Glove = GetPicture("Right Glove Slot");
+                if (slot_Right_Glove != null)
+                {
+                    slot_Right_Glove.Region = new Region(x, y + (Main.Game.MenuSize_Y * 2), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+                }
+
+                Picture? slot_Pants = GetPicture("Pants Slot");
+                if (slot_Pants != null)
+                {
+                    slot_Pants.Region = new Region(x + Main.Game.MenuSize_X, y + (Main.Game.MenuSize_Y * 2), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+                }
+
+                Picture? slot_Left_Glove = GetPicture("Left Glove Slot");
+                if (slot_Left_Glove != null)
+                {
+                    slot_Left_Glove.Region = new Region(x + (Main.Game.MenuSize_X * 2), y + (Main.Game.MenuSize_Y * 2), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+                }
+
+                Picture? slot_Right_Weapon = GetPicture("Right Weapon Slot");
+                if (slot_Right_Weapon != null)
+                {
+                    slot_Right_Weapon.Region = new Region(x, y + (Main.Game.MenuSize_Y * 3), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+                }
+
+                Picture? slot_Shoes = GetPicture("Shoes Slot");
+                if (slot_Shoes != null)
+                {
+                    slot_Shoes.Region = new Region(x + Main.Game.MenuSize_X, y + (Main.Game.MenuSize_Y * 3), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+                }
+
+                Picture? slot_Left_Weapon = GetPicture("Left Weapon Slot");
+                if (slot_Left_Weapon != null)
+                {
+                    slot_Left_Weapon.Region = new Region(x + (Main.Game.MenuSize_X * 2), y + (Main.Game.MenuSize_Y * 3), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+                }
+
+                Button? close = GetButton("Close");
+                if (close != null)
+                {
+                    close.Region = new Region(x + Main.Game.MenuSize_X, y + (Main.Game.MenuSize_Y * 5), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+                }
+
+                Button? back = GetButton("Back");
+                if (back != null)
+                {
+                    back.Region = new Region(x - (Main.Game.MenuSize_X * 2), y + (Main.Game.MenuSize_Y * 5), Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+                }
 
                 ResizeEquipped();
                 ResizeInventories();

@@ -34,7 +34,7 @@ namespace Despicaville.Scenes
 
         #region Methods
 
-        public override void Update(Game gameRef, ContentManager content)
+        public override void Update(Game? gameRef, ContentManager? content)
         {
             if (Visible)
             {
@@ -70,9 +70,12 @@ namespace Despicaville.Scenes
 
                         SceneManager.ChangeScene("Title");
 
-                        Menu main = MenuManager.GetMenu("Main");
-                        main.Visible = true;
-                        main.Active = true;
+                        Menu? main = MenuManager.GetMenu("Main");
+                        if (main != null)
+                        {
+                            main.Visible = true;
+                            main.Active = true;
+                        }
 
                         SoundManager.NeedMusic = true;
                     }
@@ -82,7 +85,8 @@ namespace Despicaville.Scenes
 
         public override void DrawMenu(SpriteBatch spriteBatch)
         {
-            if (Visible)
+            if (Visible &&
+                Menu != null)
             {
                 foreach (Picture picture in Menu.Pictures)
                 {
@@ -97,11 +101,20 @@ namespace Despicaville.Scenes
 
         public override void Load()
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+            if (Menu == null)
+            {
+                return;
+            }
+
             Increasing = true;
             value = 0;
 
-            Menu.AddPicture(0, "Logo", AssetManager.Textures["Logo"], new Region(0, 0, 0, 0), new Color(0, 0, 0, 255), true);
-            Menu.AddPicture(0, "fmod", AssetManager.Textures["fmod"], new Region(0, 0, 0, 0), new Color(0, 0, 0, 255), true);
+            Menu.AddPicture(0, "Logo", Handler.GetTexture("Logo"), new Region(0, 0, 0, 0), new Color(0, 0, 0, 255), true);
+            Menu.AddPicture(0, "fmod", Handler.GetTexture("fmod"), new Region(0, 0, 0, 0), new Color(0, 0, 0, 255), true);
             Menu.Visible = true;
 
             Resize(Main.Game.Resolution);
@@ -109,12 +122,29 @@ namespace Despicaville.Scenes
 
         public override void Resize(Point point)
         {
-            Menu.GetPicture("Logo").Region = new Region(0, 0, Main.Game.ScreenWidth, Main.Game.ScreenHeight);
+            if (Main.Game == null)
+            {
+                return;
+            }
 
-            Texture2D fmod = AssetManager.Textures["fmod"];
-            int width = (fmod.Width / 5);
-            int height = (fmod.Height / 5);
-            Menu.GetPicture("fmod").Region = new Region(Main.Game.ScreenWidth - width, Main.Game.ScreenHeight - height, width, height);
+            Picture? logo = Menu?.GetPicture("Logo");
+            if (logo != null)
+            {
+                logo.Region = new Region(0, 0, Main.Game.ScreenWidth, Main.Game.ScreenHeight);
+            }
+
+            Texture2D? fmod = Handler.GetTexture("fmod");
+            if (fmod != null)
+            {
+                int width = (fmod.Width / 5);
+                int height = (fmod.Height / 5);
+
+                Picture? fmod_picture = Menu?.GetPicture("fmod");
+                if (fmod_picture != null)
+                {
+                    fmod_picture.Region = new Region(Main.Game.ScreenWidth - width, Main.Game.ScreenHeight - height, width, height);
+                }
+            }
         }
 
         #endregion

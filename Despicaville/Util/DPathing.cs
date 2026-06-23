@@ -8,17 +8,23 @@ namespace Despicaville.Util
 {
     public static class DPathing
     {
-        private static List<Character> nearby_characters;
+        private static List<Character> nearby_characters = [];
 
-        public static List<ALocation> GetPath(Layer bottom_tiles, Layer middle_tiles, Character character, Tile tile, int max_distance, bool stop_next_to_tile)
+        public static List<ALocation> GetPath(Layer? bottom_tiles, Layer? middle_tiles, Character? character, Tile? tile, int max_distance, bool stop_next_to_tile)
         {
-            List<ALocation> result = new List<ALocation>();
+            List<ALocation> result = [];
 
-            List<ALocation> path = new List<ALocation>();
-            ALocation target = new ALocation((int)tile.Location.X, (int)tile.Location.Y);
+            if (tile == null ||
+                character?.Location == null)
+            {
+                return result;
+            }
 
-            ALocation start = new ALocation((int)character.Location.X, (int)character.Location.Y);
-            List<ALocation> open = new List<ALocation>();
+            List<ALocation> path = [];
+            ALocation target = new((int)tile.Location.X, (int)tile.Location.Y);
+
+            ALocation start = new((int)character.Location.X, (int)character.Location.Y);
+            List<ALocation> open = [];
             path.Add(start);
             ALocation last_min = start;
 
@@ -58,7 +64,7 @@ namespace Despicaville.Util
                             break;
                         }
                     }
-                    else
+                    else if (last_min.Parent != null)
                     {
                         last_min = last_min.Parent;
                     }
@@ -77,29 +83,34 @@ namespace Despicaville.Util
             return result;
         }
 
-        public static List<ALocation> GetLocations(Layer bottom_tiles, Layer middle_tiles, ALocation location)
+        public static List<ALocation> GetLocations(Layer? bottom_tiles, Layer? middle_tiles, ALocation? location)
         {
-            List<ALocation> locations = new List<ALocation>();
+            List<ALocation> locations = [];
 
-            ALocation North = new ALocation(location.X, location.Y - 1);
+            if (location == null)
+            {
+                return locations;
+            }
+
+            ALocation North = new(location.X, location.Y - 1);
             if (Walkable(bottom_tiles, middle_tiles, North))
             {
                 locations.Add(North);
             }
 
-            ALocation East = new ALocation(location.X + 1, location.Y);
+            ALocation East = new(location.X + 1, location.Y);
             if (Walkable(bottom_tiles, middle_tiles, East))
             {
                 locations.Add(East);
             }
 
-            ALocation South = new ALocation(location.X, location.Y + 1);
+            ALocation South = new(location.X, location.Y + 1);
             if (Walkable(bottom_tiles, middle_tiles, South))
             {
                 locations.Add(South);
             }
 
-            ALocation West = new ALocation(location.X - 1, location.Y);
+            ALocation West = new(location.X - 1, location.Y);
             if (Walkable(bottom_tiles, middle_tiles, West))
             {
                 locations.Add(West);
@@ -110,10 +121,10 @@ namespace Despicaville.Util
 
         public static List<ALocation> Optimize_Path(List<ALocation> possible, ALocation start)
         {
-            List<ALocation> path = new List<ALocation>();
+            List<ALocation> path = [];
 
             ALocation min = possible[possible.Count - 1];
-            List<ALocation> open = new List<ALocation>();
+            List<ALocation> open = [];
             path.Add(min);
             ALocation last_min = min;
 
@@ -138,7 +149,6 @@ namespace Despicaville.Util
                 {
                     min = Get_MinLocation_Start(open);
                     open.Clear();
-                    //possible = Path_RemoveTile(possible, min);
                     path.Add(min);
                     last_min = min;
 
@@ -160,14 +170,14 @@ namespace Despicaville.Util
                 return path;
             }
 
-            return null;
+            return [];
         }
 
         public static List<ALocation> Get_ClosedLocations(List<ALocation> possible, ALocation location)
         {
-            List<ALocation> locations = new List<ALocation>();
+            List<ALocation> locations = [];
 
-            ALocation North = new ALocation(location.X, location.Y - 1);
+            ALocation North = new(location.X, location.Y - 1);
 
             int northCount = possible.Count;
             for (int i = 0; i < northCount; i++)
@@ -181,7 +191,7 @@ namespace Despicaville.Util
                 }
             }
 
-            ALocation East = new ALocation(location.X + 1, location.Y);
+            ALocation East = new(location.X + 1, location.Y);
             int eastCount = possible.Count;
             for (int i = 0; i < eastCount; i++)
             {
@@ -194,7 +204,7 @@ namespace Despicaville.Util
                 }
             }
 
-            ALocation South = new ALocation(location.X, location.Y + 1);
+            ALocation South = new(location.X, location.Y + 1);
             int southCount = possible.Count;
             for (int i = 0; i < southCount; i++)
             {
@@ -207,7 +217,7 @@ namespace Despicaville.Util
                 }
             }
 
-            ALocation West = new ALocation(location.X - 1, location.Y);
+            ALocation West = new(location.X - 1, location.Y);
             int westCount = possible.Count;
             for (int i = 0; i < westCount; i++)
             {
@@ -301,23 +311,6 @@ namespace Despicaville.Util
             return current;
         }
 
-        public static List<ALocation> Path_RemoveTile(List<ALocation> path, ALocation tile)
-        {
-            int count = path.Count;
-            for (int i = 0; i < count; i++)
-            {
-                ALocation location = path[i];
-                if (location.X == tile.X &&
-                    location.Y == tile.Y)
-                {
-                    path.Remove(location);
-                    break;
-                }
-            }
-
-            return path;
-        }
-
         public static bool DestinationReached(ALocation location, Tile target_tile, bool stop_next_to_tile)
         {
             if (stop_next_to_tile)
@@ -342,9 +335,14 @@ namespace Despicaville.Util
             return false;
         }
 
-        public static bool Walkable(Layer bottom_tiles, Layer middle_tiles, ALocation location)
+        public static bool Walkable(Layer? bottom_tiles, Layer? middle_tiles, ALocation? location)
         {
-            Tile bottom_tile = bottom_tiles.GetTile(new Vector2(location.X, location.Y));
+            if (location == null)
+            {
+                return false;
+            }
+
+            Tile? bottom_tile = bottom_tiles?.GetTile(new Vector2(location.X, location.Y));
             if (bottom_tile != null)
             {
                 if (bottom_tile.BlocksMovement)
@@ -352,12 +350,13 @@ namespace Despicaville.Util
                     return false;
                 }
 
-                Tile middle_tile = middle_tiles.GetTile(new Vector2(location.X, location.Y));
+                Tile? middle_tile = middle_tiles?.GetTile(new Vector2(location.X, location.Y));
                 if (middle_tile != null)
                 {
                     if (middle_tile.BlocksMovement)
                     {
-                        if (!middle_tile.Name.Contains("Door") &&
+                        if (middle_tile.Name != null &&
+                            !middle_tile.Name.Contains("Door") &&
                             !middle_tile.Name.Contains("Window"))
                         {
                             return false;
@@ -367,7 +366,7 @@ namespace Despicaville.Util
 
                 if (nearby_characters.Count > 0)
                 {
-                    Character other = WorldUtil.GetCharacter(nearby_characters, new Location(location.X, location.Y));
+                    Character? other = WorldUtil.GetCharacter(nearby_characters, new Location(location.X, location.Y));
                     if (other != null)
                     {
                         return false;

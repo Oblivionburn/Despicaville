@@ -25,39 +25,39 @@ namespace Despicaville.Menus
         bool TileToggle;
         bool RemovingTiles;
 
-        Layer BottomTiles = new Layer();
-        Layer MiddleTiles = new Layer();
-        Layer TopTiles = new Layer();
-        Layer RoomTiles = new Layer();
+        Layer BottomTiles = new();
+        Layer MiddleTiles = new();
+        Layer TopTiles = new();
+        Layer RoomTiles = new();
 
         bool Selecting_Layer;
-        string[] Layers = { "Bottom", "Middle", "Top", "Room" };
-        List<Button> Buttons_Layer = new List<Button>();
+        string[] Layers = ["Bottom", "Middle", "Top", "Room"];
+        List<Button> Buttons_Layer = [];
 
         bool Selecting_RoomType;
-        List<string> RoomTypes;
-        List<Button> Buttons_RoomType = new List<Button>();
+        List<string> RoomTypes = [];
+        List<Button> Buttons_RoomType = [];
 
         bool Selecting_MapType;
-        string[] MapTypes = { "Residential", "Commercial", "Service", "Road", "Park" };
-        List<Button> Buttons_MapType = new List<Button>();
+        string[] MapTypes = ["Residential", "Commercial", "Service", "Road", "Park"];
+        List<Button> Buttons_MapType = [];
 
         bool Selecting_MapFacing;
-        string[] MapFacings = { "North", "East", "South", "West" };
-        List<Button> Buttons_MapFacing = new List<Button>();
+        string[] MapFacings = ["North", "East", "South", "West"];
+        List<Button> Buttons_MapFacing = [];
 
-        Tile SelectedTile;
+        Tile? SelectedTile;
 
         int Tiles_TopY;
         int Tiles_BottomY;
-        List<Tile> Tiles = new List<Tile>();
+        List<Tile> Tiles = [];
 
         int Furniture_TopY;
         int Furniture_BottomY;
-        List<Tile> Furniture = new List<Tile>();
+        List<Tile> Furniture = [];
 
-        Stream SaveStream;
-        XmlWriter Writer;
+        Stream? SaveStream;
+        XmlWriter? Writer;
 
         #endregion
 
@@ -74,7 +74,7 @@ namespace Despicaville.Menus
 
         #region Methods
 
-        public override void Update(Game gameRef, ContentManager content)
+        public override void Update(Game? gameRef, ContentManager? content)
         {
             if (Visible ||
                 Active)
@@ -107,6 +107,11 @@ namespace Despicaville.Menus
 
         public override void Draw(SpriteBatch spriteBatch)
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+
             if (Visible)
             {
                 foreach (Picture picture in Pictures)
@@ -123,43 +128,47 @@ namespace Despicaville.Menus
                     tile.Draw(spriteBatch, Main.Game.Resolution);
                 }
 
-                switch (GetButton("Layer").Text)
+                Button? layer = GetButton("Layer");
+                if (layer?.Text != null)
                 {
-                    case "Middle":
-                        foreach (Tile tile in MiddleTiles.Tiles)
-                        {
-                            tile.Draw(spriteBatch, Main.Game.Resolution);
-                        }
-                        break;
+                    switch (layer.Text)
+                    {
+                        case "Middle":
+                            foreach (Tile tile in MiddleTiles.Tiles)
+                            {
+                                tile.Draw(spriteBatch, Main.Game.Resolution);
+                            }
+                            break;
 
-                    case "Top":
-                        foreach (Tile tile in MiddleTiles.Tiles)
-                        {
-                            tile.Draw(spriteBatch, Main.Game.Resolution);
-                        }
+                        case "Top":
+                            foreach (Tile tile in MiddleTiles.Tiles)
+                            {
+                                tile.Draw(spriteBatch, Main.Game.Resolution);
+                            }
 
-                        foreach (Tile tile in TopTiles.Tiles)
-                        {
-                            tile.Draw(spriteBatch, Main.Game.Resolution);
-                        }
-                        break;
+                            foreach (Tile tile in TopTiles.Tiles)
+                            {
+                                tile.Draw(spriteBatch, Main.Game.Resolution);
+                            }
+                            break;
 
-                    case "Room":
-                        foreach (Tile tile in MiddleTiles.Tiles)
-                        {
-                            tile.Draw(spriteBatch, Main.Game.Resolution);
-                        }
+                        case "Room":
+                            foreach (Tile tile in MiddleTiles.Tiles)
+                            {
+                                tile.Draw(spriteBatch, Main.Game.Resolution);
+                            }
 
-                        foreach (Tile tile in TopTiles.Tiles)
-                        {
-                            tile.Draw(spriteBatch, Main.Game.Resolution);
-                        }
+                            foreach (Tile tile in TopTiles.Tiles)
+                            {
+                                tile.Draw(spriteBatch, Main.Game.Resolution);
+                            }
 
-                        foreach (Tile tile in RoomTiles.Tiles)
-                        {
-                            tile.Draw(spriteBatch, Main.Game.Resolution);
-                        }
-                        break;
+                            foreach (Tile tile in RoomTiles.Tiles)
+                            {
+                                tile.Draw(spriteBatch, Main.Game.Resolution);
+                            }
+                            break;
+                    }
                 }
 
                 foreach (Tile tile in Tiles)
@@ -315,18 +324,30 @@ namespace Despicaville.Menus
                 !hoveringTile &&
                 !hoveringFurniture)
             {
-                GetLabel("Examine").Visible = false;
+                Label? examine = GetLabel("Examine");
+                if (examine != null)
+                {
+                    examine.Visible = false;
+                }
             }
 
             if (!hoveringTile &&
                 !hoveringFurniture &&
                 !hoveringMapTile)
             {
-                GetPicture("Highlight").Visible = false;
+                Picture? highlight = GetPicture("Highlight");
+                if (highlight != null)
+                {
+                    highlight.Visible = false;
+                }
             }
 
-            Picture tileWindow = GetPicture("TileWindow");
-            if (InputManager.MouseWithin(tileWindow.Region.ToRectangle))
+            Picture? tileWindow = GetPicture("TileWindow");
+            Picture? tileWindow_ArrowUp = GetPicture("TileWindow_ArrowUp");
+            Picture? tileWindow_ArrowDown = GetPicture("TileWindow_ArrowDown");
+
+            if (tileWindow?.Region != null &&
+                InputManager.MouseWithin(tileWindow.Region.ToRectangle))
             {
                 if (InputManager.Mouse_ScrolledUp)
                 {
@@ -336,9 +357,16 @@ namespace Despicaville.Menus
 
                         if (Tiles_TopY == 0)
                         {
-                            GetPicture("TileWindow_ArrowUp").Visible = false;
+                            if (tileWindow_ArrowUp != null)
+                            {
+                                tileWindow_ArrowUp.Visible = false;
+                            }
                         }
-                        GetPicture("TileWindow_ArrowDown").Visible = true;
+                        
+                        if (tileWindow_ArrowDown != null)
+                        {
+                            tileWindow_ArrowDown.Visible = true;
+                        }
 
                         ScrollTiles_Up(tileWindow);
                     }
@@ -351,17 +379,28 @@ namespace Despicaville.Menus
 
                         if (Tiles_TopY == Tiles_BottomY)
                         {
-                            GetPicture("TileWindow_ArrowDown").Visible = false;
+                            if (tileWindow_ArrowDown != null)
+                            {
+                                tileWindow_ArrowDown.Visible = false;
+                            }
                         }
-                        GetPicture("TileWindow_ArrowUp").Visible = true;
+
+                        if (tileWindow_ArrowUp != null)
+                        {
+                            tileWindow_ArrowUp.Visible = true;
+                        }
 
                         ScrollTiles_Down(tileWindow);
                     }
                 }
             }
 
-            Picture objectWindow = GetPicture("ObjectWindow");
-            if (InputManager.MouseWithin(objectWindow.Region.ToRectangle))
+            Picture? objectWindow = GetPicture("ObjectWindow");
+            Picture? objectWindow_ArrowUp = GetPicture("ObjectWindow_ArrowUp");
+            Picture? objectWindow_ArrowDown = GetPicture("ObjectWindow_ArrowDown");
+
+            if (objectWindow?.Region != null &&
+                InputManager.MouseWithin(objectWindow.Region.ToRectangle))
             {
                 if (InputManager.Mouse_ScrolledUp)
                 {
@@ -371,9 +410,16 @@ namespace Despicaville.Menus
 
                         if (Furniture_TopY == 0)
                         {
-                            GetPicture("ObjectWindow_ArrowUp").Visible = false;
+                            if (objectWindow_ArrowUp != null)
+                            {
+                                objectWindow_ArrowUp.Visible = false;
+                            }
                         }
-                        GetPicture("ObjectWindow_ArrowDown").Visible = true;
+
+                        if (objectWindow_ArrowDown != null)
+                        {
+                            objectWindow_ArrowDown.Visible = true;
+                        }
 
                         ScrollFurniture_Up(objectWindow);
                     }
@@ -386,9 +432,16 @@ namespace Despicaville.Menus
 
                         if (Furniture_TopY == Furniture_BottomY)
                         {
-                            GetPicture("ObjectWindow_ArrowDown").Visible = false;
+                            if (objectWindow_ArrowDown != null)
+                            {
+                                objectWindow_ArrowDown.Visible = false;
+                            }
                         }
-                        GetPicture("ObjectWindow_ArrowUp").Visible = true;
+
+                        if (objectWindow_ArrowUp != null)
+                        {
+                            objectWindow_ArrowUp.Visible = true;
+                        }
 
                         ScrollFurniture_Down(objectWindow);
                     }
@@ -409,7 +462,8 @@ namespace Despicaville.Menus
                 if (button.Visible &&
                     button.Enabled)
                 {
-                    if (InputManager.MouseWithin(button.Region.ToRectangle))
+                    if (button.Region != null &&
+                        InputManager.MouseWithin(button.Region.ToRectangle))
                     {
                         if (button.HoverText != null)
                         {
@@ -448,7 +502,8 @@ namespace Despicaville.Menus
                 if (button.Visible &&
                     button.Enabled)
                 {
-                    if (InputManager.MouseWithin(button.Region.ToRectangle))
+                    if (button.Region != null &&
+                        InputManager.MouseWithin(button.Region.ToRectangle))
                     {
                         if (button.HoverText != null)
                         {
@@ -487,7 +542,8 @@ namespace Despicaville.Menus
                 if (button.Visible &&
                     button.Enabled)
                 {
-                    if (InputManager.MouseWithin(button.Region.ToRectangle))
+                    if (button.Region != null &&
+                        InputManager.MouseWithin(button.Region.ToRectangle))
                     {
                         if (button.HoverText != null)
                         {
@@ -526,7 +582,8 @@ namespace Despicaville.Menus
                 if (button.Visible &&
                     button.Enabled)
                 {
-                    if (InputManager.MouseWithin(button.Region.ToRectangle))
+                    if (button.Region != null &&
+                        InputManager.MouseWithin(button.Region.ToRectangle))
                     {
                         if (button.HoverText != null)
                         {
@@ -565,7 +622,8 @@ namespace Despicaville.Menus
                 if (button.Visible &&
                     button.Enabled)
                 {
-                    if (InputManager.MouseWithin(button.Region.ToRectangle))
+                    if (button.Region != null &&
+                        InputManager.MouseWithin(button.Region.ToRectangle))
                     {
                         if (button.HoverText != null)
                         {
@@ -599,23 +657,29 @@ namespace Despicaville.Menus
                 {
                     if (InputManager.MouseWithin(tile.Region.ToRectangle))
                     {
-                        Picture highlight = GetPicture("Highlight");
-                        highlight.Region = tile.Region;
-                        highlight.DrawColor = Color.Blue;
-                        highlight.Visible = true;
+                        Picture? highlight = GetPicture("Highlight");
+                        if (highlight != null)
+                        {
+                            highlight.Region = tile.Region;
+                            highlight.DrawColor = Color.Blue;
+                            highlight.Visible = true;
+                        }
 
-                        GameUtil.Examine(this, tile.Texture.Name);
+                        GameUtil.Examine(this, tile.Texture?.Name);
 
                         if (InputManager.Mouse_LB_Pressed)
                         {
                             AssetManager.PlaySound_Random("Click");
-                            InputManager.Mouse.Flush();
+                            InputManager.Mouse?.Flush();
 
                             SelectedTile = tile;
 
-                            Picture selected = GetPicture("Selected");
-                            selected.Region = tile.Region;
-                            selected.Visible = true;
+                            Picture? selected = GetPicture("Selected");
+                            if (selected != null)
+                            {
+                                selected.Region = tile.Region;
+                                selected.Visible = true;
+                            }
                         }
 
                         return true;
@@ -634,23 +698,29 @@ namespace Despicaville.Menus
                 {
                     if (InputManager.MouseWithin(tile.Region.ToRectangle))
                     {
-                        Picture highlight = GetPicture("Highlight");
-                        highlight.Region = tile.Region;
-                        highlight.DrawColor = Color.Blue;
-                        highlight.Visible = true;
+                        Picture? highlight = GetPicture("Highlight");
+                        if (highlight != null)
+                        {
+                            highlight.Region = tile.Region;
+                            highlight.DrawColor = Color.Blue;
+                            highlight.Visible = true;
+                        }
 
-                        GameUtil.Examine(this, tile.Texture.Name);
+                        GameUtil.Examine(this, tile.Texture?.Name);
 
                         if (InputManager.Mouse_LB_Pressed)
                         {
                             AssetManager.PlaySound_Random("Click");
-                            InputManager.Mouse.Flush();
+                            InputManager.Mouse?.Flush();
 
                             SelectedTile = tile;
 
-                            Picture selected = GetPicture("Selected");
-                            selected.Region = tile.Region;
-                            selected.Visible = true;
+                            Picture? selected = GetPicture("Selected");
+                            if (selected != null)
+                            {
+                                selected.Region = tile.Region;
+                                selected.Visible = true;
+                            }
                         }
 
                         return true;
@@ -663,10 +733,10 @@ namespace Despicaville.Menus
 
         private bool HoveringMapTile()
         {
-            Button layer = GetButton("Layer");
-            Tile tile = null;
+            Button? layer = GetButton("Layer");
+            Tile? tile = null;
 
-            switch (layer.Text)
+            switch (layer?.Text)
             {
                 case "Bottom":
                     foreach (Tile existing in BottomTiles.Tiles)
@@ -715,14 +785,17 @@ namespace Despicaville.Menus
 
             if (tile != null)
             {
-                Picture highlight = GetPicture("Highlight");
-                highlight.Region = tile.Region;
-                highlight.DrawColor = Color.White;
-                highlight.Visible = true;
+                Picture? highlight = GetPicture("Highlight");
+                if (highlight != null)
+                {
+                    highlight.Region = tile.Region;
+                    highlight.DrawColor = Color.White;
+                    highlight.Visible = true;
+                }
 
                 if (InputManager.Mouse_LB_Held)
                 {
-                    if (layer.Text == "Bottom")
+                    if (layer?.Text == "Bottom")
                     {
                         RemovingTiles = false;
                     }
@@ -742,11 +815,11 @@ namespace Despicaville.Menus
                         }
                     }
 
-                    ToggleTile(tile, layer.Text);
+                    ToggleTile(tile, layer?.Text);
                 }
                 else if (InputManager.Mouse_LB_Pressed)
                 {
-                    InputManager.Mouse.Flush();
+                    InputManager.Mouse?.Flush();
                     TileToggle = false;
                 }
 
@@ -759,7 +832,7 @@ namespace Despicaville.Menus
         private void CheckClick(Button button)
         {
             AssetManager.PlaySound_Random("Click");
-            InputManager.Mouse.Flush();
+            InputManager.Mouse?.Flush();
 
             if (button.Name == "Exit")
             {
@@ -830,21 +903,42 @@ namespace Despicaville.Menus
         private void CheckClick_Layer(Button button)
         {
             AssetManager.PlaySound_Random("Click");
-            InputManager.Mouse.Flush();
+            InputManager.Mouse?.Flush();
 
-            Button layer = GetButton("Layer");
-            layer.Text = button.Text;
-            layer.Enabled = true;
+            Button? layer = GetButton("Layer");
+            if (layer != null)
+            {
+                layer.Text = button.Text;
+                layer.Enabled = true;
+            }
 
             if (button.Text == "Room")
             {
-                GetLabel("RoomType").Visible = true;
-                GetButton("RoomType").Visible = true;
+                Label? roomType_Label = GetLabel("RoomType");
+                if (roomType_Label != null)
+                {
+                    roomType_Label.Visible = true;
+                }
+
+                Button? roomType_Button = GetButton("RoomType");
+                if (roomType_Button != null)
+                {
+                    roomType_Button.Visible = true;
+                }
             }
             else
             {
-                GetLabel("RoomType").Visible = false;
-                GetButton("RoomType").Visible = false;
+                Label? roomType_Label = GetLabel("RoomType");
+                if (roomType_Label != null)
+                {
+                    roomType_Label.Visible = false;
+                }
+
+                Button? roomType_Button = GetButton("RoomType");
+                if (roomType_Button != null)
+                {
+                    roomType_Button.Visible = false;
+                }
             }
 
             HideLayers();
@@ -853,11 +947,14 @@ namespace Despicaville.Menus
         private void CheckClick_RoomType(Button button)
         {
             AssetManager.PlaySound_Random("Click");
-            InputManager.Mouse.Flush();
+            InputManager.Mouse?.Flush();
 
-            Button roomType = GetButton("RoomType");
-            roomType.Text = button.Text;
-            roomType.Enabled = true;
+            Button? roomType = GetButton("RoomType");
+            if (roomType != null)
+            {
+                roomType.Text = button.Text;
+                roomType.Enabled = true;
+            }
 
             HideRoomTypes();
         }
@@ -865,23 +962,44 @@ namespace Despicaville.Menus
         private void CheckClick_MapType(Button button)
         {
             AssetManager.PlaySound_Random("Click");
-            InputManager.Mouse.Flush();
+            InputManager.Mouse?.Flush();
 
-            Button mapType = GetButton("MapType");
-            mapType.Text = button.Text;
-            mapType.Enabled = true;
+            Button? mapType = GetButton("MapType");
+            if (mapType != null)
+            {
+                mapType.Text = button.Text;
+                mapType.Enabled = true;
+            }
 
             if (button.Text == "Residential" ||
                 button.Text == "Commercial" ||
                 button.Text == "Service")
             {
-                GetLabel("MapFacing").Visible = true;
-                GetButton("MapFacing").Visible = true;
+                Label? mapFacing_Label = GetLabel("MapFacing");
+                if (mapFacing_Label != null)
+                {
+                    mapFacing_Label.Visible = true;
+                }
+
+                Button? mapFacing_Button = GetButton("MapFacing");
+                if (mapFacing_Button != null)
+                {
+                    mapFacing_Button.Visible = true;
+                }
             }
             else
             {
-                GetLabel("MapFacing").Visible = false;
-                GetButton("MapFacing").Visible = false;
+                Label? mapFacing_Label = GetLabel("MapFacing");
+                if (mapFacing_Label != null)
+                {
+                    mapFacing_Label.Visible = false;
+                }
+
+                Button? mapFacing_Button = GetButton("MapFacing");
+                if (mapFacing_Button != null)
+                {
+                    mapFacing_Button.Visible = false;
+                }
             }
 
             HideMapTypes();
@@ -890,18 +1008,27 @@ namespace Despicaville.Menus
         private void CheckClick_MapFacing(Button button)
         {
             AssetManager.PlaySound_Random("Click");
-            InputManager.Mouse.Flush();
+            InputManager.Mouse?.Flush();
 
-            Button mapFacing = GetButton("MapFacing");
-            mapFacing.Text = button.Text;
-            mapFacing.Enabled = true;
+            Button? mapFacing = GetButton("MapFacing");
+            if (mapFacing != null)
+            {
+                mapFacing.Text = button.Text;
+                mapFacing.Enabled = true;
+            }
 
             HideMapFacings();
         }
 
-        private void ToggleTile(Tile tile, string layer)
+        private void ToggleTile(Tile? tile, string? layer)
         {
-            Picture mapWindow = GetPicture("MapWindow");
+            Picture? mapWindow = GetPicture("MapWindow");
+            if (mapWindow?.Region == null ||
+                tile == null)
+            {
+                return;
+            }
+
             float width = mapWindow.Region.Width / 20;
             float height = mapWindow.Region.Height / 20;
 
@@ -943,12 +1070,19 @@ namespace Despicaville.Menus
                     }
                     else
                     {
-                        string name = "RoomType_" + GetButton("RoomType").Text;
-                        tile.Name = name;
-                        tile.Texture = AssetManager.Textures[name];
+                        Button? roomType = GetButton("RoomType");
+                        if (roomType != null)
+                        {
+                            string name = "RoomType_" + roomType.Text;
+                            tile.Name = name;
+                            tile.Texture = Handler.GetTexture(name);
+                        }
                     }
 
-                    tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+                    if (tile.Texture != null)
+                    {
+                        tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+                    }
 
                     if (SelectedTile != null)
                     {
@@ -963,40 +1097,81 @@ namespace Despicaville.Menus
             Visible = false;
             Active = false;
 
-            SceneManager.GetScene("Title").Menu.GetPicture("Title").Visible = true;
+            Picture? title = SceneManager.GetScene("Title")?.Menu?.GetPicture("Title");
+            if (title != null)
+            {
+                title.Visible = true;
+            }
 
-            Menu main = MenuManager.GetMenu("Main");
-            main.Active = true;
-            main.Visible = true;
+            Menu? main = MenuManager.GetMenu("Main");
+            if (main != null)
+            {
+                main.Active = true;
+                main.Visible = true;
+            }
         }
 
         private void NewMap()
         {
             GenMap();
 
-            GetButton("Layer").Text = "Bottom";
-            GetButton("MapType").Text = "Park";
+            Button? layer = GetButton("Layer");
+            if (layer != null)
+            {
+                layer.Text = "Bottom";
+            }
 
-            Button roomType = GetButton("RoomType");
-            roomType.Text = "Bathroom";
-            roomType.Visible = false;
+            Button? mapType = GetButton("MapType");
+            if (mapType != null)
+            {
+                mapType.Text = "Park";
+            }
 
-            Button mapFacing = GetButton("MapFacing");
-            mapFacing.Text = "North";
-            mapFacing.Visible = false;
+            Label? roomType_Label = GetLabel("RoomType");
+            if (roomType_Label != null)
+            {
+                roomType_Label.Visible = false;
+            }
+
+            Button? roomType = GetButton("RoomType");
+            if (roomType != null)
+            {
+                roomType.Text = "Bathroom";
+                roomType.Visible = false;
+            }
+
+            Label? mapFacing_Label = GetLabel("MapFacing");
+            if (mapFacing_Label != null)
+            {
+                mapFacing_Label.Visible = false;
+            }
+
+            Button? mapFacing = GetButton("MapFacing");
+            if (mapFacing != null)
+            {
+                mapFacing.Text = "North";
+                mapFacing.Visible = false;
+            }
 
             current_file = "";
-            GetLabel("MapFile").Text = "Map File: New";
+
+            Label? mapFile = GetLabel("MapFile");
+            if (mapFile != null)
+            {
+                mapFile.Text = "Map File: New";
+            }
         }
 
         private void OpenMap()
         {
-            System.Windows.Forms.OpenFileDialog openFile = new System.Windows.Forms.OpenFileDialog();
-            openFile.InitialDirectory = Path.Combine(AssetManager.Directories["Mods"], "Core", "Maps");
-            openFile.Filter = "Despicaville Map | *.blockmap";
-            openFile.DefaultExt = ".blockmap";
-            openFile.Title = "Open Despicaville Map";
-            openFile.FileName = "";
+            System.Windows.Forms.OpenFileDialog openFile = new()
+            {
+                InitialDirectory = Path.Combine(AssetManager.Directories["Mods"], "Core", "Maps"),
+                Filter = "Despicaville Map | *.blockmap",
+                DefaultExt = ".blockmap",
+                Title = "Open Despicaville Map",
+                FileName = ""
+            };
 
             if (openFile.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -1008,7 +1183,12 @@ namespace Despicaville.Menus
                 ParseTiles(openFile.FileName);
 
                 current_file = Path.GetFileNameWithoutExtension(openFile.FileName);
-                GetLabel("MapFile").Text = "Map File: " + current_file;
+
+                Label? mapFile = GetLabel("MapFile");
+                if (mapFile != null)
+                {
+                    mapFile.Text = "Map File: " + current_file;
+                }
             }
         }
 
@@ -1016,12 +1196,14 @@ namespace Despicaville.Menus
         {
             string fileName = "";
 
-            System.Windows.Forms.SaveFileDialog saveFile = new System.Windows.Forms.SaveFileDialog();
-            saveFile.InitialDirectory = Path.Combine(AssetManager.Directories["Mods"], "Core", "Maps");
-            saveFile.Filter = "Despicaville Map | *.blockmap";
-            saveFile.DefaultExt = ".blockmap";
-            saveFile.Title = "Save Despicaville Map";
-            saveFile.FileName = current_file + ".blockmap";
+            System.Windows.Forms.SaveFileDialog saveFile = new()
+            {
+                InitialDirectory = Path.Combine(AssetManager.Directories["Mods"], "Core", "Maps"),
+                Filter = "Despicaville Map | *.blockmap",
+                DefaultExt = ".blockmap",
+                Title = "Save Despicaville Map",
+                FileName = current_file + ".blockmap"
+            };
 
             if (saveFile.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -1032,14 +1214,26 @@ namespace Despicaville.Menus
             {
                 WriteStream(fileName);
 
+                if (Writer == null)
+                {
+                    return;
+                }
+
                 if (BottomTiles.Tiles.Count > 0)
                 {
                     EnterNode("Map");
 
-                    EnterNode("Globals");
-                    Writer.WriteAttributeString("Type", GetButton("MapType").Text);
-                    Writer.WriteAttributeString("Direction", GetButton("MapFacing").Text);
-                    ExitNode();
+                    Button? mapType = GetButton("MapType");
+                    Button? mapFacing = GetButton("MapFacing");
+
+                    if (mapType != null &&
+                        mapFacing != null)
+                    {
+                        EnterNode("Globals");
+                        Writer.WriteAttributeString("Type", mapType.Text);
+                        Writer.WriteAttributeString("Direction", mapFacing.Text);
+                        ExitNode();
+                    }
 
                     EnterNode("BottomTiles");
                     foreach (Tile tile in BottomTiles.Tiles)
@@ -1081,7 +1275,7 @@ namespace Despicaville.Menus
                     }
                     ExitNode();
 
-                    Map rooms = new Map
+                    Map rooms = new()
                     {
                         Name = "Rooms"
                     };
@@ -1095,7 +1289,7 @@ namespace Despicaville.Menus
                             bool hasRoom = HasRoom(rooms, tile);
                             if (!hasRoom)
                             {
-                                Layer room = new Layer
+                                Layer room = new()
                                 {
                                     Name = tile.Name,
                                     Columns = 20,
@@ -1154,20 +1348,25 @@ namespace Despicaville.Menus
 
         private void ShowLayers(Button layer)
         {
+            if (layer.Region == null)
+            {
+                return;
+            }
+
             layer.Enabled = false;
 
-            Texture2D frame = AssetManager.Textures["ButtonFrame"];
+            Texture2D? buttonFrame = Handler.GetTexture("ButtonFrame");
+            Texture2D? buttonFrame_Highlight = Handler.GetTexture("ButtonFrame_Highlight");
 
             for (int i = 0; i < Layers.Length; i++)
             {
-                Buttons_Layer.Add(new Button
+                Button button = new()
                 {
                     ID = Handler.GetID(),
                     Font = AssetManager.Fonts["ControlFont"],
                     Name = "Layer_" + Layers[i],
-                    Texture = frame,
-                    Texture_Highlight = AssetManager.Textures["ButtonFrame_Highlight"],
-                    Image = new Rectangle(0, 0, frame.Width, frame.Height),
+                    Texture = buttonFrame,
+                    Texture_Highlight = buttonFrame_Highlight,
                     Region = new Region(layer.Region.X, layer.Region.Y + (layer.Region.Height * (i + 1)), layer.Region.Width, layer.Region.Height),
                     DrawColor = Color.White,
                     DrawColor_Selected = Color.White,
@@ -1176,34 +1375,52 @@ namespace Despicaville.Menus
                     TextColor_Selected = Color.Red,
                     Enabled = true,
                     Visible = true
-                });
+                };
+
+                if (button.Texture != null)
+                {
+                    button.Image = new Rectangle(0, 0, button.Texture.Width, button.Texture.Height);
+                }
+
+                Buttons_Layer.Add(button);
             }
         }
 
         private void HideLayers()
         {
-            InputManager.Mouse.Flush();
-            GetButton("Layer").Enabled = true;
+            InputManager.Mouse?.Flush();
+
+            Button? layer = GetButton("Layer");
+            if (layer != null)
+            {
+                layer.Enabled = true;
+            }
+            
             Buttons_Layer.Clear();
             Selecting_Layer = false;
         }
 
         private void ShowRoomTypes(Button roomType)
         {
+            if (roomType.Region == null)
+            {
+                return;
+            }
+
             roomType.Enabled = false;
 
-            Texture2D frame = AssetManager.Textures["ButtonFrame"];
+            Texture2D? buttonFrame = Handler.GetTexture("ButtonFrame");
+            Texture2D? buttonFrame_Highlight = Handler.GetTexture("ButtonFrame_Highlight");
 
             for (int i = 0; i < RoomTypes.Count; i++)
             {
-                Buttons_RoomType.Add(new Button
+                Button button = new()
                 {
                     ID = Handler.GetID(),
                     Font = AssetManager.Fonts["ControlFont"],
                     Name = "RoomType_" + RoomTypes[i],
-                    Texture = frame,
-                    Texture_Highlight = AssetManager.Textures["ButtonFrame_Highlight"],
-                    Image = new Rectangle(0, 0, frame.Width, frame.Height),
+                    Texture = buttonFrame,
+                    Texture_Highlight = buttonFrame_Highlight,
                     Region = new Region(roomType.Region.X, roomType.Region.Y + (roomType.Region.Height * (i + 1)), roomType.Region.Width, roomType.Region.Height),
                     DrawColor = Color.White,
                     DrawColor_Selected = Color.White,
@@ -1212,34 +1429,52 @@ namespace Despicaville.Menus
                     TextColor_Selected = Color.Red,
                     Enabled = true,
                     Visible = true
-                });
+                };
+
+                if (button.Texture != null)
+                {
+                    button.Image = new Rectangle(0, 0, button.Texture.Width, button.Texture.Height);
+                }
+
+                Buttons_RoomType.Add(button);
             }
         }
 
         private void HideRoomTypes()
         {
-            InputManager.Mouse.Flush();
-            GetButton("RoomType").Enabled = true;
+            InputManager.Mouse?.Flush();
+
+            Button? roomType = GetButton("RoomType");
+            if (roomType != null)
+            {
+                roomType.Enabled = true;
+            }
+            
             Buttons_RoomType.Clear();
             Selecting_RoomType = false;
         }
 
         private void ShowMapTypes(Button mapType)
         {
+            if (mapType.Region == null)
+            {
+                return;
+            }
+
             mapType.Enabled = false;
 
-            Texture2D frame = AssetManager.Textures["ButtonFrame"];
+            Texture2D? buttonFrame = Handler.GetTexture("ButtonFrame");
+            Texture2D? buttonFrame_Highlight = Handler.GetTexture("ButtonFrame_Highlight");
 
             for (int i = 0; i < MapTypes.Length; i++)
             {
-                Buttons_MapType.Add(new Button
+                Button button = new()
                 {
                     ID = Handler.GetID(),
                     Font = AssetManager.Fonts["ControlFont"],
                     Name = "MapType_" + MapTypes[i],
-                    Texture = frame,
-                    Texture_Highlight = AssetManager.Textures["ButtonFrame_Highlight"],
-                    Image = new Rectangle(0, 0, frame.Width, frame.Height),
+                    Texture = buttonFrame,
+                    Texture_Highlight = buttonFrame_Highlight,
                     Region = new Region(mapType.Region.X, mapType.Region.Y + (mapType.Region.Height * (i + 1)), mapType.Region.Width, mapType.Region.Height),
                     DrawColor = Color.White,
                     DrawColor_Selected = Color.White,
@@ -1248,34 +1483,52 @@ namespace Despicaville.Menus
                     TextColor_Selected = Color.Red,
                     Enabled = true,
                     Visible = true
-                });
+                };
+
+                if (button.Texture != null)
+                {
+                    button.Image = new Rectangle(0, 0, button.Texture.Width, button.Texture.Height);
+                }
+
+                Buttons_MapType.Add(button);
             }
         }
 
         private void HideMapTypes()
         {
-            InputManager.Mouse.Flush();
-            GetButton("MapType").Enabled = true;
+            InputManager.Mouse?.Flush();
+
+            Button? mapType = GetButton("MapType");
+            if (mapType != null)
+            {
+                mapType.Enabled = true;
+            }
+            
             Buttons_MapType.Clear();
             Selecting_MapType = false;
         }
 
         private void ShowMapFacings(Button mapFacing)
         {
+            if (mapFacing.Region == null)
+            {
+                return;
+            }
+
             mapFacing.Enabled = false;
 
-            Texture2D frame = AssetManager.Textures["ButtonFrame"];
+            Texture2D? buttonFrame = Handler.GetTexture("ButtonFrame");
+            Texture2D? buttonFrame_Highlight = Handler.GetTexture("ButtonFrame_Highlight");
 
             for (int i = 0; i < MapFacings.Length; i++)
             {
-                Buttons_MapFacing.Add(new Button
+                Button button = new()
                 {
                     ID = Handler.GetID(),
                     Font = AssetManager.Fonts["ControlFont"],
                     Name = "MapFacing_" + MapFacings[i],
-                    Texture = frame,
-                    Texture_Highlight = AssetManager.Textures["ButtonFrame_Highlight"],
-                    Image = new Rectangle(0, 0, frame.Width, frame.Height),
+                    Texture = buttonFrame,
+                    Texture_Highlight = buttonFrame_Highlight,
                     Region = new Region(mapFacing.Region.X, mapFacing.Region.Y + (mapFacing.Region.Height * (i + 1)), mapFacing.Region.Width, mapFacing.Region.Height),
                     DrawColor = Color.White,
                     DrawColor_Selected = Color.White,
@@ -1284,21 +1537,37 @@ namespace Despicaville.Menus
                     TextColor_Selected = Color.Red,
                     Enabled = true,
                     Visible = true
-                });
+                };
+
+                if (button.Texture != null)
+                {
+                    button.Image = new Rectangle(0, 0, button.Texture.Width, button.Texture.Height);
+                }
+
+                Buttons_MapFacing.Add(button);
             }
         }
 
         private void HideMapFacings()
         {
-            InputManager.Mouse.Flush();
-            GetButton("MapFacing").Enabled = true;
+            InputManager.Mouse?.Flush();
+
+            Button? mapFacing = GetButton("MapFacing");
+            if (mapFacing != null)
+            {
+                mapFacing.Enabled = true;
+            }
+            
             Buttons_MapFacing.Clear();
             Selecting_MapFacing = false;
         }
 
         private void ScrollTiles_Up(Picture tileWindow)
         {
-            Picture selected = GetPicture("Selected");
+            if (tileWindow.Region == null)
+            {
+                return;
+            }
 
             float width = (tileWindow.Region.Width + 8) / 10;
 
@@ -1320,7 +1589,9 @@ namespace Despicaville.Menus
                     tile.Visible = true;
                 }
 
-                if (selected.Region.X == tile.Region.X &&
+                Picture? selected = GetPicture("Selected");
+                if (selected?.Region != null &&
+                    selected.Region.X == tile.Region.X &&
                     selected.Region.Y == tile.Region.Y)
                 {
                     selected.Visible = tile.Visible;
@@ -1330,7 +1601,10 @@ namespace Despicaville.Menus
 
         private void ScrollTiles_Down(Picture tileWindow)
         {
-            Picture selected = GetPicture("Selected");
+            if (tileWindow.Region == null)
+            {
+                return;
+            }
 
             float width = (tileWindow.Region.Width + 8) / 10;
 
@@ -1352,7 +1626,9 @@ namespace Despicaville.Menus
                     tile.Visible = true;
                 }
 
-                if (selected.Region.X == tile.Region.X &&
+                Picture? selected = GetPicture("Selected");
+                if (selected?.Region != null &&
+                    selected.Region.X == tile.Region.X &&
                     selected.Region.Y == tile.Region.Y)
                 {
                     selected.Visible = tile.Visible;
@@ -1362,7 +1638,10 @@ namespace Despicaville.Menus
 
         private void ScrollFurniture_Up(Picture objectWindow)
         {
-            Picture selected = GetPicture("Selected");
+            if (objectWindow.Region == null)
+            {
+                return;
+            }
 
             float width = (objectWindow.Region.Width + 8) / 10;
 
@@ -1384,7 +1663,9 @@ namespace Despicaville.Menus
                     tile.Visible = true;
                 }
 
-                if (selected.Region.X == tile.Region.X &&
+                Picture? selected = GetPicture("Selected");
+                if (selected?.Region != null &&
+                    selected.Region.X == tile.Region.X &&
                     selected.Region.Y == tile.Region.Y)
                 {
                     selected.Visible = tile.Visible;
@@ -1394,7 +1675,10 @@ namespace Despicaville.Menus
 
         private void ScrollFurniture_Down(Picture objectWindow)
         {
-            Picture selected = GetPicture("Selected");
+            if (objectWindow.Region == null)
+            {
+                return;
+            }
 
             float width = (objectWindow.Region.Width + 8) / 10;
 
@@ -1416,7 +1700,9 @@ namespace Despicaville.Menus
                     tile.Visible = true;
                 }
 
-                if (selected.Region.X == tile.Region.X &&
+                Picture? selected = GetPicture("Selected");
+                if (selected?.Region != null &&
+                    selected.Region.X == tile.Region.X &&
                     selected.Region.Y == tile.Region.Y)
                 {
                     selected.Visible = tile.Visible;
@@ -1426,7 +1712,18 @@ namespace Despicaville.Menus
 
         private void GenMap()
         {
-            Picture mapWindow = GetPicture("MapWindow");
+            Picture? mapWindow = GetPicture("MapWindow");
+            if (mapWindow?.Region == null)
+            {
+                return;
+            }
+
+            Texture2D? texture = Handler.GetTexture("Grass");
+            if (texture == null)
+            {
+                return;
+            }
+
             float X = mapWindow.Region.X;
             float Y = mapWindow.Region.Y;
             float width = mapWindow.Region.Width / 20;
@@ -1456,8 +1753,6 @@ namespace Despicaville.Menus
                 Columns = 20,
                 Rows = 20
             };
-
-            Texture2D texture = AssetManager.Textures["Grass"];
 
             for (int y = 0; y < 20; y++)
             {
@@ -1505,7 +1800,7 @@ namespace Despicaville.Menus
         {
             NewMap();
 
-            DirectoryInfo modsDir = new DirectoryInfo(AssetManager.Directories["Mods"]);
+            DirectoryInfo modsDir = new(AssetManager.Directories["Mods"]);
             foreach (DirectoryInfo mod in modsDir.GetDirectories())
             {
                 LoadTiles(mod);
@@ -1514,13 +1809,17 @@ namespace Despicaville.Menus
 
             LoadFurniture();
 
-            DirectoryInfo dir = new DirectoryInfo(AssetManager.Directories["Textures"]);
+            DirectoryInfo dir = new(AssetManager.Directories["Textures"]);
             LoadRoomTypes(dir);
         }
 
         private void LoadTiles(DirectoryInfo TexturesDir)
         {
-            Picture tileWindow = GetPicture("TileWindow");
+            Picture? tileWindow = GetPicture("TileWindow");
+            if (tileWindow?.Region == null)
+            {
+                return;
+            }
 
             int x = 0;
             int y = 0;
@@ -1535,20 +1834,24 @@ namespace Despicaville.Menus
                     foreach (FileInfo file in sub_dir.GetFiles("*.png"))
                     {
                         string name = Path.GetFileNameWithoutExtension(file.FullName);
-                        Texture2D texture = AssetManager.Textures[name];
+                        Texture2D? texture = Handler.GetTexture(name);
 
-                        Tile tile = new Tile
+                        Tile tile = new()
                         {
                             Name = name,
                             Type = "Tile",
                             Location = new Location(x, y, 0),
                             Texture = texture,
-                            Image = new Rectangle(0, 0, texture.Width, texture.Height),
                             Region = new Region(X, Y, tileWidth, tileWidth),
                             Dimensions = new Dimension2(1, 1),
                             DrawColor = Color.White,
                             Visible = true
                         };
+
+                        if (tile.Texture != null)
+                        {
+                            tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+                        }
 
                         if (Y + tileWidth + 4 > tileWindow.Region.Y + tileWindow.Region.Height)
                         {
@@ -1576,13 +1879,21 @@ namespace Despicaville.Menus
             Tiles_BottomY = y - 9;
             if (Tiles_BottomY < 0)
             {
-                GetPicture("TileWindow_ArrowDown").Visible = false;
+                Picture? tileWindow_ArrowDown = GetPicture("TileWindow_ArrowDown");
+                if (tileWindow_ArrowDown != null)
+                {
+                    tileWindow_ArrowDown.Visible = false;
+                }
             }
         }
 
         private void LoadFurniture()
         {
-            Picture objectWindow = GetPicture("ObjectWindow");
+            Picture? objectWindow = GetPicture("ObjectWindow");
+            if (objectWindow?.Region == null)
+            {
+                return;
+            }
 
             int loc_x = 0;
             int loc_y = 0;
@@ -1594,6 +1905,10 @@ namespace Despicaville.Menus
             for (int i = 0; i < count; i++)
             {
                 Tile existing = Handler.Furniture[i];
+                if (existing.Texture == null)
+                {
+                    continue;
+                }
 
                 float width_scale = 1;
                 if (existing.Texture.Width > 128)
@@ -1621,7 +1936,7 @@ namespace Despicaville.Menus
                     }
                 }
 
-                Region region = new Region(X, Y, tileWidth * width_scale, tileWidth * height_scale);
+                Region region = new(X, Y, tileWidth * width_scale, tileWidth * height_scale);
 
                 bool okay = false;
                 while (!okay)
@@ -1674,7 +1989,7 @@ namespace Despicaville.Menus
 
                 if (okay)
                 {
-                    Tile tile = new Tile
+                    Tile tile = new()
                     {
                         Name = existing.Name,
                         Type = "Furniture",
@@ -1701,13 +2016,21 @@ namespace Despicaville.Menus
             Furniture_BottomY = loc_y - 8;
             if (Furniture_BottomY < 0)
             {
-                GetPicture("ObjectWindow_ArrowDown").Visible = false;
+                Picture? objectWindow_ArrowDown = GetPicture("ObjectWindow_ArrowDown");
+                if (objectWindow_ArrowDown != null)
+                {
+                    objectWindow_ArrowDown.Visible = false;
+                }
             }
         }
 
         private void LoadFoliage(DirectoryInfo TexturesDir)
         {
-            Picture objectWindow = GetPicture("ObjectWindow");
+            Picture? objectWindow = GetPicture("ObjectWindow");
+            if (objectWindow?.Region == null)
+            {
+                return;
+            }
 
             int loc_x = 0;
             int loc_y = 0;
@@ -1715,7 +2038,7 @@ namespace Despicaville.Menus
             float Y = objectWindow.Region.Y;
             float tileWidth = (objectWindow.Region.Width + 8) / 10;
 
-            List<string> Files = new List<string>();
+            List<string> Files = [];
 
             foreach (DirectoryInfo sub_dir in TexturesDir.GetDirectories())
             {
@@ -1734,16 +2057,16 @@ namespace Despicaville.Menus
             for (int i = 0; i < Files.Count; i++)
             {
                 string name = Files[i];
-                Texture2D texture = AssetManager.Textures[name];
+                Texture2D? texture = Handler.GetTexture(name);
 
                 float width_scale = 1;
-                if (texture.Width > 128)
+                if (texture?.Width > 128)
                 {
                     width_scale = texture.Width / 128;
                 }
 
                 float height_scale = 1;
-                if (texture.Height > 128)
+                if (texture?.Height > 128)
                 {
                     height_scale = texture.Height / 128;
                 }
@@ -1762,7 +2085,7 @@ namespace Despicaville.Menus
                     }
                 }
 
-                Region region = new Region(X, Y, tileWidth * width_scale, tileWidth * height_scale);
+                Region region = new(X, Y, tileWidth * width_scale, tileWidth * height_scale);
 
                 bool okay = false;
                 while (!okay)
@@ -1815,18 +2138,22 @@ namespace Despicaville.Menus
 
                 if (okay)
                 {
-                    Tile tile = new Tile
+                    Tile tile = new()
                     {
                         Name = name,
                         Type = "Furniture",
                         Location = new Location(loc_x, loc_y, 0),
                         Texture = texture,
-                        Image = new Rectangle(0, 0, texture.Width, texture.Height),
                         Region = region,
                         Dimensions = new Dimension2((int)width_scale, (int)height_scale),
                         DrawColor = Color.White,
                         Visible = true
                     };
+
+                    if (tile.Texture != null)
+                    {
+                        tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+                    }
 
                     if (tile.Name.Contains("Tree"))
                     {
@@ -1845,13 +2172,17 @@ namespace Despicaville.Menus
             Furniture_BottomY = loc_y - 8;
             if (Furniture_BottomY < 0)
             {
-                GetPicture("ObjectWindow_ArrowDown").Visible = false;
+                Picture? objectWindow_ArrowDown = GetPicture("ObjectWindow_ArrowDown");
+                if (objectWindow_ArrowDown != null)
+                {
+                    objectWindow_ArrowDown.Visible = false;
+                }
             }
         }
 
         private void LoadRoomTypes(DirectoryInfo TexturesDir)
         {
-            RoomTypes = new List<string>();
+            RoomTypes = [];
 
             foreach (DirectoryInfo sub_dir in TexturesDir.GetDirectories())
             {
@@ -1876,13 +2207,25 @@ namespace Despicaville.Menus
         {
             Clear();
 
+            Texture2D? frame = Handler.GetTexture("Frame");
+            Texture2D? frame_Full = Handler.GetTexture("Frame_Full");
+            Texture2D? buttonFrame = Handler.GetTexture("ButtonFrame");
+            Texture2D? buttonFrame_Highlight = Handler.GetTexture("ButtonFrame_Highlight");
+
+            Texture2D? white = Handler.GetTexture("White");
+            Texture2D? arrowIcon_Down = Handler.GetTexture("ArrowIcon_Down");
+            Texture2D? arrowIcon_Up = Handler.GetTexture("ArrowIcon_Up");
+
+            Texture2D? grid_Hover = Handler.GetTexture("Grid_Hover");
+            Texture2D? selection = Handler.GetTexture("Selection");
+
             AddButton(new ButtonOptions
             {
                 id = Handler.GetID(),
                 font = AssetManager.Fonts["ControlFont"],
                 name = "New",
-                texture = AssetManager.Textures["ButtonFrame"],
-                texture_highlight = AssetManager.Textures["ButtonFrame_Highlight"],
+                texture = buttonFrame,
+                texture_highlight = buttonFrame_Highlight,
                 draw_color = Color.White,
                 draw_color_selected = Color.White,
                 text = "New",
@@ -1897,8 +2240,8 @@ namespace Despicaville.Menus
                 id = Handler.GetID(),
                 font = AssetManager.Fonts["ControlFont"],
                 name = "Open",
-                texture = AssetManager.Textures["ButtonFrame"],
-                texture_highlight = AssetManager.Textures["ButtonFrame_Highlight"],
+                texture = buttonFrame,
+                texture_highlight = buttonFrame_Highlight,
                 draw_color = Color.White,
                 draw_color_selected = Color.White,
                 text = "Open",
@@ -1913,8 +2256,8 @@ namespace Despicaville.Menus
                 id = Handler.GetID(),
                 font = AssetManager.Fonts["ControlFont"],
                 name = "Save",
-                texture = AssetManager.Textures["ButtonFrame"],
-                texture_highlight = AssetManager.Textures["ButtonFrame_Highlight"],
+                texture = buttonFrame,
+                texture_highlight = buttonFrame_Highlight,
                 draw_color = Color.White,
                 draw_color_selected = Color.White,
                 text = "Save",
@@ -1929,8 +2272,8 @@ namespace Despicaville.Menus
                 id = Handler.GetID(),
                 font = AssetManager.Fonts["ControlFont"],
                 name = "Exit",
-                texture = AssetManager.Textures["ButtonFrame"],
-                texture_highlight = AssetManager.Textures["ButtonFrame_Highlight"],
+                texture = buttonFrame,
+                texture_highlight = buttonFrame_Highlight,
                 draw_color = Color.White,
                 draw_color_selected = Color.White,
                 text = "Exit",
@@ -1941,15 +2284,21 @@ namespace Despicaville.Menus
             });
 
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Layer", "Layer:", Color.White, new Region(0, 0, 0, 0), true);
-            GetLabel("Layer").Alignment_Horizontal = Alignment.Right;
+
+            Label? layer = GetLabel("Layer");
+            if (layer != null)
+            {
+                layer.Alignment_Horizontal = Alignment.Right;
+            }
+            
             AddButton(new ButtonOptions
             {
                 id = Handler.GetID(),
                 font = AssetManager.Fonts["ControlFont"],
                 name = "Layer",
-                texture = AssetManager.Textures["ButtonFrame"],
-                texture_highlight = AssetManager.Textures["ButtonFrame_Highlight"],
-                texture_disabled = AssetManager.Textures["ButtonFrame_Highlight"],
+                texture = buttonFrame,
+                texture_highlight = buttonFrame_Highlight,
+                texture_disabled = buttonFrame_Highlight,
                 draw_color = Color.White,
                 draw_color_selected = Color.White,
                 draw_color_disabled = new Color(32, 32, 32),
@@ -1962,15 +2311,21 @@ namespace Despicaville.Menus
             });
 
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "RoomType", "Room Type:", Color.White, new Region(0, 0, 0, 0), false);
-            GetLabel("RoomType").Alignment_Horizontal = Alignment.Right;
+
+            Label? roomType = GetLabel("RoomType");
+            if (roomType != null)
+            {
+                roomType.Alignment_Horizontal = Alignment.Right;
+            }
+            
             AddButton(new ButtonOptions
             {
                 id = Handler.GetID(),
                 font = AssetManager.Fonts["ControlFont"],
                 name = "RoomType",
-                texture = AssetManager.Textures["ButtonFrame"],
-                texture_highlight = AssetManager.Textures["ButtonFrame_Highlight"],
-                texture_disabled = AssetManager.Textures["ButtonFrame_Highlight"],
+                texture = buttonFrame,
+                texture_highlight = buttonFrame_Highlight,
+                texture_disabled = buttonFrame_Highlight,
                 draw_color = Color.White,
                 draw_color_selected = Color.White,
                 draw_color_disabled = new Color(32, 32, 32),
@@ -1983,15 +2338,21 @@ namespace Despicaville.Menus
             });
 
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "MapType", "Map Type:", Color.White, new Region(0, 0, 0, 0), true);
-            GetLabel("MapType").Alignment_Horizontal = Alignment.Right;
+
+            Label? mapType = GetLabel("MapType");
+            if (mapType != null)
+            {
+                mapType.Alignment_Horizontal = Alignment.Right;
+            }
+            
             AddButton(new ButtonOptions
             {
                 id = Handler.GetID(),
                 font = AssetManager.Fonts["ControlFont"],
                 name = "MapType",
-                texture = AssetManager.Textures["ButtonFrame"],
-                texture_highlight = AssetManager.Textures["ButtonFrame_Highlight"],
-                texture_disabled = AssetManager.Textures["ButtonFrame_Highlight"],
+                texture = buttonFrame,
+                texture_highlight = buttonFrame_Highlight,
+                texture_disabled = buttonFrame_Highlight,
                 draw_color = Color.White,
                 draw_color_selected = Color.White,
                 draw_color_disabled = new Color(32, 32, 32),
@@ -2004,15 +2365,21 @@ namespace Despicaville.Menus
             });
 
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "MapFacing", "Map Facing:", Color.White, new Region(0, 0, 0, 0), false);
-            GetLabel("MapFacing").Alignment_Horizontal = Alignment.Right;
+
+            Label? mapFacing = GetLabel("MapFacing");
+            if (mapFacing != null)
+            {
+                mapFacing.Alignment_Horizontal = Alignment.Right;
+            }
+            
             AddButton(new ButtonOptions
             {
                 id = Handler.GetID(),
                 font = AssetManager.Fonts["ControlFont"],
                 name = "MapFacing",
-                texture = AssetManager.Textures["ButtonFrame"],
-                texture_highlight = AssetManager.Textures["ButtonFrame_Highlight"],
-                texture_disabled = AssetManager.Textures["ButtonFrame_Highlight"],
+                texture = buttonFrame,
+                texture_highlight = buttonFrame_Highlight,
+                texture_disabled = buttonFrame_Highlight,
                 draw_color = Color.White,
                 draw_color_selected = Color.White,
                 draw_color_disabled = new Color(32, 32, 32),
@@ -2025,48 +2392,130 @@ namespace Despicaville.Menus
             });
 
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Tiles", "Tiles:", Color.White, new Region(0, 0, 0, 0), true);
-            GetLabel("Tiles").Alignment_Horizontal = Alignment.Left;
-            AddPicture(Handler.GetID(), "TileWindow", AssetManager.Textures["White"], new Region(0, 0, 0, 0), Color.White, true);
-            AddPicture(Handler.GetID(), "TileWindow_ArrowDown", AssetManager.Textures["ArrowIcon_Down"], new Region(0, 0, 0, 0), Color.White, true);
-            AddPicture(Handler.GetID(), "TileWindow_ArrowUp", AssetManager.Textures["ArrowIcon_Up"], new Region(0, 0, 0, 0), Color.White, false);
+
+            Label? tiles = GetLabel("Tiles");
+            if (tiles != null)
+            {
+                tiles.Alignment_Horizontal = Alignment.Left;
+            }
+            
+            AddPicture(Handler.GetID(), "TileWindow", white, new Region(0, 0, 0, 0), Color.White, true);
+            AddPicture(Handler.GetID(), "TileWindow_ArrowDown", arrowIcon_Down, new Region(0, 0, 0, 0), Color.White, true);
+            AddPicture(Handler.GetID(), "TileWindow_ArrowUp", arrowIcon_Up, new Region(0, 0, 0, 0), Color.White, false);
 
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Objects", "Objects:", Color.White, new Region(0, 0, 0, 0), true);
-            GetLabel("Objects").Alignment_Horizontal = Alignment.Left;
-            AddPicture(Handler.GetID(), "ObjectWindow", AssetManager.Textures["White"], new Region(0, 0, 0, 0), Color.White, true);
-            AddPicture(Handler.GetID(), "ObjectWindow_ArrowDown", AssetManager.Textures["ArrowIcon_Down"], new Region(0, 0, 0, 0), Color.White, true);
-            AddPicture(Handler.GetID(), "ObjectWindow_ArrowUp", AssetManager.Textures["ArrowIcon_Up"], new Region(0, 0, 0, 0), Color.White, false);
+
+            Label? objects = GetLabel("Objects");
+            if (objects != null)
+            {
+                objects.Alignment_Horizontal = Alignment.Left;
+            }
+            
+            AddPicture(Handler.GetID(), "ObjectWindow", white, new Region(0, 0, 0, 0), Color.White, true);
+            AddPicture(Handler.GetID(), "ObjectWindow_ArrowDown", arrowIcon_Down, new Region(0, 0, 0, 0), Color.White, true);
+            AddPicture(Handler.GetID(), "ObjectWindow_ArrowUp", arrowIcon_Up, new Region(0, 0, 0, 0), Color.White, false);
 
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "MapFile", "Map File: New", Color.White, new Region(0, 0, 0, 0), true);
-            GetLabel("MapFile").Alignment_Horizontal = Alignment.Left;
-            AddPicture(Handler.GetID(), "MapWindow", AssetManager.Textures["Frame_Full"], new Region(0, 0, 0, 0), Color.White, true);
 
-            AddPicture(Handler.GetID(), "Highlight", AssetManager.Textures["Grid_Hover"], new Region(0, 0, 0, 0), Color.Lime, false);
-            AddPicture(Handler.GetID(), "Selected", AssetManager.Textures["Selection"], new Region(0, 0, 0, 0), Color.Lime, false);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "", Color.White, AssetManager.Textures["Frame"], new Region(0, 0, 0, 0), false);
+            Label? mapFile = GetLabel("MapFile");
+            if (mapFile != null)
+            {
+                mapFile.Alignment_Horizontal = Alignment.Left;
+            }
+            
+            AddPicture(Handler.GetID(), "MapWindow", frame_Full, new Region(0, 0, 0, 0), Color.White, true);
 
+            AddPicture(Handler.GetID(), "Highlight", grid_Hover, new Region(0, 0, 0, 0), Color.Lime, false);
+            AddPicture(Handler.GetID(), "Selected", selection, new Region(0, 0, 0, 0), Color.Lime, false);
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "", Color.White, frame, new Region(0, 0, 0, 0), false);
+
+            if (Main.Game == null)
+            {
+                return;
+            }
             Resize(Main.Game.Resolution);
         }
 
         public override void Resize(Point point)
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+
             float buttonHeight = Main.Game.MenuSize_Y / 2;
 
-            GetButton("New").Region = new Region(0, 0, Main.Game.MenuSize_X * 2, buttonHeight);
-            GetButton("Open").Region = new Region(Main.Game.MenuSize_X * 2, 0, Main.Game.MenuSize_X * 2, buttonHeight);
-            GetButton("Save").Region = new Region(Main.Game.MenuSize_X * 4, 0, Main.Game.MenuSize_X * 2, buttonHeight);
-            GetButton("Exit").Region = new Region(Main.Game.MenuSize_X * 6, 0, Main.Game.MenuSize_X * 2, buttonHeight);
+            Button? new_Button = GetButton("New");
+            if (new_Button != null)
+            {
+                new_Button.Region = new Region(0, 0, Main.Game.MenuSize_X * 2, buttonHeight);
+            }
 
-            GetLabel("Layer").Region = new Region(Main.Game.MenuSize_X * 9, 0, Main.Game.MenuSize_X * 2, buttonHeight);
-            GetButton("Layer").Region = new Region(Main.Game.MenuSize_X * 11, 0, Main.Game.MenuSize_X * 3, buttonHeight);
+            Button? open = GetButton("Open");
+            if (open != null)
+            {
+                open.Region = new Region(Main.Game.MenuSize_X * 2, 0, Main.Game.MenuSize_X * 2, buttonHeight);
+            }
 
-            GetLabel("RoomType").Region = new Region(Main.Game.MenuSize_X * 15, 0, Main.Game.MenuSize_X * 2, buttonHeight);
-            GetButton("RoomType").Region = new Region(Main.Game.MenuSize_X * 17, 0, Main.Game.MenuSize_X * 3, buttonHeight);
+            Button? save = GetButton("Save");
+            if (save != null)
+            {
+                save.Region = new Region(Main.Game.MenuSize_X * 4, 0, Main.Game.MenuSize_X * 2, buttonHeight);
+            }
 
-            GetLabel("MapType").Region = new Region(Main.Game.MenuSize_X * 21, 0, Main.Game.MenuSize_X * 2, buttonHeight);
-            GetButton("MapType").Region = new Region(Main.Game.MenuSize_X * 23, 0, Main.Game.MenuSize_X * 3, buttonHeight);
+            Button? exit = GetButton("Exit");
+            if (exit != null)
+            {
+                exit.Region = new Region(Main.Game.MenuSize_X * 6, 0, Main.Game.MenuSize_X * 2, buttonHeight);
+            }
 
-            GetLabel("MapFacing").Region = new Region(Main.Game.MenuSize_X * 27, 0, Main.Game.MenuSize_X * 2, buttonHeight);
-            GetButton("MapFacing").Region = new Region(Main.Game.MenuSize_X * 29, 0, Main.Game.MenuSize_X * 3, buttonHeight);
+            Label? layer_Label = GetLabel("Layer");
+            if (layer_Label != null)
+            {
+                layer_Label.Region = new Region(Main.Game.MenuSize_X * 9, 0, Main.Game.MenuSize_X * 2, buttonHeight);
+            }
+
+            Button? layer_Button = GetButton("Layer");
+            if (layer_Button != null)
+            {
+                layer_Button.Region = new Region(Main.Game.MenuSize_X * 11, 0, Main.Game.MenuSize_X * 3, buttonHeight);
+            }
+
+            Label? roomType_Label = GetLabel("RoomType");
+            if (roomType_Label != null)
+            {
+                roomType_Label.Region = new Region(Main.Game.MenuSize_X * 15, 0, Main.Game.MenuSize_X * 2, buttonHeight);
+            }
+
+            Button? roomType_Button = GetButton("RoomType");
+            if (roomType_Button != null)
+            {
+                roomType_Button.Region = new Region(Main.Game.MenuSize_X * 17, 0, Main.Game.MenuSize_X * 3, buttonHeight);
+            }
+
+            Label? mapType_Label = GetLabel("MapType");
+            if (mapType_Label != null)
+            {
+                mapType_Label.Region = new Region(Main.Game.MenuSize_X * 21, 0, Main.Game.MenuSize_X * 2, buttonHeight);
+            }
+
+            Button? mapType_Button = GetButton("MapType");
+            if (mapType_Button != null)
+            {
+                mapType_Button.Region = new Region(Main.Game.MenuSize_X * 23, 0, Main.Game.MenuSize_X * 3, buttonHeight);
+            }
+
+            Label? mapFacing_Label = GetLabel("MapFacing");
+            if (mapFacing_Label != null)
+            {
+                mapFacing_Label.Region = new Region(Main.Game.MenuSize_X * 27, 0, Main.Game.MenuSize_X * 2, buttonHeight);
+            }
+
+            Button? mapFacing_Button = GetButton("MapFacing");
+            if (mapFacing_Button != null)
+            {
+                mapFacing_Button.Region = new Region(Main.Game.MenuSize_X * 29, 0, Main.Game.MenuSize_X * 3, buttonHeight);
+            }
 
             float Y = Main.Game.MenuSize_Y;
             int windowHeight = (int)(((Main.Game.ScreenHeight - Main.Game.MenuSize_Y) / 2) - Main.Game.MenuSize_Y);
@@ -2084,24 +2533,65 @@ namespace Despicaville.Menus
 
             int tileWidth = windowHeight / 10;
 
-            GetLabel("Tiles").Region = new Region(0, Y, Main.Game.MenuSize_X * 4, buttonHeight);
+            Label? tiles = GetLabel("Tiles");
+            if (tiles != null)
+            {
+                tiles.Region = new Region(0, Y, Main.Game.MenuSize_X * 4, buttonHeight);
+            }
 
-            Picture tileWindow = GetPicture("TileWindow");
-            tileWindow.Region = new Region(0, Y + buttonHeight, windowHeight, windowHeight);
+            Picture? tileWindow = GetPicture("TileWindow");
+            if (tileWindow != null)
+            {
+                tileWindow.Region = new Region(0, Y + buttonHeight, windowHeight, windowHeight);
+            }
 
-            GetPicture("TileWindow_ArrowUp").Region = new Region(tileWindow.Region.X + tileWindow.Region.Width, tileWindow.Region.Y, tileWidth, tileWidth);
-            GetPicture("TileWindow_ArrowDown").Region = new Region(tileWindow.Region.X + tileWindow.Region.Width, tileWindow.Region.Y + tileWindow.Region.Height - tileWidth, tileWidth, tileWidth);
+            Picture? tileWindow_ArrowUp = GetPicture("TileWindow_ArrowUp");
+            if (tileWindow_ArrowUp != null &&
+                tileWindow?.Region != null)
+            {
+                tileWindow_ArrowUp.Region = new Region(tileWindow.Region.X + tileWindow.Region.Width, tileWindow.Region.Y, tileWidth, tileWidth);
+            }
+            
+            Picture? tileWindow_ArrowDown = GetPicture("TileWindow_ArrowDown");
+            if (tileWindow_ArrowDown != null &&
+                tileWindow?.Region != null)
+            {
+                tileWindow_ArrowDown.Region = new Region(tileWindow.Region.X + tileWindow.Region.Width, tileWindow.Region.Y + tileWindow.Region.Height - tileWidth, tileWidth, tileWidth);
+            }
 
             Y = Main.Game.MenuSize_Y + windowHeight + (buttonHeight * 2);
-            GetLabel("Objects").Region = new Region(0, Y, Main.Game.MenuSize_X * 4, buttonHeight);
 
-            Picture objectWindow = GetPicture("ObjectWindow");
-            objectWindow.Region = new Region(0, Y + buttonHeight, windowHeight, windowHeight);
+            Label? objects = GetLabel("Objects");
+            if (objects != null)
+            {
+                objects.Region = new Region(0, Y, Main.Game.MenuSize_X * 4, buttonHeight);
+            }
 
-            GetPicture("ObjectWindow_ArrowUp").Region = new Region(objectWindow.Region.X + objectWindow.Region.Width, objectWindow.Region.Y, tileWidth, tileWidth);
-            GetPicture("ObjectWindow_ArrowDown").Region = new Region(objectWindow.Region.X + objectWindow.Region.Width, objectWindow.Region.Y + objectWindow.Region.Height - tileWidth, tileWidth, tileWidth);
+            Picture? objectWindow = GetPicture("ObjectWindow");
+            if (objectWindow != null)
+            {
+                objectWindow.Region = new Region(0, Y + buttonHeight, windowHeight, windowHeight);
+            }
 
-            GetLabel("MapFile").Region = new Region(Main.Game.MenuSize_X * 10, Main.Game.MenuSize_Y, Main.Game.MenuSize_X * 4, buttonHeight);
+            Picture? objectWindow_ArrowUp = GetPicture("ObjectWindow_ArrowUp");
+            if (objectWindow_ArrowUp != null &&
+                objectWindow?.Region != null)
+            {
+                objectWindow_ArrowUp.Region = new Region(objectWindow.Region.X + objectWindow.Region.Width, objectWindow.Region.Y, tileWidth, tileWidth);
+            }
+            
+            Picture? objectWindow_ArrowDown = GetPicture("ObjectWindow_ArrowDown");
+            if (objectWindow_ArrowDown != null &&
+                objectWindow?.Region != null)
+            {
+                objectWindow_ArrowDown.Region = new Region(objectWindow.Region.X + objectWindow.Region.Width, objectWindow.Region.Y + objectWindow.Region.Height - tileWidth, tileWidth, tileWidth);
+            }
+
+            Label? mapFile = GetLabel("MapFile");
+            if (mapFile != null)
+            {
+                mapFile.Region = new Region(Main.Game.MenuSize_X * 10, Main.Game.MenuSize_Y, Main.Game.MenuSize_X * 4, buttonHeight);
+            }
 
             int mapHeight = (int)(Main.Game.ScreenHeight - Main.Game.MenuSize_Y - buttonHeight);
             for (int i = 0; i < mapHeight; i++)
@@ -2115,7 +2605,12 @@ namespace Despicaville.Menus
                     break;
                 }
             }
-            GetPicture("MapWindow").Region = new Region(Main.Game.MenuSize_X * 10, Main.Game.MenuSize_Y + buttonHeight, mapHeight, mapHeight);
+
+            Picture? mapWindow = GetPicture("MapWindow");
+            if (mapWindow != null)
+            {
+                mapWindow.Region = new Region(Main.Game.MenuSize_X * 10, Main.Game.MenuSize_Y + buttonHeight, mapHeight, mapHeight);
+            }
         }
 
         #endregion
@@ -2125,25 +2620,43 @@ namespace Despicaville.Menus
         private void WriteStream(string path)
         {
             SaveStream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
-            XmlWriterSettings xmlWriterSettings = new XmlWriterSettings();
-            xmlWriterSettings.Indent = true;
-            xmlWriterSettings.IndentChars = "\t";
+            XmlWriterSettings xmlWriterSettings = new()
+            {
+                Indent = true,
+                IndentChars = "\t"
+            };
             Writer = XmlWriter.Create(SaveStream, xmlWriterSettings);
             Writer.WriteStartDocument();
         }
 
         private void EnterNode(string elementName)
         {
+            if (Writer == null)
+            {
+                return;
+            }
+
             Writer.WriteStartElement(elementName);
         }
 
         private void ExitNode()
         {
+            if (Writer == null)
+            {
+                return;
+            }
+
             Writer.WriteEndElement();
         }
 
         private void FinalizeWriting()
         {
+            if (Writer == null ||
+                SaveStream == null)
+            {
+                return;
+            }
+
             Writer.WriteEndDocument();
             Writer.Close();
             SaveStream.Close();
@@ -2151,7 +2664,7 @@ namespace Despicaville.Menus
 
         private void ParseTiles(string file)
         {
-            using (XmlTextReader reader = new XmlTextReader(File.OpenRead(file)))
+            using (XmlTextReader reader = new(File.OpenRead(file)))
             {
                 while (reader.Read())
                 {
@@ -2206,7 +2719,43 @@ namespace Despicaville.Menus
                 {
                     case "Type":
                         convert_coords = false;
-                        GetButton("MapType").Text = reader.Value;
+
+                        Button? mapType = GetButton("MapType");
+                        if (mapType != null)
+                        {
+                            mapType.Text = reader.Value;
+
+                            if (mapType.Text == "Residential" ||
+                                mapType.Text == "Commercial" ||
+                                mapType.Text == "Service")
+                            {
+                                Label? mapFacing_Label = GetLabel("MapFacing");
+                                if (mapFacing_Label != null)
+                                {
+                                    mapFacing_Label.Visible = true;
+                                }
+
+                                Button? mapFacing_Button = GetButton("MapFacing");
+                                if (mapFacing_Button != null)
+                                {
+                                    mapFacing_Button.Visible = true;
+                                }
+                            }
+                            else
+                            {
+                                Label? mapFacing_Label = GetLabel("MapFacing");
+                                if (mapFacing_Label != null)
+                                {
+                                    mapFacing_Label.Visible = false;
+                                }
+
+                                Button? mapFacing_Button = GetButton("MapFacing");
+                                if (mapFacing_Button != null)
+                                {
+                                    mapFacing_Button.Visible = false;
+                                }
+                            }
+                        }
                         break;
 
                     case "Name":
@@ -2214,7 +2763,11 @@ namespace Despicaville.Menus
                         break;
 
                     case "Direction":
-                        GetButton("MapFacing").Text = reader.Value;
+                        Button? mapFacing = GetButton("MapFacing");
+                        if (mapFacing != null)
+                        {
+                            mapFacing.Text = reader.Value;
+                        }
                         break;
                 }
             }
@@ -2222,8 +2775,6 @@ namespace Despicaville.Menus
 
         private void VisitBottomTiles(XmlTextReader reader)
         {
-            Tile tile = null;
-
             while (reader.Read())
             {
                 if (reader.Name == "BottomTiles" && reader.NodeType == XmlNodeType.EndElement)
@@ -2232,7 +2783,7 @@ namespace Despicaville.Menus
                 switch (reader.Name)
                 {
                     case "BottomTile":
-                        tile = new Tile();
+                        Tile tile = new();
                         VisitBottomTile(reader, tile);
                         break;
                 }
@@ -2250,8 +2801,11 @@ namespace Despicaville.Menus
 
                         if (!string.IsNullOrEmpty(tile.Name))
                         {
-                            tile.Texture = AssetManager.Textures[reader.Value];
-                            tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+                            tile.Texture = Handler.GetTexture(reader.Value);
+                            if (tile.Texture != null)
+                            {
+                                tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+                            }
                         }
 
                         tile.DrawColor = Color.White;
@@ -2274,23 +2828,26 @@ namespace Despicaville.Menus
                             tile.Location = new Location(x, y, 0);
                         }
 
-                        Picture mapWindow = GetPicture("MapWindow");
-                        float X = mapWindow.Region.X;
-                        float Y = mapWindow.Region.Y;
-                        float width = mapWindow.Region.Width / 20;
-                        float height = mapWindow.Region.Height / 20;
-
-                        tile.Region = new Region(X + (tile.Location.X * width), Y + (tile.Location.Y * height), width, height);
-                        tile.Visible = true;
-
-                        for (int i = 0; i < BottomTiles.Tiles.Count; i++)
+                        Picture? mapWindow = GetPicture("MapWindow");
+                        if (mapWindow?.Region != null)
                         {
-                            Tile existing = BottomTiles.Tiles[i];
-                            if (existing.Location.X == tile.Location.X &&
-                                existing.Location.Y == tile.Location.Y)
+                            float X = mapWindow.Region.X;
+                            float Y = mapWindow.Region.Y;
+                            float width = mapWindow.Region.Width / 20;
+                            float height = mapWindow.Region.Height / 20;
+
+                            tile.Region = new(X + (tile.Location.X * width), Y + (tile.Location.Y * height), width, height);
+                            tile.Visible = true;
+
+                            for (int i = 0; i < BottomTiles.Tiles.Count; i++)
                             {
-                                BottomTiles.Tiles[i] = tile;
-                                break;
+                                Tile existing = BottomTiles.Tiles[i];
+                                if (existing.Location.X == tile.Location.X &&
+                                    existing.Location.Y == tile.Location.Y)
+                                {
+                                    BottomTiles.Tiles[i] = tile;
+                                    break;
+                                }
                             }
                         }
                         break;
@@ -2300,8 +2857,6 @@ namespace Despicaville.Menus
 
         private void VisitMiddleTiles(XmlTextReader reader)
         {
-            Tile tile = null;
-
             while (reader.Read())
             {
                 if (reader.Name == "MiddleTiles" && reader.NodeType == XmlNodeType.EndElement)
@@ -2310,7 +2865,7 @@ namespace Despicaville.Menus
                 switch (reader.Name)
                 {
                     case "MiddleTile":
-                        tile = new Tile();
+                        Tile tile = new();
                         VisitMiddleTile(reader, tile);
                         break;
                 }
@@ -2331,7 +2886,8 @@ namespace Despicaville.Menus
                             for (int i = 0; i < count; i++)
                             {
                                 Tile furniture = Handler.Furniture[i];
-                                if (furniture.Texture.Name == name)
+                                if (furniture.Texture != null &&
+                                    furniture.Texture.Name == name)
                                 {
                                     tile.Name = furniture.Name;
                                     tile.Direction = furniture.Direction;
@@ -2363,34 +2919,37 @@ namespace Despicaville.Menus
                             tile.Location = new Location(x, y, 0);
                         }
 
-                        Picture mapWindow = GetPicture("MapWindow");
-                        float X = mapWindow.Region.X;
-                        float Y = mapWindow.Region.Y;
-                        float width = mapWindow.Region.Width / 20;
-                        float height = mapWindow.Region.Height / 20;
-
-                        tile.Region = new Region(X + (tile.Location.X * width), Y + (tile.Location.Y * height), width, height);
-                        tile.Visible = true;
-
-                        for (int i = 0; i < Furniture.Count; i++)
+                        Picture? mapWindow = GetPicture("MapWindow");
+                        if (mapWindow?.Region != null)
                         {
-                            Tile furniture = Furniture[i];
-                            if (furniture.Name == tile.Name &&
-                                furniture.Direction == tile.Direction)
+                            float X = mapWindow.Region.X;
+                            float Y = mapWindow.Region.Y;
+                            float width = mapWindow.Region.Width / 20;
+                            float height = mapWindow.Region.Height / 20;
+
+                            tile.Region = new Region(X + (tile.Location.X * width), Y + (tile.Location.Y * height), width, height);
+                            tile.Visible = true;
+
+                            for (int i = 0; i < Furniture.Count; i++)
                             {
-                                tile.Region = new Region(tile.Region.X, tile.Region.Y, width * furniture.Dimensions.Width, height * furniture.Dimensions.Height);
-                                break;
+                                Tile furniture = Furniture[i];
+                                if (furniture.Name == tile.Name &&
+                                    furniture.Direction == tile.Direction)
+                                {
+                                    tile.Region = new Region(tile.Region.X, tile.Region.Y, width * furniture.Dimensions.Width, height * furniture.Dimensions.Height);
+                                    break;
+                                }
                             }
-                        }
 
-                        for (int i = 0; i < MiddleTiles.Tiles.Count; i++)
-                        {
-                            Tile existing = MiddleTiles.Tiles[i];
-                            if (existing.Location.X == tile.Location.X &&
-                                existing.Location.Y == tile.Location.Y)
+                            for (int i = 0; i < MiddleTiles.Tiles.Count; i++)
                             {
-                                MiddleTiles.Tiles[i] = tile;
-                                break;
+                                Tile existing = MiddleTiles.Tiles[i];
+                                if (existing.Location.X == tile.Location.X &&
+                                    existing.Location.Y == tile.Location.Y)
+                                {
+                                    MiddleTiles.Tiles[i] = tile;
+                                    break;
+                                }
                             }
                         }
                         break;
@@ -2400,8 +2959,6 @@ namespace Despicaville.Menus
 
         private void VisitTopTiles(XmlTextReader reader)
         {
-            Tile tile = null;
-
             while (reader.Read())
             {
                 if (reader.Name == "TopTiles" && reader.NodeType == XmlNodeType.EndElement)
@@ -2410,7 +2967,7 @@ namespace Despicaville.Menus
                 switch (reader.Name)
                 {
                     case "TopTile":
-                        tile = new Tile();
+                        Tile tile = new();
                         VisitTopTile(reader, tile);
                         break;
                 }
@@ -2428,8 +2985,11 @@ namespace Despicaville.Menus
 
                         if (!string.IsNullOrEmpty(tile.Name))
                         {
-                            tile.Texture = AssetManager.Textures[reader.Value];
-                            tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+                            tile.Texture = Handler.GetTexture(reader.Value);
+                            if (tile.Texture != null)
+                            {
+                                tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+                            }
                         }
 
                         tile.DrawColor = Color.White;
@@ -2452,23 +3012,26 @@ namespace Despicaville.Menus
                             tile.Location = new Location(x, y, 0);
                         }
 
-                        Picture mapWindow = GetPicture("MapWindow");
-                        float X = mapWindow.Region.X;
-                        float Y = mapWindow.Region.Y;
-                        float width = mapWindow.Region.Width / 20;
-                        float height = mapWindow.Region.Height / 20;
-
-                        tile.Region = new Region(X + (tile.Location.X * width), Y + (tile.Location.Y * height), width, height);
-                        tile.Visible = true;
-
-                        for (int i = 0; i < TopTiles.Tiles.Count; i++)
+                        Picture? mapWindow = GetPicture("MapWindow");
+                        if (mapWindow?.Region != null)
                         {
-                            Tile existing = TopTiles.Tiles[i];
-                            if (existing.Location.X == tile.Location.X &&
-                                existing.Location.Y == tile.Location.Y)
+                            float X = mapWindow.Region.X;
+                            float Y = mapWindow.Region.Y;
+                            float width = mapWindow.Region.Width / 20;
+                            float height = mapWindow.Region.Height / 20;
+
+                            tile.Region = new Region(X + (tile.Location.X * width), Y + (tile.Location.Y * height), width, height);
+                            tile.Visible = true;
+
+                            for (int i = 0; i < TopTiles.Tiles.Count; i++)
                             {
-                                TopTiles.Tiles[i] = tile;
-                                break;
+                                Tile existing = TopTiles.Tiles[i];
+                                if (existing.Location.X == tile.Location.X &&
+                                    existing.Location.Y == tile.Location.Y)
+                                {
+                                    TopTiles.Tiles[i] = tile;
+                                    break;
+                                }
                             }
                         }
                         break;
@@ -2478,8 +3041,6 @@ namespace Despicaville.Menus
 
         private void VisitRoomTiles(XmlTextReader reader)
         {
-            Tile tile = null;
-
             while (reader.Read())
             {
                 if (reader.Name == "RoomTiles" && reader.NodeType == XmlNodeType.EndElement)
@@ -2488,7 +3049,7 @@ namespace Despicaville.Menus
                 switch (reader.Name)
                 {
                     case "RoomTile":
-                        tile = new Tile();
+                        Tile tile = new();
                         VisitRoomTile(reader, tile);
                         break;
                 }
@@ -2507,8 +3068,11 @@ namespace Despicaville.Menus
 
                         if (!string.IsNullOrEmpty(tile.Name))
                         {
-                            tile.Texture = AssetManager.Textures[reader.Value];
-                            tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+                            tile.Texture = Handler.GetTexture(reader.Value);
+                            if (tile.Texture != null)
+                            {
+                                tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+                            }
                         }
 
                         tile.DrawColor = Color.White * 0.9f;
@@ -2531,23 +3095,26 @@ namespace Despicaville.Menus
                             tile.Location = new Location(x, y, 0);
                         }
 
-                        Picture mapWindow = GetPicture("MapWindow");
-                        float X = mapWindow.Region.X;
-                        float Y = mapWindow.Region.Y;
-                        float width = mapWindow.Region.Width / 20;
-                        float height = mapWindow.Region.Height / 20;
-
-                        tile.Region = new Region(X + (tile.Location.X * width), Y + (tile.Location.Y * height), width, height);
-                        tile.Visible = true;
-
-                        for (int i = 0; i < RoomTiles.Tiles.Count; i++)
+                        Picture? mapWindow = GetPicture("MapWindow");
+                        if (mapWindow?.Region != null)
                         {
-                            Tile existing = RoomTiles.Tiles[i];
-                            if (existing.Location.X == tile.Location.X &&
-                                existing.Location.Y == tile.Location.Y)
+                            float X = mapWindow.Region.X;
+                            float Y = mapWindow.Region.Y;
+                            float width = mapWindow.Region.Width / 20;
+                            float height = mapWindow.Region.Height / 20;
+
+                            tile.Region = new Region(X + (tile.Location.X * width), Y + (tile.Location.Y * height), width, height);
+                            tile.Visible = true;
+
+                            for (int i = 0; i < RoomTiles.Tiles.Count; i++)
                             {
-                                RoomTiles.Tiles[i] = tile;
-                                break;
+                                Tile existing = RoomTiles.Tiles[i];
+                                if (existing.Location.X == tile.Location.X &&
+                                    existing.Location.Y == tile.Location.Y)
+                                {
+                                    RoomTiles.Tiles[i] = tile;
+                                    break;
+                                }
                             }
                         }
                         break;
@@ -2604,7 +3171,7 @@ namespace Despicaville.Menus
         {
             room.Tiles.Add(room_tile);
 
-            Tile north = room_tiles.GetTile(new Vector2(room_tile.Location.X, room_tile.Location.Y - 1));
+            Tile? north = room_tiles.GetTile(new Vector2(room_tile.Location.X, room_tile.Location.Y - 1));
             if (north != null &&
                 !string.IsNullOrEmpty(north.Name) &&
                 north.Name == room_tile.Name)
@@ -2616,7 +3183,7 @@ namespace Despicaville.Menus
                 }
             }
 
-            Tile east = room_tiles.GetTile(new Vector2(room_tile.Location.X + 1, room_tile.Location.Y));
+            Tile? east = room_tiles.GetTile(new Vector2(room_tile.Location.X + 1, room_tile.Location.Y));
             if (east != null &&
                 !string.IsNullOrEmpty(east.Name) &&
                 east.Name == room_tile.Name &&
@@ -2629,7 +3196,7 @@ namespace Despicaville.Menus
                 }
             }
 
-            Tile south = room_tiles.GetTile(new Vector2(room_tile.Location.X, room_tile.Location.Y + 1));
+            Tile? south = room_tiles.GetTile(new Vector2(room_tile.Location.X, room_tile.Location.Y + 1));
             if (south != null &&
                 !string.IsNullOrEmpty(south.Name) &&
                 south.Name == room_tile.Name &&
@@ -2642,7 +3209,7 @@ namespace Despicaville.Menus
                 }
             }
 
-            Tile west = room_tiles.GetTile(new Vector2(room_tile.Location.X - 1, room_tile.Location.Y));
+            Tile? west = room_tiles.GetTile(new Vector2(room_tile.Location.X - 1, room_tile.Location.Y));
             if (west != null &&
                 !string.IsNullOrEmpty(west.Name) &&
                 west.Name == room_tile.Name &&
@@ -2658,24 +3225,26 @@ namespace Despicaville.Menus
 
         private List<Vector2> GetExits(Layer room, Layer bottom_tiles, Layer middle_tiles, Layer room_tiles)
         {
-            List<Vector2> exits = new List<Vector2>();
+            List<Vector2> exits = [];
 
             if (room != null)
             {
                 foreach (Tile tile in room.Tiles)
                 {
-                    Tile middle = middle_tiles.GetTile(tile.Location.ToVector2);
-                    if (!middle.BlocksMovement)
+                    Tile? middle = middle_tiles.GetTile(tile.Location.ToVector2);
+                    if (middle != null &&
+                        !middle.BlocksMovement)
                     {
-                        Vector2 north2 = new Vector2(tile.Location.X, tile.Location.Y - 1);
-                        Vector3 north3 = new Vector3(tile.Location.X, tile.Location.Y - 1, 0);
+                        Vector2 north2 = new(tile.Location.X, tile.Location.Y - 1);
+                        Vector3 north3 = new(tile.Location.X, tile.Location.Y - 1, 0);
 
-                        Tile north_bottom = bottom_tiles.GetTile(north3);
-                        if (north_bottom != null &&
+                        Tile? north_bottom = bottom_tiles.GetTile(north3);
+                        if (north_bottom?.Name != null &&
                             !north_bottom.Name.Contains("Wall"))
                         {
-                            Tile north_middle = middle_tiles.GetTile(north3);
-                            if (!string.IsNullOrEmpty(north_middle.Name) &&
+                            Tile? north_middle = middle_tiles.GetTile(north3);
+                            if (north_middle != null &&
+                                !string.IsNullOrEmpty(north_middle.Name) &&
                                 north_middle.Name.Contains("Door"))
                             {
                                 if (!exits.Contains(north2))
@@ -2685,8 +3254,9 @@ namespace Despicaville.Menus
                             }
                             else
                             {
-                                Tile north_room = room_tiles.GetTile(north3);
+                                Tile? north_room = room_tiles.GetTile(north3);
                                 if (north_room != null &&
+                                    north_middle != null &&
                                     !string.IsNullOrEmpty(north_room.Name) &&
                                     north_room.Name != tile.Name &&
                                     !north_middle.BlocksMovement)
@@ -2706,15 +3276,16 @@ namespace Despicaville.Menus
                             }
                         }
 
-                        Vector2 east2 = new Vector2(tile.Location.X + 1, tile.Location.Y);
-                        Vector3 east3 = new Vector3(tile.Location.X + 1, tile.Location.Y, 0);
+                        Vector2 east2 = new(tile.Location.X + 1, tile.Location.Y);
+                        Vector3 east3 = new(tile.Location.X + 1, tile.Location.Y, 0);
 
-                        Tile east_bottom = bottom_tiles.GetTile(east3);
-                        if (east_bottom != null &&
+                        Tile? east_bottom = bottom_tiles.GetTile(east3);
+                        if (east_bottom?.Name != null &&
                             !east_bottom.Name.Contains("Wall"))
                         {
-                            Tile east_middle = middle_tiles.GetTile(east3);
-                            if (!string.IsNullOrEmpty(east_middle.Name) &&
+                            Tile? east_middle = middle_tiles.GetTile(east3);
+                            if (east_middle != null &&
+                                !string.IsNullOrEmpty(east_middle.Name) &&
                                 east_middle.Name.Contains("Door"))
                             {
                                 if (!exits.Contains(east2))
@@ -2724,8 +3295,9 @@ namespace Despicaville.Menus
                             }
                             else
                             {
-                                Tile east_room = room_tiles.GetTile(east3);
+                                Tile? east_room = room_tiles.GetTile(east3);
                                 if (east_room != null &&
+                                    east_middle != null &&
                                     !string.IsNullOrEmpty(east_room.Name) &&
                                     east_room.Name != tile.Name &&
                                     !east_middle.BlocksMovement)
@@ -2745,15 +3317,16 @@ namespace Despicaville.Menus
                             }
                         }
 
-                        Vector2 south2 = new Vector2(tile.Location.X, tile.Location.Y + 1);
-                        Vector3 south3 = new Vector3(tile.Location.X, tile.Location.Y + 1, 0);
+                        Vector2 south2 = new(tile.Location.X, tile.Location.Y + 1);
+                        Vector3 south3 = new(tile.Location.X, tile.Location.Y + 1, 0);
 
-                        Tile south_bottom = bottom_tiles.GetTile(south3);
-                        if (south_bottom != null &&
+                        Tile? south_bottom = bottom_tiles.GetTile(south3);
+                        if (south_bottom?.Name != null &&
                             !south_bottom.Name.Contains("Wall"))
                         {
-                            Tile south_middle = middle_tiles.GetTile(south3);
-                            if (!string.IsNullOrEmpty(south_middle.Name) &&
+                            Tile? south_middle = middle_tiles.GetTile(south3);
+                            if (south_middle != null &&
+                                !string.IsNullOrEmpty(south_middle.Name) &&
                                 south_middle.Name.Contains("Door"))
                             {
                                 if (!exits.Contains(south2))
@@ -2763,8 +3336,9 @@ namespace Despicaville.Menus
                             }
                             else
                             {
-                                Tile south_room = room_tiles.GetTile(south3);
+                                Tile? south_room = room_tiles.GetTile(south3);
                                 if (south_room != null &&
+                                    south_middle != null &&
                                     !string.IsNullOrEmpty(south_room.Name) &&
                                     south_room.Name != tile.Name &&
                                     !south_middle.BlocksMovement)
@@ -2784,15 +3358,16 @@ namespace Despicaville.Menus
                             }
                         }
 
-                        Vector2 west2 = new Vector2(tile.Location.X - 1, tile.Location.Y);
-                        Vector3 west3 = new Vector3(tile.Location.X - 1, tile.Location.Y, 0);
+                        Vector2 west2 = new(tile.Location.X - 1, tile.Location.Y);
+                        Vector3 west3 = new(tile.Location.X - 1, tile.Location.Y, 0);
 
-                        Tile west_bottom = bottom_tiles.GetTile(west3);
-                        if (west_bottom != null &&
+                        Tile? west_bottom = bottom_tiles.GetTile(west3);
+                        if (west_bottom?.Name != null &&
                             !west_bottom.Name.Contains("Wall"))
                         {
-                            Tile west_middle = middle_tiles.GetTile(west3);
-                            if (!string.IsNullOrEmpty(west_middle.Name) &&
+                            Tile? west_middle = middle_tiles.GetTile(west3);
+                            if (west_middle != null &&
+                                !string.IsNullOrEmpty(west_middle.Name) &&
                                 west_middle.Name.Contains("Door"))
                             {
                                 if (!exits.Contains(west2))
@@ -2802,8 +3377,9 @@ namespace Despicaville.Menus
                             }
                             else
                             {
-                                Tile west_room = room_tiles.GetTile(west3);
+                                Tile? west_room = room_tiles.GetTile(west3);
                                 if (west_room != null &&
+                                    west_middle != null &&
                                     !string.IsNullOrEmpty(west_room.Name) &&
                                     west_room.Name != tile.Name &&
                                     !west_middle.BlocksMovement)

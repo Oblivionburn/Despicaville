@@ -11,22 +11,27 @@ namespace Despicaville.JobTasks
     {
         public override void Action_Start()
         {
-            Character character = GetOwner();
-            if (character == null)
+            Character? character = GetOwner();
+            if (character?.Location == null)
             {
                 return;
             }
 
-            Map block_map = WorldUtil.GetCurrentMap(character);
-            Layer middle_tiles = block_map.GetLayer("MiddleTiles");
+            Map? block_map = WorldUtil.GetCurrentMap(character);
+            Layer? middle_tiles = block_map?.GetLayer("MiddleTiles");
+            if (middle_tiles == null)
+            {
+                return;
+            }
 
             bool nextTo = false;
 
-            Tile toilet = null;
+            Tile? toilet = null;
 
             foreach (Tile tile in middle_tiles.Tiles)
             {
-                if (tile.Name.Contains("Toilet"))
+                if (tile.Name != null &&
+                    tile.Name.Contains("Toilet"))
                 {
                     if (WorldUtil.NextTo(tile.Location, character.Location) &&
                         character.Gender == "Male")
@@ -94,35 +99,46 @@ namespace Despicaville.JobTasks
 
                 CharacterUtil.UpdateGear(character);
 
-                if (!toilet.Texture.Name.Contains("Used"))
+                if (toilet.Texture != null &&
+                    !toilet.Texture.Name.Contains("Used"))
                 {
-                    toilet.Texture = AssetManager.Textures[toilet.Texture.Name + "_Used"];
+                    toilet.Texture = Handler.GetTexture(toilet.Texture.Name + "_Used");
                 }
             }
         }
 
         public override void Action_End()
         {
-            Character character = GetOwner();
+            if (Location == null ||
+                Handler.Player?.Location == null)
+            {
+                return;
+            }
+
+            Character? character = GetOwner();
             if (character == null)
             {
                 return;
             }
 
-            Tile toilet = WorldUtil.GetFurniture(Handler.MiddleFurniture, Location);
-            if (toilet != null)
+            Tile? toilet = WorldUtil.GetFurniture(Handler.MiddleFurniture, Location);
+            if (toilet?.Name != null)
             {
-                if (toilet.Name.Contains("Toilet"))
+                if (toilet.Name.Contains("Toilet") &&
+                    toilet.Texture != null)
                 {
                     string[] name_parts = toilet.Texture.Name.Split('_');
-                    toilet.Texture = AssetManager.Textures[name_parts[0] + "_" + name_parts[1]];
+                    toilet.Texture = Handler.GetTexture(name_parts[0] + "_" + name_parts[1]);
                 }
 
                 character.Stats.Bladder = 0;
 
                 if (!Handler.Player.Unconscious)
                 {
-                    AssetManager.PlaySound_Random_AtDistance(toilet.Sound, Handler.Player.Location.ToVector2, toilet.Location.ToVector2, toilet.SoundRange);
+                    if (toilet.Sound != null)
+                    {
+                        AssetManager.PlaySound_Random_AtDistance(toilet.Sound, Handler.Player.Location.ToVector2, toilet.Location.ToVector2, toilet.SoundRange);
+                    }
 
                     if (character.Type != "Player")
                     {
@@ -136,9 +152,9 @@ namespace Despicaville.JobTasks
             }
         }
 
-        public Character GetOwner()
+        public Character? GetOwner()
         {
-            if (Handler.Player.ID == OwnerID)
+            if (Handler.Player?.ID == OwnerID)
             {
                 return Handler.Player;
             }

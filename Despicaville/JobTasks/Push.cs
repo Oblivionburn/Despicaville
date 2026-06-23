@@ -1,5 +1,4 @@
-﻿using System;
-using OP_Engine.Characters;
+﻿using OP_Engine.Characters;
 using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
@@ -11,10 +10,10 @@ namespace Despicaville.JobTasks
 {
     public class Push : JobTask
     {
-        public Character character;
-        public Tile tile;
-        public Location destination;
-        public Location newLocation;
+        public Character? character;
+        public Tile? tile;
+        public Location? destination;
+        public Location? newLocation;
         public float travelled;
         public bool moved;
         public bool isBlocked;
@@ -22,7 +21,13 @@ namespace Despicaville.JobTasks
 
         public override void Action_Start()
         {
-            Character owner = GetOwner();
+            if (Location == null ||
+                TimeManager.Now == null)
+            {
+                return;
+            }
+
+            Character? owner = GetOwner();
             if (owner == null)
             {
                 return;
@@ -43,9 +48,9 @@ namespace Despicaville.JobTasks
                 tile = WorldUtil.GetFurniture_Movable(Handler.MiddleFurniture, Location);
             }
 
-            Map map = WorldUtil.GetMap();
+            Map? map = WorldUtil.GetMap();
 
-            if (character != null)
+            if (character?.Location != null)
             {
                 #region Character
 
@@ -68,40 +73,47 @@ namespace Despicaville.JobTasks
                     destination = new Location(character.Location.X - 1, character.Location.Y, 0);
                 }
 
-                Tile blockingTile = WorldUtil.GetTile(destination);
-                if (blockingTile != null)
+                if (destination != null)
                 {
-                    if (blockingTile.BlocksMovement)
+                    Tile? blockingTile = WorldUtil.GetTile(destination);
+                    if (blockingTile != null)
                     {
-                        isBlocked = true;
-                        EndTime = new TimeHandler(TimeManager.Now);
+                        if (blockingTile.BlocksMovement)
+                        {
+                            isBlocked = true;
+                            EndTime = new TimeHandler(TimeManager.Now);
 
-                        string bodyPart = CombatUtil.RandomBodyPart(owner, character);
-                        CombatUtil.AddWound(owner, character, character.GetBodyPart(bodyPart), "Bruise", true);
+                            string bodyPartName = CombatUtil.RandomBodyPart(owner, character);
+                            BodyPart? bodyPart = character.GetBodyPart(bodyPartName);
+                            if (bodyPart != null)
+                            {
+                                CombatUtil.AddWound(owner, character, bodyPart, "Bruise", true);
+                            }
+                        }
+                        else if (blockingTile.Layer?.Name != "BottomTiles")
+                        {
+                            fall = true;
+                        }
                     }
-                    else if (blockingTile.Layer.Name != "BottomTiles")
+
+                    if (blockingTile == null)
                     {
-                        fall = true;
+                        Character? blockingCharacter = WorldUtil.GetCharacter(destination);
+                        if (blockingCharacter != null)
+                        {
+                            isBlocked = true;
+                            EndTime = new TimeHandler(TimeManager.Now);
+                        }
                     }
-                }
 
-                if (blockingTile == null)
-                {
-                    Character blockingCharacter = WorldUtil.GetCharacter(destination);
-                    if (blockingCharacter != null)
+                    if (!isBlocked)
                     {
-                        isBlocked = true;
-                        EndTime = new TimeHandler(TimeManager.Now);
+                        character.ResetAnimation();
+                        character.Path.Clear();
+                        character.Job.Tasks.Clear();
+                        character.Moving = false;
+                        character.Moved = 0;
                     }
-                }
-
-                if (!isBlocked)
-                {
-                    character.ResetAnimation();
-                    character.Path.Clear();
-                    character.Job.Tasks.Clear();
-                    character.Moving = false;
-                    character.Moved = 0;
                 }
 
                 #endregion
@@ -129,46 +141,49 @@ namespace Despicaville.JobTasks
                     destination = new Location(tile.Location.X - 1, tile.Location.Y, 0);
                 }
 
-                Region size = WorldUtil.GetSize(tile);
-                for (int y = 0; y <= size.Height; y++)
+                if (destination != null)
                 {
-                    float Y = destination.Y + y;
-
-                    for (int x = 0; x <= size.Width; x++)
+                    Region? size = WorldUtil.GetSize(tile);
+                    for (int y = 0; y <= size?.Height; y++)
                     {
-                        float X = destination.X + x;
+                        float Y = destination.Y + y;
 
-                        Location location = new Location(X, Y, 0);
-
-                        Tile blockingTile = WorldUtil.GetTile(location);
-                        if (blockingTile != null &&
-                            blockingTile.ID != tile.ID &&
-                            (blockingTile.Layer.Name == "MiddleTiles" ||
-                             blockingTile.BlocksMovement))
+                        for (int x = 0; x <= size.Width; x++)
                         {
-                            isBlocked = true;
-                            EndTime = new TimeHandler(TimeManager.Now);
-                            break;
-                        }
+                            float X = destination.X + x;
 
-                        if (!isBlocked)
-                        {
-                            Character blockingCharacter = WorldUtil.GetCharacter(location);
-                            if (blockingCharacter != null)
+                            Location location = new(X, Y, 0);
+
+                            Tile? blockingTile = WorldUtil.GetTile(location);
+                            if (blockingTile != null &&
+                                blockingTile.ID != tile.ID &&
+                                (blockingTile.Layer?.Name == "MiddleTiles" ||
+                                 blockingTile.BlocksMovement))
                             {
-                                if (tile.BlocksMovement)
+                                isBlocked = true;
+                                EndTime = new TimeHandler(TimeManager.Now);
+                                break;
+                            }
+
+                            if (!isBlocked)
+                            {
+                                Character? blockingCharacter = WorldUtil.GetCharacter(location);
+                                if (blockingCharacter != null)
                                 {
-                                    isBlocked = true;
-                                    EndTime = new TimeHandler(TimeManager.Now);
-                                    break;
+                                    if (tile.BlocksMovement)
+                                    {
+                                        isBlocked = true;
+                                        EndTime = new TimeHandler(TimeManager.Now);
+                                        break;
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    if (isBlocked)
-                    {
-                        break;
+                        if (isBlocked)
+                        {
+                            break;
+                        }
                     }
                 }
 
@@ -180,12 +195,12 @@ namespace Despicaville.JobTasks
             {
                 #region Break Window
 
-                Layer middle_tiles = map.GetLayer("MiddleTiles");
+                Layer? middle_tiles = map?.GetLayer("MiddleTiles");
 
                 if (character != null)
                 {
-                    Tile middle_tile = middle_tiles.GetTile(destination.ToVector2);
-                    if (middle_tile != null)
+                    Tile? middle_tile = middle_tiles?.GetTile(destination.ToVector2);
+                    if (middle_tile?.Name != null)
                     {
                         if (middle_tile.Name.Contains("Window") &&
                             middle_tile.Name.Contains("Closed"))
@@ -198,8 +213,8 @@ namespace Despicaville.JobTasks
                 {
                     bool foundWindow = false;
 
-                    Region size = WorldUtil.GetSize(tile);
-                    for (int y = 0; y <= size.Height; y++)
+                    Region? size = WorldUtil.GetSize(tile);
+                    for (int y = 0; y <= size?.Height; y++)
                     {
                         float Y = destination.Y + y;
 
@@ -207,10 +222,10 @@ namespace Despicaville.JobTasks
                         {
                             float X = destination.X + x;
 
-                            Location location = new Location(X, Y, 0);
+                            Location location = new(X, Y, 0);
 
-                            Tile middle_tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, location);
-                            if (middle_tile != null)
+                            Tile? middle_tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, location);
+                            if (middle_tile?.Name != null)
                             {
                                 if (middle_tile.Name.Contains("Window") &&
                                     middle_tile.Name.Contains("Closed"))
@@ -235,7 +250,15 @@ namespace Despicaville.JobTasks
 
         public override void Action()
         {
-            Character owner = GetOwner();
+            if (Main.Game == null ||
+                TimeManager.Now == null ||
+                destination == null ||
+                newLocation == null)
+            {
+                return;
+            }
+
+            Character? owner = GetOwner();
             if (owner == null ||
                 isBlocked)
             {
@@ -245,7 +268,7 @@ namespace Despicaville.JobTasks
             float distance = Main.Game.TileSize.X;
             float speed = distance / 8;
 
-            if (character != null)
+            if (character?.Region != null)
             {
                 if (destination.X > newLocation.X)
                 {
@@ -379,7 +402,12 @@ namespace Despicaville.JobTasks
 
         public override void Action_End()
         {
-            Character owner = GetOwner();
+            if (newLocation == null)
+            {
+                return;
+            }
+
+            Character? owner = GetOwner();
             if (owner == null)
             {
                 return;
@@ -387,13 +415,13 @@ namespace Despicaville.JobTasks
 
             if (moved)
             {
-                if (character != null)
+                if (character?.Location != null)
                 {
                     WorldUtil.Push_Character(character, newLocation);
 
-                    Map map = WorldUtil.GetMap();
-                    Layer bottom_tiles = map.GetLayer("BottomTiles");
-                    Tile bottom_tile = bottom_tiles.GetTile(character.Location.ToVector2);
+                    Map? map = WorldUtil.GetMap();
+                    Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+                    Tile? bottom_tile = bottom_tiles?.GetTile(character.Location.ToVector2);
                     if (bottom_tile != null)
                     {
                         character.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
@@ -410,8 +438,8 @@ namespace Despicaville.JobTasks
                 {
                     WorldUtil.Push_Tile(tile, newLocation);
 
-                    Character blockingCharacter = WorldUtil.GetCharacter(tile.Location);
-                    if (blockingCharacter != null)
+                    Character? blockingCharacter = WorldUtil.GetCharacter(tile.Location);
+                    if (blockingCharacter?.Location != null)
                     {
                         blockingCharacter.ResetAnimation();
                         blockingCharacter.Path.Clear();
@@ -419,9 +447,9 @@ namespace Despicaville.JobTasks
                         blockingCharacter.Moving = false;
                         blockingCharacter.Moved = 0;
 
-                        Map map = WorldUtil.GetMap();
-                        Layer bottom_tiles = map.GetLayer("BottomTiles");
-                        Tile bottom_tile = bottom_tiles.GetTile(blockingCharacter.Location.ToVector2);
+                        Map? map = WorldUtil.GetMap();
+                        Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+                        Tile? bottom_tile = bottom_tiles?.GetTile(blockingCharacter.Location.ToVector2);
                         if (bottom_tile != null)
                         {
                             blockingCharacter.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
@@ -434,9 +462,9 @@ namespace Despicaville.JobTasks
             }
         }
 
-        public Character GetOwner()
+        public Character? GetOwner()
         {
-            if (Handler.Player.ID == OwnerID)
+            if (Handler.Player?.ID == OwnerID)
             {
                 return Handler.Player;
             }

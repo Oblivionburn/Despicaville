@@ -13,16 +13,24 @@ namespace Despicaville.JobTasks
 {
     public class Attack : JobTask
     {
-        Dictionary<string, string> AttackingWith = null;
+        Dictionary<string, string>? AttackingWith = null;
 
-        Item rightHandItem = null;
-        Item leftHandItem = null;
+        Item? rightHandItem = null;
+        Item? leftHandItem = null;
         bool dual_wield = false;
 
         public override void Action_Start()
         {
-            Character character = GetOwner();
-            if (character == null)
+            if (Handler.Player?.Location == null ||
+                Location == null ||
+                StartTime == null ||
+                EndTime == null)
+            {
+                return;
+            }
+
+            Character? character = GetOwner();
+            if (character?.Location == null)
             {
                 return;
             }
@@ -44,8 +52,8 @@ namespace Despicaville.JobTasks
             {
                 bool effect = false;
 
-                string rightWeapon = rightHandItem.Name;
-                string rightAction = rightHandItem.Task;
+                string? rightWeapon = rightHandItem?.Name;
+                string? rightAction = rightHandItem?.Task;
 
                 if (rightAction == "Swing" ||
                     rightAction == "Stab" ||
@@ -69,14 +77,15 @@ namespace Despicaville.JobTasks
                     {
                         AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
                     }
-                    else if (rightWeapon.Contains("Bow"))
+                    else if (rightWeapon != null &&
+                             rightWeapon.Contains("Bow"))
                     {
                         AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
                     }
                 }
 
-                string leftWeapon = leftHandItem.Name;
-                string leftAction = leftHandItem.Task;
+                string? leftWeapon = leftHandItem?.Name;
+                string? leftAction = leftHandItem?.Task;
 
                 if (leftAction == "Swing" ||
                     leftAction == "Stab" ||
@@ -102,7 +111,8 @@ namespace Despicaville.JobTasks
                     {
                         AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
                     }
-                    else if (leftWeapon.Contains("Bow"))
+                    else if (leftWeapon != null &&
+                             leftWeapon.Contains("Bow"))
                     {
                         AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
                     }
@@ -146,25 +156,39 @@ namespace Despicaville.JobTasks
 
         public override void Action_End()
         {
-            Character character = GetOwner();
+            if (Handler.Player?.Location == null ||
+                Location == null ||
+                StartTime == null ||
+                EndTime == null)
+            {
+                return;
+            }
+
+            Character? character = GetOwner();
             if (character == null)
             {
                 return;
             }
 
-            Character target = WorldUtil.GetCharacter(Location);
+            Character? target = WorldUtil.GetCharacter(Location);
             if (target != null)
             {
                 if (dual_wield)
                 {
-                    WeaponAttack_Character(character, target, rightHandItem);
-                    WeaponAttack_Character(character, target, leftHandItem);
+                    if (rightHandItem != null)
+                    {
+                        WeaponAttack_Character(character, target, rightHandItem);
+                    }
+                    if (leftHandItem != null)
+                    {
+                        WeaponAttack_Character(character, target, leftHandItem);
+                    }
                 }
                 else
                 {
-                    string weapon = AttackingWith.ElementAt(0).Key;
+                    string? weapon = AttackingWith?.ElementAt(0).Key;
 
-                    Item weaponItem = null;
+                    Item? weaponItem = null;
                     for (int i = 0; i < character.Inventory.Items.Count; i++)
                     {
                         Item item = character.Inventory.Items[i];
@@ -189,9 +213,9 @@ namespace Despicaville.JobTasks
             }
             else
             {
-                Tile tile = null;
+                Tile? tile = null;
 
-                Tile top_tile = WorldUtil.GetFurniture(Handler.TopFurniture, Location);
+                Tile? top_tile = WorldUtil.GetFurniture(Handler.TopFurniture, Location);
                 if (top_tile?.Texture != null)
                 {
                     tile = top_tile;
@@ -199,7 +223,7 @@ namespace Despicaville.JobTasks
 
                 if (tile == null)
                 {
-                    Tile middle_tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, Location);
+                    Tile? middle_tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, Location);
                     if (middle_tile?.Texture != null)
                     {
                         tile = middle_tile;
@@ -208,9 +232,9 @@ namespace Despicaville.JobTasks
 
                 if (tile == null)
                 {
-                    Map map = WorldUtil.GetMap();
-                    Layer bottom_tiles = map.GetLayer("BottomTiles");
-                    Tile bottom_tile = bottom_tiles.GetTile(Location.ToVector2);
+                    Map? map = WorldUtil.GetMap();
+                    Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+                    Tile? bottom_tile = bottom_tiles?.GetTile(Location.ToVector2);
                     if (bottom_tile != null)
                     {
                         tile = bottom_tile;
@@ -221,14 +245,20 @@ namespace Despicaville.JobTasks
                 {
                     if (dual_wield)
                     {
-                        WeaponAttack_Tile(character, tile, rightHandItem);
-                        WeaponAttack_Tile(character, tile, leftHandItem);
+                        if (rightHandItem != null)
+                        {
+                            WeaponAttack_Tile(character, tile, rightHandItem);
+                        }
+                        if (leftHandItem != null)
+                        {
+                            WeaponAttack_Tile(character, tile, leftHandItem);
+                        }
                     }
                     else
                     {
-                        string weapon = AttackingWith.ElementAt(0).Key;
+                        string? weapon = AttackingWith?.ElementAt(0).Key;
 
-                        Item weaponItem = null;
+                        Item? weaponItem = null;
                         for (int i = 0; i < character.Inventory.Items.Count; i++)
                         {
                             Item item = character.Inventory.Items[i];
@@ -251,9 +281,10 @@ namespace Despicaville.JobTasks
                 }
             }
 
-            if (character.Type != "Player")
+            if (character.Type != "Player" &&
+                TimeManager.Now != null)
             {
-                CryptoRandom random = new CryptoRandom();
+                CryptoRandom random = new();
                 int waitTime = random.Next(0, 3);
                 if (waitTime > 0)
                 {
@@ -270,7 +301,13 @@ namespace Despicaville.JobTasks
 
         public void WeaponAttack_Character(Character attacker, Character defender, Item weapon)
         {
-            string bodyPart = Handler.Selected_BodyPart;
+            if (Handler.Player?.Location == null ||
+                defender.Location == null)
+            {
+                return;
+            }
+
+            string? bodyPart = Handler.Selected_BodyPart;
             if (string.IsNullOrEmpty(bodyPart))
             {
                 bodyPart = CombatUtil.RandomBodyPart(attacker, defender);
@@ -311,9 +348,16 @@ namespace Despicaville.JobTasks
             float hitChance = CombatUtil.ChanceToHitBodyPart(attacker, defender, bodyPart);
             if (Utility.RandomPercent(hitChance))
             {
-                AssetManager.PlaySound_Random_AtDistance(weapon.Sound, Handler.Player.Location.ToVector2, defender.Location.ToVector2, weapon.SoundRange);
+                if (weapon.Sound != null)
+                {
+                    AssetManager.PlaySound_Random_AtDistance(weapon.Sound, Handler.Player.Location.ToVector2, defender.Location.ToVector2, weapon.SoundRange);
+                }
 
-                CombatUtil.DoDamage(attacker, defender, weapon.Name, weapon.Task, bodyPart);
+                if (weapon.Name != null &&
+                    weapon.Task != null)
+                {
+                    CombatUtil.DoDamage(attacker, defender, weapon.Name, weapon.Task, bodyPart);
+                }
 
                 if (defender.Unconscious)
                 {
@@ -332,9 +376,10 @@ namespace Despicaville.JobTasks
                     defender.InCombat = true;
                 }
 
-                CryptoRandom random = new CryptoRandom();
+                CryptoRandom random = new();
                 int stunTime = random.Next(0, maxStunTime);
-                if (stunTime > 0)
+                if (stunTime > 0 &&
+                    TimeManager.Now != null)
                 {
                     defender.Job.Tasks.Add(new Wait
                     {
@@ -357,22 +402,23 @@ namespace Despicaville.JobTasks
                     case "Punch":
                     case "Stab":
                     case "Cut":
-                        GameUtil.AddMessage("You tried to " + weapon.Task.ToLower() + " their " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                        GameUtil.AddMessage("You tried to " + weapon.Task.ToLower() + " their " + CharacterUtil.BodyPartToName(bodyPart)?.ToLower() + ", but missed.");
                         break;
 
                     case "Shoot":
-                        if (weapon != null &&
+                        if (weapon?.Name != null &&
                             weapon.Name != "Sling" &&
-                            !weapon.Name.Contains("Bow"))
+                            !weapon.Name.Contains("Bow") &&
+                            weapon.Sound != null)
                         {
                             AssetManager.PlaySound_Random_AtDistance(weapon.Sound, Handler.Player.Location.ToVector2, defender.Location.ToVector2, weapon.SoundRange);
                         }
 
-                        GameUtil.AddMessage("You tried to " + weapon.Task.ToLower() + " their " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                        GameUtil.AddMessage("You tried to " + weapon?.Task.ToLower() + " their " + CharacterUtil.BodyPartToName(bodyPart)?.ToLower() + ", but missed.");
                         break;
 
                     default:
-                        GameUtil.AddMessage("You tried to hit their " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                        GameUtil.AddMessage("You tried to hit their " + CharacterUtil.BodyPartToName(bodyPart)?.ToLower() + ", but missed.");
                         break;
                 }
             }
@@ -383,21 +429,24 @@ namespace Despicaville.JobTasks
                     case "Punch":
                     case "Stab":
                     case "Cut":
-                        GameUtil.AddMessage(attacker.Name + " tried to " + weapon.Task.ToLower() + " your " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                        GameUtil.AddMessage(attacker.Name + " tried to " + weapon.Task.ToLower() + " your " + CharacterUtil.BodyPartToName(bodyPart)?.ToLower() + ", but missed.");
                         break;
 
                     case "Shoot":
-                        if (weapon.Name != "Sling" &&
-                            !weapon.Name.Contains("Bow"))
+                        if (weapon.Name != null &&
+                            weapon.Name != "Sling" &&
+                            !weapon.Name.Contains("Bow") &&
+                            weapon.Sound != null &&
+                            attacker.Location != null)
                         {
                             AssetManager.PlaySound_Random_AtDistance(weapon.Sound, Handler.Player.Location.ToVector2, attacker.Location.ToVector2, weapon.SoundRange);
                         }
 
-                        GameUtil.AddMessage(attacker.Name + " tried to " + weapon.Task.ToLower() + " your " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                        GameUtil.AddMessage(attacker.Name + " tried to " + weapon.Task.ToLower() + " your " + CharacterUtil.BodyPartToName(bodyPart)?.ToLower() + ", but missed.");
                         break;
 
                     default:
-                        GameUtil.AddMessage(attacker.Name + " tried to hit your " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                        GameUtil.AddMessage(attacker.Name + " tried to hit your " + CharacterUtil.BodyPartToName(bodyPart)?.ToLower() + ", but missed.");
                         break;
                 }
             }
@@ -405,7 +454,11 @@ namespace Despicaville.JobTasks
 
         public void WeaponAttack_Tile(Character attacker, Tile tile, Item weapon)
         {
-            AssetManager.PlaySound_Random_AtDistance(weapon.Sound, Handler.Player.Location.ToVector2, tile.Location.ToVector2, weapon.SoundRange);
+            if (Handler.Player?.Location != null &&
+                weapon.Sound != null)
+            {
+                AssetManager.PlaySound_Random_AtDistance(weapon.Sound, Handler.Player.Location.ToVector2, tile.Location.ToVector2, weapon.SoundRange);
+            }
 
             if (attacker.Type == "Player")
             {
@@ -432,7 +485,7 @@ namespace Despicaville.JobTasks
 
         public void MeleeAttack_Character(Character attacker, Character defender)
         {
-            string bodyPart = Handler.Selected_BodyPart;
+            string? bodyPart = Handler.Selected_BodyPart;
             if (string.IsNullOrEmpty(bodyPart))
             {
                 bodyPart = CombatUtil.RandomBodyPart(attacker, defender);
@@ -473,7 +526,12 @@ namespace Despicaville.JobTasks
             float hitChance = CombatUtil.ChanceToHitBodyPart(attacker, defender, bodyPart);
             if (Utility.RandomPercent(hitChance))
             {
-                AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 2);
+                if (Handler.Player?.Location != null &&
+                    defender.Location != null)
+                {
+                    AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 2);
+                }
+                
                 CombatUtil.DoDamage(attacker, defender, "Right Hand", "Punch", bodyPart);
 
                 if (defender.Unconscious)
@@ -493,9 +551,10 @@ namespace Despicaville.JobTasks
                     defender.InCombat = true;
                 }
 
-                CryptoRandom random = new CryptoRandom();
+                CryptoRandom random = new();
                 int stunTime = random.Next(0, maxStunTime);
-                if (stunTime > 0)
+                if (stunTime > 0 &&
+                    TimeManager.Now != null)
                 {
                     defender.Job.Tasks.Add(new Wait
                     {
@@ -513,17 +572,20 @@ namespace Despicaville.JobTasks
             }
             else if (attacker.Type == "Player")
             {
-                GameUtil.AddMessage("You tried to punch their " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                GameUtil.AddMessage("You tried to punch their " + CharacterUtil.BodyPartToName(bodyPart)?.ToLower() + ", but missed.");
             }
             else if (defender.Type == "Player")
             {
-                GameUtil.AddMessage(attacker.Name + " tried to punch your " + CharacterUtil.BodyPartToName(bodyPart).ToLower() + ", but missed.");
+                GameUtil.AddMessage(attacker.Name + " tried to punch your " + CharacterUtil.BodyPartToName(bodyPart)?.ToLower() + ", but missed.");
             }
         }
 
         public void MeleeAttack_Tile(Character attacker, Tile tile)
         {
-            AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 2);
+            if (Handler.Player?.Location != null)
+            {
+                AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 2);
+            }
 
             if (attacker.Type == "Player")
             {
@@ -531,9 +593,9 @@ namespace Despicaville.JobTasks
             }
         }
 
-        public Character GetOwner()
+        public Character? GetOwner()
         {
-            if (Handler.Player.ID == OwnerID)
+            if (Handler.Player?.ID == OwnerID)
             {
                 return Handler.Player;
             }

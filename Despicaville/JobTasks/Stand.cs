@@ -8,7 +8,7 @@ namespace Despicaville.JobTasks
     {
         public override void Action_End()
         {
-            Character character = GetOwner();
+            Character? character = GetOwner();
             if (character == null)
             {
                 return;
@@ -34,9 +34,9 @@ namespace Despicaville.JobTasks
             }
         }
 
-        public Character GetOwner()
+        public Character? GetOwner()
         {
-            if (Handler.Player.ID == OwnerID)
+            if (Handler.Player?.ID == OwnerID)
             {
                 return Handler.Player;
             }

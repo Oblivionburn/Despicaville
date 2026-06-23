@@ -4,7 +4,6 @@ using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
 using OP_Engine.Enums;
-using OP_Engine.Scenes;
 using OP_Engine.Time;
 using Despicaville.Util;
 
@@ -14,8 +13,14 @@ namespace Despicaville.JobTasks
     {
         public override void Action_Start()
         {
-            Character character = GetOwner();
-            if (character == null)
+            if (Handler.Player?.Location == null ||
+                TimeManager.Now == null)
+            {
+                return;
+            }
+
+            Character? character = GetOwner();
+            if (character?.Location == null)
             {
                 return;
             }
@@ -72,8 +77,12 @@ namespace Despicaville.JobTasks
                 character.Destination = new Location(character.Location.X - 1, character.Location.Y, character.Location.Z);
             }
 
-            Scene scene = SceneManager.GetScene("Gameplay");
-            Map map = scene.World.Maps[0];
+            Map? map = WorldUtil.GetMap();
+            if (map == null ||
+                character.Destination == null)
+            {
+                return;
+            }
 
             if (WorldUtil.CanMove(character, map, character.Destination))
             {
@@ -109,7 +118,7 @@ namespace Despicaville.JobTasks
                             }
                         }
 
-                        if (Handler.Pull_Character != null)
+                        if (Handler.Pull_Character.Location != null)
                         {
                             if (character.Destination.X > character.Location.X)
                             {
@@ -133,11 +142,12 @@ namespace Despicaville.JobTasks
                         }
                     }
 
-                    Layer middle_tiles = map.GetLayer("MiddleTiles");
-                    Tile tile = middle_tiles.GetTile(character.Destination.ToVector2);
+                    Layer? middle_tiles = map?.GetLayer("MiddleTiles");
+                    Tile? tile = middle_tiles?.GetTile(character.Destination.ToVector2);
                     if (tile != null)
                     {
-                        if (tile.Name.Contains("Window") &&
+                        if (tile.Name != null &&
+                            tile.Name.Contains("Window") &&
                             tile.Name.Contains("Closed"))
                         {
                             Tasker.BreakWindow(character.Destination.ToVector2, character.Direction);
@@ -166,9 +176,9 @@ namespace Despicaville.JobTasks
                 }
                 else if (character.Type != "Player")
                 {
-                    Layer middle_tiles = map.GetLayer("MiddleTiles");
-                    Tile tile = middle_tiles.GetTile(character.Destination.ToVector2);
-                    if (tile != null)
+                    Layer? middle_tiles = map.GetLayer("MiddleTiles");
+                    Tile? tile = middle_tiles?.GetTile(character.Destination.ToVector2);
+                    if (tile?.Name != null)
                     {
                         if (tile.Name.Contains("Window") &&
                             tile.Name.Contains("Closed"))
@@ -215,8 +225,15 @@ namespace Despicaville.JobTasks
 
         public override void Action()
         {
-            Character character = GetOwner();
-            if (character == null)
+            if (Main.Game == null ||
+                TimeManager.Now == null)
+            {
+                return;
+            }
+
+            Character? character = GetOwner();
+            if (character?.Location == null ||
+                character.Destination == null)
             {
                 return;
             }
@@ -244,7 +261,7 @@ namespace Despicaville.JobTasks
 
                 if (character.Type == "Player")
                 {
-                    if (Handler.Pull_Character != null)
+                    if (Handler.Pull_Character?.Region != null)
                     {
                         Handler.Pull_Character.Region.X += character.MoveSpeed;
                         CharacterUtil.UpdateGear(Handler.Pull_Character);
@@ -261,7 +278,7 @@ namespace Despicaville.JobTasks
 
                     if (character.Type == "Player")
                     {
-                        if (Handler.Pull_Character != null)
+                        if (Handler.Pull_Character?.Destination != null)
                         {
                             Handler.Pull_Character.Location = new Location(Handler.Pull_Character.Destination.X, Handler.Pull_Character.Destination.Y);
                             CharacterUtil.UpdateGear(Handler.Pull_Character);
@@ -298,7 +315,7 @@ namespace Despicaville.JobTasks
 
                 if (character.Type == "Player")
                 {
-                    if (Handler.Pull_Character != null)
+                    if (Handler.Pull_Character?.Region != null)
                     {
                         Handler.Pull_Character.Region.X -= character.MoveSpeed;
                         CharacterUtil.UpdateGear(Handler.Pull_Character);
@@ -315,7 +332,7 @@ namespace Despicaville.JobTasks
 
                     if (character.Type == "Player")
                     {
-                        if (Handler.Pull_Character != null)
+                        if (Handler.Pull_Character?.Destination != null)
                         {
                             Handler.Pull_Character.Location = new Location(Handler.Pull_Character.Destination.X, Handler.Pull_Character.Destination.Y);
                             CharacterUtil.UpdateGear(Handler.Pull_Character);
@@ -354,7 +371,7 @@ namespace Despicaville.JobTasks
 
                     if (character.Type == "Player")
                     {
-                        if (Handler.Pull_Character != null)
+                        if (Handler.Pull_Character?.Region != null)
                         {
                             Handler.Pull_Character.Region.Y += character.MoveSpeed;
                             CharacterUtil.UpdateGear(Handler.Pull_Character);
@@ -371,7 +388,7 @@ namespace Despicaville.JobTasks
 
                         if (character.Type == "Player")
                         {
-                            if (Handler.Pull_Character != null)
+                            if (Handler.Pull_Character?.Destination != null)
                             {
                                 Handler.Pull_Character.Location = new Location(Handler.Pull_Character.Destination.X, Handler.Pull_Character.Destination.Y);
                                 CharacterUtil.UpdateGear(Handler.Pull_Character);
@@ -408,7 +425,7 @@ namespace Despicaville.JobTasks
 
                     if (character.Type == "Player")
                     {
-                        if (Handler.Pull_Character != null)
+                        if (Handler.Pull_Character?.Region != null)
                         {
                             Handler.Pull_Character.Region.Y -= character.MoveSpeed;
                             CharacterUtil.UpdateGear(Handler.Pull_Character);
@@ -425,7 +442,7 @@ namespace Despicaville.JobTasks
 
                         if (character.Type == "Player")
                         {
-                            if (Handler.Pull_Character != null)
+                            if (Handler.Pull_Character?.Destination != null)
                             {
                                 Handler.Pull_Character.Location = new Location(Handler.Pull_Character.Destination.X, Handler.Pull_Character.Destination.Y);
                                 CharacterUtil.UpdateGear(Handler.Pull_Character);
@@ -467,8 +484,8 @@ namespace Despicaville.JobTasks
 
         public override void Action_End()
         {
-            Character character = GetOwner();
-            if (character == null)
+            Character? character = GetOwner();
+            if (character?.Location == null)
             {
                 return;
             }
@@ -479,7 +496,7 @@ namespace Despicaville.JobTasks
                 return;
             }
 
-            Map map = WorldUtil.GetMap();
+            Map? map = WorldUtil.GetMap();
 
             if (Name == "Sneak")
             {
@@ -499,14 +516,13 @@ namespace Despicaville.JobTasks
                 character.Stats.Stamina = 0;
             }
 
-            Layer bottom_tiles = map.GetLayer("BottomTiles");
-            Tile bottom_tile = bottom_tiles.GetTile(character.Location.ToVector2);
+            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+            Tile? bottom_tile = bottom_tiles?.GetTile(character.Location.ToVector2);
             if (bottom_tile != null)
             {
                 character.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
             }
-            CharacterUtil.UpdateGear(character);
-
+            
             WorldUtil.SetCurrentMap(character);
             CharacterUtil.UpdateSight(character);
 
@@ -514,19 +530,25 @@ namespace Despicaville.JobTasks
             character.Moving = false;
             character.ResetAnimation();
 
+            CharacterUtil.UpdateGear(character);
+
             if (character.InCombat)
             {
                 character.Path.Clear();
             }
             else if (character.Type != "Player")
             {
-                if (WorldUtil.PassedOpenDoor(map.GetLayer("MiddleTiles"), character))
+                Layer? middle_tiles = map?.GetLayer("MiddleTiles");
+                if (middle_tiles != null)
                 {
-                    Tasker.CloseDoor_Behind(character);
-                }
-                else if (WorldUtil.PassedOpenWindow(map.GetLayer("MiddleTiles"), character))
-                {
-                    Tasker.CloseWindow_Behind(character);
+                    if (WorldUtil.PassedOpenDoor(middle_tiles, character))
+                    {
+                        Tasker.CloseDoor_Behind(character);
+                    }
+                    else if (WorldUtil.PassedOpenWindow(middle_tiles, character))
+                    {
+                        Tasker.CloseWindow_Behind(character);
+                    }
                 }
             }
 
@@ -542,7 +564,7 @@ namespace Despicaville.JobTasks
                         first_path = character.Path[0];
                     }
                 }
-                Location destination = new Location(first_path.X, first_path.Y, 0);
+                Location destination = new(first_path.X, first_path.Y, 0);
 
                 bool reached_destination = false;
                 if (character.Path.Count > 0)
@@ -560,7 +582,8 @@ namespace Despicaville.JobTasks
                     reached_destination = true;
                 }
 
-                if (!reached_destination)
+                if (!reached_destination &&
+                    TimeManager.Now != null)
                 {
                     Direction direction = WorldUtil.GetDirection(character.Location, destination);
                     if (direction == character.Direction)
@@ -607,9 +630,9 @@ namespace Despicaville.JobTasks
             }
         }
 
-        public Character GetOwner()
+        public Character? GetOwner()
         {
-            if (Handler.Player.ID == OwnerID)
+            if (Handler.Player?.ID == OwnerID)
             {
                 return Handler.Player;
             }

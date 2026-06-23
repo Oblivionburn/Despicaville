@@ -22,13 +22,13 @@ namespace Despicaville
     {
         #region Variables
 
-        public static OP_Game Game;
+        public static OP_Game? Game;
 
-        public static BlendState AmbientBlendState = new BlendState();
-        public static LightingRenderer LightingRenderer;
+        public static BlendState AmbientBlendState = new();
+        public static LightingRenderer? LightingRenderer;
 
         public static bool LostFocus;
-        public static string Version;
+        public static string? Version;
 
         public static int light_max_count = 32;
         public static int light_tile_distance = 4;
@@ -43,14 +43,14 @@ namespace Despicaville
             {
                 Game = new OP_Game
                 {
-                    Form = (Form)Control.FromHandle(Window.Handle),
+                    Form = (Form?)Control.FromHandle(Window.Handle),
                     Zoom = 2
                 };
                 Game.Init(this, Window);
             }
             catch (Exception e)
             {
-                Game.CrashHandler(e);
+                Game?.CrashHandler(e);
             }
         }
 
@@ -73,26 +73,35 @@ namespace Despicaville
 
                 LoadComponents();
 
-                Game.SpriteBatch = new SpriteBatch(Game.GraphicsManager.GraphicsDevice);
-
-                RenderingManager.InitDefaults(Game.GraphicsManager, Game.Resolution);
-                RenderingManager.LightingRenderer = new LightingRenderer
+                if (Game != null &&
+                    Game.GraphicsManager != null)
                 {
-                    Name = "Lighting",
-                    SetRenderTarget_BeforeDraw = true,
-                    ClearGraphics_BeforeDraw = true,
-                    ClearRenderTarget_AfterDraw = true,
-                    BlendState = BlendState.Additive
-                };
-                RenderingManager.LightingRenderer.Init(Game.GraphicsManager, Game.Resolution);
-                RenderingManager.AddLightingRenderer.RenderTarget = RenderingManager.LightingRenderer.RenderTarget;
+                    Game.SpriteBatch = new SpriteBatch(Game.GraphicsManager.GraphicsDevice);
 
-                TimeTracker.Init();
-                Handler.Init(this);
+                    RenderingManager.InitDefaults(Game.GraphicsManager, Game.Resolution);
 
-                if (!Game.GraphicsManager.IsFullScreen)
-                {
-                    Game.Form.WindowState = FormWindowState.Maximized;
+                    if (RenderingManager.AddLightingRenderer != null)
+                    {
+                        RenderingManager.LightingRenderer = new LightingRenderer
+                        {
+                            Name = "Lighting",
+                            SetRenderTarget_BeforeDraw = true,
+                            ClearGraphics_BeforeDraw = true,
+                            ClearRenderTarget_AfterDraw = true,
+                            BlendState = BlendState.Additive
+                        };
+                        RenderingManager.LightingRenderer.Init(Game.GraphicsManager, Game.Resolution);
+                        RenderingManager.AddLightingRenderer.RenderTarget = RenderingManager.LightingRenderer.RenderTarget;
+                    }
+
+                    TimeTracker.Init();
+                    Handler.Init(this);
+
+                    if (!Game.GraphicsManager.IsFullScreen &&
+                        Game.Form != null)
+                    {
+                        Game.Form.WindowState = FormWindowState.Maximized;
+                    }
                 }
 
                 LoadScenes();
@@ -107,7 +116,7 @@ namespace Despicaville
             }
             catch (Exception e)
             {
-                Game.CrashHandler(e);
+                Game?.CrashHandler(e);
             }
         }
 
@@ -120,62 +129,66 @@ namespace Despicaville
         {
             try
             {
-                if (Window != null)
+                if (Game != null)
                 {
-                    if (Window.ClientBounds.Width > 0 &&
-                        Window.ClientBounds.Height > 0)
+                    if (Window != null)
                     {
-                        if (!Game.Form.Focused)
+                        if (Window.ClientBounds.Width > 0 &&
+                            Window.ClientBounds.Height > 0 &&
+                            Game.Form != null)
                         {
-                            if (Game.GameStarted &&
-                                !LostFocus &&
-                                !TimeManager.Paused)
+                            if (!Game.Form.Focused)
                             {
-                                LostFocus = true;
-                                MenuManager.GetMenu("Main").Open();
-                            }
+                                if (Game.GameStarted &&
+                                    !LostFocus &&
+                                    !TimeManager.Paused)
+                                {
+                                    LostFocus = true;
+                                    MenuManager.GetMenu("Main")?.Open();
+                                }
 
+                                SoundManager.Paused = true;
+                            }
+                            else if (Game.Form.Focused)
+                            {
+                                LostFocus = false;
+                                SoundManager.Paused = false;
+
+                                InputManager.Update();
+                                MenuManager.Update(Game.Game, Content);
+                                SceneManager.Update(Game.Game, Content);
+                                RenderingManager.Update();
+                                WeatherManager.Update(Game.Resolution, Color.White);
+                            }
+                        }
+                        else if (!LostFocus)
+                        {
+                            LostFocus = true;
+                            MenuManager.GetMenu("Main")?.Open();
                             SoundManager.Paused = true;
                         }
-                        else if (Game.Form.Focused)
-                        {
-                            LostFocus = false;
-                            SoundManager.Paused = false;
 
-                            InputManager.Update();
-                            MenuManager.Update(Game.Game, Content);
-                            SceneManager.Update(Game.Game, Content);
-                            RenderingManager.Update();
-                            WeatherManager.Update(Game.Resolution, Color.White);
-                        }
+                        SoundManager.Update();
                     }
-                    else if (!LostFocus)
+
+                    if (Game.Quit)
                     {
-                        LostFocus = true;
-                        MenuManager.GetMenu("Main").Open();
-                        SoundManager.Paused = true;
+                        SoundManager.StopAll();
+                        Game.Game?.Exit();
                     }
-
-                    SoundManager.Update();
-                }
-
-                if (Game.Quit)
-                {
-                    SoundManager.StopAll();
-                    Game.Game.Exit();
                 }
             }
             catch (Exception e)
             {
-                Game.CrashHandler(e);
+                Game?.CrashHandler(e);
             }
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            Game.Draw();
+            Game?.Draw();
 
-            if (Game.Window != null)
+            if (Game?.Window != null)
             {
                 if (Game.Window.ClientBounds.Width > 0 &&
                     Game.Window.ClientBounds.Height > 0)
@@ -214,10 +227,10 @@ namespace Despicaville
             MenuManager.Menus.Add(new Menu_Options(Content));
             MenuManager.Menus.Add(new Menu_Controls(Content));
             MenuManager.Menus.Add(new Menu_MapEditor(Content));
-            MenuManager.Menus.Add(new Menu_Inventory(Content));
+            MenuManager.Menus.Add(new Menu_Inventory());
             MenuManager.Menus.Add(new Menu_Combat(Content));
             MenuManager.Menus.Add(new Menu_Health(Content));
-            MenuManager.Menus.Add(new Menu_Wounds(Content));
+            MenuManager.Menus.Add(new Menu_Wounds());
             MenuManager.Menus.Add(new Menu_UI(Content));
         }
 

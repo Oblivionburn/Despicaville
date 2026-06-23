@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics;
 using OP_Engine.Controls;
 using OP_Engine.Inputs;
 using OP_Engine.Menus;
@@ -31,7 +32,7 @@ namespace Despicaville.Menus
 
         #region Methods
 
-        public override void Update(Game gameRef, ContentManager content)
+        public override void Update(Game? gameRef, ContentManager? content)
         {
             if (Visible ||
                 Active)
@@ -51,7 +52,7 @@ namespace Despicaville.Menus
         private void UpdateControls()
         {
             bool hoveringButton = HoveringButton();
-            Label hoveringLabel = HoveringLabel();
+            Label? hoveringLabel = HoveringLabel();
 
             if (!hoveringButton)
             {
@@ -61,7 +62,11 @@ namespace Despicaville.Menus
                     hoveringLabel?.Name == "Pulling" ||
                     hoveringLabel?.Name == "Combat")
                 {
-                    GetLabel("Examine").Visible = false;
+                    Label? examine = GetLabel("Examine");
+                    if (examine != null)
+                    {
+                        examine.Visible = false;
+                    }
                 }
             }
         }
@@ -79,7 +84,8 @@ namespace Despicaville.Menus
                 if (button.Visible &&
                     button.Enabled)
                 {
-                    if (InputManager.MouseWithin(button.Region.ToRectangle))
+                    if (button.Region != null &&
+                        InputManager.MouseWithin(button.Region.ToRectangle))
                     {
                         if (button.HoverText != null)
                         {
@@ -105,13 +111,14 @@ namespace Despicaville.Menus
             return false;
         }
 
-        private Label HoveringLabel()
+        private Label? HoveringLabel()
         {
             foreach (Label label in Labels)
             {
                 if (label.Visible)
                 {
-                    if (InputManager.MouseWithin(label.Region.ToRectangle))
+                    if (label.Region != null &&
+                        InputManager.MouseWithin(label.Region.ToRectangle))
                     {
                         if (label.HoverText != null)
                         {
@@ -129,19 +136,24 @@ namespace Despicaville.Menus
         private void CheckClick(Button button)
         {
             AssetManager.PlaySound_Random("Click");
-            InputManager.Mouse.Flush();
-            GetLabel("Examine").Visible = false;
+            InputManager.Mouse?.Flush();
+
+            Label? examine = GetLabel("Examine");
+            if (examine != null)
+            {
+                examine.Visible = false;
+            }
 
             if (button.Name == "Main")
             {
-                MenuManager.GetMenu("Main").Open();
+                MenuManager.GetMenu("Main")?.Open();
             }
             else if (button.Name == "Inventory")
             {
                 Handler.Trading = false;
                 Handler.Trading_InventoryID.Clear();
 
-                MenuManager.GetMenu("Inventory").Open();
+                MenuManager.GetMenu("Inventory")?.Open();
             }
             else if (button.Name == "Health")
             {
@@ -149,26 +161,32 @@ namespace Despicaville.Menus
                 {
                     Handler.Menu_Health = true;
 
-                    Menu main = MenuManager.GetMenu(button.Name);
-                    main.Load();
-                    main.Active = true;
-                    main.Visible = true;
+                    Menu? main = MenuManager.GetMenu(button.Name);
+                    if (main != null)
+                    {
+                        main.Load();
+                        main.Active = true;
+                        main.Visible = true;
+                    }
                 }
                 else
                 {
                     Handler.Menu_Health = false;
                     Handler.Selected_BodyPart = "";
 
-                    Menu main = MenuManager.GetMenu(button.Name);
-                    main.Active = false;
-                    main.Visible = false;
+                    Menu? main = MenuManager.GetMenu(button.Name);
+                    if (main != null)
+                    {
+                        main.Active = false;
+                        main.Visible = false;
+                    }
                 }
             }
         }
 
         private void UpdateTime()
         {
-            Label time = GetLabel("Time");
+            Label? time = GetLabel("Time");
             if (time != null)
             {
                 if (TimeManager.Now != null)
@@ -181,13 +199,18 @@ namespace Despicaville.Menus
 
         private void UpdateStats()
         {
-            ProgressBar bar = GetProgressBar("Hunger");
+            if (Handler.Player == null)
+            {
+                return;
+            }
+
+            ProgressBar? bar = GetProgressBar("Hunger");
             if (bar != null)
             {
                 bar.Value = Handler.Player.Stats.Hunger;
                 bar.Update();
             }
-            Label label = GetLabel("Hunger");
+            Label? label = GetLabel("Hunger");
             if (label != null)
             {
                 label.HoverText = "How hungry you are.\nStamina -1 every hour at 100%.";
@@ -316,36 +339,55 @@ namespace Despicaville.Menus
         {
             Clear();
 
-            AddPicture(Handler.GetID(), "Panel_Upper_Left", AssetManager.Textures["Frame_Large"], new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Panel_Upper_Right", AssetManager.Textures["Frame_Large"], new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Panel_Upper_Center", AssetManager.Textures["Frame_Wide"], new Region(0, 0, 0, 0), Color.White * 0f, false);
-            AddPicture(Handler.GetID(), "Panel_Lower_Left", AssetManager.Textures["Frame_Large"], new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Panel_Lower_Right", AssetManager.Textures["Frame_Large"], new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Panel_Lower_Center", AssetManager.Textures["Frame_Wide"], new Region(0, 0, 0, 0), Color.White * 0.6f, true);
+            Texture2D? frame = Handler.GetTexture("Frame");
+            Texture2D? frame_Large = Handler.GetTexture("Frame_Large");
+            Texture2D? frame_Wide = Handler.GetTexture("Frame_Wide");
 
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Time", "", Color.White, AssetManager.Textures["Frame_Wide"], new Region(0, 0, 0, 0), Color.White * 0f, true);
+            Texture2D? progressBase = Handler.GetTexture("ProgressBase");
+            Texture2D? progressBar = Handler.GetTexture("ProgressBar");
 
-            AddProgressBar(Handler.GetID(), "Hunger", 100, 0, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            Texture2D? button_Menu = Handler.GetTexture("Button_Menu");
+            Texture2D? button_Menu_Hover = Handler.GetTexture("Button_Menu_Hover");
+
+            Texture2D? button_Inventory = Handler.GetTexture("Button_Inventory");
+            Texture2D? button_Inventory_Hover = Handler.GetTexture("Button_Inventory_Hover");
+
+            Texture2D? button_Health = Handler.GetTexture("Button_Health");
+            Texture2D? button_Health_Hover = Handler.GetTexture("Button_Health_Hover");
+
+            Texture2D? button_Stats = Handler.GetTexture("Button_Stats");
+            Texture2D? button_Stats_Hover = Handler.GetTexture("Button_Stats_Hover");
+
+            AddPicture(Handler.GetID(), "Panel_Upper_Left", frame_Large, new Region(0, 0, 0, 0), Color.White, false);
+            AddPicture(Handler.GetID(), "Panel_Upper_Right", frame_Large, new Region(0, 0, 0, 0), Color.White, false);
+            AddPicture(Handler.GetID(), "Panel_Upper_Center", frame_Wide, new Region(0, 0, 0, 0), Color.White * 0f, false);
+            AddPicture(Handler.GetID(), "Panel_Lower_Left", frame_Large, new Region(0, 0, 0, 0), Color.White, false);
+            AddPicture(Handler.GetID(), "Panel_Lower_Right", frame_Large, new Region(0, 0, 0, 0), Color.White, false);
+            AddPicture(Handler.GetID(), "Panel_Lower_Center", frame_Wide, new Region(0, 0, 0, 0), Color.White * 0.6f, true);
+
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Time", "", Color.White, frame_Wide, new Region(0, 0, 0, 0), Color.White * 0f, true);
+
+            AddProgressBar(Handler.GetID(), "Hunger", 100, 0, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(0, 100, 0), true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Hunger", "Hunger: 0%", Color.White, new Region(0, 0, 0, 0), true);
 
-            AddProgressBar(Handler.GetID(), "Thirst", 100, 0, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Thirst", 100, 0, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(0, 0, 100), true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Thirst", "Thirst: 0%", Color.White, new Region(0, 0, 0, 0), true);
 
-            AddProgressBar(Handler.GetID(), "Bladder", 100, 0, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Bladder", 100, 0, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(100, 100, 0), true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Bladder", "Bladder: 0%", Color.White, new Region(0, 0, 0, 0), true);
 
-            AddProgressBar(Handler.GetID(), "Grime", 100, 0, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Grime", 100, 0, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(50, 40, 30), true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Grime", "Grime: 0%", Color.White, new Region(0, 0, 0, 0), true);
 
-            AddProgressBar(Handler.GetID(), "Pain", 100, 0, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Pain", 100, 0, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), Color.Red, true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Pain", "Pain: 0%", Color.White, new Region(0, 0, 0, 0), true);
 
-            AddProgressBar(Handler.GetID(), "Paranoia", 100, 0, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Paranoia", 100, 0, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(60, 0, 100), true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Paranoia", "Paranoia: 0%", Color.White, new Region(0, 0, 0, 0), true);
 
@@ -393,137 +435,340 @@ namespace Despicaville.Menus
                 visible = true
             });
 
-            AddProgressBar(Handler.GetID(), "Blood", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Blood", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(100, 0, 0), true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Blood", "Blood: 100%", Color.White, new Region(0, 0, 0, 0), true);
 
-            AddProgressBar(Handler.GetID(), "Consciousness", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Consciousness", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(128, 64, 0), true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Consciousness", "Consciousness: 100%", Color.White, new Region(0, 0, 0, 0), true);
 
-            AddProgressBar(Handler.GetID(), "Stamina", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Stamina", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(0, 64, 128), true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Stamina", "Stamina: 100%", Color.White, new Region(0, 0, 0, 0), true);
 
-            AddProgressBar(Handler.GetID(), "Comfort", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Comfort", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(64, 128, 0), true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Comfort", "Comfort: 100%", Color.White, new Region(0, 0, 0, 0), true);
 
-            AddButton(Handler.GetID(), "Main", AssetManager.Textures["Button_Menu"], AssetManager.Textures["Button_Menu_Hover"], null,
+            AddButton(Handler.GetID(), "Main", button_Menu, button_Menu_Hover, null,
                 new Region(0, 0, 0, 0), Color.White, true);
-            GetButton("Main").HoverText = "System";
 
-            AddButton(Handler.GetID(), "Inventory", AssetManager.Textures["Button_Inventory"], AssetManager.Textures["Button_Inventory_Hover"], null,
+            Button? main = GetButton("Main");
+            if (main != null)
+            {
+                main.HoverText = "System";
+            }
+
+            AddButton(Handler.GetID(), "Inventory", button_Inventory, button_Inventory_Hover, null,
                 new Region(0, 0, 0, 0), Color.White, true);
-            GetButton("Inventory").HoverText = "Inventory";
 
-            AddButton(Handler.GetID(), "Health", AssetManager.Textures["Button_Health"], AssetManager.Textures["Button_Health_Hover"], null,
+            Button? inventory = GetButton("Inventory");
+            if (inventory != null)
+            {
+                inventory.HoverText = "Inventory";
+            }
+
+            AddButton(Handler.GetID(), "Health", button_Health, button_Health_Hover, null,
                 new Region(0, 0, 0, 0), Color.White, true);
-            GetButton("Health").HoverText = "Health";
 
-            AddButton(Handler.GetID(), "Stats", AssetManager.Textures["Button_Stats"], AssetManager.Textures["Button_Stats_Hover"], null,
+            Button? health = GetButton("Health");
+            if (health != null)
+            {
+                health.HoverText = "Health";
+            }
+
+            AddButton(Handler.GetID(), "Stats", button_Stats, button_Stats_Hover, null,
                 new Region(0, 0, 0, 0), Color.White, false);
-            GetButton("Stats").HoverText = "Stats";
 
-            AddButton(Handler.GetID(), "Skills", AssetManager.Textures["Button_Skills"], AssetManager.Textures["Button_Skills_Hover"], null,
-                new Region(0, 0, 0, 0), Color.White, false);
-            GetButton("Skills").HoverText = "Skills";
+            Button? stats = GetButton("Stats");
+            if (stats != null)
+            {
+                stats.HoverText = "Stats";
+            }
 
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "", Color.White, AssetManager.Textures["Frame"], new Region(0, 0, 0, 0), false);
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "", Color.White, frame, new Region(0, 0, 0, 0), false);
 
             for (int i = 0; i < Handler.MessageMax; i++)
             {
                 AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Message" + i.ToString(), "", Color.Red, new Region(0, 0, 0, 0), true);
 
-                Label label = GetLabel("Message" + i.ToString());
-                label.Alignment_Horizontal = Alignment.Left;
-                label.AutoScale = false;
-                label.Scale = 0.9f;
+                Label? label = GetLabel("Message" + i.ToString());
+                if (label != null)
+                {
+                    label.Alignment_Horizontal = Alignment.Left;
+                    label.AutoScale = false;
+                    label.Scale = 0.9f;
+                }
             }
 
+            if (Main.Game == null)
+            {
+                return;
+            }
             Resize(Main.Game.Resolution);
         }
 
         public override void Resize(Point point)
         {
-            GetLabel("Examine").Region = new Region(0, 0, 0, 0);
+            if (Main.Game == null)
+            {
+                return;
+            }
+
+            Label? examine = GetLabel("Examine");
+            if (examine != null)
+            {
+                examine.Region = new Region(0, 0, 0, 0);
+            }
 
             //Hidden Panels
             int panel_width = (int)(Main.Game.MenuSize_X * 5);
             int upper_panel_height = (int)(Main.Game.MenuSize_Y * 12);
             int lower_panel_height = (int)(Main.Game.MenuSize_Y * 3);
 
-            GetPicture("Panel_Upper_Left").Region = new Region(0, 0, panel_width, upper_panel_height);
-            GetPicture("Panel_Lower_Left").Region = new Region(0, upper_panel_height, panel_width, lower_panel_height);
-            GetPicture("Panel_Upper_Right").Region = new Region(Main.Game.ScreenWidth - panel_width, 0, panel_width, upper_panel_height);
-            GetPicture("Panel_Lower_Right").Region = new Region(Main.Game.ScreenWidth - panel_width, upper_panel_height, panel_width, lower_panel_height);
-            GetPicture("Panel_Upper_Center").Region = new Region(panel_width, 0, Main.Game.ScreenWidth - (panel_width * 2), upper_panel_height);
+            Picture? panel_Upper_Left = GetPicture("Panel_Upper_Left");
+            if (panel_Upper_Left != null)
+            {
+                panel_Upper_Left.Region = new Region(0, 0, panel_width, upper_panel_height);
+            }
+
+            Picture? panel_Lower_Left = GetPicture("Panel_Lower_Left");
+            if (panel_Lower_Left != null)
+            {
+                panel_Lower_Left.Region = new Region(0, upper_panel_height, panel_width, lower_panel_height);
+            }
+
+            Picture? panel_Upper_Right = GetPicture("Panel_Upper_Right");
+            if (panel_Upper_Right != null)
+            {
+                panel_Upper_Right.Region = new Region(Main.Game.ScreenWidth - panel_width, 0, panel_width, upper_panel_height);
+            }
+
+            Picture? panel_Lower_Right = GetPicture("Panel_Lower_Right");
+            if (panel_Lower_Right != null)
+            {
+                panel_Lower_Right.Region = new Region(Main.Game.ScreenWidth - panel_width, upper_panel_height, panel_width, lower_panel_height);
+            }
+
+            Picture? panel_Upper_Center = GetPicture("Panel_Upper_Center");
+            if (panel_Upper_Center != null)
+            {
+                panel_Upper_Center.Region = new Region(panel_width, 0, Main.Game.ScreenWidth - (panel_width * 2), upper_panel_height);
+            }
 
             //Message Panel
             int Y = Main.Game.ScreenHeight - lower_panel_height;
-            GetPicture("Panel_Lower_Center").Region = new Region(panel_width, Y, Main.Game.ScreenWidth - (panel_width * 2), lower_panel_height);
+
+            Picture? panel_Lower_Center = GetPicture("Panel_Lower_Center");
+            if (panel_Lower_Center != null)
+            {
+                panel_Lower_Center.Region = new Region(panel_width, Y, Main.Game.ScreenWidth - (panel_width * 2), lower_panel_height);
+            }
 
             int message_height = lower_panel_height / Handler.MessageMax;
             for (int i = 0; i < Handler.MessageMax; i++)
             {
-                Label message = GetLabel("Message" + i.ToString());
-                message.Region = new Region(panel_width, Y, Main.Game.ScreenWidth - (panel_width * 2), message_height);
-                message.Scale = (float)lower_panel_height / 212;
+                Label? message = GetLabel("Message" + i.ToString());
+                if (message != null)
+                {
+                    message.Region = new Region(panel_width, Y, Main.Game.ScreenWidth - (panel_width * 2), message_height);
+                    message.Scale = (float)lower_panel_height / 212;
+                }
+                
                 Y += message_height;
             }
 
             //Upper Left
-            GetButton("Main").Region = new Region(0, 0, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-            GetButton("Inventory").Region = new Region(Main.Game.MenuSize_X, 0, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
-            GetButton("Health").Region = new Region(Main.Game.MenuSize_X * 2, 0, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+            Button? main = GetButton("Main");
+            if (main != null)
+            {
+                main.Region = new Region(0, 0, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+            }
+
+            Button? inventory = GetButton("Inventory");
+            if (inventory != null)
+            {
+                inventory.Region = new Region(Main.Game.MenuSize_X, 0, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+            }
+
+            Button? health = GetButton("Health");
+            if (health != null)
+            {
+                health.Region = new Region(Main.Game.MenuSize_X * 2, 0, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+            }
 
             //Upper Center
-            GetLabel("Time").Region = new Region(Main.Game.ScreenWidth - panel_width, 0, panel_width, Main.Game.MenuSize_Y * 2);
+            Label? time = GetLabel("Time");
+            if (time != null)
+            {
+                time.Region = new Region(Main.Game.ScreenWidth - panel_width, 0, panel_width, Main.Game.MenuSize_Y * 2);
+            }
 
             //Upper Right
             int x = Main.Game.ScreenWidth - panel_width;
             int y = (int)Main.Game.MenuSize_Y * 2;
             int height = (int)((Main.Game.MenuSize_Y / 4) * 2);
 
-            GetProgressBar("Hunger").Base_Region = new Region(x, y, panel_width, height);
-            GetLabel("Hunger").Region = new Region(x, y, panel_width, height);
+            ProgressBar? hunger_bar = GetProgressBar("Hunger");
+            if (hunger_bar != null)
+            {
+                hunger_bar.Base_Region = new Region(x, y, panel_width, height);
+            }
 
-            GetProgressBar("Thirst").Base_Region = new Region(x, y + height, panel_width, height);
-            GetLabel("Thirst").Region = new Region(x, y + height, panel_width, height);
+            Label? hunger_label = GetLabel("Hunger");
+            if (hunger_label != null)
+            {
+                hunger_label.Region = new Region(x, y, panel_width, height);
+            }
 
-            GetProgressBar("Bladder").Base_Region = new Region(x, y + (height * 2), panel_width, height);
-            GetLabel("Bladder").Region = new Region(x, y + (height * 2), panel_width, height);
+            ProgressBar? thirst_bar = GetProgressBar("Thirst");
+            if (thirst_bar != null)
+            {
+                thirst_bar.Base_Region = new Region(x, y + height, panel_width, height);
+            }
 
-            GetProgressBar("Grime").Base_Region = new Region(x, y + (height * 3), panel_width, height);
-            GetLabel("Grime").Region = new Region(x, y + (height * 3), panel_width, height);
+            Label? thirst_label = GetLabel("Thirst");
+            if (thirst_label != null)
+            {
+                thirst_label.Region = new Region(x, y + height, panel_width, height);
+            }
 
-            GetProgressBar("Pain").Base_Region = new Region(x, y + (height * 4), panel_width, height);
-            GetLabel("Pain").Region = new Region(x, y + (height * 4), panel_width, height);
+            ProgressBar? bladder_bar = GetProgressBar("Bladder");
+            if (bladder_bar != null)
+            {
+                bladder_bar.Base_Region = new Region(x, y + (height * 2), panel_width, height);
+            }
 
-            GetProgressBar("Paranoia").Base_Region = new Region(x, y + (height * 5), panel_width, height);
-            GetLabel("Paranoia").Region = new Region(x, y + (height * 5), panel_width, height);
+            Label? bladder_label = GetLabel("Bladder");
+            if (bladder_label != null)
+            {
+                bladder_label.Region = new Region(x, y + (height * 2), panel_width, height);
+            }
 
-            GetLabel("Crouching").Region = new Region(x, y + (height * 6), panel_width, height);
-            GetLabel("Running").Region = new Region(x, y + (height * 7), panel_width, height);
-            GetLabel("Pulling").Region = new Region(x, y + (height * 8), panel_width, height);
-            GetLabel("Combat").Region = new Region(x, y + (height * 9), panel_width, height);
+            ProgressBar? grime_bar = GetProgressBar("Grime");
+            if (grime_bar != null)
+            {
+                grime_bar.Base_Region = new Region(x, y + (height * 3), panel_width, height);
+            }
 
-            GetProgressBar("Blood").Base_Region = new Region(x, y + (height * 10), panel_width, height);
-            GetLabel("Blood").Region = new Region(x, y + (height * 10), panel_width, height);
+            Label? grime_label = GetLabel("Grime");
+            if (grime_label != null)
+            {
+                grime_label.Region = new Region(x, y + (height * 3), panel_width, height);
+            }
 
-            GetProgressBar("Consciousness").Base_Region = new Region(x, y + (height * 11), panel_width, height);
-            GetLabel("Consciousness").Region = new Region(x, y + (height * 11), panel_width, height);
+            ProgressBar? pain_bar = GetProgressBar("Pain");
+            if (pain_bar != null)
+            {
+                pain_bar.Base_Region = new Region(x, y + (height * 4), panel_width, height);
+            }
 
-            GetProgressBar("Stamina").Base_Region = new Region(x, y + (height * 12), panel_width, height);
-            GetLabel("Stamina").Region = new Region(x, y + (height * 12), panel_width, height);
+            Label? pain_label = GetLabel("Pain");
+            if (pain_label != null)
+            {
+                pain_label.Region = new Region(x, y + (height * 4), panel_width, height);
+            }
+            
+            ProgressBar? paranoia_bar = GetProgressBar("Paranoia");
+            if (paranoia_bar != null)
+            {
+                paranoia_bar.Base_Region = new Region(x, y + (height * 5), panel_width, height);
+            }
 
-            GetProgressBar("Comfort").Base_Region = new Region(x, y + (height * 13), panel_width, height);
-            GetLabel("Comfort").Region = new Region(x, y + (height * 13), panel_width, height);
+            Label? paranoia_label = GetLabel("Paranoia");
+            if (paranoia_label != null)
+            {
+                paranoia_label.Region = new Region(x, y + (height * 5), panel_width, height);
+            }
+
+            Label? crouching = GetLabel("Crouching");
+            if (crouching != null)
+            {
+                crouching.Region = new Region(x, y + (height * 6), panel_width, height);
+            }
+
+            Label? running = GetLabel("Running");
+            if (running != null)
+            {
+                running.Region = new Region(x, y + (height * 7), panel_width, height);
+            }
+
+            Label? pulling = GetLabel("Pulling");
+            if (pulling != null)
+            {
+                pulling.Region = new Region(x, y + (height * 8), panel_width, height);
+            }
+
+            Label? combat = GetLabel("Combat");
+            if (combat != null)
+            {
+                combat.Region = new Region(x, y + (height * 9), panel_width, height);
+            }
+
+            ProgressBar? blood_bar = GetProgressBar("Blood");
+            if (blood_bar != null)
+            {
+                blood_bar.Base_Region = new Region(x, y + (height * 10), panel_width, height);
+            }
+
+            Label? blood_label = GetLabel("Blood");
+            if (blood_label != null)
+            {
+                blood_label.Region = new Region(x, y + (height * 10), panel_width, height);
+            }
+            
+            ProgressBar? consciousness_bar = GetProgressBar("Consciousness");
+            if (consciousness_bar != null)
+            {
+                consciousness_bar.Base_Region = new Region(x, y + (height * 11), panel_width, height);
+            }
+
+            Label? consciousness_label = GetLabel("Consciousness");
+            if (consciousness_label != null)
+            {
+                consciousness_label.Region = new Region(x, y + (height * 11), panel_width, height);
+            }
+
+            ProgressBar? stamina_bar = GetProgressBar("Stamina");
+            if (stamina_bar != null)
+            {
+                stamina_bar.Base_Region = new Region(x, y + (height * 12), panel_width, height);
+            }
+
+            Label? stamina_label = GetLabel("Stamina");
+            if (stamina_label != null)
+            {
+                stamina_label.Region = new Region(x, y + (height * 12), panel_width, height);
+            }
+
+            ProgressBar? comfort_bar = GetProgressBar("Comfort");
+            if (comfort_bar != null)
+            {
+                comfort_bar.Base_Region = new Region(x, y + (height * 13), panel_width, height);
+            }
+
+            Label? comfort_label = GetLabel("Comfort");
+            if (comfort_label != null)
+            {
+                comfort_label.Region = new Region(x, y + (height * 13), panel_width, height);
+            }
         }
 
         private void Examine(string text)
         {
-            Label examine = GetLabel("Examine");
+            if (Main.Game == null)
+            {
+                return;
+            }
+
+            Label? examine = GetLabel("Examine");
+            if (examine == null ||
+                InputManager.Mouse == null)
+            {
+                return;
+            }
+
             examine.Text = text;
 
             int width = (int)(Main.Game.MenuSize_X * 7);

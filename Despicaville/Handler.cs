@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +24,7 @@ namespace Despicaville
         #region Variables
 
         public static long ID;
+        public static List<FileInfo> Textures = [];
 
         public static int SightDistance = 10;
         public static int HearingDistance = 5;
@@ -43,53 +43,53 @@ namespace Despicaville
 
         public static bool Pull;
         public static long Pull_ID;
-        public static Tile Pull_Tile;
-        public static Character Pull_Character;
+        public static Tile? Pull_Tile;
+        public static Character? Pull_Character;
 
         public static bool Trading;
-        public static List<long> Trading_InventoryID = new List<long>();
+        public static List<long> Trading_InventoryID = [];
 
-        public static string[] SkinColors = { "Light", "Tan", "Dark" };
-        public static string[] HairLength = { "Bald", "Short", "Long" };
-        public static string[] HairColor = { "Black", "Blonde", "Brown", "Grey", "Red", "White" };
-        public static string[] Colors = { "Black", "Blue", "Brown", "Cyan", "Green", "Grey", "Orange", "Pink", "Purple", "Red", "White", "Yellow" };
-        public static string[] BodyParts = { "Head", "Neck", "Torso", "Groin", "Right_Arm", "Right_Hand", "Left_Arm", "Left_Hand", "Right_Leg", "Right_Foot", "Left_Leg", "Left_Foot" };
+        public static string[] SkinColors = ["Light", "Tan", "Dark"];
+        public static string[] HairLength = ["Bald", "Short", "Long"];
+        public static string[] HairColor = ["Black", "Blonde", "Brown", "Grey", "Red", "White"];
+        public static string[] Colors = ["Black", "Blue", "Brown", "Cyan", "Green", "Grey", "Orange", "Pink", "Purple", "Red", "White", "Yellow"];
+        public static string[] BodyParts = ["Head", "Neck", "Torso", "Groin", "Right_Arm", "Right_Hand", "Left_Arm", "Left_Hand", "Right_Leg", "Right_Foot", "Left_Leg", "Left_Foot"];
 
         public static int MessageMax = 6;
-        public static List<string> Messages = new List<string>();
+        public static List<string> Messages = [];
 
-        public static Character Player = null;
-        public static Tile Interaction_Tile = null;
-        public static Character Interaction_Character = null;
+        public static Character? Player = null;
+        public static Tile? Interaction_Tile = null;
+        public static Character? Interaction_Character = null;
 
         public static int light_count = 0;
         public static int light_map_width = 0;
-        public static Dictionary<Vector2, List<Tile>> light_maps = new Dictionary<Vector2, List<Tile>>();
-        public static List<Point> light_sources = new List<Point>();
+        public static Dictionary<Vector2, List<Tile>> light_maps = [];
+        public static List<Point> light_sources = [];
 
-        public static Dictionary<long, List<Tile>> VisibleTiles = new Dictionary<long, List<Tile>>();
+        public static Dictionary<long, List<Tile>> VisibleTiles = [];
 
         public static List<Tile> Furniture = new List<Tile>();
         public static List<Tile> TopFurniture = new List<Tile>();
         public static List<Tile> MiddleFurniture = new List<Tile>();
-        public static Dictionary<long, List<Tile>> OwnedFurniture = new Dictionary<long, List<Tile>>();
+        public static Dictionary<long, List<Tile>> OwnedFurniture = [];
 
-        public static Dictionary<string, string> Stats = new Dictionary<string, string>();
+        public static Dictionary<string, string> Stats = [];
         public static float HungerRate = 0.0006945f;
         public static float ThirstRate = 0.0013888f;
         public static float ComfortRate = 0.00556f;
         public static float BoredomRate = 0.00695f;
 
-        public static List<JobTask> Jobs = new List<JobTask>();
+        public static List<JobTask> Jobs = [];
 
         public static int CharGen_Stage;
-        public static string Selected_BodyPart;
+        public static string? Selected_BodyPart;
 
         public static int Loading_Stage;
         public static int Loading_Percent;
-        public static string Loading_Message;
-        public static CancellationTokenSource LoadingTokenSource;
-        public static Task LoadingTask;
+        public static string? Loading_Message;
+        public static CancellationTokenSource? LoadingTokenSource;
+        public static Task? LoadingTask;
 
         #endregion
 
@@ -148,26 +148,23 @@ namespace Despicaville
             AssetManager.LoadFonts();
 
             //Textures
-            string[] textures =
+            DirectoryInfo textures_dir = new(AssetManager.Directories["Textures"]);
+            foreach (DirectoryInfo dir in textures_dir.GetDirectories())
             {
-                "Colors",
-                "Controls",
-                "Hairs",
-                "Paperdoll",
-                "RoomTypes",
-                "Screens",
-                "Skins"
-            };
-            foreach (string dir in textures)
-            {
-                AssetManager.LoadTextures(Main.Game.GraphicsManager.GraphicsDevice, dir);
+                FileInfo[] files = dir.GetFiles("*.png");
+
+                int fileCount = files.Length;
+                for (int i = 0; i < fileCount; i++)
+                {
+                    Textures.Add(files[i]);
+                }
             }
 
             //Sounds
             AssetManager.LoadSounds();
 
             string[] sounds =
-            {
+            [
                 "Click",
                 "DoorClose",
                 "DoorOpen",
@@ -177,7 +174,7 @@ namespace Despicaville
                 "Purchase",
                 "WindowClose",
                 "WindowOpen"
-            };
+            ];
             foreach (string dir in sounds)
             {
                 AssetManager.LoadSounds(dir);
@@ -187,12 +184,12 @@ namespace Despicaville
 
             //Ambient
             string[] ambient =
-            {
+            [
                 "Rain",
                 "Storm",
                 "Wind"
-            };
-            foreach (string dir in sounds)
+            ];
+            foreach (string dir in ambient)
             {
                 AssetManager.LoadAmbient(dir);
             }
@@ -202,13 +199,13 @@ namespace Despicaville
 
             //Music
             string[] music =
-            {
+            [
                 "Day",
                 "Defeat",
                 "Loading",
                 "Night",
                 "Title"
-            };
+            ];
             foreach (string dir in music)
             {
                 AssetManager.LoadMusic(dir);
@@ -226,72 +223,18 @@ namespace Despicaville
 
         private static void LoadControls()
         {
-            InputManager.Keyboard.KeysMapped.Add("Cancel", Keys.Escape);
-            InputManager.Keyboard.KeysMapped.Add("Debug", Keys.OemTilde);
-            InputManager.Keyboard.KeysMapped.Add("Up", Keys.W);
-            InputManager.Keyboard.KeysMapped.Add("Right", Keys.D);
-            InputManager.Keyboard.KeysMapped.Add("Down", Keys.S);
-            InputManager.Keyboard.KeysMapped.Add("Left", Keys.A);
-            InputManager.Keyboard.KeysMapped.Add("Crouch", Keys.LeftControl);
-            InputManager.Keyboard.KeysMapped.Add("Run", Keys.LeftShift);
-            InputManager.Keyboard.KeysMapped.Add("Combat", Keys.Tab);
-            InputManager.Keyboard.KeysMapped.Add("Inventory", Keys.I);
-            InputManager.Keyboard.KeysMapped.Add("Map", Keys.M);
-            InputManager.Keyboard.KeysMapped.Add("Wait", Keys.Space);
-        }
-
-        public static void LoadWorldTextures()
-        {
-            if (Main.Game.GraphicsManager.GraphicsDevice != null)
-            {
-                Loading_Percent = 0;
-                Loading_Message = "Loading textures...";
-
-                string[] dirs = { "Animations", "Effects", "Icons", "MapTiles", "Particles", "Shaders", "Vehicles", "Wounds" };
-
-                int current = 0;
-                int total = 0;
-
-                DirectoryInfo dir = new DirectoryInfo(AssetManager.Directories["Textures"]);
-                foreach (DirectoryInfo sub_dir in dir.GetDirectories())
-                {
-                    if (dirs.Contains(sub_dir.Name))
-                    {
-                        total += sub_dir.GetFiles("*.png").Length;
-                    }
-                }
-
-                foreach (DirectoryInfo sub_dir in dir.GetDirectories())
-                {
-                    if (dirs.Contains(sub_dir.Name))
-                    {
-                        FileInfo[] files = sub_dir.GetFiles("*.png");
-
-                        int fileCount = files.Length;
-                        for (int i = 0; i < fileCount; i++)
-                        {
-                            FileInfo file = files[i];
-
-                            string name = Path.GetFileNameWithoutExtension(file.Name);
-                            if (!AssetManager.Textures.ContainsKey(name))
-                            {
-                                using (FileStream fileStream = new FileStream(file.FullName, FileMode.Open))
-                                {
-                                    if (Main.Game.GraphicsManager.GraphicsDevice != null)
-                                    {
-                                        Texture2D texture = Texture2D.FromStream(Main.Game.GraphicsManager.GraphicsDevice, fileStream);
-                                        texture.Name = name;
-                                        AssetManager.Textures.Add(name, texture);
-
-                                        current++;
-                                        Loading_Percent = (current * 100) / total;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            InputManager.Keyboard?.KeysMapped.Add("Cancel", Keys.Escape);
+            InputManager.Keyboard?.KeysMapped.Add("Debug", Keys.OemTilde);
+            InputManager.Keyboard?.KeysMapped.Add("Up", Keys.W);
+            InputManager.Keyboard?.KeysMapped.Add("Right", Keys.D);
+            InputManager.Keyboard?.KeysMapped.Add("Down", Keys.S);
+            InputManager.Keyboard?.KeysMapped.Add("Left", Keys.A);
+            InputManager.Keyboard?.KeysMapped.Add("Crouch", Keys.LeftControl);
+            InputManager.Keyboard?.KeysMapped.Add("Run", Keys.LeftShift);
+            InputManager.Keyboard?.KeysMapped.Add("Combat", Keys.Tab);
+            InputManager.Keyboard?.KeysMapped.Add("Inventory", Keys.I);
+            InputManager.Keyboard?.KeysMapped.Add("Map", Keys.M);
+            InputManager.Keyboard?.KeysMapped.Add("Wait", Keys.Space);
         }
 
         private static void LoadStats()
@@ -351,6 +294,38 @@ namespace Despicaville
             return ID;
         }
 
+        public static Texture2D? GetTexture(string name)
+        {
+            if (AssetManager.Textures.TryGetValue(name, out Texture2D? value))
+            {
+                return value;
+            }
+            else
+            {
+                int total = Textures.Count;
+
+                for (int i = 0; i < total; i++)
+                {
+                    FileInfo fileInfo = Textures[i];
+                    string fileName = Path.GetFileNameWithoutExtension(fileInfo.Name);
+
+                    if (fileName == name &&
+                        Main.Game?.GraphicsManager != null)
+                    {
+                        using (FileStream stream = new(fileInfo.FullName, FileMode.Open))
+                        {
+                            Texture2D texture2D = Texture2D.FromStream(Main.Game.GraphicsManager.GraphicsDevice, stream);
+                            texture2D.Name = fileName;
+                            AssetManager.Textures.Add(fileName, texture2D);
+                            return texture2D;
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
         public static void ResetPull()
         {
             Pull = false;
@@ -358,9 +333,12 @@ namespace Despicaville
             Pull_Tile = null;
             Pull_Character = null;
 
-            Label label = MenuManager.GetMenu("UI").GetLabel("Pulling");
-            label.Opacity = 0.6f;
-            label.TextColor = Color.White;
+            Label? label = MenuManager.GetMenu("UI")?.GetLabel("Pulling");
+            if (label != null)
+            {
+                label.Opacity = 0.6f;
+                label.TextColor = Color.White;
+            }
         }
 
         #endregion

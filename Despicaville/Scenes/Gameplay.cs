@@ -43,13 +43,13 @@ namespace Despicaville.Scenes
 
         #region Methods
 
-        public override void Update(Game gameRef, ContentManager content)
+        public override void Update(Game? gameRef, ContentManager? content)
         {
             if (Visible)
             {
                 if (SoundManager.NeedMusic)
                 {
-                    if (TimeManager.Now.Hours >= 5 && TimeManager.Now.Hours <= 21)
+                    if (TimeManager.Now?.Hours >= 5 && TimeManager.Now.Hours <= 21)
                     {
                         AssetManager.PlayMusic_Random("Day", false);
                     }
@@ -68,7 +68,8 @@ namespace Despicaville.Scenes
                         Handler.WorldMap_Visible = !Handler.WorldMap_Visible;
                     }
 
-                    if (!Handler.Player.Dead)
+                    if (Handler.Player != null &&
+                        !Handler.Player.Dead)
                     {
                         if (!Handler.Player.Moving &&
                             !Handler.Player.Unconscious &&
@@ -85,51 +86,62 @@ namespace Despicaville.Scenes
 
         public override void DrawWorld(SpriteBatch spriteBatch, Point resolution, Color color)
         {
-            if (Visible)
+            if (Main.Game == null)
+            {
+                return;
+            }
+
+            if (Visible &&
+                World != null)
             {
                 if (World.Visible)
                 {
-                    Army characters = CharacterManager.GetArmy("Characters");
+                    Army? characters = CharacterManager.GetArmy("Characters");
 
-                    List<Tile> trees = new List<Tile>();
+                    List<Tile> trees = [];
 
                     Map map = World.Maps[0];
 
-                    Layer bottom_tiles = map.GetLayer("BottomTiles");
-                    Layer room_tiles = map.GetLayer("RoomTiles");
-                    Layer effect_tiles = map.GetLayer("EffectTiles");
-
-                    int bottom_count = bottom_tiles.Tiles.Count;
-                    for (int i = 0; i < bottom_count; i++)
+                    Layer? bottom_tiles = map.GetLayer("BottomTiles");
+                    Layer? room_tiles = map.GetLayer("RoomTiles");
+                    
+                    if (bottom_tiles != null)
                     {
-                        Tile bottom_tile = bottom_tiles.Tiles[i];
-                        Vector2 location = bottom_tile.Location.ToVector2;
-
-                        bottom_tile.Update(resolution);
-
-                        if (bottom_tile.InView)
+                        int bottom_count = bottom_tiles.Tiles.Count;
+                        for (int i = 0; i < bottom_count; i++)
                         {
-                            if (bottom_tile.InSight)
-                            {
-                                bottom_tile.Draw(spriteBatch, resolution, color);
-                            }
-                            else
-                            {
-                                bottom_tile.Draw(spriteBatch, resolution, color * 0.95f);
-                            }
+                            Tile bottom_tile = bottom_tiles.Tiles[i];
+                            Vector2 location = bottom_tile.Location.ToVector2;
 
-                            if (Main.Game.Debugging)
+                            bottom_tile.Update(resolution);
+
+                            if (bottom_tile.InView)
                             {
-                                Tile room_tile = room_tiles.GetTile(location);
-                                if (room_tile != null)
+                                if (bottom_tile.InSight)
                                 {
-                                    if (room_tile.Texture != null)
-                                    {
-                                        room_tile.Update(resolution);
+                                    bottom_tile.Draw(spriteBatch, resolution, color);
+                                }
+                                else
+                                {
+                                    bottom_tile.Draw(spriteBatch, resolution, color * 0.95f);
+                                }
 
-                                        if (room_tile.InView)
+                                if (Main.Game.Debugging)
+                                {
+                                    if (room_tiles != null)
+                                    {
+                                        Tile? room_tile = room_tiles.GetTile(location);
+                                        if (room_tile != null)
                                         {
-                                            room_tile.Draw(spriteBatch, resolution, color);
+                                            if (room_tile.Texture != null)
+                                            {
+                                                room_tile.Update(resolution);
+
+                                                if (room_tile.InView)
+                                                {
+                                                    room_tile.Draw(spriteBatch, resolution, color);
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -137,38 +149,42 @@ namespace Despicaville.Scenes
                         }
                     }
 
-                    for (int i = 0; i < effect_tiles.Tiles.Count; i++)
+                    Layer? effect_tiles = map.GetLayer("EffectTiles");
+                    if (effect_tiles != null)
                     {
-                        Tile effect_tile = effect_tiles.Tiles[i];
-                        if (effect_tile.Location.Z == 0)
+                        for (int i = 0; i < effect_tiles.Tiles.Count; i++)
                         {
-                            if (effect_tile.Visible)
+                            Tile effect_tile = effect_tiles.Tiles[i];
+                            if (effect_tile.Location.Z == 0)
                             {
-                                if (effect_tile.Texture != null)
+                                if (effect_tile.Visible)
                                 {
-                                    effect_tile.Update(resolution);
-
-                                    if (effect_tile.InView)
+                                    if (effect_tile.Texture != null)
                                     {
-                                        if (effect_tile.Animated)
+                                        effect_tile.Update(resolution);
+
+                                        if (effect_tile.InView)
                                         {
-                                            WorldUtil.Animate_Effect(spriteBatch, effect_tile);
-                                        }
-                                        else if (effect_tile.InSight)
-                                        {
-                                            effect_tile.Draw(spriteBatch, resolution, color);
-                                        }
-                                        else
-                                        {
-                                            effect_tile.Draw(spriteBatch, resolution, color * 0.95f);
+                                            if (effect_tile.Animated)
+                                            {
+                                                WorldUtil.Animate_Effect(spriteBatch, effect_tile);
+                                            }
+                                            else if (effect_tile.InSight)
+                                            {
+                                                effect_tile.Draw(spriteBatch, resolution, color);
+                                            }
+                                            else
+                                            {
+                                                effect_tile.Draw(spriteBatch, resolution, color * 0.95f);
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            else
-                            {
-                                effect_tiles.Tiles.Remove(effect_tile);
-                                i--;
+                                else
+                                {
+                                    effect_tiles.Tiles.Remove(effect_tile);
+                                    i--;
+                                }
                             }
                         }
                     }
@@ -179,7 +195,8 @@ namespace Despicaville.Scenes
                         Tile middle_tile = Handler.MiddleFurniture[i];
                         middle_tile.Update(resolution);
 
-                        if (middle_tile.InView)
+                        if (middle_tile.InView &&
+                            middle_tile.Name != null)
                         {
                             if (middle_tile.Name.Contains("Tree"))
                             {
@@ -218,57 +235,60 @@ namespace Despicaville.Scenes
                         }
                     }
 
-                    for (float i = -(Main.Game.TileSize.X * 3); i < resolution.Y + (Main.Game.TileSize.X * 3); i += 0.5f)
+                    if (characters != null)
                     {
-                        int squadCount = characters.Squads.Count;
-                        for (int s = 0; s < squadCount; s++)
+                        for (float i = -(Main.Game.TileSize.X * 3); i < resolution.Y + (Main.Game.TileSize.X * 3); i += 0.5f)
                         {
-                            Squad squad = characters.Squads[s];
-
-                            int charCount = squad.Characters.Count;
-                            for (int c = 0; c < charCount; c++)
+                            int squadCount = characters.Squads.Count;
+                            for (int s = 0; s < squadCount; s++)
                             {
-                                Character character = squad.Characters[c];
-                                if (character.Region.Y == i)
+                                Squad squad = characters.Squads[s];
+
+                                int charCount = squad.Characters.Count;
+                                for (int c = 0; c < charCount; c++)
                                 {
-                                    if (character.Type == "Player" ||
-                                        character.InSight)
+                                    Character character = squad.Characters[c];
+                                    if (character.Region != null &&
+                                        character.Location != null &&
+                                        Handler.Player?.Location != null &&
+                                        character.Region.Y == i)
                                     {
-                                        if (character.Unconscious ||
-                                            character.Laying ||
-                                            character.Dead)
+                                        if (character.Type == "Player" ||
+                                            character.InSight)
                                         {
-                                            Texture2D body_texture = AssetManager.Textures["Down_" + character.Texture.Name];
-                                            if (body_texture != null)
+                                            if (character.Unconscious ||
+                                                character.Laying ||
+                                                character.Dead)
                                             {
-                                                Rectangle image = new Rectangle();
+                                                Texture2D? body_texture = Handler.GetTexture("Down_" + character.Texture?.Name);
+                                                if (body_texture != null)
+                                                {
+                                                    Rectangle image = new();
 
-                                                if (character.Direction == Direction.North)
-                                                {
-                                                    image = new Rectangle(0, 0, 128, 128);
-                                                }
-                                                else if (character.Direction == Direction.East)
-                                                {
-                                                    image = new Rectangle(128, 0, 128, 128);
-                                                }
-                                                else if (character.Direction == Direction.South)
-                                                {
-                                                    image = new Rectangle(256, 0, 128, 128);
-                                                }
-                                                else if (character.Direction == Direction.West)
-                                                {
-                                                    image = new Rectangle(384, 0, 128, 128);
-                                                }
-
-                                                Rectangle region = character.Region.ToRectangle;
-                                                spriteBatch.Draw(AssetManager.Textures["Down_" + character.Texture.Name], region, image, Color.White);
-
-                                                foreach (Item item in character.Inventory.Items)
-                                                {
-                                                    string name = item.Type + "_Down";
-                                                    if (AssetManager.Textures.ContainsKey(name))
+                                                    if (character.Direction == Direction.North)
                                                     {
-                                                        Texture2D texture = AssetManager.Textures[name];
+                                                        image = new Rectangle(0, 0, 128, 128);
+                                                    }
+                                                    else if (character.Direction == Direction.East)
+                                                    {
+                                                        image = new Rectangle(128, 0, 128, 128);
+                                                    }
+                                                    else if (character.Direction == Direction.South)
+                                                    {
+                                                        image = new Rectangle(256, 0, 128, 128);
+                                                    }
+                                                    else if (character.Direction == Direction.West)
+                                                    {
+                                                        image = new Rectangle(384, 0, 128, 128);
+                                                    }
+
+                                                    Rectangle region = character.Region.ToRectangle;
+
+                                                    spriteBatch.Draw(body_texture, region, image, Color.White);
+
+                                                    foreach (Item item in character.Inventory.Items)
+                                                    {
+                                                        Texture2D? texture = Handler.GetTexture(item.Type + "_Down");
                                                         if (texture != null)
                                                         {
                                                             spriteBatch.Draw(texture, region, image, item.DrawColor);
@@ -276,39 +296,39 @@ namespace Despicaville.Scenes
                                                     }
                                                 }
                                             }
-                                        }
-                                        else
-                                        {
-                                            Property damage = character.GetStatusEffect("Damage");
-                                            if (damage != null)
-                                            {
-                                                CombatUtil.DrawDamage(spriteBatch, character, resolution, color);
-                                            }
                                             else
                                             {
-                                                character.Draw(spriteBatch, resolution, color);
-
-                                                JobTask task = character.Job.CurrentTask;
-                                                if (task != null &&
-                                                    task.TaskBar != null)
+                                                Property? damage = character.GetStatusEffect("Damage");
+                                                if (damage != null)
                                                 {
-                                                    task.TaskBar.Draw(spriteBatch);
+                                                    CombatUtil.DrawDamage(spriteBatch, character, resolution, color);
+                                                }
+                                                else
+                                                {
+                                                    character.Draw(spriteBatch, resolution, color);
+
+                                                    JobTask? task = character.Job.CurrentTask;
+                                                    if (task != null &&
+                                                        task.TaskBar != null)
+                                                    {
+                                                        task.TaskBar.Draw(spriteBatch);
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
-                                    else if (WorldUtil.InRange(character.Location, Handler.Player.Location, Handler.HearingDistance) &&
-                                             character.Moving)
-                                    {
-                                        Rectangle region = character.Region.ToRectangle;
-                                        spriteBatch.Draw(character.Texture, region, character.Image, Color.Black * 0.25f);
-
-                                        foreach (Item item in character.Inventory.Items)
+                                        else if (WorldUtil.InRange(character.Location, Handler.Player.Location, Handler.HearingDistance) &&
+                                                 character.Moving)
                                         {
-                                            if (item.Visible &&
-                                                item.Texture != null)
+                                            Rectangle region = character.Region.ToRectangle;
+                                            spriteBatch.Draw(character.Texture, region, character.Image, Color.Black * 0.25f);
+
+                                            foreach (Item item in character.Inventory.Items)
                                             {
-                                                spriteBatch.Draw(item.Texture, region, character.Image, Color.Black * 0.25f);
+                                                if (item.Visible &&
+                                                    item.Texture != null)
+                                                {
+                                                    spriteBatch.Draw(item.Texture, region, character.Image, Color.Black * 0.25f);
+                                                }
                                             }
                                         }
                                     }
@@ -336,38 +356,41 @@ namespace Despicaville.Scenes
                         }
                     }
 
-                    for (int i = 0; i < effect_tiles.Tiles.Count; i++)
+                    if (effect_tiles != null)
                     {
-                        Tile effect_tile = effect_tiles.Tiles[i];
-                        if (effect_tile.Location.Z == 1)
+                        for (int i = 0; i < effect_tiles.Tiles.Count; i++)
                         {
-                            if (effect_tile.Visible)
+                            Tile effect_tile = effect_tiles.Tiles[i];
+                            if (effect_tile.Location.Z == 1)
                             {
-                                if (effect_tile.Texture != null)
+                                if (effect_tile.Visible)
                                 {
-                                    effect_tile.Update(resolution);
-
-                                    if (effect_tile.InView)
+                                    if (effect_tile.Texture != null)
                                     {
-                                        if (effect_tile.Animated)
+                                        effect_tile.Update(resolution);
+
+                                        if (effect_tile.InView)
                                         {
-                                            WorldUtil.Animate_Effect(spriteBatch, effect_tile);
-                                        }
-                                        else if (effect_tile.InSight)
-                                        {
-                                            effect_tile.Draw(spriteBatch, resolution, color);
-                                        }
-                                        else
-                                        {
-                                            effect_tile.Draw(spriteBatch, resolution, color * 0.95f);
+                                            if (effect_tile.Animated)
+                                            {
+                                                WorldUtil.Animate_Effect(spriteBatch, effect_tile);
+                                            }
+                                            else if (effect_tile.InSight)
+                                            {
+                                                effect_tile.Draw(spriteBatch, resolution, color);
+                                            }
+                                            else
+                                            {
+                                                effect_tile.Draw(spriteBatch, resolution, color * 0.95f);
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            else
-                            {
-                                effect_tiles.Tiles.Remove(effect_tile);
-                                i--;
+                                else
+                                {
+                                    effect_tiles.Tiles.Remove(effect_tile);
+                                    i--;
+                                }
                             }
                         }
                     }
@@ -377,14 +400,21 @@ namespace Despicaville.Scenes
 
         public override void DrawWorld(SpriteBatch spriteBatch, Point resolution)
         {
-            if (Visible)
+            if (Main.Game == null)
+            {
+                return;
+            }
+
+            if (Visible &&
+                World != null)
             {
                 if (World.Maps.Count > 0)
                 {
                     Map map = World.Maps[0];
-                    Layer roof_tiles = map.GetLayer("RoofTiles");
+                    Layer? roof_tiles = map.GetLayer("RoofTiles");
 
-                    if (!Main.Game.Debugging)
+                    if (!Main.Game.Debugging &&
+                        roof_tiles != null)
                     {
                         int roof_count = roof_tiles.Tiles.Count;
                         for (int i = 0; i < roof_count; i++)
@@ -394,7 +424,8 @@ namespace Despicaville.Scenes
 
                             if (tile.InView)
                             {
-                                if (!tile.InSight)
+                                if (!tile.InSight &&
+                                    RenderingManager.Lighting != null)
                                 {
                                     tile.Draw(spriteBatch, resolution, RenderingManager.Lighting.DrawColor);
                                 }
@@ -403,16 +434,13 @@ namespace Despicaville.Scenes
                     }
                 }
 
-                List<Tile> visible = new List<Tile>();
-
-                if (Handler.VisibleTiles.ContainsKey(Handler.Player.ID))
+                if (Handler.Player != null &&
+                    Handler.VisibleTiles.TryGetValue(Handler.Player.ID, out List<Tile>? visible))
                 {
-                    visible = Handler.VisibleTiles[Handler.Player.ID];
-                }
-
-                foreach (Tile tile in visible)
-                {
-                    tile.Draw(spriteBatch, resolution);
+                    foreach (Tile tile in visible)
+                    {
+                        tile.Draw(spriteBatch, resolution);
+                    }
                 }
 
                 if (Handler.WorldMap_Visible)
@@ -422,18 +450,26 @@ namespace Despicaville.Scenes
                         tile.Draw(spriteBatch, resolution, Color.White);
                     }
 
-                    Handler.Player.Draw(spriteBatch, resolution, Color.White);
+                    Handler.Player?.Draw(spriteBatch, resolution, Color.White);
                 }
             }
         }
 
         private void UpdatePlayerControls()
         {
+            if (Main.Game == null ||
+                World == null ||
+                Handler.Player == null)
+            {
+                return;
+            }
+
             bool mouse_in_view = false;
 
-            Menu ui = MenuManager.GetMenu("UI");
-            Picture world_view = ui.GetPicture("Panel_Upper_Center");
-            if (InputManager.MouseWithin(world_view.Region.ToRectangle))
+            Menu? ui = MenuManager.GetMenu("UI");
+            Picture? world_view = ui?.GetPicture("Panel_Upper_Center");
+            if (world_view?.Region != null &&
+                InputManager.MouseWithin(world_view.Region.ToRectangle))
             {
                 mouse_in_view = true;
             }
@@ -451,9 +487,12 @@ namespace Despicaville.Scenes
                         {
                             Handler.Player.Running = true;
 
-                            Label label = ui.GetLabel("Running");
-                            label.Opacity = 1;
-                            label.TextColor = Color.Red;
+                            Label? label = ui?.GetLabel("Running");
+                            if (label != null)
+                            {
+                                label.Opacity = 1;
+                                label.TextColor = Color.Red;
+                            }
                         }
                     }
                     else
@@ -462,9 +501,12 @@ namespace Despicaville.Scenes
                         {
                             Handler.Player.Running = false;
 
-                            Label label = ui.GetLabel("Running");
-                            label.Opacity = 0.6f;
-                            label.TextColor = Color.White;
+                            Label? label = ui?.GetLabel("Running");
+                            if (label != null)
+                            {
+                                label.Opacity = 0.6f;
+                                label.TextColor = Color.White;
+                            }
                         }
                     }
                 }
@@ -478,11 +520,12 @@ namespace Despicaville.Scenes
                     if (InputManager.Mouse_RB_Held)
                     {
                         if (!Handler.Pull &&
+                            Handler.Player.Location != null &&
                             InventoryUtil.HasEmptyHand(Handler.Player))
                         {
                             Handler.ResetPull();
 
-                            Location location = new Location();
+                            Location location = new();
                             if (Handler.Player.Direction == Direction.North)
                             {
                                 location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y - 1, 0);
@@ -500,44 +543,54 @@ namespace Despicaville.Scenes
                                 location = new Location(Handler.Player.Location.X - 1, Handler.Player.Location.Y, 0);
                             }
 
-                            Army army = CharacterManager.GetArmy("Characters");
-                            Squad citizens = army.GetSquad("Citizens");
-
-                            Character character = WorldUtil.GetCharacter(citizens.Characters, location);
-                            if (character != null)
+                            Army? army = CharacterManager.GetArmy("Characters");
+                            Squad? citizens = army?.GetSquad("Citizens");
+                            if (citizens != null)
                             {
-                                Map map = World.Maps[0];
-                                Layer bottom_tiles = map.GetLayer("BottomTiles");
-                                Tile tile = bottom_tiles.GetTile(location.ToVector2);
-                                character.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width, tile.Region.Height);
+                                Character? character = WorldUtil.GetCharacter(citizens.Characters, location);
+                                if (character != null)
+                                {
+                                    Map map = World.Maps[0];
+                                    Layer? bottom_tiles = map.GetLayer("BottomTiles");
+                                    Tile? tile = bottom_tiles?.GetTile(location.ToVector2);
+                                    if (tile != null)
+                                    {
+                                        character.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width, tile.Region.Height);
+                                        CharacterUtil.UpdateGear(character);
+                                    }
 
-                                CharacterUtil.UpdateGear(character);
+                                    Handler.Pull = true;
+                                    Handler.Pull_ID = character.ID;
+                                    Handler.Pull_Character = character;
 
-                                Handler.Pull = true;
-                                Handler.Pull_ID = character.ID;
-                                Handler.Pull_Character = character;
+                                    Tasker.AbortTask(character);
+                                    character.Moved = 0;
+                                    character.Moving = false;
 
-                                Tasker.AbortTask(character);
-                                character.Moved = 0;
-                                character.Moving = false;
-
-                                Label label = ui.GetLabel("Pulling");
-                                label.Opacity = 1;
-                                label.TextColor = Color.Red;
+                                    Label? label = ui?.GetLabel("Pulling");
+                                    if (label != null)
+                                    {
+                                        label.Opacity = 1;
+                                        label.TextColor = Color.Red;
+                                    }
+                                }
                             }
 
                             if (!Handler.Pull)
                             {
-                                Tile middle_tile = WorldUtil.GetFurniture_Movable(Handler.MiddleFurniture, location);
+                                Tile? middle_tile = WorldUtil.GetFurniture_Movable(Handler.MiddleFurniture, location);
                                 if (middle_tile != null)
                                 {
                                     Handler.Pull = true;
                                     Handler.Pull_ID = middle_tile.ID;
                                     Handler.Pull_Tile = middle_tile;
 
-                                    Label label = ui.GetLabel("Pulling");
-                                    label.Opacity = 1;
-                                    label.TextColor = Color.Red;
+                                    Label? label = ui?.GetLabel("Pulling");
+                                    if (label != null)
+                                    {
+                                        label.Opacity = 1;
+                                        label.TextColor = Color.Red;
+                                    }
                                 }
                             }
 
@@ -546,9 +599,12 @@ namespace Despicaville.Scenes
                             {
                                 Handler.Player.Running = false;
 
-                                Label label = ui.GetLabel("Running");
-                                label.Opacity = 0.6f;
-                                label.TextColor = Color.White;
+                                Label? label = ui?.GetLabel("Running");
+                                if (label != null)
+                                {
+                                    label.Opacity = 0.6f;
+                                    label.TextColor = Color.White;
+                                }
                             }
                         }
                     }
@@ -573,9 +629,12 @@ namespace Despicaville.Scenes
                     {
                         Handler.Player.Crouching = true;
 
-                        Label label = ui.GetLabel("Crouching");
-                        label.Opacity = 1;
-                        label.TextColor = Color.Red;
+                        Label? label = ui?.GetLabel("Crouching");
+                        if (label != null)
+                        {
+                            label.Opacity = 1;
+                            label.TextColor = Color.Red;
+                        }
                     }
                 }
                 else
@@ -584,9 +643,12 @@ namespace Despicaville.Scenes
                     {
                         Handler.Player.Crouching = false;
 
-                        Label label = ui.GetLabel("Crouching");
-                        label.Opacity = 0.6f;
-                        label.TextColor = Color.White;
+                        Label? label = ui?.GetLabel("Crouching");
+                        if (label != null)
+                        {
+                            label.Opacity = 0.6f;
+                            label.TextColor = Color.White;
+                        }
                     }
                 }
 
@@ -594,201 +656,209 @@ namespace Despicaville.Scenes
 
                 #region Move
 
-                if (InputManager.KeyDown("Up"))
+                if (TimeManager.Now != null)
                 {
-                    if (Handler.Player.Running)
+                    if (InputManager.KeyDown("Up"))
                     {
-                        Handler.Player.Job.Tasks.Add(new Move
+                        if (Handler.Player.Running)
                         {
-                            Name = "Run",
-                            OwnerID = Handler.Player.ID,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.North
-                        });
+                            Handler.Player.Job.Tasks.Add(new Move
+                            {
+                                Name = "Run",
+                                OwnerID = Handler.Player.ID,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                Direction = Direction.North
+                            });
+                        }
+                        else if (Handler.Player.Crouching)
+                        {
+                            Handler.Player.Job.Tasks.Add(new Move
+                            {
+                                Name = "Sneak",
+                                OwnerID = Handler.Player.ID,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                Direction = Direction.North
+                            });
+                        }
+                        else
+                        {
+                            Handler.Player.Job.Tasks.Add(new Move
+                            {
+                                Name = "Walk",
+                                OwnerID = Handler.Player.ID,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                Direction = Direction.North
+                            });
+                        }
                     }
-                    else if (Handler.Player.Crouching)
+                    else if (InputManager.KeyDown("Right"))
                     {
-                        Handler.Player.Job.Tasks.Add(new Move
+                        if (Handler.Player.Running)
                         {
-                            Name = "Sneak",
-                            OwnerID = Handler.Player.ID,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.North
-                        });
+                            Handler.Player.Job.Tasks.Add(new Move
+                            {
+                                Name = "Run",
+                                OwnerID = Handler.Player.ID,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                Direction = Direction.East
+                            });
+                        }
+                        else if (Handler.Player.Crouching)
+                        {
+                            Handler.Player.Job.Tasks.Add(new Move
+                            {
+                                Name = "Sneak",
+                                OwnerID = Handler.Player.ID,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                Direction = Direction.East
+                            });
+                        }
+                        else
+                        {
+                            Handler.Player.Job.Tasks.Add(new Move
+                            {
+                                Name = "Walk",
+                                OwnerID = Handler.Player.ID,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                Direction = Direction.East
+                            });
+                        }
                     }
-                    else
+                    else if (InputManager.KeyDown("Down"))
                     {
-                        Handler.Player.Job.Tasks.Add(new Move
+                        if (Handler.Player.Running)
                         {
-                            Name = "Walk",
-                            OwnerID = Handler.Player.ID,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.North
-                        });
+                            Handler.Player.Job.Tasks.Add(new Move
+                            {
+                                Name = "Run",
+                                OwnerID = Handler.Player.ID,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                Direction = Direction.South
+                            });
+                        }
+                        else if (Handler.Player.Crouching)
+                        {
+                            Handler.Player.Job.Tasks.Add(new Move
+                            {
+                                Name = "Sneak",
+                                OwnerID = Handler.Player.ID,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                Direction = Direction.South
+                            });
+                        }
+                        else
+                        {
+                            Handler.Player.Job.Tasks.Add(new Move
+                            {
+                                Name = "Walk",
+                                OwnerID = Handler.Player.ID,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                Direction = Direction.South
+                            });
+                        }
                     }
-                }
-                else if (InputManager.KeyDown("Right"))
-                {
-                    if (Handler.Player.Running)
+                    else if (InputManager.KeyDown("Left"))
                     {
-                        Handler.Player.Job.Tasks.Add(new Move
+                        if (Handler.Player.Running)
                         {
-                            Name = "Run",
-                            OwnerID = Handler.Player.ID,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.East
-                        });
-                    }
-                    else if (Handler.Player.Crouching)
-                    {
-                        Handler.Player.Job.Tasks.Add(new Move
+                            Handler.Player.Job.Tasks.Add(new Move
+                            {
+                                Name = "Run",
+                                OwnerID = Handler.Player.ID,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                Direction = Direction.West
+                            });
+                        }
+                        else if (Handler.Player.Crouching)
                         {
-                            Name = "Sneak",
-                            OwnerID = Handler.Player.ID,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.East
-                        });
-                    }
-                    else
-                    {
-                        Handler.Player.Job.Tasks.Add(new Move
+                            Handler.Player.Job.Tasks.Add(new Move
+                            {
+                                Name = "Sneak",
+                                OwnerID = Handler.Player.ID,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                Direction = Direction.West
+                            });
+                        }
+                        else
                         {
-                            Name = "Walk",
-                            OwnerID = Handler.Player.ID,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.East
-                        });
-                    }
-                }
-                else if (InputManager.KeyDown("Down"))
-                {
-                    if (Handler.Player.Running)
-                    {
-                        Handler.Player.Job.Tasks.Add(new Move
-                        {
-                            Name = "Run",
-                            OwnerID = Handler.Player.ID,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.South
-                        });
-                    }
-                    else if (Handler.Player.Crouching)
-                    {
-                        Handler.Player.Job.Tasks.Add(new Move
-                        {
-                            Name = "Sneak",
-                            OwnerID = Handler.Player.ID,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.South
-                        });
-                    }
-                    else
-                    {
-                        Handler.Player.Job.Tasks.Add(new Move
-                        {
-                            Name = "Walk",
-                            OwnerID = Handler.Player.ID,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.South
-                        });
-                    }
-                }
-                else if (InputManager.KeyDown("Left"))
-                {
-                    if (Handler.Player.Running)
-                    {
-                        Handler.Player.Job.Tasks.Add(new Move
-                        {
-                            Name = "Run",
-                            OwnerID = Handler.Player.ID,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.West
-                        });
-                    }
-                    else if (Handler.Player.Crouching)
-                    {
-                        Handler.Player.Job.Tasks.Add(new Move
-                        {
-                            Name = "Sneak",
-                            OwnerID = Handler.Player.ID,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.West
-                        });
-                    }
-                    else
-                    {
-                        Handler.Player.Job.Tasks.Add(new Move
-                        {
-                            Name = "Walk",
-                            OwnerID = Handler.Player.ID,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            Direction = Direction.West
-                        });
+                            Handler.Player.Job.Tasks.Add(new Move
+                            {
+                                Name = "Walk",
+                                OwnerID = Handler.Player.ID,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                Direction = Direction.West
+                            });
+                        }
                     }
                 }
 
                 #endregion
 
-                if (mouse_in_view)
+                if (mouse_in_view &&
+                    TimeManager.Now != null &&
+                    InputManager.Mouse != null)
                 {
                     if (InputManager.Mouse.LB_Pressed)
                     {
-                        #region Turn
-
                         bool turning = false;
 
-                        Direction direction = Direction.Nowhere;
+                        #region Turn
 
-                        int x_diff = (int)Math.Abs(InputManager.Mouse.X - (Handler.Player.Region.X + (Handler.Player.Region.Width / 2)));
-                        int y_diff = (int)Math.Abs(InputManager.Mouse.Y - (Handler.Player.Region.Y + (Handler.Player.Region.Height / 2)));
-
-                        if (x_diff > y_diff)
+                        if (Handler.Player.Region != null)
                         {
-                            if (InputManager.Mouse.X <= Handler.Player.Region.X + (Handler.Player.Region.Width / 2))
-                            {
-                                if (Handler.Player.Direction != Direction.West)
-                                {
-                                    direction = Direction.West;
-                                }
-                            }
-                            else if (InputManager.Mouse.X > Handler.Player.Region.X + (Handler.Player.Region.Width / 2))
-                            {
-                                if (Handler.Player.Direction != Direction.East)
-                                {
-                                    direction = Direction.East;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (InputManager.Mouse.Y <= Handler.Player.Region.Y + (Handler.Player.Region.Height / 2))
-                            {
-                                if (Handler.Player.Direction != Direction.North)
-                                {
-                                    direction = Direction.North;
-                                }
-                            }
-                            else if (InputManager.Mouse.Y > Handler.Player.Region.Y + (Handler.Player.Region.Height / 2))
-                            {
-                                if (Handler.Player.Direction != Direction.South)
-                                {
-                                    direction = Direction.South;
-                                }
-                            }
-                        }
+                            Direction direction = Direction.Nowhere;
 
-                        if (direction != Direction.Nowhere)
-                        {
-                            Handler.Player.Job.Tasks.Add(new Turn
-                            {
-                                Name = "Turn",
-                                OwnerID = Handler.Player.ID,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(Handler.Player))),
-                                Direction = direction
-                            });
+                            int x_diff = (int)Math.Abs(InputManager.Mouse.X - (Handler.Player.Region.X + (Handler.Player.Region.Width / 2)));
+                            int y_diff = (int)Math.Abs(InputManager.Mouse.Y - (Handler.Player.Region.Y + (Handler.Player.Region.Height / 2)));
 
-                            turning = true;
+                            if (x_diff > y_diff)
+                            {
+                                if (InputManager.Mouse.X <= Handler.Player.Region.X + (Handler.Player.Region.Width / 2))
+                                {
+                                    if (Handler.Player.Direction != Direction.West)
+                                    {
+                                        direction = Direction.West;
+                                    }
+                                }
+                                else if (InputManager.Mouse.X > Handler.Player.Region.X + (Handler.Player.Region.Width / 2))
+                                {
+                                    if (Handler.Player.Direction != Direction.East)
+                                    {
+                                        direction = Direction.East;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if (InputManager.Mouse.Y <= Handler.Player.Region.Y + (Handler.Player.Region.Height / 2))
+                                {
+                                    if (Handler.Player.Direction != Direction.North)
+                                    {
+                                        direction = Direction.North;
+                                    }
+                                }
+                                else if (InputManager.Mouse.Y > Handler.Player.Region.Y + (Handler.Player.Region.Height / 2))
+                                {
+                                    if (Handler.Player.Direction != Direction.South)
+                                    {
+                                        direction = Direction.South;
+                                    }
+                                }
+                            }
+
+                            if (direction != Direction.Nowhere)
+                            {
+                                Handler.Player.Job.Tasks.Add(new Turn
+                                {
+                                    Name = "Turn",
+                                    OwnerID = Handler.Player.ID,
+                                    StartTime = new TimeHandler(TimeManager.Now),
+                                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(Handler.Player))),
+                                    Direction = direction
+                                });
+
+                                turning = true;
+                            }
                         }
 
                         #endregion
@@ -799,7 +869,7 @@ namespace Despicaville.Scenes
                             {
                                 #region Attack
 
-                                Location location = new Location();
+                                Location location = new();
 
                                 if (CombatUtil.CanAttack_Ranged(Handler.Player))
                                 {
@@ -816,7 +886,7 @@ namespace Despicaville.Scenes
                                         }
                                     }
                                 }
-                                else
+                                else if (Handler.Player.Location != null)
                                 {
                                     if (Handler.Player.Direction == Direction.North)
                                     {
@@ -857,9 +927,9 @@ namespace Despicaville.Scenes
                             {
                                 #region Interact
 
-                                Location location = null;
-
-                                List<Tile> visible = Handler.VisibleTiles[Handler.Player.ID];
+                                Location? location = null;
+                                Character? target = null;
+                                List <Tile> visible = Handler.VisibleTiles[Handler.Player.ID];
 
                                 int count = visible.Count;
                                 for (int i = 0; i < count; i++)
@@ -872,41 +942,43 @@ namespace Despicaville.Scenes
                                     }
                                 }
 
-                                if (location != null &&
-                                    location.X == -1 &&
-                                    location.Y == -1)
+                                if (location != null)
                                 {
-                                    if (Handler.Player.Direction == Direction.North)
+                                    if (Handler.Player.Location != null)
                                     {
-                                        location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y - 1);
+                                        if (Handler.Player.Direction == Direction.North)
+                                        {
+                                            location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y - 1);
+                                        }
+                                        else if (Handler.Player.Direction == Direction.East)
+                                        {
+                                            location = new Location(Handler.Player.Location.X + 1, Handler.Player.Location.Y);
+                                        }
+                                        else if (Handler.Player.Direction == Direction.South)
+                                        {
+                                            location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y + 1);
+                                        }
+                                        else if (Handler.Player.Direction == Direction.West)
+                                        {
+                                            location = new Location(Handler.Player.Location.X - 1, Handler.Player.Location.Y);
+                                        }
                                     }
-                                    else if (Handler.Player.Direction == Direction.East)
-                                    {
-                                        location = new Location(Handler.Player.Location.X + 1, Handler.Player.Location.Y);
-                                    }
-                                    else if (Handler.Player.Direction == Direction.South)
-                                    {
-                                        location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y + 1);
-                                    }
-                                    else if (Handler.Player.Direction == Direction.West)
-                                    {
-                                        location = new Location(Handler.Player.Location.X - 1, Handler.Player.Location.Y);
-                                    }
-                                }
 
-                                Character target = WorldUtil.GetCharacter(location);
+                                    target = WorldUtil.GetCharacter(location);
+                                }
+                                
                                 if (target != null)
                                 {
                                     WorldUtil.GenDescription(target);
                                 }
-                                else
+                                else if (location != null)
                                 {
-                                    Tile interaction_tile = null;
+                                    Tile? interaction_tile = null;
 
                                     Map map = World.Maps[0];
 
-                                    Layer top_tiles = map.GetLayer("TopTiles");
-                                    Tile top_tile = top_tiles.GetTile(location.ToVector2);
+                                    Layer? top_tiles = map.GetLayer("TopTiles");
+                                    Tile? top_tile = top_tiles?.GetTile(location.ToVector2);
                                     if (top_tile?.Texture != null)
                                     {
                                         interaction_tile = top_tile;
@@ -914,7 +986,7 @@ namespace Despicaville.Scenes
 
                                     if (interaction_tile == null)
                                     {
-                                        Tile middle_tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, new Location(location.X, location.Y, 0));
+                                        Tile? middle_tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, new Location(location.X, location.Y, 0));
                                         if (middle_tile?.Texture != null)
                                         {
                                             interaction_tile = middle_tile;
@@ -923,8 +995,8 @@ namespace Despicaville.Scenes
 
                                     if (interaction_tile == null)
                                     {
-                                        Layer bottom_tiles = map.GetLayer("BottomTiles");
-                                        Tile bottom_tile = bottom_tiles.GetTile(location.ToVector2);
+                                        Layer? bottom_tiles = map.GetLayer("BottomTiles");
+                                        Tile? bottom_tile = bottom_tiles?.GetTile(location.ToVector2);
                                         if (bottom_tile != null)
                                         {
                                             interaction_tile = bottom_tile;
@@ -933,7 +1005,8 @@ namespace Despicaville.Scenes
 
                                     if (interaction_tile != null)
                                     {
-                                        if (WorldUtil.NextTo(location, Handler.Player.Location))
+                                        if (Handler.Player.Location != null &&
+                                            WorldUtil.NextTo(location, Handler.Player.Location))
                                         {
                                             Tasker.Interact(interaction_tile);
                                         }
@@ -953,7 +1026,7 @@ namespace Despicaville.Scenes
                     {
                         #region Get Ranged Target
 
-                        Character target = null;
+                        Character? target = null;
 
                         if (CombatUtil.CanAttack_Ranged(Handler.Player))
                         {
@@ -973,56 +1046,63 @@ namespace Despicaville.Scenes
 
                         #endregion
 
-                        if (target != null &&
-                            !WorldUtil.NextTo(target.Location, Handler.Player.Location))
+                        if (Handler.Player.Location != null)
                         {
-                            #region Aimed Attack
-
-                            Handler.Interaction_Character = target;
-                            MenuManager.GetMenu("Combat").Open();
-
-                            #endregion
-                        }
-                        else
-                        {
-                            #region Push
-
-                            Location location = null;
-
-                            if (Handler.Player.Direction == Direction.North)
+                            if (target?.Location != null &&
+                                !WorldUtil.NextTo(target.Location, Handler.Player.Location))
                             {
-                                location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y - 1, 1);
+                                #region Aimed Attack
+
+                                Handler.Interaction_Character = target;
+                                MenuManager.GetMenu("Combat")?.Open();
+
+                                #endregion
                             }
-                            else if (Handler.Player.Direction == Direction.East)
+                            else
                             {
-                                location = new Location(Handler.Player.Location.X + 1, Handler.Player.Location.Y, 1);
-                            }
-                            else if (Handler.Player.Direction == Direction.South)
-                            {
-                                location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y + 1, 1);
-                            }
-                            else if (Handler.Player.Direction == Direction.West)
-                            {
-                                location = new Location(Handler.Player.Location.X - 1, Handler.Player.Location.Y, 1);
-                            }
+                                #region Push
 
-                            Handler.Player.Job.Tasks.Add(new Push
-                            {
-                                Name = "Push",
-                                OwnerID = Handler.Player.ID,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                Location = location,
-                                Direction = Handler.Player.Direction
-                            });
+                                Location? location = null;
 
-                            #endregion
+                                if (Handler.Player.Direction == Direction.North)
+                                {
+                                    location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y - 1, 1);
+                                }
+                                else if (Handler.Player.Direction == Direction.East)
+                                {
+                                    location = new Location(Handler.Player.Location.X + 1, Handler.Player.Location.Y, 1);
+                                }
+                                else if (Handler.Player.Direction == Direction.South)
+                                {
+                                    location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y + 1, 1);
+                                }
+                                else if (Handler.Player.Direction == Direction.West)
+                                {
+                                    location = new Location(Handler.Player.Location.X - 1, Handler.Player.Location.Y, 1);
+                                }
+
+                                if (location != null)
+                                {
+                                    Handler.Player.Job.Tasks.Add(new Push
+                                    {
+                                        Name = "Push",
+                                        OwnerID = Handler.Player.ID,
+                                        StartTime = new TimeHandler(TimeManager.Now),
+                                        Location = location,
+                                        Direction = Handler.Player.Direction
+                                    });
+                                }
+
+                                #endregion
+                            }
                         }
                     }
                 }
 
                 #region Wait
 
-                if (InputManager.KeyDown("Wait"))
+                if (TimeManager.Now != null &&
+                    InputManager.KeyDown("Wait"))
                 {
                     long time = Handler.ActionRate;
 
@@ -1052,20 +1132,22 @@ namespace Despicaville.Scenes
 
                 if (InputManager.KeyPressed("Combat"))
                 {
-                    InputManager.Keyboard.Flush();
+                    InputManager.Keyboard?.Flush();
                     Handler.Combat = !Handler.Combat;
 
-                    Label label = ui.GetLabel("Combat");
-
-                    if (Handler.Combat)
+                    Label? label = ui?.GetLabel("Combat");
+                    if (label != null)
                     {
-                        label.Opacity = 1;
-                        label.TextColor = Color.Red;
-                    }
-                    else
-                    {
-                        label.Opacity = 0.6f;
-                        label.TextColor = Color.White;
+                        if (Handler.Combat)
+                        {
+                            label.Opacity = 1;
+                            label.TextColor = Color.Red;
+                        }
+                        else
+                        {
+                            label.Opacity = 0.6f;
+                            label.TextColor = Color.White;
+                        }
                     }
                 }
 
@@ -1075,8 +1157,8 @@ namespace Despicaville.Scenes
 
                 if (InputManager.KeyPressed("Cancel"))
                 {
-                    InputManager.Keyboard.Flush();
-                    MenuManager.GetMenu("Main").Open();
+                    InputManager.Keyboard?.Flush();
+                    MenuManager.GetMenu("Main")?.Open();
                 }
 
                 #endregion
@@ -1085,12 +1167,12 @@ namespace Despicaville.Scenes
 
                 if (InputManager.KeyPressed("Inventory"))
                 {
-                    InputManager.Keyboard.Flush();
+                    InputManager.Keyboard?.Flush();
 
                     Handler.Trading = false;
                     Handler.Trading_InventoryID.Clear();
 
-                    MenuManager.GetMenu("Inventory").Open();
+                    MenuManager.GetMenu("Inventory")?.Open();
                 }
 
                 #endregion
@@ -1099,7 +1181,7 @@ namespace Despicaville.Scenes
 
                 if (InputManager.KeyPressed("Debug"))
                 {
-                    InputManager.Keyboard.Flush();
+                    InputManager.Keyboard?.Flush();
                     Main.Game.Debugging = !Main.Game.Debugging;
                 }
 
@@ -1109,122 +1191,127 @@ namespace Despicaville.Scenes
 
         private void UpdatePlayer()
         {
-            if (Handler.Player != null)
+            if (World == null ||
+                Handler.Player == null ||
+                TimeManager.Now == null)
             {
-                if (Handler.Player.Stats.Blood <= 0)
+                return;
+            }
+
+            if (Handler.Player.Stats.Blood <= 0)
+            {
+                Handler.Player.Dead = true;
+                //Game Over
+            }
+
+            if (!Handler.Player.Dead)
+            {
+                if (Handler.Player.Unconscious)
                 {
-                    Handler.Player.Dead = true;
-                    //Game Over
+                    TimeTracker.Tick(Handler.ActionRate * 5);
+                    CharacterUtil.Sleep(Handler.Player);
                 }
-
-                if (!Handler.Player.Dead)
+                else if (Handler.Player.Laying)
                 {
-                    if (Handler.Player.Unconscious)
+                    TimeTracker.Tick(Handler.ActionRate * 5);
+                    CharacterUtil.Rest(Handler.Player);
+                }
+                else
+                {
+                    JobTask? task = Handler.Player.Job.CurrentTask;
+                    if (task != null)
                     {
-                        TimeTracker.Tick(Handler.ActionRate * 5);
-                        CharacterUtil.Sleep(Handler.Player);
-                    }
-                    else if (Handler.Player.Laying)
-                    {
-                        TimeTracker.Tick(Handler.ActionRate * 5);
-                        CharacterUtil.Rest(Handler.Player);
-                    }
-                    else
-                    {
-                        JobTask task = Handler.Player.Job.CurrentTask;
-                        if (task != null)
+                        if (task.Name == "Sneak" ||
+                            task.Name == "Walk" ||
+                            task.Name == "Run" ||
+                            task.Name == "Push")
                         {
-                            if (task.Name == "Sneak" ||
-                                task.Name == "Walk" ||
-                                task.Name == "Run" ||
-                                task.Name == "Push")
+                            Handler.Player.Job.Update(TimeManager.Now);
+                        }
+                        else
+                        {
+                            if (task.EndTime != null &&
+                                !task.Completed)
                             {
-                                Handler.Player.Job.Update(TimeManager.Now);
-                            }
-                            else
-                            {
-                                if (!task.Completed)
-                                {
-                                    long milliseconds = task.EndTime.TotalMilliseconds - TimeManager.Now.TotalMilliseconds;
+                                long milliseconds = task.EndTime.TotalMilliseconds - TimeManager.Now.TotalMilliseconds;
 
-                                    if (task.Name == "Attack")
+                                if (task.Name == "Attack")
+                                {
+                                    if (milliseconds > 60000)
                                     {
-                                        if (milliseconds > 60000)
-                                        {
-                                            //1m
-                                            TimeTracker.Tick(60000);
-                                        }
-                                        else if (milliseconds > 10000)
-                                        {
-                                            //10s
-                                            TimeTracker.Tick(10000);
-                                        }
-                                        else if (milliseconds > 1000)
-                                        {
-                                            //1s
-                                            TimeTracker.Tick(1000);
-                                        }
-                                        else if (milliseconds > 100)
-                                        {
-                                            //100ms
-                                            TimeTracker.Tick(100);
-                                        }
-                                        else if (milliseconds > 10)
-                                        {
-                                            //10ms
-                                            TimeTracker.Tick(10);
-                                        }
-                                        else if (milliseconds > 0)
-                                        {
-                                            //1ms
-                                            TimeTracker.Tick(milliseconds);
-                                        }
+                                        //1m
+                                        TimeTracker.Tick(60000);
+                                    }
+                                    else if (milliseconds > 10000)
+                                    {
+                                        //10s
+                                        TimeTracker.Tick(10000);
+                                    }
+                                    else if (milliseconds > 1000)
+                                    {
+                                        //1s
+                                        TimeTracker.Tick(1000);
+                                    }
+                                    else if (milliseconds > 100)
+                                    {
+                                        //100ms
+                                        TimeTracker.Tick(100);
+                                    }
+                                    else if (milliseconds > 10)
+                                    {
+                                        //10ms
+                                        TimeTracker.Tick(10);
+                                    }
+                                    else if (milliseconds > 0)
+                                    {
+                                        //1ms
+                                        TimeTracker.Tick(milliseconds);
+                                    }
+                                }
+                                else
+                                {
+                                    if (milliseconds >= 60000)
+                                    {
+                                        //1m
+                                        TimeTracker.Tick(60000);
+                                    }
+                                    else if (milliseconds >= 10000)
+                                    {
+                                        //10s
+                                        TimeTracker.Tick(10000);
+                                    }
+                                    else if (milliseconds >= 1000)
+                                    {
+                                        //1s
+                                        TimeTracker.Tick(1000);
+                                    }
+                                    else if (milliseconds >= 100)
+                                    {
+                                        //100ms
+                                        TimeTracker.Tick(100);
+                                    }
+                                    else if (milliseconds >= 10)
+                                    {
+                                        //10ms
+                                        TimeTracker.Tick(10);
+                                    }
+                                    else if (milliseconds > 0)
+                                    {
+                                        //1ms
+                                        TimeTracker.Tick(milliseconds);
                                     }
                                     else
                                     {
-                                        if (milliseconds >= 60000)
-                                        {
-                                            //1m
-                                            TimeTracker.Tick(60000);
-                                        }
-                                        else if (milliseconds >= 10000)
-                                        {
-                                            //10s
-                                            TimeTracker.Tick(10000);
-                                        }
-                                        else if (milliseconds >= 1000)
-                                        {
-                                            //1s
-                                            TimeTracker.Tick(1000);
-                                        }
-                                        else if (milliseconds >= 100)
-                                        {
-                                            //100ms
-                                            TimeTracker.Tick(100);
-                                        }
-                                        else if (milliseconds >= 10)
-                                        {
-                                            //10ms
-                                            TimeTracker.Tick(10);
-                                        }
-                                        else if (milliseconds > 0)
-                                        {
-                                            //1ms
-                                            TimeTracker.Tick(milliseconds);
-                                        }
-                                        else
-                                        {
-                                            Handler.Player.Job.Update(TimeManager.Now);
-                                        }
+                                        Handler.Player.Job.Update(TimeManager.Now);
                                     }
                                 }
                             }
                         }
                     }
-
-                    WorldUtil.UpdateWorld(World);
-                    GameUtil.CenterToPlayer_OnFrame();
                 }
+
+                WorldUtil.UpdateWorld(World);
+                GameUtil.CenterToPlayer_OnFrame();
             }
         }
 

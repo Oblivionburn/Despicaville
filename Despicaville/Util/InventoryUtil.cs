@@ -10,9 +10,14 @@ namespace Despicaville.Util
 {
     public static class InventoryUtil
     {
-        public static Item NewItem(Item asset)
+        public static Item? NewItem(Item? asset)
         {
-            Item new_item = new Item
+            if (asset == null)
+            {
+                return null;
+            }
+
+            Item new_item = new()
             {
                 ID = Handler.GetID(),
                 Amount = 1,
@@ -54,11 +59,15 @@ namespace Despicaville.Util
 
             if (asset.Attachments != null)
             {
-                new_item.Attachments = new List<Item>();
+                new_item.Attachments = [];
 
                 foreach (Item item in asset.Attachments)
                 {
-                    new_item.Attachments.Add(NewItem(item));
+                    Item? newItem = NewItem(item);
+                    if (newItem != null)
+                    {
+                        new_item.Attachments.Add(newItem);
+                    }
                 }
             }
 
@@ -87,8 +96,15 @@ namespace Despicaville.Util
             };
         }
 
-        public static void TransferItem(Inventory source, Inventory target, Item item)
+        public static void TransferItem(Inventory? source, Inventory? target, Item? item)
         {
+            if (source == null ||
+                target == null ||
+                item == null)
+            {
+                return;
+            }
+
             source.Items.Remove(item);
             target.Items.Add(item);
         }
@@ -121,7 +137,7 @@ namespace Despicaville.Util
             }
         }
 
-        public static Item Get_EquippedItem(Character character, string slot)
+        public static Item? Get_EquippedItem(Character? character, string? slot)
         {
             if (character != null)
             {
@@ -139,13 +155,14 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static Item Get_Hair(Character character)
+        public static Item? Get_Hair(Character character)
         {
-            Item result = null;
+            Item? result = null;
 
             foreach (Item item in character.Inventory.Items)
             {
-                if (item.Name.Contains("Hair"))
+                if (item.Name != null &&
+                    item.Name.Contains("Hair"))
                 {
                     result = item;
                     break;
@@ -157,8 +174,8 @@ namespace Despicaville.Util
 
         public static bool HasEmptyHand(Character character)
         {
-            Item leftHand = Get_EquippedItem(character, "Left Weapon Slot");
-            Item rightHand = Get_EquippedItem(character, "Right Weapon Slot");
+            Item? leftHand = Get_EquippedItem(character, "Left Weapon Slot");
+            Item? rightHand = Get_EquippedItem(character, "Right Weapon Slot");
 
             if (leftHand == null ||
                 rightHand == null)
@@ -228,12 +245,17 @@ namespace Despicaville.Util
             return false;
         }
 
-        public static Inventory GetInventory_FromGrid(Picture grid)
+        public static Inventory? GetInventory_FromGrid(Picture grid)
         {
+            if (grid.Name == null)
+            {
+                return null;
+            }
+
             string[] properties = grid.Name.Split(';');
             long id = long.Parse(properties[0]);
 
-            Inventory existing = InventoryManager.GetInventory(id);
+            Inventory? existing = InventoryManager.GetInventory(id);
             if (existing != null)
             {
                 return existing;
@@ -242,8 +264,13 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static string GetCategory_FromTile(Tile tile)
+        public static string? GetCategory_FromTile(Tile tile)
         {
+            if (tile.Name == null)
+            {
+                return null;
+            }
+
             if (tile.Name.Contains("Bathroom"))
             {
                 return "Bathroom";
@@ -290,7 +317,7 @@ namespace Despicaville.Util
 
         public static List<Item> GenLoot(string category, string container, int max_items)
         {
-            List<Item> items = new List<Item>();
+            List<Item> items = [];
 
             if (string.IsNullOrEmpty(category) ||
                 string.IsNullOrEmpty(container))
@@ -298,15 +325,16 @@ namespace Despicaville.Util
                 return items;
             }
 
-            Inventory assets = InventoryManager.GetInventory("Assets");
-            if (assets?.Items.Count == 0)
+            Inventory? assets = InventoryManager.GetInventory("Assets");
+            if (assets == null ||
+                assets.Items.Count == 0)
             {
                 return items;
             }
 
-            CryptoRandom random = new CryptoRandom();
+            CryptoRandom random = new();
 
-            List<Item> item_pool = new List<Item>();
+            List<Item> item_pool = [];
 
             foreach (Item item in assets.Items)
             {
@@ -334,16 +362,19 @@ namespace Despicaville.Util
                     random = new CryptoRandom();
                     int choice = random.Next(0, item_pool.Count);
 
-                    Item new_item = NewItem(item_pool[choice]);
-                    new_item.Location = new Location(X, Y, 0);
-
-                    items.Add(new_item);
-
-                    X++;
-                    if (X > 7)
+                    Item? new_item = NewItem(item_pool[choice]);
+                    if (new_item != null)
                     {
-                        X = 0;
-                        Y++;
+                        new_item.Location = new Location(X, Y, 0);
+
+                        items.Add(new_item);
+
+                        X++;
+                        if (X > 7)
+                        {
+                            X = 0;
+                            Y++;
+                        }
                     }
                 }
             }

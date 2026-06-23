@@ -15,12 +15,14 @@ namespace Despicaville.Util
     {
         public static Dictionary<string, string> AttackChoice(Character character)
         {
-            Dictionary<string, string> attack = new Dictionary<string, string>();
+            Dictionary<string, string> attack = [];
 
-            Item rightHandItem = InventoryUtil.Get_EquippedItem(character, "Right Weapon Slot");
+            Item? rightHandItem = InventoryUtil.Get_EquippedItem(character, "Right Weapon Slot");
             if (rightHandItem != null)
             {
-                if (IsAttack(rightHandItem.Task))
+                if (rightHandItem.Task != null &&
+                    rightHandItem.Name != null &&
+                    IsAttack(rightHandItem.Task))
                 {
                     attack.Add(rightHandItem.Name, rightHandItem.Task);
                 }
@@ -28,12 +30,14 @@ namespace Despicaville.Util
 
             if (attack.Count == 0)
             {
-                Item leftHandItem = InventoryUtil.Get_EquippedItem(character, "Left Weapon Slot");
+                Item? leftHandItem = InventoryUtil.Get_EquippedItem(character, "Left Weapon Slot");
                 if (leftHandItem != null)
                 {
-                    if (IsAttack(leftHandItem.Task))
+                    if (leftHandItem.Task != null &&
+                        leftHandItem.Name != null &&
+                        IsAttack(leftHandItem.Task))
                     {
-                        attack.Add(leftHandItem.Name, rightHandItem.Task);
+                        attack.Add(leftHandItem.Name, leftHandItem.Task);
                     }
                 }
             }
@@ -42,7 +46,7 @@ namespace Despicaville.Util
             {
                 string attacking_with;
 
-                CryptoRandom random = new CryptoRandom();
+                CryptoRandom random = new();
                 int hand_choice = random.Next(0, 2);
                 if (hand_choice == 0)
                 {
@@ -61,7 +65,7 @@ namespace Despicaville.Util
 
         public static bool CanAttack_Ranged(Character attacker)
         {
-            Item rightHandItem = InventoryUtil.Get_EquippedItem(attacker, "Right Weapon Slot");
+            Item? rightHandItem = InventoryUtil.Get_EquippedItem(attacker, "Right Weapon Slot");
             if (rightHandItem != null)
             {
                 if (rightHandItem.Task == "Shoot")
@@ -70,7 +74,7 @@ namespace Despicaville.Util
                 }
             }
 
-            Item leftHandItem = InventoryUtil.Get_EquippedItem(attacker, "Left Weapon Slot");
+            Item? leftHandItem = InventoryUtil.Get_EquippedItem(attacker, "Left Weapon Slot");
             if (leftHandItem != null)
             {
                 if (leftHandItem.Task == "Shoot")
@@ -114,6 +118,12 @@ namespace Despicaville.Util
 
         public static bool InRange(Character attacker, Character defender, string action)
         {
+            if (attacker.Location == null ||
+                defender.Location == null)
+            {
+                return false;
+            }
+
             if (action == "Grab" ||
                 action == "Punch" ||
                 action == "Stab" ||
@@ -145,7 +155,7 @@ namespace Despicaville.Util
 
         public static bool BodyPart_HasHP(BodyPart bodyPart)
         {
-            Property hp = bodyPart.GetStat("HP");
+            Property? hp = bodyPart.GetStat("HP");
             if (hp != null)
             {
                 if (hp.Value > 0)
@@ -159,6 +169,11 @@ namespace Despicaville.Util
 
         public static bool IsWoundType(Property property)
         {
+            if (property.Name == null)
+            {
+                return false;
+            }
+
             if (property.Name.Contains("Sever") ||
                 property.Name.Contains("Break") ||
                 property.Name.Contains("Fracture") ||
@@ -176,7 +191,7 @@ namespace Despicaville.Util
 
         public static string RandomBodyPart(Character attacker, Character defender)
         {
-            List<string> parts = new List<string>();
+            List<string> parts = [];
 
             int agi_boost = (int)(attacker.Stats.Agility / 5);
 
@@ -227,7 +242,7 @@ namespace Despicaville.Util
 
             foreach (string part in parts)
             {
-                BodyPart bodyPart = defender.GetBodyPart(part);
+                BodyPart? bodyPart = defender.GetBodyPart(part);
                 if (bodyPart != null)
                 {
                     bool severed = IsSevered(bodyPart);
@@ -246,6 +261,12 @@ namespace Despicaville.Util
 
         public static float ChanceToHitBodyPart(Character attacker, Character defender, string body_part)
         {
+            if (attacker.Location == null ||
+                defender.Location == null)
+            {
+                return 0f;
+            }
+
             float base_chance = 0;
 
             if (body_part == "Head")
@@ -356,11 +377,16 @@ namespace Despicaville.Util
 
         public static int AttackSound_Hit(Character defender, Tile tile, string weapon, string action)
         {
+            if (Handler.Player?.Location == null)
+            {
+                return 0;
+            }
+
             switch (action)
             {
                 case "Stab":
                 case "Cut":
-                    if (defender != null)
+                    if (defender.Location != null)
                     {
                         AssetManager.PlaySound_Random_AtDistance("Stab", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 2);
                     }
@@ -373,7 +399,7 @@ namespace Despicaville.Util
                 case "Shoot":
                     if (weapon.Contains("Pistol"))
                     {
-                        if (defender != null)
+                        if (defender.Location != null)
                         {
                             AssetManager.PlaySound_Random_AtDistance("Pistol", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 20);
                         }
@@ -386,7 +412,7 @@ namespace Despicaville.Util
                     else if (weapon.Contains("Rifle") ||
                              weapon.Contains("Machine"))
                     {
-                        if (defender != null)
+                        if (defender.Location != null)
                         {
                             AssetManager.PlaySound_Random_AtDistance("Rifle", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 30);
                         }
@@ -398,7 +424,7 @@ namespace Despicaville.Util
                     }
                     else if (weapon.Contains("Shotgun"))
                     {
-                        if (defender != null)
+                        if (defender.Location != null)
                         {
                             AssetManager.PlaySound_Random_AtDistance("Shotgun", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 40);
                         }
@@ -411,7 +437,7 @@ namespace Despicaville.Util
                     else if (weapon.Contains("Bow") ||
                              weapon.Contains("Crossbow"))
                     {
-                        if (defender != null)
+                        if (defender.Location != null)
                         {
                             AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 2);
                         }
@@ -424,7 +450,7 @@ namespace Despicaville.Util
                     break;
 
                 default:
-                    if (defender != null)
+                    if (defender.Location != null)
                     {
                         AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 2);
                     }
@@ -440,20 +466,24 @@ namespace Despicaville.Util
 
         public static void DoDamage(Character attacker, Character defender, string weapon, string action, string body_part)
         {
-            BodyPart bodyPart = defender.GetBodyPart(body_part);
+            BodyPart? bodyPart = defender.GetBodyPart(body_part);
+            if (bodyPart == null)
+            {
+                return;
+            }
 
             string wound = "";
 
-            Item item = attacker.Inventory.GetItem(weapon);
+            Item? item = attacker.Inventory.GetItem(weapon);
             if (item != null)
             {
-                Property wound_sever = item.GetProperty("Sever");
-                Property wound_break = item.GetProperty("Break");
-                Property wound_fracture = item.GetProperty("Fracture");
-                Property wound_bruise = item.GetProperty("Bruise");
-                Property wound_stab = item.GetProperty("Stab");
-                Property wound_cut = item.GetProperty("Cut");
-                Property wound_gunshot = item.GetProperty("Gunshot");
+                Property? wound_sever = item.GetProperty("Sever");
+                Property? wound_break = item.GetProperty("Break");
+                Property? wound_fracture = item.GetProperty("Fracture");
+                Property? wound_bruise = item.GetProperty("Bruise");
+                Property? wound_stab = item.GetProperty("Stab");
+                Property? wound_cut = item.GetProperty("Cut");
+                Property? wound_gunshot = item.GetProperty("Gunshot");
 
                 if (wound_sever != null &&
                     body_part != "Torso" &&
@@ -542,7 +572,9 @@ namespace Despicaville.Util
                 CharacterUtil.UpdatePain(defender);
             }
 
-            if (wound != "Sever")
+            if (wound != "Sever" &&
+                attacker.Location != null &&
+                defender.Location != null)
             {
                 defender.StatusEffects.Add(new Property
                 {
@@ -554,7 +586,16 @@ namespace Despicaville.Util
 
         public static void DrawDamage(SpriteBatch spriteBatch, Character character, Point resolution, Color color)
         {
-            Property damage = character.GetStatusEffect("Damage");
+            if (Main.Game == null)
+            {
+                return;
+            }
+
+            Property? damage = character.GetStatusEffect("Damage");
+            if (damage?.Description == null)
+            {
+                return;
+            }
 
             if (character.Visible &&
                 character.Texture != null &&
@@ -684,7 +725,7 @@ namespace Despicaville.Util
                         break;
                 }
 
-                Rectangle region = new Rectangle((int)character.Region.X + offset_x, (int)character.Region.Y + offset_y, (int)character.Region.Width, (int)character.Region.Height);
+                Rectangle region = new((int)character.Region.X + offset_x, (int)character.Region.Y + offset_y, (int)character.Region.Width, (int)character.Region.Height);
 
                 Color damageColor = Color.Red;
                 if (stage == 1)
@@ -712,7 +753,7 @@ namespace Despicaville.Util
                     }
                 }
 
-                JobTask task = character.Job.CurrentTask;
+                JobTask? task = character.Job.CurrentTask;
                 task?.TaskBar?.Draw(spriteBatch);
 
                 if (stage == 2)
@@ -757,40 +798,40 @@ namespace Despicaville.Util
         {
             if (part.Name == "Right_Arm")
             {
-                BodyPart right_hand = defender.GetBodyPart("Right_Hand");
-                if (right_hand.GetWounds("Sever").Count == 0)
+                BodyPart? right_hand = defender.GetBodyPart("Right_Hand");
+                if (right_hand?.GetWounds("Sever").Count == 0)
                 {
                     AddWound(attacker, defender, right_hand, "Sever", false);
                 }
             }
             else if (part.Name == "Left_Arm")
             {
-                BodyPart left_hand = defender.GetBodyPart("Left_Hand");
-                if (left_hand.GetWounds("Sever").Count == 0)
+                BodyPart? left_hand = defender.GetBodyPart("Left_Hand");
+                if (left_hand?.GetWounds("Sever").Count == 0)
                 {
                     AddWound(attacker, defender, left_hand, "Sever", false);
                 }
             }
             else if (part.Name == "Right_Leg")
             {
-                BodyPart right_foot = defender.GetBodyPart("Right_Foot");
-                if (right_foot.GetWounds("Sever").Count == 0)
+                BodyPart? right_foot = defender.GetBodyPart("Right_Foot");
+                if (right_foot?.GetWounds("Sever").Count == 0)
                 {
                     AddWound(attacker, defender, right_foot, "Sever", false);
                 }
             }
             else if (part.Name == "Left_Leg")
             {
-                BodyPart left_foot = defender.GetBodyPart("Left_Foot");
-                if (left_foot.GetWounds("Sever").Count == 0)
+                BodyPart? left_foot = defender.GetBodyPart("Left_Foot");
+                if (left_foot?.GetWounds("Sever").Count == 0)
                 {
                     AddWound(attacker, defender, left_foot, "Sever", false);
                 }
             }
             else if (part.Name == "Neck")
             {
-                BodyPart head = defender.GetBodyPart("Head");
-                if (head.GetWounds("Sever").Count == 0)
+                BodyPart? head = defender.GetBodyPart("Head");
+                if (head?.GetWounds("Sever").Count == 0)
                 {
                     AddWound(attacker, defender, head, "Sever", false);
                 }
@@ -805,7 +846,12 @@ namespace Despicaville.Util
 
         public static void AddWound(Character attacker, Character defender, BodyPart part, string wound_type, bool log)
         {
-            Wound wound = new Wound
+            if (part.Name == null)
+            {
+                return;
+            }
+
+            Wound wound = new()
             {
                 ID = Handler.GetID(),
                 Name = wound_type
@@ -819,7 +865,7 @@ namespace Despicaville.Util
                 {
                     if (defender.Type == "Player")
                     {
-                        GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " has been broken.");
+                        GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " has been broken.");
                     }
                     else if (attacker.Type == "Player" &&
                              !defender.Dead &&
@@ -828,28 +874,28 @@ namespace Despicaville.Util
                         if (!defender.Dead &&
                             !defender.Unconscious)
                         {
-                            CryptoRandom random = new CryptoRandom();
+                            CryptoRandom random = new();
                             int reaction = random.Next(0, 4);
                             if (reaction == 0)
                             {
-                                GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " breaks.");
+                                GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " breaks.");
                             }
                             else if (reaction == 1)
                             {
-                                GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " breaks.");
+                                GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " breaks.");
                             }
                             else if (reaction == 2)
                             {
-                                GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " breaks.");
+                                GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " breaks.");
                             }
                             else if (reaction == 3)
                             {
-                                GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " breaks.");
+                                GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " breaks.");
                             }
                         }
                         else
                         {
-                            GameUtil.AddMessage("You broke the " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " of " + defender.Name + ".");
+                            GameUtil.AddMessage("You broke the " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " of " + defender.Name + ".");
                         }
                     }
                 }
@@ -862,7 +908,7 @@ namespace Despicaville.Util
                 {
                     if (defender.Type == "Player")
                     {
-                        GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " has been fractured.");
+                        GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " has been fractured.");
                     }
                     else if (attacker.Type == "Player" &&
                              !defender.Dead &&
@@ -871,28 +917,28 @@ namespace Despicaville.Util
                         if (!defender.Dead &&
                             !defender.Unconscious)
                         {
-                            CryptoRandom random = new CryptoRandom();
+                            CryptoRandom random = new();
                             int reaction = random.Next(0, 4);
                             if (reaction == 0)
                             {
-                                GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " fractures.");
+                                GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " fractures.");
                             }
                             else if (reaction == 1)
                             {
-                                GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " fractures.");
+                                GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " fractures.");
                             }
                             else if (reaction == 2)
                             {
-                                GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " fractures.");
+                                GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " fractures.");
                             }
                             else if (reaction == 3)
                             {
-                                GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " fractures.");
+                                GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " fractures.");
                             }
                         }
                         else
                         {
-                            GameUtil.AddMessage("You fractured the " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " of " + defender.Name + ".");
+                            GameUtil.AddMessage("You fractured the " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " of " + defender.Name + ".");
                         }
                     }
                 }
@@ -905,35 +951,35 @@ namespace Despicaville.Util
                 {
                     if (defender.Type == "Player")
                     {
-                        GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " has been shot.");
+                        GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " has been shot.");
                     }
                     else if (attacker.Type == "Player")
                     {
                         if (!defender.Dead &&
                             !defender.Unconscious)
                         {
-                            CryptoRandom random = new CryptoRandom();
+                            CryptoRandom random = new();
                             int reaction = random.Next(0, 4);
                             if (reaction == 0)
                             {
-                                GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is shot.");
+                                GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is shot.");
                             }
                             else if (reaction == 1)
                             {
-                                GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is shot.");
+                                GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is shot.");
                             }
                             else if (reaction == 2)
                             {
-                                GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is shot.");
+                                GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is shot.");
                             }
                             else if (reaction == 3)
                             {
-                                GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is shot.");
+                                GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is shot.");
                             }
                         }
                         else
                         {
-                            GameUtil.AddMessage("You shot the " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " of " + defender.Name + ".");
+                            GameUtil.AddMessage("You shot the " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " of " + defender.Name + ".");
                         }
                     }
                 }
@@ -946,35 +992,35 @@ namespace Despicaville.Util
                 {
                     if (defender.Type == "Player")
                     {
-                        GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " has been stabbed.");
+                        GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " has been stabbed.");
                     }
                     else if (attacker.Type == "Player")
                     {
                         if (!defender.Dead &&
                             !defender.Unconscious)
                         {
-                            CryptoRandom random = new CryptoRandom();
+                            CryptoRandom random = new();
                             int reaction = random.Next(0, 4);
                             if (reaction == 0)
                             {
-                                GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is stabbed.");
+                                GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is stabbed.");
                             }
                             else if (reaction == 1)
                             {
-                                GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is stabbed.");
+                                GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is stabbed.");
                             }
                             else if (reaction == 2)
                             {
-                                GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is stabbed.");
+                                GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is stabbed.");
                             }
                             else if (reaction == 3)
                             {
-                                GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is stabbed.");
+                                GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is stabbed.");
                             }
                         }
                         else
                         {
-                            GameUtil.AddMessage("You stabbed the " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " of " + defender.Name + ".");
+                            GameUtil.AddMessage("You stabbed the " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " of " + defender.Name + ".");
                         }
                     }
                 }
@@ -987,35 +1033,35 @@ namespace Despicaville.Util
                 {
                     if (defender.Type == "Player")
                     {
-                        GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " has been burned.");
+                        GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " has been burned.");
                     }
                     else if (attacker.Type == "Player")
                     {
                         if (!defender.Dead &&
                             !defender.Unconscious)
                         {
-                            CryptoRandom random = new CryptoRandom();
+                            CryptoRandom random = new();
                             int reaction = random.Next(0, 4);
                             if (reaction == 0)
                             {
-                                GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is burned.");
+                                GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is burned.");
                             }
                             else if (reaction == 1)
                             {
-                                GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is burned.");
+                                GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is burned.");
                             }
                             else if (reaction == 2)
                             {
-                                GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is burned.");
+                                GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is burned.");
                             }
                             else if (reaction == 3)
                             {
-                                GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is burned.");
+                                GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is burned.");
                             }
                         }
                         else
                         {
-                            GameUtil.AddMessage("You burned the " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " of " + defender.Name + ".");
+                            GameUtil.AddMessage("You burned the " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " of " + defender.Name + ".");
                         }
                     }
                 }
@@ -1028,35 +1074,35 @@ namespace Despicaville.Util
                 {
                     if (defender.Type == "Player")
                     {
-                        GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " has been cut.");
+                        GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " has been cut.");
                     }
                     else if (attacker.Type == "Player")
                     {
                         if (!defender.Dead &&
                             !defender.Unconscious)
                         {
-                            CryptoRandom random = new CryptoRandom();
+                            CryptoRandom random = new();
                             int reaction = random.Next(0, 4);
                             if (reaction == 0)
                             {
-                                GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is cut.");
+                                GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is cut.");
                             }
                             else if (reaction == 1)
                             {
-                                GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is cut.");
+                                GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is cut.");
                             }
                             else if (reaction == 2)
                             {
-                                GameUtil.AddMessage(defender.Name + " gasps as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is cut.");
+                                GameUtil.AddMessage(defender.Name + " gasps as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is cut.");
                             }
                             else if (reaction == 3)
                             {
-                                GameUtil.AddMessage(defender.Name + " groans as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is cut.");
+                                GameUtil.AddMessage(defender.Name + " groans as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is cut.");
                             }
                         }
                         else
                         {
-                            GameUtil.AddMessage("You cut the " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " of " + defender.Name + ".");
+                            GameUtil.AddMessage("You cut the " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " of " + defender.Name + ".");
                         }
                     }
                 }
@@ -1069,35 +1115,35 @@ namespace Despicaville.Util
                 {
                     if (defender.Type == "Player")
                     {
-                        GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " has been bruised.");
+                        GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " has been bruised.");
                     }
                     else if (attacker.Type == "Player")
                     {
                         if (!defender.Dead &&
                             !defender.Unconscious)
                         {
-                            CryptoRandom random = new CryptoRandom();
+                            CryptoRandom random = new();
                             int reaction = random.Next(0, 4);
                             if (reaction == 0)
                             {
-                                GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is bruised.");
+                                GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is bruised.");
                             }
                             else if (reaction == 1)
                             {
-                                GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is bruised.");
+                                GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is bruised.");
                             }
                             else if (reaction == 2)
                             {
-                                GameUtil.AddMessage(defender.Name + " gasps as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is bruised.");
+                                GameUtil.AddMessage(defender.Name + " gasps as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is bruised.");
                             }
                             else if (reaction == 3)
                             {
-                                GameUtil.AddMessage(defender.Name + " groans as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is bruised.");
+                                GameUtil.AddMessage(defender.Name + " groans as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is bruised.");
                             }
                         }
                         else
                         {
-                            GameUtil.AddMessage("You hit the " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " of " + defender.Name + ".");
+                            GameUtil.AddMessage("You hit the " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " of " + defender.Name + ".");
                         }
                     }
                 }
@@ -1110,35 +1156,35 @@ namespace Despicaville.Util
                 {
                     if (defender.Type == "Player")
                     {
-                        GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " has been severed.");
+                        GameUtil.AddMessage("Your " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " has been severed.");
                     }
                     else if (attacker.Type == "Player")
                     {
                         if (!defender.Dead &&
                             !defender.Unconscious)
                         {
-                            CryptoRandom random = new CryptoRandom();
+                            CryptoRandom random = new();
                             int reaction = random.Next(0, 4);
                             if (reaction == 0)
                             {
-                                GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is severed.");
+                                GameUtil.AddMessage(defender.Name + " screams as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is severed.");
                             }
                             else if (reaction == 1)
                             {
-                                GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is severed.");
+                                GameUtil.AddMessage(defender.Name + " wails as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is severed.");
                             }
                             else if (reaction == 2)
                             {
-                                GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is severed.");
+                                GameUtil.AddMessage(defender.Name + " yells as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is severed.");
                             }
                             else if (reaction == 3)
                             {
-                                GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " is severed.");
+                                GameUtil.AddMessage(defender.Name + " cries out as their " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " is severed.");
                             }
                         }
                         else
                         {
-                            GameUtil.AddMessage("You severed the " + CharacterUtil.BodyPartToName(part.Name).ToLower() + " of " + defender.Name + ".");
+                            GameUtil.AddMessage("You severed the " + CharacterUtil.BodyPartToName(part.Name)?.ToLower() + " of " + defender.Name + ".");
                         }
                     }
                 }
@@ -1146,7 +1192,7 @@ namespace Despicaville.Util
 
             if (wound_type != "Sever")
             {
-                wound.Texture = AssetManager.Textures["Wound_" + wound_type];
+                wound.Texture = Handler.GetTexture("Wound_" + wound_type);
             }
 
             part.Wounds.Add(wound);

@@ -10,6 +10,7 @@ using OP_Engine.Menus;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
 using Despicaville.Util;
+using OP_Engine.Characters;
 
 namespace Despicaville.Scenes
 {
@@ -34,7 +35,7 @@ namespace Despicaville.Scenes
 
         #region Methods
 
-        public override void Update(Game gameRef, ContentManager content)
+        public override void Update(Game? gameRef, ContentManager? content)
         {
             if (Visible)
             {
@@ -43,38 +44,41 @@ namespace Despicaville.Scenes
                     AssetManager.PlayMusic_Random("Loading", true);
                 }
 
-                ProgressBar bar = Menu.GetProgressBar("Loading1");
-                bar.Max_Value = 1;
+                ProgressBar? bar = Menu?.GetProgressBar("Loading1");
+                if (bar != null)
+                {
+                    bar.Max_Value = 1;
+                }
 
                 UpdateMessagebar();
 
+                //if (Handler.Loading_Stage == 0)
+                //{
+                //    #region Load Textures
+                //
+                //    if (Handler.Loading_Percent == 0 &&
+                //        Handler.LoadingTask == null)
+                //    {
+                //        Handler.LoadingTokenSource = new CancellationTokenSource();
+                //        Handler.LoadingTask = Task.Factory.StartNew(() => Handler.LoadWorldTextures(), Handler.LoadingTokenSource.Token);
+                //    }
+                //
+                //    if (Handler.LoadingTask != null)
+                //    {
+                //        if (Handler.LoadingTask.Status == TaskStatus.RanToCompletion)
+                //        {
+                //            Handler.LoadingTask = null;
+                //            Handler.LoadingTokenSource.Dispose();
+                //            Handler.Loading_Percent = 0;
+                //            Handler.Loading_Stage++;
+                //        }
+                //    }
+                //
+                //    UpdateLoadbar();
+                //
+                //    #endregion
+                //}
                 if (Handler.Loading_Stage == 0)
-                {
-                    #region Load Textures
-
-                    if (Handler.Loading_Percent == 0 &&
-                        Handler.LoadingTask == null)
-                    {
-                        Handler.LoadingTokenSource = new CancellationTokenSource();
-                        Handler.LoadingTask = Task.Factory.StartNew(() => Handler.LoadWorldTextures(), Handler.LoadingTokenSource.Token);
-                    }
-
-                    if (Handler.LoadingTask != null)
-                    {
-                        if (Handler.LoadingTask.Status == TaskStatus.RanToCompletion)
-                        {
-                            Handler.LoadingTask = null;
-                            Handler.LoadingTokenSource.Dispose();
-                            Handler.Loading_Percent = 0;
-                            Handler.Loading_Stage++;
-                        }
-                    }
-
-                    UpdateLoadbar();
-
-                    #endregion
-                }
-                else if (Handler.Loading_Stage == 1)
                 {
                     #region Load Mods
 
@@ -90,7 +94,7 @@ namespace Despicaville.Scenes
                         if (Handler.LoadingTask.Status == TaskStatus.RanToCompletion)
                         {
                             Handler.LoadingTask = null;
-                            Handler.LoadingTokenSource.Dispose();
+                            Handler.LoadingTokenSource?.Dispose();
                             Handler.Loading_Percent = 0;
                             Handler.Loading_Stage++;
                         }
@@ -100,7 +104,7 @@ namespace Despicaville.Scenes
 
                     #endregion
                 }
-                else if (Handler.Loading_Stage == 2)
+                else if (Handler.Loading_Stage == 1)
                 {
                     #region Logo
 
@@ -110,7 +114,7 @@ namespace Despicaville.Scenes
 
                     #endregion
                 }
-                else if (Handler.Loading_Stage == 3)
+                else if (Handler.Loading_Stage == 2)
                 {
                     #region GenMap
 
@@ -126,7 +130,7 @@ namespace Despicaville.Scenes
                         if (Handler.LoadingTask.Status == TaskStatus.RanToCompletion)
                         {
                             Handler.LoadingTask = null;
-                            Handler.LoadingTokenSource.Dispose();
+                            Handler.LoadingTokenSource?.Dispose();
                             Handler.Loading_Percent = 0;
                             Handler.Loading_Stage++;
                         }
@@ -136,7 +140,7 @@ namespace Despicaville.Scenes
 
                     #endregion
                 }
-                else if (Handler.Loading_Stage == 4)
+                else if (Handler.Loading_Stage == 3)
                 {
                     #region GenTown
 
@@ -152,7 +156,7 @@ namespace Despicaville.Scenes
                         if (Handler.LoadingTask.Status == TaskStatus.RanToCompletion)
                         {
                             Handler.LoadingTask = null;
-                            Handler.LoadingTokenSource.Dispose();
+                            Handler.LoadingTokenSource?.Dispose();
                             Handler.Loading_Percent = 0;
                             Handler.Loading_Stage++;
                         }
@@ -162,7 +166,7 @@ namespace Despicaville.Scenes
 
                     #endregion
                 }
-                else if (Handler.Loading_Stage == 5)
+                else if (Handler.Loading_Stage == 4)
                 {
                     #region GenLoot
 
@@ -178,7 +182,7 @@ namespace Despicaville.Scenes
                         if (Handler.LoadingTask.Status == TaskStatus.RanToCompletion)
                         {
                             Handler.LoadingTask = null;
-                            Handler.LoadingTokenSource.Dispose();
+                            Handler.LoadingTokenSource?.Dispose();
                             Handler.Loading_Percent = 0;
                             Handler.Loading_Stage++;
                         }
@@ -188,13 +192,17 @@ namespace Despicaville.Scenes
 
                     #endregion
                 }
-                else if (Handler.Loading_Stage == 6)
+                else if (Handler.Loading_Stage == 5)
                 {
                     #region Ready
 
                     AssetManager.PlaySound("Ready");
 
-                    Menu.GetButton("Next").Visible = true;
+                    Button? next = Menu?.GetButton("Next");
+                    if (next != null)
+                    {
+                        next.Visible = true;
+                    }
 
                     Handler.Loading_Percent = 100;
                     Handler.Loading_Message = "Ready!";
@@ -214,12 +222,18 @@ namespace Despicaville.Scenes
         {
             bool found = false;
 
+            if (Menu == null)
+            {
+                return;
+            }
+
             foreach (Button button in Menu.Buttons)
             {
                 if (button.Visible &&
                     button.Enabled)
                 {
-                    if (InputManager.MouseWithin(button.Region.ToRectangle))
+                    if (button.Region != null &&
+                        InputManager.MouseWithin(button.Region.ToRectangle))
                     {
                         found = true;
                         if (button.HoverText != null)
@@ -247,14 +261,18 @@ namespace Despicaville.Scenes
 
             if (!found)
             {
-                Menu.GetLabel("Examine").Visible = false;
+                Label? examine = Menu.GetLabel("Examine");
+                if (examine != null)
+                {
+                    examine.Visible = false;
+                }
             }
         }
 
         private void CheckClick(Button button)
         {
             AssetManager.PlaySound_Random("Click");
-            InputManager.Mouse.Flush();
+            InputManager.Mouse?.Flush();
 
             if (button.Name == "Back")
             {
@@ -273,100 +291,155 @@ namespace Despicaville.Scenes
         {
             if (Handler.LoadingTask != null)
             {
-                Handler.LoadingTokenSource.Cancel();
+                Handler.LoadingTokenSource?.Cancel();
                 Handler.LoadingTask = null;
             }
 
             Handler.Loading_Stage = 3;
             Handler.Loading_Percent = 0;
-            SceneManager.GetScene("Gameplay").World = null;
+
+            Scene? gameplay = SceneManager.GetScene("Gameplay");
+            if (gameplay != null)
+            {
+                gameplay.World = new();
+            }
 
             SoundManager.StopMusic();
             SoundManager.NeedMusic = true;
 
             SceneManager.ChangeScene("Title");
 
-            Menu main = MenuManager.GetMenu("Main");
-            main.Active = true;
-            main.Visible = true;
+            Menu? main = MenuManager.GetMenu("Main");
+            if (main != null)
+            {
+                main.Active = true;
+                main.Visible = true;
+            }
         }
 
         private void UpdateMessagebar()
         {
-            ProgressBar bar = Menu.GetProgressBar("Loading1");
-            Label label = Menu.GetLabel("Loading1");
+            Label? label = Menu?.GetLabel("Loading1");
+            if (label != null)
+            {
+                label.Text = Handler.Loading_Message;
+            }
 
-            bar.Value = Handler.Loading_Stage;
-            label.Text = Handler.Loading_Message;
+            ProgressBar? bar = Menu?.GetProgressBar("Loading1");
+            if (bar != null &&
+                bar.Bar_Texture != null &&
+                bar.Base_Region != null)
+            {
+                bar.Value = Handler.Loading_Stage;
 
-            float CurrentVal = ((float)bar.Bar_Texture.Width / 100) * bar.Value;
-            bar.Bar_Image = new Rectangle(bar.Bar_Image.X, bar.Bar_Image.Y, (int)CurrentVal, bar.Bar_Image.Height);
+                float CurrentVal = ((float)bar.Bar_Texture.Width / 100) * bar.Value;
+                bar.Bar_Image = new Rectangle(bar.Bar_Image.X, bar.Bar_Image.Y, (int)CurrentVal, bar.Bar_Image.Height);
 
-            CurrentVal = ((float)bar.Base_Region.Width / 100) * bar.Value;
-            bar.Bar_Region = new Region(bar.Base_Region.X, bar.Base_Region.Y, (int)CurrentVal, bar.Base_Region.Height);
+                CurrentVal = ((float)bar.Base_Region.Width / 100) * bar.Value;
+                bar.Bar_Region = new Region(bar.Base_Region.X, bar.Base_Region.Y, (int)CurrentVal, bar.Base_Region.Height);
+            }
         }
 
         private void UpdateLoadbar()
         {
-            ProgressBar bar = Menu.GetProgressBar("Loading2");
-            Label label = Menu.GetLabel("Loading2");
+            Label? label = Menu?.GetLabel("Loading2");
+            if (label != null)
+            {
+                label.Text = Handler.Loading_Percent.ToString() + "%";
+            }
 
-            bar.Value = Handler.Loading_Percent;
-            label.Text = Handler.Loading_Percent.ToString() + "%";
+            ProgressBar? bar = Menu?.GetProgressBar("Loading2");
+            if (bar != null &&
+                bar.Bar_Texture != null &&
+                bar.Base_Region != null)
+            {
+                bar.Value = Handler.Loading_Percent;
 
-            float CurrentVal = ((float)bar.Bar_Texture.Width / 100) * bar.Value;
-            bar.Bar_Image = new Rectangle(bar.Bar_Image.X, bar.Bar_Image.Y, (int)CurrentVal, bar.Bar_Image.Height);
+                float CurrentVal = ((float)bar.Bar_Texture.Width / 100) * bar.Value;
+                bar.Bar_Image = new Rectangle(bar.Bar_Image.X, bar.Bar_Image.Y, (int)CurrentVal, bar.Bar_Image.Height);
 
-            CurrentVal = ((float)bar.Base_Region.Width / 100) * bar.Value;
-            bar.Bar_Region = new Region(bar.Base_Region.X, bar.Base_Region.Y, (int)CurrentVal, bar.Base_Region.Height);
+                CurrentVal = ((float)bar.Base_Region.Width / 100) * bar.Value;
+                bar.Bar_Region = new Region(bar.Base_Region.X, bar.Base_Region.Y, (int)CurrentVal, bar.Base_Region.Height);
+            }
         }
 
         private void Finish()
         {
-            World world = SceneManager.GetScene("Gameplay").World;
-
-            WorldUtil.AssignPlayerBed(world);
-            if (Handler.Player.Location == null)
+            Scene? gameplay = SceneManager.GetScene("Gameplay");
+            if (gameplay != null)
             {
-                Handler.Player.Location = new Location(0, 0, 0);
+                World? world = gameplay.World;
+                if (world != null)
+                {
+                    WorldUtil.AssignPlayerBed(world);
+                }
+
+                Character? player = Handler.Player;
+                if (player != null)
+                {
+                    if (player.Location == null)
+                    {
+                        player.Location = new Location(0, 0, 0);
+                    }
+                    else if (player.Location.X == 0 &&
+                             player.Location.Y == 0)
+                    {
+                        Map? map = world?.Maps[0];
+                        Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+
+                        Tile? center = bottom_tiles?.GetTile(new Vector2(bottom_tiles.Columns / 2, bottom_tiles.Rows / 2));
+                        if (center != null)
+                        {
+                            player.Location = new Location(center.Location.X, center.Location.Y, 0);
+                        }
+                    }
+
+                    WorldUtil.SetCurrentMap(player);
+
+                    Button? next = Menu?.GetButton("Next");
+                    if (next != null)
+                    {
+                        next.Visible = false;
+                    }
+
+                    GameUtil.Start();
+                }
             }
-
-            if (Handler.Player.Location.X == 0 &&
-                Handler.Player.Location.Y == 0)
-            {
-                Map map = world.Maps[0];
-                Layer bottom_tiles = map.GetLayer("BottomTiles");
-
-                Tile center = bottom_tiles.GetTile(new Vector2(bottom_tiles.Columns / 2, bottom_tiles.Rows / 2));
-                Handler.Player.Location = new Location(center.Location.X, center.Location.Y, 0);
-            }
-
-            WorldUtil.SetCurrentMap(Handler.Player);
-
-            Menu.GetButton("Next").Visible = false;
-
-            GameUtil.Start();
         }
 
         public override void Load(ContentManager content)
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+            if (Menu == null)
+            {
+                return;
+            }
+
             Menu.Clear();
 
-            Menu.AddPicture(Handler.GetID(), "Loading", AssetManager.Textures["Loading"], new Region(0, 0, Main.Game.ScreenWidth, Main.Game.ScreenHeight), Color.White, true);
+            Menu.AddPicture(Handler.GetID(), "Loading", Handler.GetTexture("Loading"), new Region(0, 0, Main.Game.ScreenWidth, Main.Game.ScreenHeight), Color.White, true);
 
-            Menu.AddButton(Handler.GetID(), "Next", AssetManager.Textures["Button_Next"], AssetManager.Textures["Button_Next_Hover"], AssetManager.Textures["Button_Next_Disabled"],
+            Menu.AddButton(Handler.GetID(), "Next", Handler.GetTexture("Button_Next"), Handler.GetTexture("Button_Next_Hover"), Handler.GetTexture("Button_Next_Disabled"),
                 new Region(0, 0, 0, 0), Color.White, false);
-            Menu.GetButton("Next").HoverText = "Next";
 
-            Menu.AddProgressBar(Handler.GetID(), "Loading1", 100, 0, 1, AssetManager.Textures["ProgressBase_Large"], AssetManager.Textures["ProgressBar_Large"],
+            Button? next = Menu.GetButton("Next");
+            if (next != null)
+            {
+                next.HoverText = "Next";
+            }
+
+            Menu.AddProgressBar(Handler.GetID(), "Loading1", 100, 0, 1, Handler.GetTexture("ProgressBase_Large"), Handler.GetTexture("ProgressBar_Large"),
                 new Region(0, 0, 0, 0), new Color(100, 0, 0, 255), true);
             Menu.AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Loading1", "Initializing...", Color.White, new Region(0, 0, 0, 0), true);
 
-            Menu.AddProgressBar(Handler.GetID(), "Loading2", 100, 0, 1, AssetManager.Textures["ProgressBase_Large"], AssetManager.Textures["ProgressBar_Large"],
+            Menu.AddProgressBar(Handler.GetID(), "Loading2", 100, 0, 1, Handler.GetTexture("ProgressBase_Large"), Handler.GetTexture("ProgressBar_Large"),
                 new Region(0, 0, 0, 0), new Color(100, 0, 0, 255), true);
             Menu.AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Loading2", "0%", Color.White, new Region(0, 0, 0, 0), true);
 
-            Menu.AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "", Color.White, AssetManager.Textures["Frame"], new Region(0, 0, 0, 0), false);
+            Menu.AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "", Color.White, Handler.GetTexture("Frame"), new Region(0, 0, 0, 0), false);
 
             Menu.Visible = true;
 
@@ -375,7 +448,20 @@ namespace Despicaville.Scenes
 
         public override void Resize(Point point)
         {
-            Menu.GetPicture("Loading").Region = new Region(0, 0, Main.Game.ScreenWidth, Main.Game.ScreenHeight);
+            if (Main.Game == null)
+            {
+                return;
+            }
+            if (Menu == null)
+            {
+                return;
+            }
+
+            Picture? loading = Menu.GetPicture("Loading");
+            if (loading != null)
+            {
+                loading.Region = new Region(0, 0, Main.Game.ScreenWidth, Main.Game.ScreenHeight);
+            }
 
             int Width = (int)Main.Game.MenuSize_X;
             int Height = (int)Main.Game.MenuSize_Y;
@@ -383,15 +469,35 @@ namespace Despicaville.Scenes
             int X = Main.Game.ScreenWidth / 2;
             int Y = (Main.Game.ScreenHeight / 20) * 12;
 
-            ProgressBar bar = Menu.GetProgressBar("Loading1");
-            bar.Base_Region = new Region(X - (Width * 8), Y, Width * 16, Height);
-            Menu.GetLabel("Loading1").Region = new Region(bar.Base_Region.X, bar.Base_Region.Y, bar.Base_Region.Width, bar.Base_Region.Height);
+            ProgressBar? bar = Menu.GetProgressBar("Loading1");
+            if (bar != null)
+            {
+                bar.Base_Region = new Region(X - (Width * 8), Y, Width * 16, Height);
 
-            ProgressBar bar2 = Menu.GetProgressBar("Loading2");
-            bar2.Base_Region = new Region(X - (Width * 8), Y + Height, Width * 16, Height);
-            Menu.GetLabel("Loading2").Region = new Region(bar2.Base_Region.X, bar2.Base_Region.Y, bar2.Base_Region.Width, bar2.Base_Region.Height);
+                Label? loading1 = Menu.GetLabel("Loading1");
+                if (loading1 != null)
+                {
+                    loading1.Region = new Region(bar.Base_Region.X, bar.Base_Region.Y, bar.Base_Region.Width, bar.Base_Region.Height);
+                }
+            }
 
-            Menu.GetButton("Next").Region = new Region(X - (Width / 2), Y + (Height * 3), Width, Height);
+            ProgressBar? bar2 = Menu.GetProgressBar("Loading2");
+            if (bar2 != null)
+            {
+                bar2.Base_Region = new Region(X - (Width * 8), Y + Height, Width * 16, Height);
+
+                Label? loading2 = Menu.GetLabel("Loading2");
+                if (loading2 != null)
+                {
+                    loading2.Region = new Region(bar2.Base_Region.X, bar2.Base_Region.Y, bar2.Base_Region.Width, bar2.Base_Region.Height);
+                }
+            }
+
+            Button? next = Menu.GetButton("Next");
+            if (next != null)
+            {
+                next.Region = new Region(X - (Width / 2), Y + (Height * 3), Width, Height);
+            }
         }
 
         #endregion

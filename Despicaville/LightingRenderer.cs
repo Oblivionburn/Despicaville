@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 using OP_Engine.Rendering;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
-using OP_Engine.Scenes;
+using Despicaville.Util;
 
 namespace Despicaville
 {
@@ -30,28 +30,17 @@ namespace Despicaville
 
         public override void Update()
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+
             Handler.light_maps.Clear();
 
-            Scene gameplay = SceneManager.GetScene("Gameplay");
-            if (gameplay == null)
-            {
-                return;
-            }
+            Map? map = WorldUtil.GetMap();
 
-            World world = gameplay.World;
-            if (world == null)
-            {
-                return;
-            }
-            if (world.Maps.Count == 0)
-            {
-                return;
-            }
-
-            Map map = world.Maps[0];
-
-            Layer bottom_tiles = map.GetLayer("BottomTiles");
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
+            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+            Layer? middle_tiles = map?.GetLayer("MiddleTiles");
 
             int light_source_count = Handler.light_sources.Count;
             for (int l = 0; l < light_source_count; l++)
@@ -59,8 +48,8 @@ namespace Despicaville
                 Point light_source = Handler.light_sources[l];
                 if (Handler.light_maps.Count < Main.light_max_count)
                 {
-                    Tile starting_tile = bottom_tiles.GetTile(new Vector2(light_source.X, light_source.Y));
-                    Tile source_tile = middle_tiles.GetTile(new Vector2(light_source.X, light_source.Y));
+                    Tile? starting_tile = bottom_tiles?.GetTile(new Vector2(light_source.X, light_source.Y));
+                    Tile? source_tile = middle_tiles?.GetTile(new Vector2(light_source.X, light_source.Y));
 
                     if (source_tile != null &&
                         starting_tile != null)
@@ -87,7 +76,7 @@ namespace Despicaville
                                     int half_width = size_width / 2;
                                     int half_height = size_height / 2;
 
-                                    Vector2 region_center_point = new Vector2(starting_tile.Region.X + half_width, starting_tile.Region.Y + half_height);
+                                    Vector2 region_center_point = new(starting_tile.Region.X + half_width, starting_tile.Region.Y + half_height);
                                     if (Handler.light_maps.ContainsKey(region_center_point))
                                     {
                                         Handler.light_maps[region_center_point].Clear();
@@ -102,7 +91,7 @@ namespace Despicaville
                                     int min_y = light_source.Y - distance;
                                     int max_y = light_source.Y + distance;
 
-                                    HashSet<Point> edge_coords = new HashSet<Point>();
+                                    HashSet<Point> edge_coords = [];
                                     for (int x = min_x; x <= max_x; x++)
                                     {
                                         if (x == min_x ||
@@ -133,9 +122,9 @@ namespace Despicaville
                                             int index = reverse ? (points_count - 1) - i : i;
 
                                             Point point = points[index];
-                                            Vector2 current_location = new Vector2(point.X, point.Y);
+                                            Vector2 current_location = new(point.X, point.Y);
 
-                                            Tile bottom_tile = bottom_tiles.GetTile(current_location);
+                                            Tile? bottom_tile = bottom_tiles?.GetTile(current_location);
                                             if (bottom_tile != null)
                                             {
                                                 if (bottom_tile.BlocksMovement)
@@ -143,7 +132,7 @@ namespace Despicaville
                                                     break;
                                                 }
 
-                                                Tile middle_tile = middle_tiles.GetTile(current_location);
+                                                Tile? middle_tile = middle_tiles?.GetTile(current_location);
                                                 if (middle_tile != null)
                                                 {
                                                     if (middle_tile.BlocksMovement &&
@@ -153,10 +142,12 @@ namespace Despicaville
                                                     }
                                                 }
 
-                                                Tile current = new Tile();
-                                                current.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
-                                                current.Location = new Location(current_location.X - min_x, current_location.Y - min_y, 0);
-                                                current.DrawColor = drawColor;
+                                                Tile current = new()
+                                                {
+                                                    Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height),
+                                                    Location = new Location(current_location.X - min_x, current_location.Y - min_y, 0),
+                                                    DrawColor = drawColor
+                                                };
 
                                                 if (current.Region.X >= 0 - size_width - 1)
                                                 {
@@ -222,19 +213,25 @@ namespace Despicaville
 
         public override void CustomDraw(SpriteBatch spriteBatch)
         {
-            if (!Main.Game.GameStarted)
+            if (Main.Game == null ||
+                !Main.Game.GameStarted)
             {
                 return;
             }
 
-            Texture2D light = AssetManager.Textures["point_light"];
+            Texture2D? light = Handler.GetTexture("point_light");
+            if (light == null)
+            {
+                return;
+            }
+
             int width = ((Main.light_tile_distance * 2) + 1);
 
             int light_sub_width = light.Width / width;
             int light_sub_height = light.Height / width;
 
             int count = Handler.light_maps.Count;
-            for (int l = 0; l < Handler.light_maps.Count; l++)
+            for (int l = 0; l < count; l++)
             {
                 var list = Handler.light_maps.Values.ToList();
 
@@ -245,11 +242,11 @@ namespace Despicaville
                     Tile map = light_maps[i];
                     Vector2 coord = map.Location.ToVector2;
 
-                    Rectangle region = new Rectangle((int)map.Region.X, (int)map.Region.Y, (int)Main.Game.TileSize.X, (int)Main.Game.TileSize.Y);
+                    Rectangle region = new((int)map.Region.X, (int)map.Region.Y, (int)Main.Game.TileSize.X, (int)Main.Game.TileSize.Y);
 
                     int image_x = (int)coord.X * light_sub_width;
                     int image_y = (int)coord.Y * light_sub_height;
-                    Rectangle image = new Rectangle(image_x, image_y, light_sub_width, light_sub_height);
+                    Rectangle image = new(image_x, image_y, light_sub_width, light_sub_height);
 
                     spriteBatch.Draw(light, region, image, map.DrawColor);
                 }

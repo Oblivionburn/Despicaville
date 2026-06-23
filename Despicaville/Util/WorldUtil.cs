@@ -16,21 +16,32 @@ namespace Despicaville.Util
 {
     public static class WorldUtil
     {
-        public static Map GetMap()
+        public static Map? GetMap()
         {
-            Scene scene = SceneManager.GetScene("Gameplay");
-            return scene.World.Maps[0];
+            Scene? scene = SceneManager.GetScene("Gameplay");
+            if (scene != null &&
+                scene.World != null &&
+                scene.World.Maps.Count > 0)
+            {
+                return scene.World.Maps[0];
+            }
+
+            return null;
         }
 
         public static bool CanMove(Character character, Map map, Location destination)
         {
-            Layer bottom_tiles = map.GetLayer("BottomTiles");
+            Layer? bottom_tiles = map.GetLayer("BottomTiles");
+            if (bottom_tiles == null)
+            {
+                return false;
+            }
 
             //Check bottom tiles
             if (destination.X < bottom_tiles.Columns && destination.X >= 0 &&
                 destination.Y < bottom_tiles.Rows && destination.Y >= 0)
             {
-                Tile current = bottom_tiles.GetTile(destination.ToVector2);
+                Tile? current = bottom_tiles.GetTile(destination.ToVector2);
                 if (current != null)
                 {
                     if (current.BlocksMovement)
@@ -46,11 +57,17 @@ namespace Despicaville.Util
             }
 
             //Check middle tiles
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
+            Layer? middle_tiles = map.GetLayer("MiddleTiles");
+            if (middle_tiles == null)
+            {
+                return false;
+            }
+
             List<Tile> furniture = GetFurniture_Nearby(middle_tiles, destination);
 
-            Tile middle_tile = GetFurniture(furniture, destination);
-            if (middle_tile != null)
+            Tile? middle_tile = GetFurniture(furniture, destination);
+            if (middle_tile != null &&
+                middle_tile.Name != null)
             {
                 if (!middle_tile.Name.Contains("Open"))
                 {
@@ -68,7 +85,7 @@ namespace Despicaville.Util
             }
 
             //Check other characters
-            Character other = GetCharacter(destination);
+            Character? other = GetCharacter(destination);
             if (other != null)
             {
                 if (Handler.Pull_Character != null)
@@ -84,14 +101,17 @@ namespace Despicaville.Util
                 }
             }
 
-            if (Handler.Pull)
+            if (Handler.Pull &&
+                character.Location != null &&
+                character.Destination != null)
             {
                 #region Pull Collision Check
 
-                Location newLocation = null;
-                Region size = null;
+                Location? newLocation = null;
+                Region? size = null;
 
-                if (Handler.Pull_Character != null)
+                if (Handler.Pull_Character != null &&
+                    Handler.Pull_Character.Location != null)
                 {
                     #region Character
 
@@ -157,7 +177,7 @@ namespace Despicaville.Util
                         {
                             float X = newLocation.X + x;
 
-                            Tile bottom = bottom_tiles.GetTile(new Vector2(X, Y));
+                            Tile? bottom = bottom_tiles.GetTile(new Vector2(X, Y));
                             if (bottom != null)
                             {
                                 if (bottom.BlocksMovement)
@@ -170,8 +190,9 @@ namespace Despicaville.Util
                                 return false;
                             }
 
-                            Tile middle = GetFurniture(furniture, new Location(X, Y, 0));
+                            Tile? middle = GetFurniture(furniture, new Location(X, Y, 0));
                             if (middle != null &&
+                                middle.Name != null &&
                                 middle.ID != Handler.Pull_ID &&
                                 !middle.Name.Contains("Open") &&
                                 !middle.Name.Contains("Broken"))
@@ -205,16 +226,25 @@ namespace Despicaville.Util
             return true;
         }
 
-        public static Tile GetTile(Location location)
+        public static Tile? GetTile(Location location)
         {
-            Map map = GetMap();
-            Layer bottom_tiles = map.GetLayer("BottomTiles");
+            Map? map = GetMap();
+            if (map == null)
+            {
+                return null;
+            }
+
+            Layer? bottom_tiles = map.GetLayer("BottomTiles");
+            if (bottom_tiles == null)
+            {
+                return null;
+            }
 
             //Check bottom tiles
             if (location.X < bottom_tiles.Columns && location.X >= 0 &&
                 location.Y < bottom_tiles.Rows && location.Y >= 0)
             {
-                Tile current = bottom_tiles.GetTile(location.ToVector2);
+                Tile? current = bottom_tiles.GetTile(location.ToVector2);
                 if (current != null)
                 {
                     if (current.BlocksMovement)
@@ -225,8 +255,9 @@ namespace Despicaville.Util
             }
 
             //Check for furniture
-            Tile furniture = GetFurniture(Handler.MiddleFurniture, location);
-            if (furniture != null)
+            Tile? furniture = GetFurniture(Handler.MiddleFurniture, location);
+            if (furniture != null &&
+                furniture.Name != null)
             {
                 if (!furniture.Name.Contains("Open") &&
                     !furniture.Name.Contains("Broken") &&
@@ -329,123 +360,149 @@ namespace Despicaville.Util
 
         public static void UpdateWorld(World world)
         {
-            if (world.Visible)
+            if (Handler.Player == null ||
+                Handler.Player.Location == null ||
+                !world.Visible)
             {
-                Army characters = CharacterManager.GetArmy("Characters");
+                return;
+            }
 
-                List<Tile> visible = new List<Tile>();
-                if (Handler.VisibleTiles.ContainsKey(Handler.Player.ID))
+            Army? characters = CharacterManager.GetArmy("Characters");
+            if (characters == null)
+            {
+                return;
+            }
+
+            List<Tile> visible = [];
+            if (Handler.VisibleTiles.TryGetValue(Handler.Player.ID, out List<Tile>? value))
+            {
+                visible = value;
+            }
+
+            Map map = world.Maps[0];
+
+            Layer? bottom_tiles = map.GetLayer("BottomTiles");
+            Layer? middle_tiles = map.GetLayer("MiddleTiles");
+            Layer? top_tiles = map.GetLayer("TopTiles");
+            Layer? roof_tiles = map.GetLayer("RoofTiles");
+
+            int start_y = (int)Handler.Player.Location.Y - Handler.SightDistance - 1;
+            int end_y = (int)Handler.Player.Location.Y + Handler.SightDistance + 1;
+            int start_x = (int)Handler.Player.Location.X - Handler.SightDistance - 1;
+            int end_x = (int)Handler.Player.Location.X + Handler.SightDistance + 1;
+
+            if (!Handler.Player.Unconscious)
+            {
+                for (int y = start_y; y <= end_y; y++)
                 {
-                    visible = Handler.VisibleTiles[Handler.Player.ID];
-                }
-
-                Map map = world.Maps[0];
-
-                Layer bottom_tiles = map.GetLayer("BottomTiles");
-                Layer middle_tiles = map.GetLayer("MiddleTiles");
-                Layer top_tiles = map.GetLayer("TopTiles");
-                Layer roof_tiles = map.GetLayer("RoofTiles");
-
-                int start_y = (int)Handler.Player.Location.Y - Handler.SightDistance - 1;
-                int end_y = (int)Handler.Player.Location.Y + Handler.SightDistance + 1;
-                int start_x = (int)Handler.Player.Location.X - Handler.SightDistance - 1;
-                int end_x = (int)Handler.Player.Location.X + Handler.SightDistance + 1;
-
-                if (!Handler.Player.Unconscious)
-                {
-                    for (int y = start_y; y <= end_y; y++)
+                    for (int x = start_x; x <= end_x; x++)
                     {
-                        for (int x = start_x; x <= end_x; x++)
+                        Vector2 location = new(x, y);
+
+                        Tile? tile = bottom_tiles?.GetTile(location);
+                        if (tile != null)
                         {
-                            Vector2 location = new Vector2(x, y);
+                            tile.InSight = Location_IsVisible(Handler.Player.ID, tile.Location);
 
-                            Tile tile = bottom_tiles.GetTile(location);
-                            if (tile != null)
+                            Tile? middle_tile = middle_tiles?.GetTile(location);
+                            if (middle_tile != null)
                             {
-                                tile.InSight = Location_IsVisible(Handler.Player.ID, tile.Location);
-
-                                Tile middle_tile = middle_tiles.GetTile(location);
                                 middle_tile.InSight = tile.InSight;
+                            }
 
-                                Tile top_tile = top_tiles.GetTile(location);
+                            Tile? top_tile = top_tiles?.GetTile(location);
+                            if (top_tile != null)
+                            {
                                 top_tile.InSight = tile.InSight;
+                            }
 
-                                Tile roof_tile = roof_tiles.GetTile(location);
+                            Tile? roof_tile = roof_tiles?.GetTile(location);
+                            if (roof_tile != null)
+                            {
                                 roof_tile.InSight = tile.InSight;
                             }
                         }
                     }
-
-                    foreach (Tile tile in visible)
-                    {
-                        tile.Visible = InputManager.MouseWithin(tile.Region.ToRectangle);
-                    }
-
-                    foreach (Squad squad in characters.Squads)
-                    {
-                        foreach (Character character in squad.Characters)
-                        {
-                            if (Location_IsVisible(Handler.Player.ID, character.Location) ||
-                                Location_IsVisible(Handler.Player.ID, character.Destination))
-                            {
-                                character.InSight = true;
-                            }
-                            else
-                            {
-                                character.InSight = false;
-                            }
-                        }
-                    }
                 }
-                else
+
+                foreach (Tile tile in visible)
                 {
-                    for (int y = start_y; y <= end_y; y++)
+                    tile.Visible = InputManager.MouseWithin(tile.Region.ToRectangle);
+                }
+
+                foreach (Squad squad in characters.Squads)
+                {
+                    foreach (Character character in squad.Characters)
                     {
-                        for (int x = start_x; x <= end_x; x++)
+                        if (Location_IsVisible(Handler.Player.ID, character.Location) ||
+                            Location_IsVisible(Handler.Player.ID, character.Destination))
                         {
-                            Vector2 location = new Vector2(x, y);
-
-                            Tile tile = bottom_tiles.GetTile(location);
-                            if (tile != null)
-                            {
-                                tile.InSight = false;
-
-                                Tile middle_tile = middle_tiles.GetTile(location);
-                                middle_tile.InSight = false;
-
-                                Tile top_tile = top_tiles.GetTile(location);
-                                top_tile.InSight = false;
-
-                                Tile roof_tile = roof_tiles.GetTile(location);
-                                roof_tile.InSight = false;
-                            }
+                            character.InSight = true;
                         }
-                    }
-
-                    foreach (Tile tile in visible)
-                    {
-                        tile.Visible = false;
-                    }
-
-                    foreach (Squad squad in characters.Squads)
-                    {
-                        foreach (Character character in squad.Characters)
+                        else
                         {
                             character.InSight = false;
                         }
                     }
                 }
             }
+            else
+            {
+                for (int y = start_y; y <= end_y; y++)
+                {
+                    for (int x = start_x; x <= end_x; x++)
+                    {
+                        Vector2 location = new(x, y);
+
+                        Tile? tile = bottom_tiles?.GetTile(location);
+                        if (tile != null)
+                        {
+                            tile.InSight = false;
+
+                            Tile? middle_tile = middle_tiles?.GetTile(location);
+                            if (middle_tile != null)
+                            {
+                                middle_tile.InSight = false;
+                            }
+
+                            Tile? top_tile = top_tiles?.GetTile(location);
+                            if (top_tile != null)
+                            {
+                                top_tile.InSight = false;
+                            }
+
+                            Tile? roof_tile = roof_tiles?.GetTile(location);
+                            if (roof_tile != null)
+                            {
+                                roof_tile.InSight = false;
+                            }
+                        }
+                    }
+                }
+
+                foreach (Tile tile in visible)
+                {
+                    tile.Visible = false;
+                }
+
+                foreach (Squad squad in characters.Squads)
+                {
+                    foreach (Character character in squad.Characters)
+                    {
+                        character.InSight = false;
+                    }
+                }
+            }
         }
 
-        public static bool Location_IsVisible(long character_id, Location location)
+        public static bool Location_IsVisible(long character_id, Location? location)
         {
             if (location != null)
             {
-                List<Tile> tiles = new List<Tile>();
-                if (Handler.VisibleTiles.ContainsKey(character_id))
+                List<Tile> tiles = [];
+                if (Handler.VisibleTiles.TryGetValue(character_id, out List<Tile>? value))
                 {
-                    tiles = Handler.VisibleTiles[character_id];
+                    tiles = value;
                 }
 
                 for (int i = 0; i < tiles.Count; i++)
@@ -466,7 +523,14 @@ namespace Despicaville.Util
         {
             if (Handler.Pull_Tile != null)
             {
-                Location newLocation = new Location(Handler.Pull_Tile.Location.X, Handler.Pull_Tile.Location.Y);
+                Map? map = GetMap();
+                Layer? middle_tiles = map?.GetLayer("MiddleTiles");
+                if (middle_tiles == null)
+                {
+                    return;
+                }
+
+                Location newLocation = new(Handler.Pull_Tile.Location.X, Handler.Pull_Tile.Location.Y);
                 switch (direction)
                 {
                     case Direction.North:
@@ -487,7 +551,7 @@ namespace Despicaville.Util
                         }
 
                         newLocation.Y--;
-                        SwapTiles(GetMap().GetLayer("MiddleTiles"), Handler.Pull_Tile, newLocation);
+                        SwapTiles(middle_tiles, Handler.Pull_Tile, newLocation);
                         break;
 
                     case Direction.East:
@@ -508,7 +572,7 @@ namespace Despicaville.Util
                         }
 
                         newLocation.X++;
-                        SwapTiles(GetMap().GetLayer("MiddleTiles"), Handler.Pull_Tile, newLocation);
+                        SwapTiles(middle_tiles, Handler.Pull_Tile, newLocation);
                         break;
 
                     case Direction.South:
@@ -529,7 +593,7 @@ namespace Despicaville.Util
                         }
 
                         newLocation.Y++;
-                        SwapTiles(GetMap().GetLayer("MiddleTiles"), Handler.Pull_Tile, newLocation);
+                        SwapTiles(middle_tiles, Handler.Pull_Tile, newLocation);
                         break;
 
                     case Direction.West:
@@ -550,7 +614,7 @@ namespace Despicaville.Util
                         }
 
                         newLocation.X--;
-                        SwapTiles(GetMap().GetLayer("MiddleTiles"), Handler.Pull_Tile, newLocation);
+                        SwapTiles(middle_tiles, Handler.Pull_Tile, newLocation);
                         break;
                 }
             }
@@ -558,6 +622,13 @@ namespace Despicaville.Util
 
         public static void Push_Tile(Tile tile, Location newLocation)
         {
+            Map? map = GetMap();
+            Layer? middle_tiles = map?.GetLayer("MiddleTiles");
+            if (middle_tiles == null)
+            {
+                return;
+            }
+
             if (tile.IsLightSource)
             {
                 for (int l = 0; l < Handler.light_sources.Count; l++)
@@ -572,7 +643,7 @@ namespace Despicaville.Util
                 }
             }
 
-            SwapTiles(GetMap().GetLayer("MiddleTiles"), tile, newLocation);
+            SwapTiles(middle_tiles, tile, newLocation);
         }
 
         public static void Push_Character(Character character, Location newLocation)
@@ -596,8 +667,13 @@ namespace Despicaville.Util
             tile.Location = new Location(newLocation.X, newLocation.Y, 0);
         }
 
-        public static Tile GetClosestTile(List<Tile> tiles, Character character)
+        public static Tile? GetClosestTile(List<Tile> tiles, Character character)
         {
+            if (character.Location == null)
+            {
+                return null;
+            }
+
             Tile[] tilesArray = tiles.ToArray();
             int count = tilesArray.Length;
 
@@ -633,7 +709,12 @@ namespace Despicaville.Util
 
         public static List<Character> GetNearbyCharacters(long ID, Location location)
         {
-            List<Character> result = new List<Character>();
+            List<Character> result = [];
+
+            if (Handler.Player?.Location == null)
+            {
+                return result;
+            }
 
             if (NextTo(Handler.Player.Location, location))
             {
@@ -647,7 +728,8 @@ namespace Despicaville.Util
             for (int i = 0; i < count; i++)
             {
                 Character citizen = citizens.Characters[i];
-                if (citizen.ID != ID)
+                if (citizen.ID != ID &&
+                    citizen.Location != null)
                 {
                     if (NextTo(citizen.Location, location))
                     {
@@ -659,25 +741,26 @@ namespace Despicaville.Util
             return result;
         }
 
-        public static Character GetCharacter(Location location)
+        public static Character? GetCharacter(Location location)
         {
-            if (location != null)
+            Map? map = GetMap();
+            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+
+            Tile? tile = bottom_tiles?.GetTile(location.ToVector2);
+            if (tile != null)
             {
-                Map map = GetMap();
-                Layer bottom_tiles = map.GetLayer("BottomTiles");
+                Army army = CharacterManager.Armies[0];
+                Squad citizens = army.Squads[1];
 
-                Tile tile = bottom_tiles.GetTile(location.ToVector2);
-                if (tile != null)
+                Character? character = GetCharacter(citizens.Characters, tile);
+                if (character != null)
                 {
-                    Army army = CharacterManager.Armies[0];
-                    Squad citizens = army.Squads[1];
+                    return character;
+                }
 
-                    Character character = GetCharacter(citizens.Characters, tile);
-                    if (character != null)
-                    {
-                        return character;
-                    }
-
+                if (Handler.Player != null &&
+                    Handler.Player.Region != null)
+                {
                     float center_x = Handler.Player.Region.X + (Handler.Player.Region.Width / 2);
                     float center_y = Handler.Player.Region.Y + (Handler.Player.Region.Height / 2);
 
@@ -692,15 +775,15 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static Character GetCharacter(List<Character> characters, Location location)
+        public static Character? GetCharacter(List<Character> characters, Location location)
         {
-            Map map = GetMap();
-            Layer bottom_tiles = map.GetLayer("BottomTiles");
+            Map? map = GetMap();
+            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
 
-            Tile tile = bottom_tiles.GetTile(location.ToVector2);
+            Tile? tile = bottom_tiles?.GetTile(location.ToVector2);
             if (tile != null)
             {
-                Character character = GetCharacter(characters, tile);
+                Character? character = GetCharacter(characters, tile);
                 if (character != null)
                 {
                     return character;
@@ -710,36 +793,41 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static Character GetCharacter(List<Character> characters, Tile tile)
+        public static Character? GetCharacter(List<Character> characters, Tile tile)
         {
             int count = characters.Count;
             for (int i = 0; i < count; i++)
             {
                 Character character = characters[i];
-
-                float center_x = character.Region.X + (character.Region.Width / 2);
-                float center_y = character.Region.Y + (character.Region.Height / 2);
-
-                if (center_x >= tile.Region.X && center_x < tile.Region.X + tile.Region.Width &&
-                    center_y >= tile.Region.Y && center_y < tile.Region.Y + tile.Region.Height)
+                if (character.Region != null)
                 {
-                    return character;
+                    float center_x = character.Region.X + (character.Region.Width / 2);
+                    float center_y = character.Region.Y + (character.Region.Height / 2);
+
+                    if (center_x >= tile.Region.X && center_x < tile.Region.X + tile.Region.Width &&
+                        center_y >= tile.Region.Y && center_y < tile.Region.Y + tile.Region.Height)
+                    {
+                        return character;
+                    }
                 }
             }
 
             return null;
         }
 
-        public static Character GetCharacter_Target(Character character)
+        public static Character? GetCharacter_Target(Character character)
         {
-            Army army = CharacterManager.GetArmy("Characters");
-            foreach (Squad squad in army.Squads)
+            Army? army = CharacterManager.GetArmy("Characters");
+            if (army != null)
             {
-                foreach (Character existing in squad.Characters)
+                foreach (Squad squad in army.Squads)
                 {
-                    if (existing.ID == character.Target_ID)
+                    foreach (Character existing in squad.Characters)
                     {
-                        return existing;
+                        if (existing.ID == character.Target_ID)
+                        {
+                            return existing;
+                        }
                     }
                 }
             }
@@ -749,37 +837,45 @@ namespace Despicaville.Util
 
         public static List<Character> GetAllCharacters(Point map_coords)
         {
-            List<Character> characters = new List<Character>();
+            List<Character> characters = [];
 
             int world_x = map_coords.X * 20;
             int world_y = map_coords.Y * 20;
 
-            Army army = CharacterManager.GetArmy("Characters");
-            Squad squad = army.GetSquad("Citizens");
+            Army? army = CharacterManager.GetArmy("Characters");
+            Squad? squad = army?.GetSquad("Citizens");
 
-            foreach (Character character in squad.Characters)
+            if (squad != null)
             {
-                if (character.Location.X >= world_x && character.Location.X < world_x + 20 &&
-                    character.Location.Y >= world_y && character.Location.Y < world_y + 20)
+                foreach (Character character in squad.Characters)
                 {
-                    characters.Add(character);
+                    if (character.Location != null &&
+                        character.Location.X >= world_x && character.Location.X < world_x + 20 &&
+                        character.Location.Y >= world_y && character.Location.Y < world_y + 20)
+                    {
+                        characters.Add(character);
+                    }
                 }
             }
 
             return characters;
         }
 
-        public static Map GetRoom(Character character)
+        public static Map? GetRoom(Character character)
         {
+            if (character.Location == null)
+            {
+                return null;
+            }
+
             if (character.Map == null)
             {
                 SetCurrentMap(character);
             }
 
-            if (WorldGen.Rooms.ContainsKey(character.Map.ID))
+            if (character?.Map != null &&
+                WorldGen.Rooms.TryGetValue(character.Map.ID, out List<Map>? rooms))
             {
-                List<Map> rooms = WorldGen.Rooms[character.Map.ID];
-
                 int mapCount = rooms.Count;
                 for (int m = 0; m < mapCount; m++)
                 {
@@ -789,7 +885,8 @@ namespace Despicaville.Util
                     for (int l = 0; l < layerCount; l++)
                     {
                         Layer layer = room.Layers[l];
-                        if (layer.Name == "Tiles")
+                        if (layer.Name == "Tiles" &&
+                            room.Location != null)
                         {
                             int tileCount = layer.Tiles.Count;
                             for (int t = 0; t < tileCount; t++)
@@ -815,7 +912,7 @@ namespace Despicaville.Util
 
         public static List<Tile> GetFurniture_Nearby(Layer middle_tiles, Location location)
         {
-            List<Tile> furniture = new List<Tile>();
+            List<Tile> furniture = [];
 
             int min_y = (int)location.Y - 3;
             int max_y = (int)location.Y + 3;
@@ -826,9 +923,9 @@ namespace Despicaville.Util
             {
                 for (int x = min_x; x < max_x; x++)
                 {
-                    Vector2 loc = new Vector2(x, y);
+                    Vector2 loc = new(x, y);
 
-                    Tile tile = middle_tiles.GetTile(loc);
+                    Tile? tile = middle_tiles.GetTile(loc);
                     if (tile?.Texture != null)
                     {
                         furniture.Add(tile);
@@ -839,8 +936,13 @@ namespace Despicaville.Util
             return furniture;
         }
 
-        public static Tile GetFurniture(List<Tile> furniture, Location location)
+        public static Tile? GetFurniture(List<Tile> furniture, Location location)
         {
+            if (Main.Game == null)
+            {
+                return null;
+            }
+
             int width = (int)Main.Game.TileSize_X;
             int width_double = width * 2;
             int width_triple = width * 3;
@@ -959,8 +1061,13 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static Tile GetFurniture_Movable(List<Tile> furniture, Location location)
+        public static Tile? GetFurniture_Movable(List<Tile> furniture, Location location)
         {
+            if (Main.Game == null)
+            {
+                return null;
+            }
+
             int width = (int)Main.Game.TileSize_X;
             int width_double = width * 2;
             int width_triple = width * 3;
@@ -1092,9 +1199,14 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static Region GetSize(Tile tile)
+        public static Region? GetSize(Tile tile)
         {
-            Region size = new Region
+            if (Main.Game == null)
+            {
+                return null;
+            }
+
+            Region size = new()
             {
                 X = tile.Location.X,
                 Y = tile.Location.Y
@@ -1138,22 +1250,19 @@ namespace Despicaville.Util
 
         public static List<Tile> GetAllFurniture(Layer layer, Point map_coords)
         {
-            List<Tile> furniture = new List<Tile>();
+            List<Tile> furniture = [];
 
-            if (layer != null)
+            int world_x = map_coords.X * 20;
+            int world_y = map_coords.Y * 20;
+
+            foreach (Tile tile in layer.Tiles)
             {
-                int world_x = map_coords.X * 20;
-                int world_y = map_coords.Y * 20;
-
-                foreach (Tile tile in layer.Tiles)
+                if (tile.Texture != null)
                 {
-                    if (tile.Texture != null)
+                    if (tile.Location.X >= world_x && tile.Location.X < world_x + 20 &&
+                        tile.Location.Y >= world_y && tile.Location.Y < world_y + 20)
                     {
-                        if (tile.Location.X >= world_x && tile.Location.X < world_x + 20 &&
-                            tile.Location.Y >= world_y && tile.Location.Y < world_y + 20)
-                        {
-                            furniture.Add(tile);
-                        }
+                        furniture.Add(tile);
                     }
                 }
             }
@@ -1163,7 +1272,7 @@ namespace Despicaville.Util
 
         public static List<Tile> GetOwned_Furniture(Character character, string name)
         {
-            List<Tile> tiles = new List<Tile>();
+            List<Tile> tiles = [];
 
             Tile[] furniture = Handler.OwnedFurniture[character.ID].ToArray();
 
@@ -1171,7 +1280,8 @@ namespace Despicaville.Util
             for (int i = 0; i < count; i++)
             {
                 Tile tile = furniture[i];
-                if (tile.Name.Contains(name))
+                if (tile.Name != null &&
+                    tile.Name.Contains(name))
                 {
                     tiles.Add(tile);
                 }
@@ -1182,6 +1292,12 @@ namespace Despicaville.Util
 
         public static Direction GetFurnitureDirection(Tile tile, Character character)
         {
+            if (tile.Location == null ||
+                character.Location == null)
+            {
+                return Direction.Nowhere;
+            }
+
             if (tile.Location.X > character.Location.X)
             {
                 return Direction.East;
@@ -1207,88 +1323,92 @@ namespace Despicaville.Util
 
         public static bool Furniture_InRoom(Tile furniture, Character character)
         {
-            Map room = GetRoom(character);
-            if (room != null)
+            Map? room = GetRoom(character);
+            if (room?.Location == null)
             {
-                int layerCount = room.Layers.Count;
-                for (int l = 0; l < layerCount; l++)
+                return false;
+            }
+
+            int layerCount = room.Layers.Count;
+            for (int l = 0; l < layerCount; l++)
+            {
+                Layer layer = room.Layers[l];
+                if (layer.Name == "Tiles")
                 {
-                    Layer layer = room.Layers[l];
-                    if (layer.Name == "Tiles")
+                    int tileCount = layer.Tiles.Count;
+                    for (int i = 0; i < tileCount; i++)
                     {
-                        int tileCount = layer.Tiles.Count;
-                        for (int i = 0; i < tileCount; i++)
+                        Tile tile = layer.Tiles[i];
+
+                        int world_x = (int)((room.Location.X * 20) + tile.Location.X);
+                        int world_y = (int)((room.Location.Y * 20) + tile.Location.Y);
+
+                        if (world_x == furniture?.Location.X &&
+                            world_y == furniture.Location.Y)
                         {
-                            Tile tile = layer.Tiles[i];
-
-                            int world_x = (int)((room.Location.X * 20) + tile.Location.X);
-                            int world_y = (int)((room.Location.Y * 20) + tile.Location.Y);
-
-                            if (world_x == furniture.Location.X &&
-                                world_y == furniture.Location.Y)
-                            {
-                                return true;
-                            }
+                            return true;
                         }
-
-                        break;
                     }
+
+                    break;
                 }
             }
 
             return false;
         }
 
-        public static Tile GetNearestExit_ToFurniture(Character character, Layer middle_tiles, Tile furniture)
+        public static Tile? GetNearestExit_ToFurniture(Character character, Layer middle_tiles, Tile furniture)
         {
-            Map room = GetRoom(character);
-            if (room != null)
+            Map? room = GetRoom(character);
+            if (room?.Location == null)
             {
-                int layerCount = room.Layers.Count;
-                for (int l = 0; l < layerCount; l++)
+                return null;
+            }
+
+            int layerCount = room.Layers.Count;
+            for (int l = 0; l < layerCount; l++)
+            {
+                Layer layer = room.Layers[l];
+                if (layer.Name == "Exits")
                 {
-                    Layer layer = room.Layers[l];
-                    if (layer.Name == "Exits")
+                    Tile nearest_exit = layer.Tiles[0];
+
+                    int nearest_world_x = (int)((room.Location.X * 20) + nearest_exit.Location.X);
+                    int nearest_world_y = (int)((room.Location.Y * 20) + nearest_exit.Location.Y);
+
+                    int distance = GetDistance(new Location(nearest_world_x, nearest_world_y, 0), furniture.Location);
+
+                    int tileCount = layer.Tiles.Count;
+                    for (int t = 0; t < tileCount; t++)
                     {
-                        Tile nearest_exit = layer.Tiles[0];
+                        Tile exit = layer.Tiles[t];
 
-                        int nearest_world_x = (int)((room.Location.X * 20) + nearest_exit.Location.X);
-                        int nearest_world_y = (int)((room.Location.Y * 20) + nearest_exit.Location.Y);
+                        int exit_world_x = (int)((room.Location.X * 20) + exit.Location.X);
+                        int exit_world_y = (int)((room.Location.Y * 20) + exit.Location.Y);
 
-                        int distance = GetDistance(new Location(nearest_world_x, nearest_world_y, 0), furniture.Location);
-
-                        int tileCount = layer.Tiles.Count;
-                        for (int t = 0; t < tileCount; t++)
+                        int new_distance = GetDistance(new Location(exit_world_x, exit_world_y, 0), furniture.Location);
+                        if (new_distance < distance)
                         {
-                            Tile exit = layer.Tiles[t];
-
-                            int exit_world_x = (int)((room.Location.X * 20) + exit.Location.X);
-                            int exit_world_y = (int)((room.Location.Y * 20) + exit.Location.Y);
-
-                            int new_distance = GetDistance(new Location(exit_world_x, exit_world_y, 0), furniture.Location);
-                            if (new_distance < distance)
-                            {
-                                nearest_exit = exit;
-                                distance = new_distance;
-                            }
+                            nearest_exit = exit;
+                            distance = new_distance;
                         }
+                    }
 
-                        nearest_world_x = (int)((room.Location.X * 20) + nearest_exit.Location.X);
-                        nearest_world_y = (int)((room.Location.Y * 20) + nearest_exit.Location.Y);
+                    nearest_world_x = (int)((room.Location.X * 20) + nearest_exit.Location.X);
+                    nearest_world_y = (int)((room.Location.Y * 20) + nearest_exit.Location.Y);
 
-                        Tile door = middle_tiles.GetTile(new Vector2(nearest_world_x, nearest_world_y));
-                        if (door != null &&
-                            door.Name.Contains("Door"))
+                    Tile? door = middle_tiles?.GetTile(new Vector2(nearest_world_x, nearest_world_y));
+                    if (door?.Name != null &&
+                        door.Name.Contains("Door"))
+                    {
+                        return door;
+                    }
+                    else
+                    {
+                        return new Tile
                         {
-                            return door;
-                        }
-                        else
-                        {
-                            return new Tile
-                            {
-                                Location = new Location(nearest_world_x, nearest_world_y, 0)
-                            };
-                        }
+                            Location = new Location(nearest_world_x, nearest_world_y, 0)
+                        };
                     }
                 }
             }
@@ -1296,8 +1416,13 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static string GetTile_Name(Tile tile)
+        public static string? GetTile_Name(Tile tile)
         {
+            if (tile.Name == null)
+            {
+                return null;
+            }
+
             if (tile.Name.Contains("Bath"))
             {
                 return "bathtub";
@@ -1502,515 +1627,535 @@ namespace Despicaville.Util
 
         public static void GenDescription(Character character)
         {
-            if (character != null)
+            if (Handler.Player == null)
             {
-                string description = "You see ";
-                string he_she = "He";
-                string his_her = "His";
-                string him_her = "Him";
-
-                List<string> details = new List<string>();
-
-                if (character.Gender == "Male")
-                {
-                    description += "a man.";
-                }
-                else
-                {
-                    he_she = "She";
-                    his_her = "Her";
-                    him_her = "Her";
-
-                    description += "a woman.";
-                }
-
-                description += " " + his_her + " name is " + character.Name + ".";
-
-                if (Handler.Player.Relationships.ContainsKey(character.ID))
-                {
-                    description += " " + he_she + " is your " + Handler.Player.Relationships[character.ID].ToLower() + ".";
-                }
-
-                if (character.Unconscious)
-                {
-                    description += " " + he_she + " is unconscious.";
-                }
-
-                if (character.Dead)
-                {
-                    description += " " + he_she + " is dead.";
-                }
-
-                #region Hair
-
-                Item hair = InventoryUtil.Get_EquippedItem(character, "Hair");
-                if (hair != null)
-                {
-                    details.Add(he_she + " has " + hair.Name.ToLower() + ".");
-                }
-                else
-                {
-                    details.Add(he_she + " is bald.");
-                }
-
-                #endregion
-
-                #region Shoes
-
-                Item shoes_item = InventoryUtil.Get_EquippedItem(character, "Shoes Slot");
-                if (shoes_item != null)
-                {
-                    string item_description = shoes_item.Name.ToLower();
-
-                    CryptoRandom random = new CryptoRandom();
-                    int variation = random.Next(0, 10);
-                    if (variation == 0)
-                    {
-                        details.Add(he_she + " has " + item_description + " on.");
-                    }
-                    else if (variation == 1)
-                    {
-                        details.Add(he_she + " is wearing " + item_description + ".");
-                    }
-                    else if (variation == 2)
-                    {
-                        details.Add("You see " + item_description + " on " + him_her.ToLower() + ".");
-                    }
-                    else if (variation == 3)
-                    {
-                        details.Add("There are " + item_description + " on " + him_her.ToLower() + ".");
-                    }
-                    else if (variation == 4)
-                    {
-                        details.Add(he_she + " has " + item_description + ".");
-                    }
-                    else if (variation == 5)
-                    {
-                        details.Add("You see " + item_description + ".");
-                    }
-                    else if (variation == 6)
-                    {
-                        details.Add(he_she + " has " + item_description + " on " + his_her.ToLower() + " feet.");
-                    }
-                    else if (variation == 7)
-                    {
-                        details.Add(he_she + " is wearing " + item_description + " on " + his_her.ToLower() + " feet.");
-                    }
-                    else if (variation == 8)
-                    {
-                        details.Add("You see " + item_description + " on " + his_her.ToLower() + " feet.");
-                    }
-                    else if (variation == 9)
-                    {
-                        details.Add("There is " + item_description + " on " + his_her.ToLower() + " feet.");
-                    }
-                }
-
-                #endregion
-
-                #region Pants
-
-                Item pants_item = InventoryUtil.Get_EquippedItem(character, "Pants Slot");
-                if (pants_item != null)
-                {
-                    string item_description = pants_item.Name.ToLower();
-
-                    CryptoRandom random = new CryptoRandom();
-                    int variation = random.Next(0, 3);
-                    if (variation == 0)
-                    {
-                        details.Add(he_she + " has " + item_description + " on.");
-                    }
-                    else if (variation == 1)
-                    {
-                        details.Add(he_she + " is wearing " + item_description + ".");
-                    }
-                    else if (variation == 2)
-                    {
-                        details.Add(he_she + " has " + item_description + ".");
-                    }
-                }
-                else
-                {
-                    details.Add(he_she + " is not wearing pants.");
-                }
-
-                #endregion
-
-                #region Shirt
-
-                Item shirt_item = InventoryUtil.Get_EquippedItem(character, "Shirt Slot");
-                if (shirt_item != null)
-                {
-                    string item_description;
-                    if (GameUtil.NameStartsWithVowel(shirt_item.Name))
-                    {
-                        item_description = "an " + shirt_item.Name.ToLower();
-                    }
-                    else
-                    {
-                        item_description = "a " + shirt_item.Name.ToLower();
-                    }
-
-                    CryptoRandom random = new CryptoRandom();
-                    int variation = random.Next(0, 6);
-                    if (variation == 0)
-                    {
-                        details.Add(he_she + " has " + item_description + " on.");
-                    }
-                    else if (variation == 1)
-                    {
-                        details.Add(he_she + " is wearing " + item_description + ".");
-                    }
-                    else if (variation == 2)
-                    {
-                        details.Add("You see " + item_description + " on " + him_her.ToLower() + ".");
-                    }
-                    else if (variation == 3)
-                    {
-                        details.Add("There is " + item_description + " on " + him_her.ToLower() + ".");
-                    }
-                    else if (variation == 4)
-                    {
-                        details.Add(he_she + " has " + item_description + ".");
-                    }
-                    else if (variation == 5)
-                    {
-                        details.Add("You see " + item_description + ".");
-                    }
-                }
-                else
-                {
-                    details.Add(he_she + " is not wearing a shirt.");
-                }
-
-                #endregion
-
-                #region Hat
-
-                Item hat_item = InventoryUtil.Get_EquippedItem(character, "Hat Slot");
-                if (hat_item != null)
-                {
-                    string item_description;
-                    if (GameUtil.NameStartsWithVowel(hat_item.Name))
-                    {
-                        item_description = "an " + hat_item.Name.ToLower();
-                    }
-                    else
-                    {
-                        item_description = "a " + hat_item.Name.ToLower();
-                    }
-
-                    CryptoRandom random = new CryptoRandom();
-                    int variation = random.Next(0, 10);
-                    if (variation == 0)
-                    {
-                        details.Add(he_she + " has " + item_description + " on.");
-                    }
-                    else if (variation == 1)
-                    {
-                        details.Add(he_she + " is wearing " + item_description + ".");
-                    }
-                    else if (variation == 2)
-                    {
-                        details.Add("You see " + item_description + " on " + him_her.ToLower() + ".");
-                    }
-                    else if (variation == 3)
-                    {
-                        details.Add("There is " + item_description + " on " + him_her.ToLower() + ".");
-                    }
-                    else if (variation == 4)
-                    {
-                        details.Add(he_she + " has " + item_description + ".");
-                    }
-                    else if (variation == 5)
-                    {
-                        details.Add("You see " + item_description + ".");
-                    }
-                    else if (variation == 6)
-                    {
-                        details.Add(he_she + " has " + item_description + " on " + his_her.ToLower() + " head.");
-                    }
-                    else if (variation == 7)
-                    {
-                        details.Add(he_she + " is wearing " + item_description + " on " + his_her.ToLower() + " head.");
-                    }
-                    else if (variation == 8)
-                    {
-                        details.Add("You see " + item_description + " on " + his_her.ToLower() + " head.");
-                    }
-                    else if (variation == 9)
-                    {
-                        details.Add("There is " + item_description + " on " + his_her.ToLower() + " head.");
-                    }
-                }
-
-                #endregion
-
-                #region Left Hand
-
-                Item left_hand_item = InventoryUtil.Get_EquippedItem(character, "Left Weapon Slot");
-                if (left_hand_item != null)
-                {
-                    string item_description;
-                    if (GameUtil.NameStartsWithVowel(left_hand_item.Name))
-                    {
-                        item_description = "an " + left_hand_item.Name.ToLower();
-                    }
-                    else
-                    {
-                        item_description = "a " + left_hand_item.Name.ToLower();
-                    }
-
-                    CryptoRandom random = new CryptoRandom();
-                    int variation = random.Next(0, 4);
-                    if (variation == 0)
-                    {
-                        details.Add(he_she + " is holding " + item_description + " in " + his_her.ToLower() + " left hand.");
-                    }
-                    else if (variation == 1)
-                    {
-                        details.Add("There is " + item_description + " in " + his_her.ToLower() + " left hand.");
-                    }
-                    else if (variation == 2)
-                    {
-                        details.Add(his_her + " left hand is holding " + item_description + ".");
-                    }
-                    else if (variation == 3)
-                    {
-                        details.Add("You see " + item_description + " in " + his_her.ToLower() + " left hand.");
-                    }
-                }
-
-                #endregion
-
-                #region Right Hand
-
-                Item right_hand_item = InventoryUtil.Get_EquippedItem(character, "Right Weapon Slot");
-                if (right_hand_item != null)
-                {
-                    string item_description;
-                    if (GameUtil.NameStartsWithVowel(right_hand_item.Name))
-                    {
-                        item_description = "an " + right_hand_item.Name.ToLower();
-                    }
-                    else
-                    {
-                        item_description = "a " + right_hand_item.Name.ToLower();
-                    }
-
-                    CryptoRandom random = new CryptoRandom();
-                    int variation = random.Next(0, 4);
-                    if (variation == 0)
-                    {
-                        details.Add(he_she + " is holding " + item_description + " in " + his_her.ToLower() + " right hand.");
-                    }
-                    else if (variation == 1)
-                    {
-                        details.Add("There is " + item_description + " in " + his_her.ToLower() + " right hand.");
-                    }
-                    else if (variation == 2)
-                    {
-                        details.Add(his_her + " right hand is holding " + item_description + ".");
-                    }
-                    else if (variation == 3)
-                    {
-                        details.Add("You see " + item_description + " in " + his_her.ToLower() + " right hand.");
-                    }
-                }
-
-                #endregion
-
-                #region Mask
-
-                Item mask_item = InventoryUtil.Get_EquippedItem(character, "Mask Slot");
-                if (mask_item != null)
-                {
-                    string item_description;
-                    if (GameUtil.NameStartsWithVowel(mask_item.Name))
-                    {
-                        item_description = "an " + mask_item.Name.ToLower();
-                    }
-                    else
-                    {
-                        item_description = "a " + mask_item.Name.ToLower();
-                    }
-
-                    CryptoRandom random = new CryptoRandom();
-                    int variation = random.Next(0, 6);
-                    if (variation == 0)
-                    {
-                        details.Add(he_she + " is wearing " + item_description + " on " + his_her.ToLower() + " face.");
-                    }
-                    else if (variation == 1)
-                    {
-                        details.Add("There is " + item_description + " on " + his_her.ToLower() + " face.");
-                    }
-                    else if (variation == 2)
-                    {
-                        details.Add(his_her + " face has " + item_description + " on it.");
-                    }
-                    else if (variation == 3)
-                    {
-                        details.Add(he_she + " is wearing " + item_description + ".");
-                    }
-                    else if (variation == 4)
-                    {
-                        details.Add("You see " + item_description + " on " + him_her.ToLower() + ".");
-                    }
-                    else if (variation == 5)
-                    {
-                        details.Add(he_she + " has " + item_description + " on.");
-                    }
-                }
-
-                #endregion
-
-                #region Backpack
-
-                Item backpack_item = InventoryUtil.Get_EquippedItem(character, "Backpack Slot");
-                if (backpack_item != null)
-                {
-                    string item_description;
-                    if (GameUtil.NameStartsWithVowel(backpack_item.Name))
-                    {
-                        item_description = "an " + backpack_item.Name.ToLower();
-                    }
-                    else
-                    {
-                        item_description = "a " + backpack_item.Name.ToLower();
-                    }
-
-                    CryptoRandom random = new CryptoRandom();
-                    int variation = random.Next(0, 10);
-                    if (variation == 0)
-                    {
-                        details.Add(he_she + " has " + item_description + " on.");
-                    }
-                    else if (variation == 1)
-                    {
-                        details.Add(he_she + " is wearing " + item_description + ".");
-                    }
-                    else if (variation == 2)
-                    {
-                        details.Add("You see " + item_description + " on " + him_her.ToLower() + ".");
-                    }
-                    else if (variation == 3)
-                    {
-                        details.Add("There is " + item_description + " on " + him_her.ToLower() + ".");
-                    }
-                    else if (variation == 4)
-                    {
-                        details.Add(he_she + " has " + item_description + ".");
-                    }
-                    else if (variation == 5)
-                    {
-                        details.Add("You see " + item_description + ".");
-                    }
-                    else if (variation == 6)
-                    {
-                        details.Add(he_she + " has " + item_description + " on " + his_her.ToLower() + " back.");
-                    }
-                    else if (variation == 7)
-                    {
-                        details.Add(he_she + " is wearing " + item_description + " on " + his_her.ToLower() + " back.");
-                    }
-                    else if (variation == 8)
-                    {
-                        details.Add("You see " + item_description + " on " + his_her.ToLower() + " back.");
-                    }
-                    else if (variation == 9)
-                    {
-                        details.Add("There is " + item_description + " on " + his_her.ToLower() + " back.");
-                    }
-                }
-
-                #endregion
-
-                foreach (string detail in details)
-                {
-                    if (Utility.RandomPercent(character.Stats.Perception))
-                    {
-                        description += " " + detail;
-                    }
-                }
-
-                GameUtil.AddMessage(description);
+                return;
             }
+
+            string description = "You see ";
+            string he_she = "He";
+            string his_her = "His";
+            string him_her = "Him";
+
+            List<string> details = [];
+
+            if (character.Gender == "Male")
+            {
+                description += "a man.";
+            }
+            else
+            {
+                he_she = "She";
+                his_her = "Her";
+                him_her = "Her";
+
+                description += "a woman.";
+            }
+
+            description += " " + his_her + " name is " + character.Name + ".";
+
+            if (Handler.Player.Relationships.TryGetValue(character.ID, out string? value))
+            {
+                description += " " + he_she + " is your " + value.ToLower() + ".";
+            }
+
+            if (character.Unconscious)
+            {
+                description += " " + he_she + " is unconscious.";
+            }
+
+            if (character.Dead)
+            {
+                description += " " + he_she + " is dead.";
+            }
+
+            #region Hair
+
+            Item? hair = InventoryUtil.Get_EquippedItem(character, "Hair");
+            if (hair?.Name != null)
+            {
+                details.Add(he_she + " has " + hair.Name.ToLower() + ".");
+            }
+            else
+            {
+                details.Add(he_she + " is bald.");
+            }
+
+            #endregion
+
+            #region Shoes
+
+            Item? shoes_item = InventoryUtil.Get_EquippedItem(character, "Shoes Slot");
+            if (shoes_item?.Name != null)
+            {
+                string item_description = shoes_item.Name.ToLower();
+
+                CryptoRandom random = new CryptoRandom();
+                int variation = random.Next(0, 10);
+                if (variation == 0)
+                {
+                    details.Add(he_she + " has " + item_description + " on.");
+                }
+                else if (variation == 1)
+                {
+                    details.Add(he_she + " is wearing " + item_description + ".");
+                }
+                else if (variation == 2)
+                {
+                    details.Add("You see " + item_description + " on " + him_her.ToLower() + ".");
+                }
+                else if (variation == 3)
+                {
+                    details.Add("There are " + item_description + " on " + him_her.ToLower() + ".");
+                }
+                else if (variation == 4)
+                {
+                    details.Add(he_she + " has " + item_description + ".");
+                }
+                else if (variation == 5)
+                {
+                    details.Add("You see " + item_description + ".");
+                }
+                else if (variation == 6)
+                {
+                    details.Add(he_she + " has " + item_description + " on " + his_her.ToLower() + " feet.");
+                }
+                else if (variation == 7)
+                {
+                    details.Add(he_she + " is wearing " + item_description + " on " + his_her.ToLower() + " feet.");
+                }
+                else if (variation == 8)
+                {
+                    details.Add("You see " + item_description + " on " + his_her.ToLower() + " feet.");
+                }
+                else if (variation == 9)
+                {
+                    details.Add("There is " + item_description + " on " + his_her.ToLower() + " feet.");
+                }
+            }
+
+            #endregion
+
+            #region Pants
+
+            Item? pants_item = InventoryUtil.Get_EquippedItem(character, "Pants Slot");
+            if (pants_item?.Name != null)
+            {
+                string item_description = pants_item.Name.ToLower();
+
+                CryptoRandom random = new();
+                int variation = random.Next(0, 3);
+                if (variation == 0)
+                {
+                    details.Add(he_she + " has " + item_description + " on.");
+                }
+                else if (variation == 1)
+                {
+                    details.Add(he_she + " is wearing " + item_description + ".");
+                }
+                else if (variation == 2)
+                {
+                    details.Add(he_she + " has " + item_description + ".");
+                }
+            }
+            else
+            {
+                details.Add(he_she + " is not wearing pants.");
+            }
+
+            #endregion
+
+            #region Shirt
+
+            Item? shirt_item = InventoryUtil.Get_EquippedItem(character, "Shirt Slot");
+            if (shirt_item?.Name != null)
+            {
+                string item_description;
+                if (GameUtil.NameStartsWithVowel(shirt_item.Name))
+                {
+                    item_description = "an " + shirt_item.Name.ToLower();
+                }
+                else
+                {
+                    item_description = "a " + shirt_item.Name.ToLower();
+                }
+
+                CryptoRandom random = new();
+                int variation = random.Next(0, 6);
+                if (variation == 0)
+                {
+                    details.Add(he_she + " has " + item_description + " on.");
+                }
+                else if (variation == 1)
+                {
+                    details.Add(he_she + " is wearing " + item_description + ".");
+                }
+                else if (variation == 2)
+                {
+                    details.Add("You see " + item_description + " on " + him_her.ToLower() + ".");
+                }
+                else if (variation == 3)
+                {
+                    details.Add("There is " + item_description + " on " + him_her.ToLower() + ".");
+                }
+                else if (variation == 4)
+                {
+                    details.Add(he_she + " has " + item_description + ".");
+                }
+                else if (variation == 5)
+                {
+                    details.Add("You see " + item_description + ".");
+                }
+            }
+            else
+            {
+                details.Add(he_she + " is not wearing a shirt.");
+            }
+
+            #endregion
+
+            #region Hat
+
+            Item? hat_item = InventoryUtil.Get_EquippedItem(character, "Hat Slot");
+            if (hat_item?.Name != null)
+            {
+                string item_description;
+                if (GameUtil.NameStartsWithVowel(hat_item.Name))
+                {
+                    item_description = "an " + hat_item.Name.ToLower();
+                }
+                else
+                {
+                    item_description = "a " + hat_item.Name.ToLower();
+                }
+
+                CryptoRandom random = new();
+                int variation = random.Next(0, 10);
+                if (variation == 0)
+                {
+                    details.Add(he_she + " has " + item_description + " on.");
+                }
+                else if (variation == 1)
+                {
+                    details.Add(he_she + " is wearing " + item_description + ".");
+                }
+                else if (variation == 2)
+                {
+                    details.Add("You see " + item_description + " on " + him_her.ToLower() + ".");
+                }
+                else if (variation == 3)
+                {
+                    details.Add("There is " + item_description + " on " + him_her.ToLower() + ".");
+                }
+                else if (variation == 4)
+                {
+                    details.Add(he_she + " has " + item_description + ".");
+                }
+                else if (variation == 5)
+                {
+                    details.Add("You see " + item_description + ".");
+                }
+                else if (variation == 6)
+                {
+                    details.Add(he_she + " has " + item_description + " on " + his_her.ToLower() + " head.");
+                }
+                else if (variation == 7)
+                {
+                    details.Add(he_she + " is wearing " + item_description + " on " + his_her.ToLower() + " head.");
+                }
+                else if (variation == 8)
+                {
+                    details.Add("You see " + item_description + " on " + his_her.ToLower() + " head.");
+                }
+                else if (variation == 9)
+                {
+                    details.Add("There is " + item_description + " on " + his_her.ToLower() + " head.");
+                }
+            }
+
+            #endregion
+
+            #region Left Hand
+
+            Item? left_hand_item = InventoryUtil.Get_EquippedItem(character, "Left Weapon Slot");
+            if (left_hand_item?.Name != null)
+            {
+                string item_description;
+                if (GameUtil.NameStartsWithVowel(left_hand_item.Name))
+                {
+                    item_description = "an " + left_hand_item.Name.ToLower();
+                }
+                else
+                {
+                    item_description = "a " + left_hand_item.Name.ToLower();
+                }
+
+                CryptoRandom random = new();
+                int variation = random.Next(0, 4);
+                if (variation == 0)
+                {
+                    details.Add(he_she + " is holding " + item_description + " in " + his_her.ToLower() + " left hand.");
+                }
+                else if (variation == 1)
+                {
+                    details.Add("There is " + item_description + " in " + his_her.ToLower() + " left hand.");
+                }
+                else if (variation == 2)
+                {
+                    details.Add(his_her + " left hand is holding " + item_description + ".");
+                }
+                else if (variation == 3)
+                {
+                    details.Add("You see " + item_description + " in " + his_her.ToLower() + " left hand.");
+                }
+            }
+
+            #endregion
+
+            #region Right Hand
+
+            Item? right_hand_item = InventoryUtil.Get_EquippedItem(character, "Right Weapon Slot");
+            if (right_hand_item?.Name != null)
+            {
+                string item_description;
+                if (GameUtil.NameStartsWithVowel(right_hand_item.Name))
+                {
+                    item_description = "an " + right_hand_item.Name.ToLower();
+                }
+                else
+                {
+                    item_description = "a " + right_hand_item.Name.ToLower();
+                }
+
+                CryptoRandom random = new();
+                int variation = random.Next(0, 4);
+                if (variation == 0)
+                {
+                    details.Add(he_she + " is holding " + item_description + " in " + his_her.ToLower() + " right hand.");
+                }
+                else if (variation == 1)
+                {
+                    details.Add("There is " + item_description + " in " + his_her.ToLower() + " right hand.");
+                }
+                else if (variation == 2)
+                {
+                    details.Add(his_her + " right hand is holding " + item_description + ".");
+                }
+                else if (variation == 3)
+                {
+                    details.Add("You see " + item_description + " in " + his_her.ToLower() + " right hand.");
+                }
+            }
+
+            #endregion
+
+            #region Mask
+
+            Item? mask_item = InventoryUtil.Get_EquippedItem(character, "Mask Slot");
+            if (mask_item?.Name != null)
+            {
+                string item_description;
+                if (GameUtil.NameStartsWithVowel(mask_item.Name))
+                {
+                    item_description = "an " + mask_item.Name.ToLower();
+                }
+                else
+                {
+                    item_description = "a " + mask_item.Name.ToLower();
+                }
+
+                CryptoRandom random = new();
+                int variation = random.Next(0, 6);
+                if (variation == 0)
+                {
+                    details.Add(he_she + " is wearing " + item_description + " on " + his_her.ToLower() + " face.");
+                }
+                else if (variation == 1)
+                {
+                    details.Add("There is " + item_description + " on " + his_her.ToLower() + " face.");
+                }
+                else if (variation == 2)
+                {
+                    details.Add(his_her + " face has " + item_description + " on it.");
+                }
+                else if (variation == 3)
+                {
+                    details.Add(he_she + " is wearing " + item_description + ".");
+                }
+                else if (variation == 4)
+                {
+                    details.Add("You see " + item_description + " on " + him_her.ToLower() + ".");
+                }
+                else if (variation == 5)
+                {
+                    details.Add(he_she + " has " + item_description + " on.");
+                }
+            }
+
+            #endregion
+
+            #region Backpack
+
+            Item? backpack_item = InventoryUtil.Get_EquippedItem(character, "Backpack Slot");
+            if (backpack_item?.Name != null)
+            {
+                string item_description;
+                if (GameUtil.NameStartsWithVowel(backpack_item.Name))
+                {
+                    item_description = "an " + backpack_item.Name.ToLower();
+                }
+                else
+                {
+                    item_description = "a " + backpack_item.Name.ToLower();
+                }
+
+                CryptoRandom random = new();
+                int variation = random.Next(0, 10);
+                if (variation == 0)
+                {
+                    details.Add(he_she + " has " + item_description + " on.");
+                }
+                else if (variation == 1)
+                {
+                    details.Add(he_she + " is wearing " + item_description + ".");
+                }
+                else if (variation == 2)
+                {
+                    details.Add("You see " + item_description + " on " + him_her.ToLower() + ".");
+                }
+                else if (variation == 3)
+                {
+                    details.Add("There is " + item_description + " on " + him_her.ToLower() + ".");
+                }
+                else if (variation == 4)
+                {
+                    details.Add(he_she + " has " + item_description + ".");
+                }
+                else if (variation == 5)
+                {
+                    details.Add("You see " + item_description + ".");
+                }
+                else if (variation == 6)
+                {
+                    details.Add(he_she + " has " + item_description + " on " + his_her.ToLower() + " back.");
+                }
+                else if (variation == 7)
+                {
+                    details.Add(he_she + " is wearing " + item_description + " on " + his_her.ToLower() + " back.");
+                }
+                else if (variation == 8)
+                {
+                    details.Add("You see " + item_description + " on " + his_her.ToLower() + " back.");
+                }
+                else if (variation == 9)
+                {
+                    details.Add("There is " + item_description + " on " + his_her.ToLower() + " back.");
+                }
+            }
+
+            #endregion
+
+            foreach (string detail in details)
+            {
+                if (Utility.RandomPercent(character.Stats.Perception))
+                {
+                    description += " " + detail;
+                }
+            }
+
+            GameUtil.AddMessage(description);
         }
 
         public static void GenDescription(Tile tile)
         {
-            if (tile != null)
+            string description = "You see ";
+
+            bool plural = false;
+
+            string? name = GetTile_Name(tile);
+            if (name != null &&
+                name.Contains(' '))
             {
-                string description = "You see ";
-
-                bool plural = false;
-
-                string name = GetTile_Name(tile);
-                if (name.Contains(" "))
+                if (name.Split(' ')[0] == "some")
                 {
-                    if (name.Split(' ')[0] == "some")
-                    {
-                        plural = true;
-                    }
+                    plural = true;
                 }
+            }
 
-                if (plural)
+            if (plural)
+            {
+                description += name + ".";
+            }
+            else
+            {
+                if (GameUtil.NameStartsWithVowel(name))
                 {
-                    description += name + ".";
+                    description += "an " + name + ".";
                 }
                 else
                 {
-                    if (GameUtil.NameStartsWithVowel(name))
-                    {
-                        description += "an " + name + ".";
-                    }
-                    else
-                    {
-                        description += "a " + name + ".";
-                    }
+                    description += "a " + name + ".";
                 }
-
-                GameUtil.AddMessage(description);
             }
+
+            GameUtil.AddMessage(description);
         }
 
         public static void AssignPlayerBed(World world)
         {
+            if (Handler.Player == null)
+            {
+                return;
+            }
+
             Handler.Player.Relationships.Clear();
 
-            Army army = CharacterManager.GetArmy("Characters");
-            Squad squad = army.GetSquad("Citizens");
+            Army? army = CharacterManager.GetArmy("Characters");
+            Squad? squad = army?.GetSquad("Citizens");
 
             Map map = world.Maps[0];
 
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
-            Layer top_tiles = map.GetLayer("TopTiles");
+            Layer? middle_tiles = map.GetLayer("MiddleTiles");
+            if (middle_tiles == null)
+            {
+                return;
+            }
 
-            CryptoRandom random = new CryptoRandom();
+            Layer? top_tiles = map.GetLayer("TopTiles");
+            if (top_tiles == null)
+            {
+                return;
+            }
+
+            CryptoRandom random = new();
             List<Map> homes = WorldGen.Residential.OrderBy(a => random.Next()).ToList();
 
-            Tile bed = null;
-            Map newHome = null;
-            Character replacement = null;
-            Character mate = null;
+            Tile? bed = null;
+            Map? newHome = null;
+            Character? replacement = null;
+            Character? mate = null;
 
-            List<Tile> middle_furniture = new List<Tile>();
+            List<Tile> middle_furniture = [];
 
             //Start player in single home
             foreach (Map home in homes)
             {
-                Point map_coords = new Point((int)home.Location.X, (int)home.Location.Y);
+                if (home.Location == null)
+                {
+                    continue;
+                }
+
+                Point map_coords = new((int)home.Location.X, (int)home.Location.Y);
 
                 middle_furniture = GetAllFurniture(middle_tiles, map_coords);
 
                 int bed_count = 0;
-                Tile possibleBed = null;
+                Tile? possibleBed = null;
 
                 foreach (Tile tile in middle_furniture)
                 {
-                    if (tile.Name.Contains("Bed"))
+                    if (tile.Name != null &&
+                        tile.Name.Contains("Bed"))
                     {
                         possibleBed = tile;
                         bed_count++;
@@ -2019,28 +2164,32 @@ namespace Despicaville.Util
 
                 if (bed_count == 1)
                 {
-                    Location bed_location = null;
-                    if (possibleBed.Direction == Direction.North)
+                    Location? bed_location = null;
+
+                    if (possibleBed?.Direction == Direction.North)
                     {
                         bed_location = new Location(possibleBed.Location.X, possibleBed.Location.Y + 1, 0);
                     }
-                    else if (possibleBed.Direction == Direction.East ||
-                             possibleBed.Direction == Direction.South)
+                    else if (possibleBed?.Direction == Direction.East ||
+                             possibleBed?.Direction == Direction.South)
                     {
                         bed_location = new Location(possibleBed.Location.X, possibleBed.Location.Y, 0);
                     }
-                    else if (possibleBed.Direction == Direction.West)
+                    else if (possibleBed?.Direction == Direction.West)
                     {
                         bed_location = new Location(possibleBed.Location.X + 1, possibleBed.Location.Y, 0);
                     }
 
-                    Character character = GetCharacter(bed_location);
-                    if (character != null)
+                    if (bed_location != null)
                     {
-                        replacement = character;
-                        bed = possibleBed;
-                        newHome = home;
-                        break;
+                        Character? character = GetCharacter(bed_location);
+                        if (character != null)
+                        {
+                            replacement = character;
+                            bed = possibleBed;
+                            newHome = home;
+                            break;
+                        }
                     }
                 }
             }
@@ -2050,17 +2199,23 @@ namespace Despicaville.Util
                 //Start player next to an NPC
                 foreach (Map home in homes)
                 {
-                    Point map_coords = new Point((int)home.Location.X, (int)home.Location.Y);
+                    if (home.Location == null)
+                    {
+                        continue;
+                    }
+
+                    Point map_coords = new((int)home.Location.X, (int)home.Location.Y);
 
                     middle_furniture = GetAllFurniture(middle_tiles, map_coords);
                     List<Tile> top_furniture = GetAllFurniture(top_tiles, map_coords);
 
                     int bed_count = 0;
-                    Tile possibleBed = null;
+                    Tile? possibleBed = null;
 
                     foreach (Tile tile in middle_furniture)
                     {
-                        if (tile.Name.Contains("DoubleBed"))
+                        if (tile.Name != null &&
+                            tile.Name.Contains("DoubleBed"))
                         {
                             possibleBed = tile;
                             bed_count++;
@@ -2069,28 +2224,32 @@ namespace Despicaville.Util
 
                     if (bed_count >= 1)
                     {
-                        Location bed_location = default;
-                        if (possibleBed.Direction == Direction.North)
+                        Location? bed_location = null;
+
+                        if (possibleBed?.Direction == Direction.North)
                         {
                             bed_location = new Location(possibleBed.Location.X, possibleBed.Location.Y + 1, 0);
                         }
-                        else if (possibleBed.Direction == Direction.East ||
-                                 possibleBed.Direction == Direction.South)
+                        else if (possibleBed?.Direction == Direction.East ||
+                                 possibleBed?.Direction == Direction.South)
                         {
                             bed_location = new Location(possibleBed.Location.X, possibleBed.Location.Y, 0);
                         }
-                        else if (possibleBed.Direction == Direction.West)
+                        else if (possibleBed?.Direction == Direction.West)
                         {
                             bed_location = new Location(possibleBed.Location.X + 1, possibleBed.Location.Y, 0);
                         }
 
-                        Character character = GetCharacter(bed_location);
-                        if (character != null)
+                        if (bed_location != null)
                         {
-                            bed = possibleBed;
-                            newHome = home;
-                            mate = character;
-                            break;
+                            Character? character = GetCharacter(bed_location);
+                            if (character != null)
+                            {
+                                bed = possibleBed;
+                                newHome = home;
+                                mate = character;
+                                break;
+                            }
                         }
                     }
                 }
@@ -2101,13 +2260,19 @@ namespace Despicaville.Util
                 //Start player in any open bed
                 foreach (Map home in homes)
                 {
-                    Point map_coords = new Point((int)home.Location.X, (int)home.Location.Y);
+                    if (home.Location == null)
+                    {
+                        continue;
+                    }
+
+                    Point map_coords = new((int)home.Location.X, (int)home.Location.Y);
 
                     middle_furniture = GetAllFurniture(middle_tiles, map_coords);
 
                     foreach (Tile tile in middle_furniture)
                     {
-                        if (tile.Name.Contains("DoubleBed"))
+                        if (tile.Name != null &&
+                            tile.Name.Contains("DoubleBed"))
                         {
                             bed = tile;
                             break;
@@ -2118,7 +2283,8 @@ namespace Despicaville.Util
                     {
                         foreach (Tile tile in middle_furniture)
                         {
-                            if (tile.Name.Contains("Bed"))
+                            if (tile.Name != null &&
+                                tile.Name.Contains("Bed"))
                             {
                                 bed = tile;
                                 break;
@@ -2130,7 +2296,8 @@ namespace Despicaville.Util
                     {
                         newHome = home;
 
-                        Location bed_location = default;
+                        Location? bed_location = null;
+
                         if (bed.Direction == Direction.North)
                         {
                             bed_location = new Location(bed.Location.X, bed.Location.Y + 1, 0);
@@ -2145,11 +2312,14 @@ namespace Despicaville.Util
                             bed_location = new Location(bed.Location.X + 1, bed.Location.Y, 0);
                         }
 
-                        Character character = GetCharacter(bed_location);
-                        if (character != null)
+                        if (bed_location != null)
                         {
-                            replacement = character;
-                            break;
+                            Character? character = GetCharacter(bed_location);
+                            if (character != null)
+                            {
+                                replacement = character;
+                                break;
+                            }
                         }
                     }
                 }
@@ -2157,18 +2327,16 @@ namespace Despicaville.Util
 
             if (bed != null)
             {
-                Point map_coords = new Point((int)newHome.Location.X, (int)newHome.Location.Y);
-
-                List<Tile> top_furniture = GetAllFurniture(top_tiles, map_coords);
-
-                if (replacement != null)
+                if (replacement != null &&
+                    replacement.Location != null)
                 {
                     Handler.OwnedFurniture.Remove(replacement.ID);
-                    squad.Characters.Remove(replacement);
+                    squad?.Characters.Remove(replacement);
 
                     Handler.Player.Location = new Location(replacement.Location.X, replacement.Location.Y, 0);
                 }
-                else if (mate != null)
+                else if (mate != null &&
+                         mate.Location != null)
                 {
                     if (mate.Direction == Direction.North ||
                         mate.Direction == Direction.South)
@@ -2219,81 +2387,89 @@ namespace Despicaville.Util
                 }
                 CharacterUtil.UpdateGear(Handler.Player);
 
-                if (!Handler.OwnedFurniture.ContainsKey(Handler.Player.ID))
+                if (!Handler.OwnedFurniture.TryGetValue(Handler.Player.ID, out List<Tile>? ownedFurniture))
                 {
-                    Handler.OwnedFurniture.Add(Handler.Player.ID, new List<Tile>());
+                    ownedFurniture = [];
+                    Handler.OwnedFurniture.Add(Handler.Player.ID, ownedFurniture);
                 }
 
                 foreach (Tile tile in middle_furniture)
                 {
-                    Handler.OwnedFurniture[Handler.Player.ID].Add(tile);
+                    ownedFurniture.Add(tile);
                 }
 
-                foreach (Tile tile in top_furniture)
-                {
-                    Handler.OwnedFurniture[Handler.Player.ID].Add(tile);
-                }
+                string? last_name = Handler.Player.Name?.Split(' ')[1].Trim();
 
-                string last_name = Handler.Player.Name.Split(' ')[1].Trim();
-
-                List<Character> characters = GetAllCharacters(map_coords);
-                foreach (Character existing in characters)
+                if (newHome?.Location != null)
                 {
-                    if (!Handler.Player.Relationships.ContainsKey(existing.ID))
+                    Point map_coords = new((int)newHome.Location.X, (int)newHome.Location.Y);
+                    List<Tile> top_furniture = GetAllFurniture(top_tiles, map_coords);
+
+                    foreach (Tile tile in top_furniture)
                     {
-                        string first_name = existing.Name.Split(' ')[0].Trim();
-                        existing.Name = first_name + " " + last_name;
+                        ownedFurniture.Add(tile);
+                    }
 
-                        random = new CryptoRandom();
-                        int relative = random.Next(0, 2);
-
-                        if (existing.ID == mate?.ID)
+                    List<Character> characters = GetAllCharacters(map_coords);
+                    foreach (Character existing in characters)
+                    {
+                        if (!Handler.Player.Relationships.ContainsKey(existing.ID) &&
+                            existing.Name != null)
                         {
-                            if (existing.Gender == "Male")
+                            string first_name = existing.Name.Split(' ')[0].Trim();
+                            existing.Name = first_name + " " + last_name;
+
+                            random = new CryptoRandom();
+                            int relative = random.Next(0, 2);
+
+                            if (existing.ID == mate?.ID)
                             {
-                                if (relative == 0)
+                                if (existing.Gender == "Male")
                                 {
-                                    Handler.Player.Relationships.Add(existing.ID, "Husband");
+                                    if (relative == 0)
+                                    {
+                                        Handler.Player.Relationships.Add(existing.ID, "Husband");
+                                    }
+                                    else
+                                    {
+                                        Handler.Player.Relationships.Add(existing.ID, "Boyfriend");
+                                    }
                                 }
                                 else
                                 {
-                                    Handler.Player.Relationships.Add(existing.ID, "Boyfriend");
+                                    if (relative == 0)
+                                    {
+                                        Handler.Player.Relationships.Add(existing.ID, "Wife");
+                                    }
+                                    else
+                                    {
+                                        Handler.Player.Relationships.Add(existing.ID, "Girlfriend");
+                                    }
                                 }
                             }
                             else
                             {
-                                if (relative == 0)
+                                if (existing.Gender == "Male")
                                 {
-                                    Handler.Player.Relationships.Add(existing.ID, "Wife");
+                                    if (relative == 0)
+                                    {
+                                        Handler.Player.Relationships.Add(existing.ID, "Father");
+                                    }
+                                    else
+                                    {
+                                        Handler.Player.Relationships.Add(existing.ID, "Brother");
+                                    }
                                 }
                                 else
                                 {
-                                    Handler.Player.Relationships.Add(existing.ID, "Girlfriend");
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (existing.Gender == "Male")
-                            {
-                                if (relative == 0)
-                                {
-                                    Handler.Player.Relationships.Add(existing.ID, "Father");
-                                }
-                                else
-                                {
-                                    Handler.Player.Relationships.Add(existing.ID, "Brother");
-                                }
-                            }
-                            else
-                            {
-                                if (relative == 0)
-                                {
-                                    Handler.Player.Relationships.Add(existing.ID, "Mother");
-                                }
-                                else
-                                {
-                                    Handler.Player.Relationships.Add(existing.ID, "Sister");
+                                    if (relative == 0)
+                                    {
+                                        Handler.Player.Relationships.Add(existing.ID, "Mother");
+                                    }
+                                    else
+                                    {
+                                        Handler.Player.Relationships.Add(existing.ID, "Sister");
+                                    }
                                 }
                             }
                         }
@@ -2324,11 +2500,12 @@ namespace Despicaville.Util
             return false;
         }
 
-        public static Tile StandingByFurniture(Layer tiles, Location location, string type)
+        public static Tile? StandingByFurniture(Layer tiles, Location location, string type)
         {
             foreach (Tile tile in tiles.Tiles)
             {
-                if (tile.Name.Contains(type))
+                if (tile.Name != null &&
+                    tile.Name.Contains(type))
                 {
                     if (NextTo(tile.Location, location))
                     {
@@ -2362,6 +2539,11 @@ namespace Despicaville.Util
 
         public static bool PassedOpenDoor(Layer middle_tiles, Character character)
         {
+            if (character.Location == null)
+            {
+                return false;
+            }
+
             Vector2 tile_location = character.Location.ToVector2;
             if (character.Direction == Direction.North)
             {
@@ -2380,8 +2562,9 @@ namespace Despicaville.Util
                 tile_location.X++;
             }
 
-            Tile tile = middle_tiles.GetTile(tile_location);
-            if (tile != null)
+            Tile? tile = middle_tiles.GetTile(tile_location);
+            if (tile != null &&
+                tile.Name != null)
             {
                 if (tile.Name.Contains("Open") &&
                     tile.Name.Contains("Door"))
@@ -2395,6 +2578,11 @@ namespace Despicaville.Util
 
         public static bool PassedOpenWindow(Layer middle_tiles, Character character)
         {
+            if (character.Location == null)
+            {
+                return false;
+            }
+
             Vector2 tile_location = character.Location.ToVector2;
             if (character.Direction == Direction.North)
             {
@@ -2413,8 +2601,9 @@ namespace Despicaville.Util
                 tile_location.X++;
             }
 
-            Tile tile = middle_tiles.GetTile(tile_location);
-            if (tile != null)
+            Tile? tile = middle_tiles.GetTile(tile_location);
+            if (tile != null &&
+                tile.Name != null)
             {
                 if (tile.Name.Contains("Open") &&
                     tile.Name.Contains("Window"))
@@ -2426,7 +2615,7 @@ namespace Despicaville.Util
             return false;
         }
 
-        public static Map GetCurrentMap(Character character)
+        public static Map? GetCurrentMap(Character character)
         {
             if (character.Map == null)
             {
@@ -2435,7 +2624,7 @@ namespace Despicaville.Util
 
             foreach (Map map in WorldGen.Residential)
             {
-                if (map.ID == character.Map.ID)
+                if (map.ID == character.Map?.ID)
                 {
                     return map;
                 }
@@ -2443,7 +2632,7 @@ namespace Despicaville.Util
 
             foreach (Map map in WorldGen.Commercial)
             {
-                if (map.ID == character.Map.ID)
+                if (map.ID == character.Map?.ID)
                 {
                     return map;
                 }
@@ -2451,7 +2640,7 @@ namespace Despicaville.Util
 
             foreach (Map map in WorldGen.Parks)
             {
-                if (map.ID == character.Map.ID)
+                if (map.ID == character.Map?.ID)
                 {
                     return map;
                 }
@@ -2459,7 +2648,7 @@ namespace Despicaville.Util
 
             foreach (Map map in WorldGen.Roads)
             {
-                if (map.ID == character.Map.ID)
+                if (map.ID == character.Map?.ID)
                 {
                     return map;
                 }
@@ -2470,6 +2659,11 @@ namespace Despicaville.Util
 
         public static void SetCurrentMap(Character character)
         {
+            if (character.Location == null)
+            {
+                return;
+            }
+
             int block_x = (int)character.Location.X / 20;
             int block_y = (int)character.Location.Y / 20;
 
@@ -2477,7 +2671,8 @@ namespace Despicaville.Util
             for (int i = 0; i < count; ++i)
             {
                 Map map = WorldGen.Residential[i];
-                if (map.Location.X == block_x &&
+                if (map.Location != null &&
+                    map.Location.X == block_x &&
                     map.Location.Y == block_y)
                 {
                     character.Map = map;
@@ -2489,7 +2684,8 @@ namespace Despicaville.Util
             for (int i = 0; i < count; ++i)
             {
                 Map map = WorldGen.Commercial[i];
-                if (map.Location.X == block_x &&
+                if (map.Location != null &&
+                    map.Location.X == block_x &&
                     map.Location.Y == block_y)
                 {
                     character.Map = map;
@@ -2501,7 +2697,8 @@ namespace Despicaville.Util
             for (int i = 0; i < count; ++i)
             {
                 Map map = WorldGen.Parks[i];
-                if (map.Location.X == block_x &&
+                if (map.Location != null &&
+                    map.Location.X == block_x &&
                     map.Location.Y == block_y)
                 {
                     character.Map = map;
@@ -2513,7 +2710,8 @@ namespace Despicaville.Util
             for (int i = 0; i < count; ++i)
             {
                 Map map = WorldGen.Roads[i];
-                if (map.Location.X == block_x &&
+                if (map.Location != null &&
+                    map.Location.X == block_x &&
                     map.Location.Y == block_y)
                 {
                     character.Map = map;
@@ -2524,99 +2722,102 @@ namespace Despicaville.Util
 
         public static void UpdateWorldMap()
         {
-            if (Handler.WorldMap_Visible)
+            if (Main.Game == null ||
+                !Handler.WorldMap_Visible ||
+                Handler.Player?.Location == null ||
+                Handler.Player.Region == null)
             {
-                int world_x = (int)Handler.Player.Location.X / 20;
-                int world_y = (int)Handler.Player.Location.Y / 20;
+                return;
+            }
 
-                Tile center = null;
+            int world_x = (int)Handler.Player.Location.X / 20;
+            int world_y = (int)Handler.Player.Location.Y / 20;
+
+            Tile? center = null;
+            foreach (Tile tile in WorldGen.Worldmap)
+            {
+                if (tile.Location.X == world_x &&
+                    tile.Location.Y == world_y)
+                {
+                    center = tile;
+                    break;
+                }
+            }
+
+            if (center != null)
+            {
+                center.Region.X = Handler.Player.Region.X + (Handler.Player.Region.Width / 2) - (Main.Game.MenuSize_X / 2);
+                center.Region.Y = Handler.Player.Region.Y + (Handler.Player.Region.Height / 2) - (Main.Game.MenuSize_Y / 2);
+                center.Region.Width = Main.Game.MenuSize_X;
+                center.Region.Height = Main.Game.MenuSize_Y;
+
                 foreach (Tile tile in WorldGen.Worldmap)
                 {
-                    if (tile.Location.X == world_x &&
-                        tile.Location.Y == world_y)
+                    tile.Region.Width = Main.Game.MenuSize_X;
+                    tile.Region.Height = Main.Game.MenuSize_Y;
+
+                    int world_x_diff = (int)tile.Location.X - world_x;
+                    if (world_x_diff < 0)
                     {
-                        center = tile;
-                        break;
+                        world_x_diff *= -1;
                     }
-                }
 
-                if (center != null)
-                {
-                    center.Region.X = Handler.Player.Region.X + (Handler.Player.Region.Width / 2) - (Main.Game.MenuSize_X / 2);
-                    center.Region.Y = Handler.Player.Region.Y + (Handler.Player.Region.Height / 2) - (Main.Game.MenuSize_Y / 2);
-                    center.Region.Width = Main.Game.MenuSize_X;
-                    center.Region.Height = Main.Game.MenuSize_Y;
-
-                    foreach (Tile tile in WorldGen.Worldmap)
+                    int world_y_diff = (int)tile.Location.Y - world_y;
+                    if (world_y_diff < 0)
                     {
-                        tile.Region.Width = Main.Game.MenuSize_X;
-                        tile.Region.Height = Main.Game.MenuSize_Y;
+                        world_y_diff *= -1;
+                    }
 
-                        int world_x_diff = (int)tile.Location.X - world_x;
-                        if (world_x_diff < 0)
-                        {
-                            world_x_diff *= -1;
-                        }
+                    if (tile.Location.X < world_x)
+                    {
+                        tile.Region.X = center.Region.X - (world_x_diff * Main.Game.MenuSize_X);
+                    }
+                    else if (tile.Location.X > world_x)
+                    {
+                        tile.Region.X = center.Region.X + (world_x_diff * Main.Game.MenuSize_X);
+                    }
+                    else if (tile.Location.X == world_x)
+                    {
+                        tile.Region.X = center.Region.X;
+                    }
 
-                        int world_y_diff = (int)tile.Location.Y - world_y;
-                        if (world_y_diff < 0)
-                        {
-                            world_y_diff *= -1;
-                        }
-
-                        if (tile.Location.X < world_x)
-                        {
-                            tile.Region.X = center.Region.X - (world_x_diff * Main.Game.MenuSize_X);
-                        }
-                        else if (tile.Location.X > world_x)
-                        {
-                            tile.Region.X = center.Region.X + (world_x_diff * Main.Game.MenuSize_X);
-                        }
-                        else if (tile.Location.X == world_x)
-                        {
-                            tile.Region.X = center.Region.X;
-                        }
-
-                        if (tile.Location.Y < world_y)
-                        {
-                            tile.Region.Y = center.Region.Y - (world_y_diff * Main.Game.MenuSize_Y);
-                        }
-                        else if (tile.Location.Y > world_y)
-                        {
-                            tile.Region.Y = center.Region.Y + (world_y_diff * Main.Game.MenuSize_Y);
-                        }
-                        else if (tile.Location.Y == world_y)
-                        {
-                            tile.Region.Y = center.Region.Y;
-                        }
+                    if (tile.Location.Y < world_y)
+                    {
+                        tile.Region.Y = center.Region.Y - (world_y_diff * Main.Game.MenuSize_Y);
+                    }
+                    else if (tile.Location.Y > world_y)
+                    {
+                        tile.Region.Y = center.Region.Y + (world_y_diff * Main.Game.MenuSize_Y);
+                    }
+                    else if (tile.Location.Y == world_y)
+                    {
+                        tile.Region.Y = center.Region.Y;
                     }
                 }
             }
         }
 
-        public static void AddEffect(Vector3 location, string name, string texture)
+        public static void AddEffect(Vector3 location, string name, string? texture)
         {
-            Map map = GetMap();
+            Map? map = GetMap();
             if (map != null)
             {
-                Layer bottom_tiles = map.GetLayer("BottomTiles");
+                Layer? bottom_tiles = map.GetLayer("BottomTiles");
 
-                Tile bottom_tile = bottom_tiles.GetTile(new Vector2(location.X, location.Y));
+                Tile? bottom_tile = bottom_tiles?.GetTile(new Vector2(location.X, location.Y));
                 if (bottom_tile != null)
                 {
-                    Layer effect_tiles = map.GetLayer("EffectTiles");
+                    Layer? effect_tiles = map?.GetLayer("EffectTiles");
 
-                    Texture2D texture2D = null;
-
-                    if (!string.IsNullOrEmpty(texture) &&
-                        AssetManager.Textures.ContainsKey(texture))
+                    Texture2D? texture2D = null;
+                    if (texture != null)
                     {
-                        texture2D = AssetManager.Textures[texture];
+                        texture2D = Handler.GetTexture(texture);
                     }
 
                     if (texture2D != null)
                     {
-                        effect_tiles.Tiles.Add(new Tile
+                        effect_tiles?.Tiles.Add(new Tile
                         {
                             ID = Handler.GetID(),
                             Map = map,
@@ -2631,7 +2832,7 @@ namespace Despicaville.Util
                     }
                     else
                     {
-                        effect_tiles.Tiles.Add(new Tile
+                        effect_tiles?.Tiles.Add(new Tile
                         {
                             ID = Handler.GetID(),
                             Map = map,
@@ -2647,20 +2848,29 @@ namespace Despicaville.Util
 
         public static void AddEffect_Animated(Vector3 location, Direction direction, string texture, TimeSpan start_time, int duration)
         {
-            Scene scene = SceneManager.GetScene("Gameplay");
-            Map map = scene.World.Maps[0];
+            Scene? scene = SceneManager.GetScene("Gameplay");
+            Map? map = scene?.World?.Maps[0];
             if (map != null)
             {
-                Layer bottom_tiles = map.GetLayer("BottomTiles");
+                Layer? bottom_tiles = map.GetLayer("BottomTiles");
 
-                Tile bottom_tile = bottom_tiles.GetTile(new Vector2(location.X, location.Y));
+                Tile? bottom_tile = bottom_tiles?.GetTile(new Vector2(location.X, location.Y));
                 if (bottom_tile != null)
                 {
-                    Layer effect_tiles = map.GetLayer("EffectTiles");
+                    Layer? effect_tiles = map.GetLayer("EffectTiles");
 
-                    Texture2D texture2D = AssetManager.Textures[texture];
+                    Texture2D? texture2D = null;
+                    if (texture != null)
+                    {
+                        texture2D = Handler.GetTexture(texture);
+                    }
 
-                    effect_tiles.Tiles.Add(new Tile
+                    if (texture2D == null)
+                    {
+                        return;
+                    }
+
+                    effect_tiles?.Tiles.Add(new Tile
                     {
                         ID = Handler.GetID(),
                         Map = map,
@@ -2682,6 +2892,12 @@ namespace Despicaville.Util
 
         public static void Animate_Effect(SpriteBatch spriteBatch, Tile tile)
         {
+            if (TimeManager.Now == null ||
+                tile.Texture == null)
+            {
+                return;
+            }
+
             int frames = tile.Texture.Width / tile.Texture.Height;
             float frame_duration = tile.Duration / frames;
 
@@ -2699,29 +2915,15 @@ namespace Despicaville.Util
 
             if (tile.Visible)
             {
-                float rotation;
-
-                switch (tile.Direction)
+                var rotation = tile.Direction switch
                 {
-                    case Direction.North:
-                    default:
-                        rotation = 0f;
-                        break;
+                    Direction.East => 1.5f,
+                    Direction.South => 3f,
+                    Direction.West => 4.5f,
+                    _ => 0f,
+                };
 
-                    case Direction.East:
-                        rotation = 1.5f;
-                        break;
-
-                    case Direction.South:
-                        rotation = 3f;
-                        break;
-
-                    case Direction.West:
-                        rotation = 4.5f;
-                        break;
-                }
-
-                Rectangle region = new Rectangle((int)(tile.Region.X + (tile.Region.Width / 2)), (int)(tile.Region.Y + (tile.Region.Height / 2)), (int)tile.Region.Width, (int)tile.Region.Height);
+                Rectangle region = new((int)(tile.Region.X + (tile.Region.Width / 2)), (int)(tile.Region.Y + (tile.Region.Height / 2)), (int)tile.Region.Width, (int)tile.Region.Height);
                 spriteBatch.Draw(tile.Texture, region, tile.Image, Color.White, rotation, new Vector2(tile.Texture.Height / 2, tile.Texture.Height / 2), SpriteEffects.None, 0);
             }
         }

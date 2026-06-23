@@ -37,7 +37,7 @@ namespace Despicaville.Menus
 
         #region Methods
 
-        public override void Update(Game gameRef, ContentManager content)
+        public override void Update(Game? gameRef, ContentManager? content)
         {
             if (Visible ||
                 Active)
@@ -54,29 +54,56 @@ namespace Despicaville.Menus
             {
                 foreach (string body_part in Handler.BodyParts)
                 {
-                    BodyPart part = Handler.Interaction_Character.GetBodyPart(body_part);
+                    BodyPart? part = Handler.Interaction_Character?.GetBodyPart(body_part);
                     if (part == null)
                     {
                         continue;
                     }
 
-                    Property hp = part.GetStat("HP");
+                    Property? hp = part.GetStat("HP");
                     if (hp == null)
                     {
                         continue;
                     }
 
+                    Button? button = GetButton(body_part);
+                    ProgressBar? progressBar = GetProgressBar(body_part);
+
                     if (part.GetWounds("Sever").Count > 0)
                     {
-                        GetPicture(body_part).Visible = false;
-                        GetButton(body_part).Visible = false;
-                        GetProgressBar(body_part).Visible = false;
-                        GetLabel(body_part).Visible = false;
+                        Picture? picture = GetPicture(body_part);
+                        if (picture != null)
+                        {
+                            picture.Visible = false;
+                        }
+
+                        if (button != null)
+                        {
+                            button.Visible = false;
+                        }
+
+                        if (progressBar != null)
+                        {
+                            progressBar.Visible = false;
+                        }
+
+                        Label? label = GetLabel(body_part);
+                        if (label != null)
+                        {
+                            label.Visible = false;
+                        }
                     }
                     else
                     {
-                        GetButton(body_part).Visible = hp.Value > 0;
-                        GetProgressBar(body_part).Visible = hp.Value > 0;
+                        if (button != null)
+                        {
+                            button.Visible = hp.Value > 0;
+                        }
+
+                        if (progressBar != null)
+                        {
+                            progressBar.Visible = hp.Value > 0;
+                        }
                     }
                 }
 
@@ -113,7 +140,11 @@ namespace Despicaville.Menus
 
             if (!hoveringButton)
             {
-                GetLabel("Examine").Visible = false;
+                Label? examine = GetLabel("Examine");
+                if (examine != null)
+                {
+                    examine.Visible = false;
+                }
             }
         }
 
@@ -121,44 +152,61 @@ namespace Despicaville.Menus
         {
             foreach (string body_part in Handler.BodyParts)
             {
-                Label label = GetLabel(body_part);
-                label.Opacity = 0.8f;
+                Label? label = GetLabel(body_part);
+                if (label != null)
+                {
+                    label.Opacity = 0.8f;
+                }
 
-                Button button = GetButton(body_part);
-                button.Opacity = 0.8f;
-                button.Selected = false;
+                Button? button = GetButton(body_part);
+                if (button != null)
+                {
+                    button.Opacity = 0.8f;
+                    button.Selected = false;
+                }
 
-                ProgressBar bar = GetProgressBar(body_part);
-                bar.Opacity = 0.8f;
+                ProgressBar? progressBar = GetProgressBar(body_part);
+                if (progressBar != null)
+                {
+                    progressBar.Opacity = 0.8f;
+                }
             }
 
             foreach (Button button in Buttons)
             {
                 if (button.Visible &&
-                    button.Enabled)
+                    button.Enabled &&
+                    button.Region != null)
                 {
-                    if (InputManager.MouseWithin(button.Region.ToRectangle))
+                    if (InputManager.MouseWithin(button.Region.ToRectangle) &&
+                        button.Name != null)
                     {
                         if (button.HoverText != null)
                         {
                             GameUtil.Examine(this, button.HoverText);
                         }
 
-                        BodyPart part = Handler.Interaction_Character.GetBodyPart(button.Name);
+                        BodyPart? part = Handler.Interaction_Character?.GetBodyPart(button.Name);
                         if (part != null)
                         {
-                            Property hp = part.GetStat("HP");
+                            Property? hp = part.GetStat("HP");
                             if (hp != null &&
                                 hp.Value > 0)
                             {
                                 button.Opacity = 1;
                                 button.Selected = true;
 
-                                Label label = GetLabel(button.Name);
-                                label.Opacity = 1;
+                                Label? label = GetLabel(button.Name);
+                                if (label != null)
+                                {
+                                    label.Opacity = 1;
+                                }
 
-                                ProgressBar bar = GetProgressBar(button.Name);
-                                bar.Opacity = 1;
+                                ProgressBar? progressBar = GetProgressBar(button.Name);
+                                if (progressBar != null)
+                                {
+                                    progressBar.Opacity = 1;
+                                }
 
                                 if (InputManager.Mouse_LB_Pressed)
                                 {
@@ -180,8 +228,16 @@ namespace Despicaville.Menus
 
         private void CheckClick(Button button)
         {
+            if (Handler.Player == null ||
+                Handler.Interaction_Character?.Location == null ||
+                TimeManager.Now == null ||
+                button.Name == null)
+            {
+                return;
+            }
+
             AssetManager.PlaySound_Random("Click");
-            InputManager.Mouse.Flush();
+            InputManager.Mouse?.Flush();
             Close();
 
             Dictionary<string, string> AttackingWith = CombatUtil.AttackChoice(Handler.Player);
@@ -190,8 +246,9 @@ namespace Despicaville.Menus
 
             int attackTime = CombatUtil.AttackTime(Handler.Player, action);
 
-            ProgressBar bar = GetProgressBar(button.Name);
-            if (Utility.RandomPercent(bar.Value))
+            ProgressBar? bar = GetProgressBar(button.Name);
+            if (bar != null &&
+                Utility.RandomPercent(bar.Value))
             {
                 Handler.Selected_BodyPart = button.Name;
 
@@ -208,9 +265,7 @@ namespace Despicaville.Menus
             }
             else
             {
-                //CombatUtil.AttackSound_Hit(Handler.Interaction_Character, null, weapon, action);
-
-                Item weaponItem = null;
+                Item? weaponItem = null;
                 for (int i = 0; i < Handler.Player.Inventory.Items.Count; i++)
                 {
                     Item item = Handler.Player.Inventory.Items[i];
@@ -223,15 +278,19 @@ namespace Despicaville.Menus
 
                 if (weaponItem != null)
                 {
-                    AssetManager.PlaySound_Random_AtDistance(weaponItem.Sound, Handler.Player.Location.ToVector2,
+                    if (weaponItem.Sound != null &&
+                        Handler.Player.Location != null)
+                    {
+                        AssetManager.PlaySound_Random_AtDistance(weaponItem.Sound, Handler.Player.Location.ToVector2,
                         Handler.Interaction_Character.Location.ToVector2, weaponItem.SoundRange);
+                    }
                 }
-                else
+                else if (Handler.Player.Location != null)
                 {
                     AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, Handler.Interaction_Character.Location.ToVector2, 2);
                 }
 
-                GameUtil.AddMessage("You missed the shot at their " + CharacterUtil.BodyPartToName(button.Name).ToLower() + ".");
+                GameUtil.AddMessage("You missed the shot at their " + CharacterUtil.BodyPartToName(button.Name)?.ToLower() + ".");
 
                 Handler.Player.Job.Tasks.Add(new Wait
                 {
@@ -262,21 +321,27 @@ namespace Despicaville.Menus
 
         private void Update_BodyStats()
         {
+            if (Handler.Player == null ||
+                Handler.Interaction_Character == null)
+            {
+                return;
+            }
+
             foreach (string body_part in Handler.BodyParts)
             {
-                BodyPart part = Handler.Interaction_Character.GetBodyPart(body_part);
+                BodyPart? part = Handler.Interaction_Character.GetBodyPart(body_part);
                 if (part == null)
                 {
                     continue;
                 }
 
-                Property hp = part.GetStat("HP");
+                Property? hp = part.GetStat("HP");
                 if (hp == null)
                 {
                     continue;
                 }
 
-                Picture picture = GetPicture(body_part);
+                Picture? picture = GetPicture(body_part);
                 if (picture != null)
                 {
                     if (hp.Value >= 80)
@@ -305,7 +370,7 @@ namespace Despicaville.Menus
                     }
                 }
 
-                ProgressBar bar = GetProgressBar(body_part);
+                ProgressBar? bar = GetProgressBar(body_part);
                 if (bar != null)
                 {
                     float hitChance = CombatUtil.ChanceToHitBodyPart(Handler.Player, Handler.Interaction_Character, body_part);
@@ -343,7 +408,12 @@ namespace Despicaville.Menus
         {
             if (Handler.Interaction_Character != null)
             {
-                GetLabel("Name_Frame").Text = Handler.Interaction_Character.Name;
+                Label? name_Frame = GetLabel("Name_Frame");
+                if (name_Frame != null)
+                {
+                    name_Frame.Text = Handler.Interaction_Character.Name;
+                }
+                
                 Update_BodyStats();
             }
         }
@@ -352,111 +422,150 @@ namespace Despicaville.Menus
         {
             Clear();
 
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Name_Frame", "", Color.White, AssetManager.Textures["Frame"], new Region(0, 0, 0, 0), true);
-            AddPicture(Handler.GetID(), "Body_Frame", AssetManager.Textures["Frame_Large"], new Region(0, 0, 0, 0), Color.White, false);
+            Texture2D? frame = Handler.GetTexture("Frame");
+            Texture2D? frame_Small = Handler.GetTexture("Frame_Small");
+            Texture2D? frame_Large = Handler.GetTexture("Frame_Large");
 
-            AddPicture(Handler.GetID(), "Head", AssetManager.Textures["Paperdoll_Head"], new Region(0, 0, 0, 0), Color.White, true);
-            AddButton(Handler.GetID(), "Head", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
+            Texture2D? progressBase = Handler.GetTexture("ProgressBase");
+            Texture2D? progressBar = Handler.GetTexture("ProgressBar");
+
+            Texture2D? paperdoll_Head = Handler.GetTexture("Paperdoll_Head");
+            Texture2D? paperdoll_Neck = Handler.GetTexture("Paperdoll_Neck");
+            Texture2D? paperdoll_Torso = Handler.GetTexture("Paperdoll_Torso");
+            Texture2D? paperdoll_Left_Arm = Handler.GetTexture("Paperdoll_Left_Arm");
+            Texture2D? paperdoll_Right_Arm = Handler.GetTexture("Paperdoll_Right_Arm");
+            Texture2D? paperdoll_Left_Hand = Handler.GetTexture("Paperdoll_Left_Hand");
+            Texture2D? paperdoll_Right_Hand = Handler.GetTexture("Paperdoll_Right_Hand");
+            Texture2D? paperdoll_Left_Leg = Handler.GetTexture("Paperdoll_Left_Leg");
+            Texture2D? paperdoll_Right_Leg = Handler.GetTexture("Paperdoll_Right_Leg");
+            Texture2D? paperdoll_Groin = Handler.GetTexture("Paperdoll_Groin");
+            Texture2D? paperdoll_Left_Foot = Handler.GetTexture("Paperdoll_Left_Foot");
+            Texture2D? paperdoll_Right_Foot = Handler.GetTexture("Paperdoll_Right_Foot");
+
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Name_Frame", "", Color.White, frame, new Region(0, 0, 0, 0), true);
+            AddPicture(Handler.GetID(), "Body_Frame", frame_Large, new Region(0, 0, 0, 0), Color.White, false);
+
+            AddPicture(Handler.GetID(), "Head", paperdoll_Head, new Region(0, 0, 0, 0), Color.White, true);
+            AddButton(Handler.GetID(), "Head", frame_Small, frame_Small, null,
                 new Region(0, 0, 0, 0), Color.White, true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Head", "Head", Color.White, new Region(0, 0, 0, 0), true);
-            AddProgressBar(Handler.GetID(), "Head", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Head", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
-            AddPicture(Handler.GetID(), "Neck", AssetManager.Textures["Paperdoll_Neck"], new Region(0, 0, 0, 0), Color.White, true);
-            AddButton(Handler.GetID(), "Neck", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
+            AddPicture(Handler.GetID(), "Neck", paperdoll_Neck, new Region(0, 0, 0, 0), Color.White, true);
+            AddButton(Handler.GetID(), "Neck", frame_Small, frame_Small, null,
                 new Region(0, 0, 0, 0), Color.White, true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Neck", "Neck", Color.White, new Region(0, 0, 0, 0), true);
-            AddProgressBar(Handler.GetID(), "Neck", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Neck", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
-            AddPicture(Handler.GetID(), "Torso", AssetManager.Textures["Paperdoll_Torso"], new Region(0, 0, 0, 0), Color.White, true);
-            AddButton(Handler.GetID(), "Torso", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
+            AddPicture(Handler.GetID(), "Torso", paperdoll_Torso, new Region(0, 0, 0, 0), Color.White, true);
+            AddButton(Handler.GetID(), "Torso", frame_Small, frame_Small, null,
                 new Region(0, 0, 0, 0), Color.White, true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Torso", "Torso", Color.White, new Region(0, 0, 0, 0), true);
-            AddProgressBar(Handler.GetID(), "Torso", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Torso", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
-            AddPicture(Handler.GetID(), "Left_Arm", AssetManager.Textures["Paperdoll_Left_Arm"], new Region(0, 0, 0, 0), Color.White, true);
-            AddButton(Handler.GetID(), "Left_Arm", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
+            AddPicture(Handler.GetID(), "Left_Arm", paperdoll_Left_Arm, new Region(0, 0, 0, 0), Color.White, true);
+            AddButton(Handler.GetID(), "Left_Arm", frame_Small, frame_Small, null,
                 new Region(0, 0, 0, 0), Color.White, true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Left_Arm", "Left Arm", Color.White, new Region(0, 0, 0, 0), true);
-            AddProgressBar(Handler.GetID(), "Left_Arm", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Left_Arm", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
-            AddPicture(Handler.GetID(), "Right_Arm", AssetManager.Textures["Paperdoll_Right_Arm"], new Region(0, 0, 0, 0), Color.White, true);
-            AddButton(Handler.GetID(), "Right_Arm", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
+            AddPicture(Handler.GetID(), "Right_Arm", paperdoll_Right_Arm, new Region(0, 0, 0, 0), Color.White, true);
+            AddButton(Handler.GetID(), "Right_Arm", frame_Small, frame_Small, null,
                 new Region(0, 0, 0, 0), Color.White, true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Right_Arm", "Right Arm", Color.White, new Region(0, 0, 0, 0), true);
-            AddProgressBar(Handler.GetID(), "Right_Arm", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Right_Arm", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
-            AddPicture(Handler.GetID(), "Left_Hand", AssetManager.Textures["Paperdoll_Left_Hand"], new Region(0, 0, 0, 0), Color.White, true);
-            AddButton(Handler.GetID(), "Left_Hand", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
+            AddPicture(Handler.GetID(), "Left_Hand", paperdoll_Left_Hand, new Region(0, 0, 0, 0), Color.White, true);
+            AddButton(Handler.GetID(), "Left_Hand", frame_Small, frame_Small, null,
                 new Region(0, 0, 0, 0), Color.White, true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Left_Hand", "Left Hand", Color.White, new Region(0, 0, 0, 0), true);
-            AddProgressBar(Handler.GetID(), "Left_Hand", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Left_Hand", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
-            AddPicture(Handler.GetID(), "Right_Hand", AssetManager.Textures["Paperdoll_Right_Hand"], new Region(0, 0, 0, 0), Color.White, true);
-            AddButton(Handler.GetID(), "Right_Hand", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
+            AddPicture(Handler.GetID(), "Right_Hand", paperdoll_Right_Hand, new Region(0, 0, 0, 0), Color.White, true);
+            AddButton(Handler.GetID(), "Right_Hand", frame_Small, frame_Small, null,
                 new Region(0, 0, 0, 0), Color.White, true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Right_Hand", "Right Hand", Color.White, new Region(0, 0, 0, 0), true);
-            AddProgressBar(Handler.GetID(), "Right_Hand", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Right_Hand", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
-            AddPicture(Handler.GetID(), "Left_Leg", AssetManager.Textures["Paperdoll_Left_Leg"], new Region(0, 0, 0, 0), Color.White, true);
-            AddButton(Handler.GetID(), "Left_Leg", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
+            AddPicture(Handler.GetID(), "Left_Leg", paperdoll_Left_Leg, new Region(0, 0, 0, 0), Color.White, true);
+            AddButton(Handler.GetID(), "Left_Leg", frame_Small, frame_Small, null,
                 new Region(0, 0, 0, 0), Color.White, true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Left_Leg", "Left Leg", Color.White, new Region(0, 0, 0, 0), true);
-            AddProgressBar(Handler.GetID(), "Left_Leg", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Left_Leg", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
-            AddPicture(Handler.GetID(), "Right_Leg", AssetManager.Textures["Paperdoll_Right_Leg"], new Region(0, 0, 0, 0), Color.White, true);
-            AddButton(Handler.GetID(), "Right_Leg", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
+            AddPicture(Handler.GetID(), "Right_Leg", paperdoll_Right_Leg, new Region(0, 0, 0, 0), Color.White, true);
+            AddButton(Handler.GetID(), "Right_Leg", frame_Small, frame_Small, null,
                 new Region(0, 0, 0, 0), Color.White, true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Right_Leg", "Right Leg", Color.White, new Region(0, 0, 0, 0), true);
-            AddProgressBar(Handler.GetID(), "Right_Leg", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Right_Leg", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
-            AddPicture(Handler.GetID(), "Groin", AssetManager.Textures["Paperdoll_Groin"], new Region(0, 0, 0, 0), Color.White, true);
-            AddButton(Handler.GetID(), "Groin", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
+            AddPicture(Handler.GetID(), "Groin", paperdoll_Groin, new Region(0, 0, 0, 0), Color.White, true);
+            AddButton(Handler.GetID(), "Groin", frame_Small, frame_Small, null,
                 new Region(0, 0, 0, 0), Color.White, true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Groin", "Groin", Color.White, new Region(0, 0, 0, 0), true);
-            AddProgressBar(Handler.GetID(), "Groin", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Groin", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
-            AddPicture(Handler.GetID(), "Left_Foot", AssetManager.Textures["Paperdoll_Left_Foot"], new Region(0, 0, 0, 0), Color.White, true);
-            AddButton(Handler.GetID(), "Left_Foot", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
+            AddPicture(Handler.GetID(), "Left_Foot", paperdoll_Left_Foot, new Region(0, 0, 0, 0), Color.White, true);
+            AddButton(Handler.GetID(), "Left_Foot", frame_Small, frame_Small, null,
                 new Region(0, 0, 0, 0), Color.White, true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Left_Foot", "Left Foot", Color.White, new Region(0, 0, 0, 0), true);
-            AddProgressBar(Handler.GetID(), "Left_Foot", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Left_Foot", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
-            AddPicture(Handler.GetID(), "Right_Foot", AssetManager.Textures["Paperdoll_Right_Foot"], new Region(0, 0, 0, 0), Color.White, true);
-            AddButton(Handler.GetID(), "Right_Foot", AssetManager.Textures["Frame_Small"], AssetManager.Textures["Frame_Small"], null,
+            AddPicture(Handler.GetID(), "Right_Foot", paperdoll_Right_Foot, new Region(0, 0, 0, 0), Color.White, true);
+            AddButton(Handler.GetID(), "Right_Foot", frame_Small, frame_Small, null,
                 new Region(0, 0, 0, 0), Color.White, true);
             AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Right_Foot", "Right Foot", Color.White, new Region(0, 0, 0, 0), true);
-            AddProgressBar(Handler.GetID(), "Right_Foot", 100, 100, 1, AssetManager.Textures["ProgressBase"], AssetManager.Textures["ProgressBar"],
+            AddProgressBar(Handler.GetID(), "Right_Foot", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), Color.LimeGreen, true);
 
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "", Color.White, AssetManager.Textures["Frame"], new Region(0, 0, 0, 0), false);
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "", Color.White, frame, new Region(0, 0, 0, 0), false);
 
-            Resize(Main.Game.Resolution);
+            if (Main.Game != null)
+            {
+                Resize(Main.Game.Resolution);
+            }
         }
 
         public override void Resize(Point point)
         {
-            GetLabel("Examine").Region = new Region(0, 0, 0, 0);
+            if (Main.Game == null)
+            {
+                return;
+            }
+
+            Label? examine = GetLabel("Examine");
+            if (examine != null)
+            {
+                examine.Region = new Region(0, 0, 0, 0);
+            }
 
             float x = (Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X * 4) - 5;
             float y = Main.Game.MenuSize_Y;
             float width = Main.Game.MenuSize_X * 8;
             float height = Main.Game.MenuSize_Y * 14;
 
-            Picture frame = GetPicture("Body_Frame");
-            frame.Region = new Region(x, y, width, height);
+            Picture? body_Frame = GetPicture("Body_Frame");
+            if (body_Frame != null)
+            {
+                body_Frame.Region = new Region(x, y, width, height);
+            }
 
-            GetLabel("Name_Frame").Region = new Region(x, y - Main.Game.MenuSize_Y, width, Main.Game.MenuSize_Y);
+            Label? name_Frame = GetLabel("Name_Frame");
+            if (name_Frame != null)
+            {
+                name_Frame.Region = new Region(x, y - Main.Game.MenuSize_Y, width, Main.Game.MenuSize_Y);
+            }
 
             float label_x = (Main.Game.ScreenWidth / 2) - Main.Game.MenuSize_X;
             float label_y = y + Main.Game.MenuSize_Y + (Main.Game.MenuSize_Y / 4);
@@ -467,81 +576,321 @@ namespace Despicaville.Menus
 
             float Y = label_y;
             float X = label_x;
-            GetPicture("Head").Region = new Region(x, y, width, height);
-            GetButton("Head").Region = new Region(X, Y, label_width, button_height);
-            GetLabel("Head").Region = new Region(X, Y, label_width, label_height);
-            GetProgressBar("Head").Base_Region = new Region(X, label_y + label_height, label_width, prog_height);
+
+            Picture? head_picture = GetPicture("Head");
+            if (head_picture != null)
+            {
+                head_picture.Region = new Region(x, y, width, height);
+            }
+
+            Button? head_button = GetButton("Head");
+            if (head_button != null)
+            {
+                head_button.Region = new Region(X, Y, label_width, button_height);
+            }
+
+            Label? head_label = GetLabel("Head");
+            if (head_label != null)
+            {
+                head_label.Region = new Region(X, Y, label_width, label_height);
+            }
+
+            ProgressBar? head_bar = GetProgressBar("Head");
+            if (head_bar != null)
+            {
+                head_bar.Base_Region = new Region(X, label_y + label_height, label_width, prog_height);
+            }
 
             Y = label_y + Main.Game.MenuSize_Y;
-            GetPicture("Neck").Region = new Region(x, y, width, height);
-            GetButton("Neck").Region = new Region(X, Y, label_width, button_height);
-            GetLabel("Neck").Region = new Region(X, Y, label_width, label_height);
-            GetProgressBar("Neck").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+
+            Picture? neck_picture = GetPicture("Neck");
+            if (neck_picture != null)
+            {
+                neck_picture.Region = new Region(x, y, width, height);
+            }
+
+            Button? neck_button = GetButton("Neck");
+            if (neck_button != null)
+            {
+                neck_button.Region = new Region(X, Y, label_width, button_height);
+            }
+
+            Label? neck_label = GetLabel("Neck");
+            if (neck_label != null)
+            {
+                neck_label.Region = new Region(X, Y, label_width, label_height);
+            }
+
+            ProgressBar? neck_bar = GetProgressBar("Neck");
+            if (neck_bar != null)
+            {
+                neck_bar.Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+            }
 
             Y = label_y + (Main.Game.MenuSize_Y * 2) + (Main.Game.MenuSize_Y / 2);
-            GetPicture("Torso").Region = new Region(x, y, width, height);
-            GetButton("Torso").Region = new Region(X, Y, label_width, button_height);
-            GetLabel("Torso").Region = new Region(X, Y, label_width, label_height);
-            GetProgressBar("Torso").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+
+            Picture? torso_picture = GetPicture("Torso");
+            if (torso_picture != null)
+            {
+                torso_picture.Region = new Region(x, y, width, height);
+            }
+
+            Button? torso_button = GetButton("Torso");
+            if (torso_button != null)
+            {
+                torso_button.Region = new Region(X, Y, label_width, button_height);
+            }
+
+            Label? torso_label = GetLabel("Torso");
+            if (torso_label != null)
+            {
+                torso_label.Region = new Region(X, Y, label_width, label_height);
+            }
+
+            ProgressBar? torso_bar = GetProgressBar("Torso");
+            if (torso_bar != null)
+            {
+                torso_bar.Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+            }
 
             Y = label_y + (Main.Game.MenuSize_Y * 3) + (Main.Game.MenuSize_Y / 2);
             X = label_x - (Main.Game.MenuSize_X * 2) - (Main.Game.MenuSize_X / 4);
-            GetPicture("Right_Arm").Region = new Region(x, y, width, height);
-            GetButton("Right_Arm").Region = new Region(X, Y, label_width, button_height);
-            GetLabel("Right_Arm").Region = new Region(X, Y, label_width, label_height);
-            GetProgressBar("Right_Arm").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+
+            Picture? right_arm_picture = GetPicture("Right_Arm");
+            if (right_arm_picture != null)
+            {
+                right_arm_picture.Region = new Region(x, y, width, height);
+            }
+
+            Button? right_arm_button = GetButton("Right_Arm");
+            if (right_arm_button != null)
+            {
+                right_arm_button.Region = new Region(X, Y, label_width, button_height);
+            }
+
+            Label? right_arm_label = GetLabel("Right_Arm");
+            if (right_arm_label != null)
+            {
+                right_arm_label.Region = new Region(X, Y, label_width, label_height);
+            }
+
+            ProgressBar? right_arm_bar = GetProgressBar("Right_Arm");
+            if (right_arm_bar != null)
+            {
+                right_arm_bar.Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+            }
 
             X = label_x + label_width + Main.Game.MenuSize_X - (Main.Game.MenuSize_X / 2) - (Main.Game.MenuSize_X / 4);
-            GetPicture("Left_Arm").Region = new Region(x, y, width, height);
-            GetButton("Left_Arm").Region = new Region(X, Y, label_width, button_height);
-            GetLabel("Left_Arm").Region = new Region(X, Y, label_width, label_height);
-            GetProgressBar("Left_Arm").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+
+            Picture? left_arm_picture = GetPicture("Left_Arm");
+            if (left_arm_picture != null)
+            {
+                left_arm_picture.Region = new Region(x, y, width, height);
+            }
+
+            Button? left_arm_button = GetButton("Left_Arm");
+            if (left_arm_button != null)
+            {
+                left_arm_button.Region = new Region(X, Y, label_width, button_height);
+            }
+
+            Label? left_arm_label = GetLabel("Left_Arm");
+            if (left_arm_label != null)
+            {
+                left_arm_label.Region = new Region(X, Y, label_width, label_height);
+            }
+
+            ProgressBar? left_arm_bar = GetProgressBar("Left_Arm");
+            if (left_arm_bar != null)
+            {
+                left_arm_bar.Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+            }
 
             Y = label_y + (Main.Game.MenuSize_Y * 5) + (Main.Game.MenuSize_Y / 2);
             X = label_x - (Main.Game.MenuSize_X * 2) - Main.Game.MenuSize_X;
-            GetPicture("Right_Hand").Region = new Region(x, y, width, height);
-            GetButton("Right_Hand").Region = new Region(X, Y, label_width, button_height);
-            GetLabel("Right_Hand").Region = new Region(X, Y, label_width, label_height);
-            GetProgressBar("Right_Hand").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+
+            Picture? right_hand_picture = GetPicture("Right_Hand");
+            if (right_hand_picture != null)
+            {
+                right_hand_picture.Region = new Region(x, y, width, height);
+            }
+
+            Button? right_hand_button = GetButton("Right_Hand");
+            if (right_hand_button != null)
+            {
+                right_hand_button.Region = new Region(X, Y, label_width, button_height);
+            }
+
+            Label? right_hand_label = GetLabel("Right_Hand");
+            if (right_hand_label != null)
+            {
+                right_hand_label.Region = new Region(X, Y, label_width, label_height);
+            }
+
+            ProgressBar? right_hand_bar = GetProgressBar("Right_Hand");
+            if (right_hand_bar != null)
+            {
+                right_hand_bar.Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+            }
 
             X = label_x + label_width + Main.Game.MenuSize_X + (Main.Game.MenuSize_X / 2) - (Main.Game.MenuSize_X / 4);
-            GetPicture("Left_Hand").Region = new Region(x, y, width, height);
-            GetButton("Left_Hand").Region = new Region(X, Y, label_width, button_height);
-            GetLabel("Left_Hand").Region = new Region(X, Y, label_width, label_height);
-            GetProgressBar("Left_Hand").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+
+            Picture? left_hand_picture = GetPicture("Left_Hand");
+            if (left_hand_picture != null)
+            {
+                left_hand_picture.Region = new Region(x, y, width, height);
+            }
+
+            Button? left_hand_button = GetButton("Left_Hand");
+            if (left_hand_button != null)
+            {
+                left_hand_button.Region = new Region(X, Y, label_width, button_height);
+            }
+
+            Label? left_hand_label = GetLabel("Left_Hand");
+            if (left_hand_label != null)
+            {
+                left_hand_label.Region = new Region(X, Y, label_width, label_height);
+            }
+
+            ProgressBar? left_hand_bar = GetProgressBar("Left_Hand");
+            if (left_hand_bar != null)
+            {
+                left_hand_bar.Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+            }
 
             Y = label_y + (Main.Game.MenuSize_Y * 5) + (Main.Game.MenuSize_Y / 2);
             X = label_x;
-            GetPicture("Groin").Region = new Region(x, y, width, height);
-            GetButton("Groin").Region = new Region(X, Y, label_width, button_height);
-            GetLabel("Groin").Region = new Region(X, Y, label_width, label_height);
-            GetProgressBar("Groin").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+
+            Picture? groin_picture = GetPicture("Groin");
+            if (groin_picture != null)
+            {
+                groin_picture.Region = new Region(x, y, width, height);
+            }
+
+            Button? groin_button = GetButton("Groin");
+            if (groin_button != null)
+            {
+                groin_button.Region = new Region(X, Y, label_width, button_height);
+            }
+
+            Label? groin_label = GetLabel("Groin");
+            if (groin_label != null)
+            {
+                groin_label.Region = new Region(X, Y, label_width, label_height);
+            }
+
+            ProgressBar? groin_bar = GetProgressBar("Groin");
+            if (groin_bar != null)
+            {
+                groin_bar.Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+            }
 
             Y = label_y + (Main.Game.MenuSize_Y * 8);
             X = label_x - Main.Game.MenuSize_X - (Main.Game.MenuSize_X / 4);
-            GetPicture("Right_Leg").Region = new Region(x, y, width, height);
-            GetButton("Right_Leg").Region = new Region(X, Y, label_width, button_height);
-            GetLabel("Right_Leg").Region = new Region(X, Y, label_width, label_height);
-            GetProgressBar("Right_Leg").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+
+            Picture? right_leg_picture = GetPicture("Right_Leg");
+            if (right_leg_picture != null)
+            {
+                right_leg_picture.Region = new Region(x, y, width, height);
+            }
+
+            Button? right_leg_button = GetButton("Right_Leg");
+            if (right_leg_button != null)
+            {
+                right_leg_button.Region = new Region(X, Y, label_width, button_height);
+            }
+
+            Label? right_leg_label = GetLabel("Right_Leg");
+            if (right_leg_label != null)
+            {
+                right_leg_label.Region = new Region(X, Y, label_width, label_height);
+            }
+
+            ProgressBar? right_leg_bar = GetProgressBar("Right_Leg");
+            if (right_leg_bar != null)
+            {
+                right_leg_bar.Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+            }
 
             X = label_x + label_width - (Main.Game.MenuSize_X / 2);
-            GetPicture("Left_Leg").Region = new Region(x, y, width, height);
-            GetButton("Left_Leg").Region = new Region(X, Y, label_width, button_height);
-            GetLabel("Left_Leg").Region = new Region(X, Y, label_width, label_height);
-            GetProgressBar("Left_Leg").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+
+            Picture? left_leg_picture = GetPicture("Left_Leg");
+            if (left_leg_picture != null)
+            {
+                left_leg_picture.Region = new Region(x, y, width, height);
+            }
+
+            Button? left_leg_button = GetButton("Left_Leg");
+            if (left_leg_button != null)
+            {
+                left_leg_button.Region = new Region(X, Y, label_width, button_height);
+            }
+
+            Label? left_leg_label = GetLabel("Left_Leg");
+            if (left_leg_label != null)
+            {
+                left_leg_label.Region = new Region(X, Y, label_width, label_height);
+            }
+
+            ProgressBar? left_leg_bar = GetProgressBar("Left_Leg");
+            if (left_leg_bar != null)
+            {
+                left_leg_bar.Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+            }
 
             Y = label_y + (Main.Game.MenuSize_Y * 11) + (Main.Game.MenuSize_Y / 2);
             X = label_x - Main.Game.MenuSize_X - (Main.Game.MenuSize_X / 4);
-            GetPicture("Right_Foot").Region = new Region(x, y, width, height);
-            GetButton("Right_Foot").Region = new Region(X, Y, label_width, button_height);
-            GetLabel("Right_Foot").Region = new Region(X, Y, label_width, label_height);
-            GetProgressBar("Right_Foot").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+
+            Picture? right_foot_picture = GetPicture("Right_Foot");
+            if (right_foot_picture != null)
+            {
+                right_foot_picture.Region = new Region(x, y, width, height);
+            }
+
+            Button? right_foot_button = GetButton("Right_Foot");
+            if (right_foot_button != null)
+            {
+                right_foot_button.Region = new Region(X, Y, label_width, button_height);
+            }
+
+            Label? right_foot_label = GetLabel("Right_Foot");
+            if (right_foot_label != null)
+            {
+                right_foot_label.Region = new Region(X, Y, label_width, label_height);
+            }
+
+            ProgressBar? right_foot_bar = GetProgressBar("Right_Foot");
+            if (right_foot_bar != null)
+            {
+                right_foot_bar.Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+            }
 
             X = label_x + label_width - (Main.Game.MenuSize_X / 2);
-            GetPicture("Left_Foot").Region = new Region(x, y, width, height);
-            GetButton("Left_Foot").Region = new Region(X, Y, label_width, button_height);
-            GetLabel("Left_Foot").Region = new Region(X, Y, label_width, label_height);
-            GetProgressBar("Left_Foot").Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+
+            Picture? left_foot_picture = GetPicture("Left_Foot");
+            if (left_foot_picture != null)
+            {
+                left_foot_picture.Region = new Region(x, y, width, height);
+            }
+
+            Button? left_foot_button = GetButton("Left_Foot");
+            if (left_foot_button != null)
+            {
+                left_foot_button.Region = new Region(X, Y, label_width, button_height);
+            }
+
+            Label? left_foot_label = GetLabel("Left_Foot");
+            if (left_foot_label != null)
+            {
+                left_foot_label.Region = new Region(X, Y, label_width, label_height);
+            }
+
+            ProgressBar? left_foot_bar = GetProgressBar("Left_Foot");
+            if (left_foot_bar != null)
+            {
+                left_foot_bar.Base_Region = new Region(X, Y + label_height, label_width, prog_height);
+            }
         }
 
         #endregion

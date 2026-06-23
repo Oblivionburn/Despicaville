@@ -20,8 +20,8 @@ namespace Despicaville.Menus
         private bool menu;
         private long selected_wound;
 
-        Item selected_item;
-        List<Picture> GridList = new List<Picture>();
+        Item? selected_item;
+        List<Picture> GridList = [];
 
         private int starting_x;
         private int starting_y;
@@ -30,7 +30,7 @@ namespace Despicaville.Menus
 
         #region Constructors
 
-        public Menu_Wounds(ContentManager content)
+        public Menu_Wounds()
         {
             ID = Handler.GetID();
             Name = "Wounds";
@@ -41,7 +41,7 @@ namespace Despicaville.Menus
 
         #region Methods
 
-        public override void Update(Game gameRef, ContentManager content)
+        public override void Update(Game? gameRef, ContentManager? content)
         {
             if (Visible ||
                 Active)
@@ -63,14 +63,18 @@ namespace Despicaville.Menus
                     }
                 }
 
-                BodyPart bodyPart = Handler.Player.GetBodyPart(Handler.Selected_BodyPart);
-                if (bodyPart != null)
+                if (Handler.Selected_BodyPart != null)
                 {
-                    foreach (Wound wound in bodyPart.Wounds)
+                    BodyPart? bodyPart = Handler.Player?.GetBodyPart(Handler.Selected_BodyPart);
+                    if (bodyPart != null)
                     {
-                        if (wound.Visible)
+                        foreach (Wound wound in bodyPart.Wounds)
                         {
-                            spriteBatch.Draw(wound.Texture, wound.Region.ToRectangle, Color.White);
+                            if (wound.Visible &&
+                                wound.Region != null)
+                            {
+                                spriteBatch.Draw(wound.Texture, wound.Region.ToRectangle, Color.White);
+                            }
                         }
                     }
                 }
@@ -111,7 +115,7 @@ namespace Despicaville.Menus
                 !found_wound) ||
                 menu)
             {
-                Label label = GetLabel("Examine");
+                Label? label = GetLabel("Examine");
                 if (label != null)
                 {
                     label.Visible = false;
@@ -120,7 +124,7 @@ namespace Despicaville.Menus
 
             if (!found_grid)
             {
-                Picture picture = GetPicture("Highlight");
+                Picture? picture = GetPicture("Highlight");
                 if (picture != null)
                 {
                     picture.Visible = false;
@@ -157,7 +161,8 @@ namespace Despicaville.Menus
                 if (button.Visible &&
                     button.Enabled)
                 {
-                    if (InputManager.MouseWithin(button.Region.ToRectangle))
+                    if (button.Region != null &&
+                        InputManager.MouseWithin(button.Region.ToRectangle))
                     {
                         found = true;
 
@@ -186,14 +191,20 @@ namespace Despicaville.Menus
         {
             bool found = false;
 
-            BodyPart bodyPart = Handler.Player.GetBodyPart(Handler.Selected_BodyPart);
+            if (Handler.Selected_BodyPart == null)
+            {
+                return false;
+            }
+
+            BodyPart? bodyPart = Handler.Player?.GetBodyPart(Handler.Selected_BodyPart);
             if (bodyPart != null)
             {
                 foreach (Wound wound in bodyPart.Wounds)
                 {
                     if (wound.Visible)
                     {
-                        if (InputManager.MouseWithin(wound.Region.ToRectangle))
+                        if (wound.Region != null &&
+                            InputManager.MouseWithin(wound.Region.ToRectangle))
                         {
                             found = true;
 
@@ -217,11 +228,16 @@ namespace Despicaville.Menus
         {
             foreach (Picture grid in GridList)
             {
-                if (InputManager.MouseWithin(grid.Region.ToRectangle))
+                if (grid.Region != null &&
+                    InputManager.MouseWithin(grid.Region.ToRectangle))
                 {
-                    Picture highlight = GetPicture("Highlight");
-                    highlight.Region = grid.Region;
-                    highlight.Visible = true;
+                    Picture? highlight = GetPicture("Highlight");
+                    if (highlight != null)
+                    {
+                        highlight.Region = grid.Region;
+                        highlight.Visible = true;
+                    }
+                    
                     return true;
                 }
             }
@@ -253,7 +269,18 @@ namespace Despicaville.Menus
 
         private void OpenMenu(Wound wound)
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+
             CloseMenu();
+
+            if (Handler.Player == null ||
+                wound.Region == null)
+            {
+                return;
+            }
 
             selected_wound = wound.ID;
             menu = true;
@@ -263,7 +290,9 @@ namespace Despicaville.Menus
             int width = (int)(Main.Game.MenuSize_X * 3);
             int height = (int)Main.Game.MenuSize_Y;
 
-            AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Cancel", "Cancel", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
+            Texture2D? frame = Handler.GetTexture("Frame");
+
+            AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Cancel", "Cancel", Color.White, Color.Red, frame, frame, null,
                 new Region(x, y, width, height), false, true);
 
             y += (int)Main.Game.MenuSize_Y;
@@ -276,7 +305,7 @@ namespace Despicaville.Menus
                 {
                     found = true;
                     selected_item = item;
-                    AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Heal", "Use Splint", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
+                    AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Heal", "Use Splint", Color.White, Color.Red, frame, frame, null,
                         new Region(x, y, width, height), false, true);
                     break;
                 }
@@ -286,7 +315,7 @@ namespace Despicaville.Menus
                 {
                     found = true;
                     selected_item = item;
-                    AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Heal", "Use Needle & Thread", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
+                    AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Heal", "Use Needle & Thread", Color.White, Color.Red, frame, frame, null,
                         new Region(x, y, width, height), false, true);
                     break;
                 }
@@ -295,7 +324,7 @@ namespace Despicaville.Menus
                 {
                     found = true;
                     selected_item = item;
-                    AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Heal", "Use Bandaid", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
+                    AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Heal", "Use Bandaid", Color.White, Color.Red, frame, frame, null,
                         new Region(x, y, width, height), false, true);
                     break;
                 }
@@ -305,7 +334,7 @@ namespace Despicaville.Menus
                 {
                     found = true;
                     selected_item = item;
-                    AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Heal", "Use Bandage", Color.White, Color.Red, AssetManager.Textures["Frame"], AssetManager.Textures["Frame"], null,
+                    AddButton(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Heal", "Use Bandage", Color.White, Color.Red, frame, frame, null,
                         new Region(x, y, width, height), false, true);
                     break;
                 }
@@ -318,29 +347,29 @@ namespace Despicaville.Menus
                 if (wound.Name == "Break" ||
                     wound.Name == "Fracture")
                 {
-                    AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Missing", "Missing Splint", Color.White, AssetManager.Textures["Frame"],
+                    AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Missing", "Missing Splint", Color.White, frame,
                         new Region(x, y, width, height), true);
                 }
                 else if (wound.Name == "Gunshot" ||
                          wound.Name == "Stab")
                 {
-                    AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Missing", "Missing Needle & Thread", Color.White, AssetManager.Textures["Frame"],
+                    AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Missing", "Missing Needle & Thread", Color.White, frame,
                         new Region(x, y, width, height), true);
                 }
                 else if (wound.Name == "Cut")
                 {
-                    AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Missing", "Missing Bandaid", Color.White, AssetManager.Textures["Frame"],
+                    AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Missing", "Missing Bandaid", Color.White, frame,
                         new Region(x, y, width, height), true);
                 }
                 else if (wound.Name == "Stitched" ||
                          wound.Name == "Burn")
                 {
-                    AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Missing", "Missing Bandage", Color.White, AssetManager.Textures["Frame"],
+                    AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Missing", "Missing Bandage", Color.White, frame,
                         new Region(x, y, width, height), true);
                 }
                 else
                 {
-                    AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Missing", "Must Recover Naturally", Color.White, AssetManager.Textures["Frame"],
+                    AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Missing", "Must Recover Naturally", Color.White, frame,
                         new Region(x, y, width, height), true);
                 }
             }
@@ -376,7 +405,13 @@ namespace Despicaville.Menus
 
         private void Heal()
         {
-            BodyPart bodyPart = Handler.Player.GetBodyPart(Handler.Selected_BodyPart);
+            if (Handler.Selected_BodyPart == null ||
+                selected_item == null)
+            {
+                return;
+            }
+
+            BodyPart? bodyPart = Handler.Player?.GetBodyPart(Handler.Selected_BodyPart);
             if (bodyPart != null)
             {
                 foreach (Wound wound in bodyPart.Wounds)
@@ -387,26 +422,30 @@ namespace Despicaville.Menus
                             wound.Name == "Fracture")
                         {
                             wound.Name = "Set";
-                            wound.Texture = AssetManager.Textures["Wound_Set"];
+                            wound.Texture = Handler.GetTexture("Wound_Set");
                         }
                         else if (wound.Name == "Gunshot" ||
                                  wound.Name == "Stab")
                         {
                             wound.Name = "Stitched";
-                            wound.Texture = AssetManager.Textures["Wound_Stitched"];
+                            wound.Texture = Handler.GetTexture("Wound_Stitched");
                         }
                         else if (wound.Name == "Cut" ||
                                  wound.Name == "Stitched" ||
                                  wound.Name == "Burn")
                         {
                             wound.Name = "Covered";
-                            wound.Texture = AssetManager.Textures["Wound_Covered"];
+                            wound.Texture = Handler.GetTexture("Wound_Covered");
                         }
 
-                        wound.Image = new Rectangle(0, 0, wound.Texture.Width, wound.Texture.Height);
+                        if (wound.Texture != null)
+                        {
+                            wound.Image = new Rectangle(0, 0, wound.Texture.Width, wound.Texture.Height);
+                        }
+
                         wound.Value /= 2;
 
-                        Handler.Player.Inventory.Items.Remove(selected_item);
+                        Handler.Player?.Inventory.Items.Remove(selected_item);
                         selected_item = null;
 
                         break;
@@ -417,8 +456,8 @@ namespace Despicaville.Menus
 
         public override void Close()
         {
-            InputManager.Keyboard.Flush();
-            InputManager.Mouse.Flush();
+            InputManager.Keyboard?.Flush();
+            InputManager.Mouse?.Flush();
 
             CloseMenu();
 
@@ -433,7 +472,7 @@ namespace Despicaville.Menus
         {
             if (!string.IsNullOrEmpty(Handler.Selected_BodyPart))
             {
-                Label label = GetLabel(Handler.Selected_BodyPart);
+                Label? label = GetLabel(Handler.Selected_BodyPart);
                 if (label != null)
                 {
                     Labels.Remove(label);
@@ -449,7 +488,7 @@ namespace Despicaville.Menus
                     i--;
                 }
 
-                BodyPart bodyPart = Handler.Player.GetBodyPart(Handler.Selected_BodyPart);
+                BodyPart? bodyPart = Handler.Player?.GetBodyPart(Handler.Selected_BodyPart);
                 if (bodyPart != null)
                 {
                     foreach (Wound wound in bodyPart.Wounds)
@@ -462,11 +501,16 @@ namespace Despicaville.Menus
 
         private void LoadGrid()
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+
             ClearGrid();
 
             if (!string.IsNullOrEmpty(Handler.Selected_BodyPart))
             {
-                string body_part_name = CharacterUtil.BodyPartToName(Handler.Selected_BodyPart);
+                string? body_part_name = CharacterUtil.BodyPartToName(Handler.Selected_BodyPart);
 
                 AddLabel(AssetManager.Fonts["ControlFont"], 0, Handler.Selected_BodyPart, body_part_name + " Wounds", Color.White,
                     new Region(starting_x + (Main.Game.MenuSize_X * 3), starting_y, (Main.Game.MenuSize_X * 4), Main.Game.MenuSize_Y), true);
@@ -477,15 +521,17 @@ namespace Despicaville.Menus
                 int x = 0;
                 int y = 0;
 
-                BodyPart bodyPart = Handler.Player.GetBodyPart(Handler.Selected_BodyPart);
+                BodyPart? bodyPart = Handler.Player?.GetBodyPart(Handler.Selected_BodyPart);
                 if (bodyPart != null)
                 {
+                    Texture2D? grid_texture = Handler.GetTexture("Grid");
+
                     foreach (Wound wound in bodyPart.Wounds)
                     {
-                        AddPicture(Handler.GetID(), "x:" + x.ToString() + ",y:" + y.ToString(), AssetManager.Textures["Grid"],
+                        AddPicture(Handler.GetID(), "x:" + x.ToString() + ",y:" + y.ToString(), grid_texture,
                             new Region(base_x + (Main.Game.MenuSize_X * x), base_y + (Main.Game.MenuSize_Y * y), Main.Game.MenuSize_X, Main.Game.MenuSize_Y), Color.White, true);
 
-                        Picture grid = GetPicture("x:" + x.ToString() + ",y:" + y.ToString());
+                        Picture? grid = GetPicture("x:" + x.ToString() + ",y:" + y.ToString());
                         if (grid != null)
                         {
                             grid.Location = new Location(x, y, 0);
@@ -508,6 +554,11 @@ namespace Despicaville.Menus
 
         private void ResizeGrid()
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+
             float base_x = starting_x;
             float base_y = starting_y + Main.Game.MenuSize_Y;
 
@@ -532,10 +583,21 @@ namespace Despicaville.Menus
 
         private void ExamineItem(Wound wound)
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+
+            Label? examine = GetLabel("Examine");
+            if (examine == null ||
+                InputManager.Mouse == null)
+            {
+                return;
+            }
+
             int width = (int)((Main.Game.MenuSize_X * 4) + (Main.Game.MenuSize_X / 2));
             int height = (int)(Main.Game.MenuSize_Y + (Main.Game.MenuSize_Y / 2));
 
-            Label examine = GetLabel("Examine");
             examine.Text = wound.Name + "\n" + "Time To Heal: " + GameUtil.SecondsToTime(wound.Value);
 
             int X = InputManager.Mouse.X - (width / 2);
@@ -566,24 +628,49 @@ namespace Despicaville.Menus
         {
             Clear();
 
-            AddButton(Handler.GetID(), "Close", AssetManager.Textures["Button_Back"], AssetManager.Textures["Button_Back_Hover"], AssetManager.Textures["Button_Back_Disabled"],
-                new Region(0, 0, 0, 0), Color.White, true);
-            GetButton("Close").HoverText = "Close";
+            Texture2D? frame = Handler.GetTexture("Frame");
+            Texture2D? grid_Hover = Handler.GetTexture("Grid_Hover");
 
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "", Color.White, AssetManager.Textures["Frame"], new Region(0, 0, 0, 0), false);
-            AddPicture(Handler.GetID(), "Highlight", AssetManager.Textures["Grid_Hover"], new Region(0, 0, 0, 0), Color.White, false);
+            Texture2D? button_Back = Handler.GetTexture("Button_Back");
+            Texture2D? button_Back_Hover = Handler.GetTexture("Button_Back_Hover");
+            Texture2D? button_Back_Disabled = Handler.GetTexture("Button_Back_Disabled");
+
+            AddButton(Handler.GetID(), "Close", button_Back, button_Back_Hover, button_Back_Disabled,
+                new Region(0, 0, 0, 0), Color.White, true);
+
+            Button? close = GetButton("Close");
+            if (close != null)
+            {
+                close.HoverText = "Close";
+            }
+
+            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "", Color.White, frame, new Region(0, 0, 0, 0), false);
+            AddPicture(Handler.GetID(), "Highlight", grid_Hover, new Region(0, 0, 0, 0), Color.White, false);
 
             LoadGrid();
 
+            if (Main.Game == null)
+            {
+                return;
+            }
             Resize(Main.Game.Resolution);
         }
 
         public override void Resize(Point point)
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+
             starting_y = (int)((Main.Game.ScreenHeight / 2) - (Main.Game.MenuSize_Y * 8));
             starting_x = (int)((Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X * 5));
 
-            GetButton("Close").Region = new Region(starting_x, starting_y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+            Button? close = GetButton("Close");
+            if (close != null)
+            {
+                close.Region = new Region(starting_x, starting_y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
+            }
 
             ResizeGrid();
         }

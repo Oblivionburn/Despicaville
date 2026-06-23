@@ -72,8 +72,14 @@ namespace Despicaville
 
         public static void Attacking(Character character)
         {
-            Character target = WorldUtil.GetCharacter_Target(character);
-            if (target != null)
+            if (TimeManager.Now == null ||
+                character.Location == null)
+            {
+                return;
+            }
+
+            Character? target = WorldUtil.GetCharacter_Target(character);
+            if (target?.Location != null)
             {
                 Direction direction = WorldUtil.GetDirection(character.Location, target.Location);
 
@@ -98,9 +104,9 @@ namespace Despicaville
                         Direction = character.Direction
                     });
                 }
-                else
+                else if (character.Location != null)
                 {
-                    Location location = new Location();
+                    Location location = new();
                     if (character.Direction == Direction.North)
                     {
                         location = new Location(character.Location.X, character.Location.Y - 1, 1);
@@ -142,6 +148,12 @@ namespace Despicaville
 
         public static void FindWater(Character character, bool desperate)
         {
+            if (TimeManager.Now == null ||
+                character.Location == null)
+            {
+                return;
+            }
+
             Inventory inventory = character.Inventory;
 
             //Do we already have something to drink?
@@ -150,7 +162,7 @@ namespace Despicaville
             {
                 Item existing = inventory.Items[i];
 
-                Property thirst = existing.GetProperty("Thirst");
+                Property? thirst = existing.GetProperty("Thirst");
                 if (thirst != null)
                 {
                     TimeSpan duration = TimeSpan.FromMilliseconds(thirst.Value * -10 * 1000);
@@ -179,7 +191,7 @@ namespace Despicaville
             List<Tile> sinks = WorldUtil.GetOwned_Furniture(character, "Sink");
             if (sinks.Count > 0)
             {
-                Tile sink = WorldUtil.GetClosestTile(sinks, character);
+                Tile? sink = WorldUtil.GetClosestTile(sinks, character);
                 if (sink != null)
                 {
                     if (WorldUtil.NextTo(sink.Location, character.Location))
@@ -196,7 +208,8 @@ namespace Despicaville
                                 Direction = direction
                             });
                         }
-                        else if (!sink.Texture.Name.Contains("Used"))
+                        else if (sink.Texture != null &&
+                                 !sink.Texture.Name.Contains("Used"))
                         {
                             TimeSpan duration = TimeSpan.FromMilliseconds(character.Stats.Thirst * 1000);
 
@@ -213,12 +226,17 @@ namespace Despicaville
                     }
                     else
                     {
-                        Map map = WorldUtil.GetMap();
-                        Layer bottom_tiles = map.GetLayer("BottomTiles");
-                        Layer middle_tiles = map.GetLayer("MiddleTiles");
-                        Layer room_tiles = map.GetLayer("RoomTiles");
+                        Map? map = WorldUtil.GetMap();
+                        Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+                        Layer? middle_tiles = map?.GetLayer("MiddleTiles");
+                        Layer? room_tiles = map?.GetLayer("RoomTiles");
 
-                        PathTo(bottom_tiles, middle_tiles, room_tiles, sink, character, desperate);
+                        if (bottom_tiles != null &&
+                            middle_tiles != null &&
+                            room_tiles != null)
+                        {
+                            PathTo(bottom_tiles, middle_tiles, room_tiles, sink, character, desperate);
+                        }
                     }
 
                     return;
@@ -229,21 +247,24 @@ namespace Despicaville
             List<Tile> fridges = WorldUtil.GetOwned_Furniture(character, "Fridge");
             if (fridges.Count > 0)
             {
-                Tile fridge = WorldUtil.GetClosestTile(fridges, character);
+                Tile? fridge = WorldUtil.GetClosestTile(fridges, character);
                 if (fridge != null)
                 {
-                    Item item = null;
+                    Item? item = null;
 
-                    int fridgeCount = fridge.Inventory.Items.Count;
-                    for (int i = 0; i < fridgeCount; i++)
+                    if (fridge.Inventory != null)
                     {
-                        Item existing = fridge.Inventory.Items[i];
-
-                        Property thirst = existing.GetProperty("Thirst");
-                        if (thirst != null)
+                        int fridgeCount = fridge.Inventory.Items.Count;
+                        for (int i = 0; i < fridgeCount; i++)
                         {
-                            item = existing;
-                            break;
+                            Item existing = fridge.Inventory.Items[i];
+
+                            Property? thirst = existing.GetProperty("Thirst");
+                            if (thirst != null)
+                            {
+                                item = existing;
+                                break;
+                            }
                         }
                     }
 
@@ -265,7 +286,8 @@ namespace Despicaville
                             }
                             else
                             {
-                                if (fridge.Texture.Name.Contains("Used"))
+                                if (fridge.Texture != null &&
+                                    fridge.Texture.Name.Contains("Used"))
                                 {
                                     InventoryUtil.TransferItem(fridge.Inventory, character.Inventory, item);
 
@@ -295,12 +317,17 @@ namespace Despicaville
                         }
                         else
                         {
-                            Map map = WorldUtil.GetMap();
-                            Layer bottom_tiles = map.GetLayer("BottomTiles");
-                            Layer middle_tiles = map.GetLayer("MiddleTiles");
-                            Layer room_tiles = map.GetLayer("RoomTiles");
+                            Map? map = WorldUtil.GetMap();
+                            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+                            Layer? middle_tiles = map?.GetLayer("MiddleTiles");
+                            Layer? room_tiles = map?.GetLayer("RoomTiles");
 
-                            PathTo(bottom_tiles, middle_tiles, room_tiles, fridge, character, desperate);
+                            if (bottom_tiles != null &&
+                                middle_tiles != null &&
+                                room_tiles != null)
+                            {
+                                PathTo(bottom_tiles, middle_tiles, room_tiles, fridge, character, desperate);
+                            }
                         }
 
                         return;
@@ -313,6 +340,12 @@ namespace Despicaville
 
         public static void FindFood(Character character, bool desperate)
         {
+            if (TimeManager.Now == null ||
+                character.Location == null)
+            {
+                return;
+            }
+
             Inventory inventory = character.Inventory;
 
             //Do we already have something to eat?
@@ -321,7 +354,7 @@ namespace Despicaville
             {
                 Item existing = inventory.Items[i];
 
-                Property hunger = existing.GetProperty("Hunger");
+                Property? hunger = existing.GetProperty("Hunger");
                 if (hunger != null)
                 {
                     TimeSpan duration = TimeSpan.FromMilliseconds(hunger.Value * -10 * 1000);
@@ -350,21 +383,24 @@ namespace Despicaville
             List<Tile> fridges = WorldUtil.GetOwned_Furniture(character, "Fridge");
             if (fridges.Count > 0)
             {
-                Tile fridge = WorldUtil.GetClosestTile(fridges, character);
+                Tile? fridge = WorldUtil.GetClosestTile(fridges, character);
                 if (fridge != null)
                 {
-                    Item item = null;
+                    Item? item = null;
 
-                    int fridgeCount = fridge.Inventory.Items.Count;
-                    for (int i = 0; i < fridgeCount; i++)
+                    if (fridge.Inventory != null)
                     {
-                        Item existing = fridge.Inventory.Items[i];
-
-                        Property hunger = existing.GetProperty("Hunger");
-                        if (hunger != null)
+                        int fridgeCount = fridge.Inventory.Items.Count;
+                        for (int i = 0; i < fridgeCount; i++)
                         {
-                            item = existing;
-                            break;
+                            Item existing = fridge.Inventory.Items[i];
+
+                            Property? hunger = existing.GetProperty("Hunger");
+                            if (hunger != null)
+                            {
+                                item = existing;
+                                break;
+                            }
                         }
                     }
 
@@ -386,7 +422,8 @@ namespace Despicaville
                             }
                             else
                             {
-                                if (fridge.Texture.Name.Contains("Used"))
+                                if (fridge.Texture != null &&
+                                    fridge.Texture.Name.Contains("Used"))
                                 {
                                     InventoryUtil.TransferItem(fridge.Inventory, character.Inventory, item);
 
@@ -416,12 +453,17 @@ namespace Despicaville
                         }
                         else
                         {
-                            Map map = WorldUtil.GetMap();
-                            Layer bottom_tiles = map.GetLayer("BottomTiles");
-                            Layer middle_tiles = map.GetLayer("MiddleTiles");
-                            Layer room_tiles = map.GetLayer("RoomTiles");
+                            Map? map = WorldUtil.GetMap();
+                            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+                            Layer? middle_tiles = map?.GetLayer("MiddleTiles");
+                            Layer? room_tiles = map?.GetLayer("RoomTiles");
 
-                            PathTo(bottom_tiles, middle_tiles, room_tiles, fridge, character, desperate);
+                            if (bottom_tiles != null &&
+                                middle_tiles != null &&
+                                room_tiles != null)
+                            {
+                                PathTo(bottom_tiles, middle_tiles, room_tiles, fridge, character, desperate);
+                            }
                         }
 
                         return;
@@ -434,8 +476,14 @@ namespace Despicaville
 
         public static void CloseDoor_Behind(Character character)
         {
+            if (character.Location == null ||
+                TimeManager.Now == null)
+            {
+                return;
+            }
+
             Direction direction = Direction.Nowhere;
-            Location location = null;
+            Location? location = null;
 
             if (character.Direction == Direction.North)
             {
@@ -458,22 +506,31 @@ namespace Despicaville
                 location = new Location(character.Location.X + 1, character.Location.Y, 0);
             }
 
-            CloseDoor task = new CloseDoor
+            if (location != null)
             {
-                Name = "CloseDoor",
-                OwnerID = character.ID,
-                StartTime = new TimeHandler(TimeManager.Now),
-                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
-                Location = location,
-                Direction = direction
-            };
-            character.Job.Tasks.Add(task);
+                CloseDoor task = new()
+                {
+                    Name = "CloseDoor",
+                    OwnerID = character.ID,
+                    StartTime = new TimeHandler(TimeManager.Now),
+                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
+                    Location = location,
+                    Direction = direction
+                };
+                character.Job.Tasks.Add(task);
+            }
         }
 
         public static void CloseWindow_Behind(Character character)
         {
+            if (character.Location == null ||
+                TimeManager.Now == null)
+            {
+                return;
+            }
+
             Direction direction = Direction.Nowhere;
-            Location location = null;
+            Location? location = null;
 
             if (character.Direction == Direction.North)
             {
@@ -496,23 +553,31 @@ namespace Despicaville
                 location = new Location(character.Location.X + 1, character.Location.Y, 0);
             }
 
-            CloseWindow task = new CloseWindow
+            if (location != null)
             {
-                Name = "CloseWindow",
-                OwnerID = character.ID,
-                StartTime = new TimeHandler(TimeManager.Now),
-                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
-                Location = location,
-                Direction = direction
-            };
-            character.Job.Tasks.Add(task);
+                CloseWindow task = new()
+                {
+                    Name = "CloseWindow",
+                    OwnerID = character.ID,
+                    StartTime = new TimeHandler(TimeManager.Now),
+                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
+                    Location = location,
+                    Direction = direction
+                };
+                character.Job.Tasks.Add(task);
+            }
         }
 
         public static void Wander(Character character)
         {
+            if (TimeManager.Now == null)
+            {
+                return;
+            }
+
             Direction direction = Direction.Nowhere;
 
-            CryptoRandom random = new CryptoRandom();
+            CryptoRandom random = new();
             int choice = random.Next(1, 101);
             if (choice <= 28)
             {
@@ -569,10 +634,20 @@ namespace Despicaville
 
         public static void BreakWindow(Vector2 destination, Direction direction)
         {
-            Map map = WorldUtil.GetMap();
+            if (Handler.Player == null)
+            {
+                return;
+            }
 
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
-            Tile tile = middle_tiles.GetTile(destination);
+            Map? map = WorldUtil.GetMap();
+
+            Layer? middle_tiles = map?.GetLayer("MiddleTiles");
+            Tile? tile = middle_tiles?.GetTile(destination);
+
+            if (tile == null)
+            {
+                return;
+            }
 
             if (tile.Direction == Direction.North)
             {
@@ -583,10 +658,16 @@ namespace Despicaville
                 tile.Name = "Window_WestEast_Broken";
             }
 
-            tile.Texture = AssetManager.Textures[tile.Name];
-            tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+            if (tile.Name != null)
+            {
+                tile.Texture = Handler.GetTexture(tile.Name);
+                if (tile.Texture != null)
+                {
+                    tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+                }
+            }
 
-            Vector2 location = new Vector2(destination.X, destination.Y);
+            Vector2 location = new(destination.X, destination.Y);
             if (direction == Direction.North)
             {
                 location.Y--;
@@ -604,7 +685,8 @@ namespace Despicaville
                 location.X--;
             }
 
-            if (!Handler.Player.Unconscious)
+            if (!Handler.Player.Unconscious &&
+                Handler.Player.Location != null)
             {
                 AssetManager.PlaySound_Random_AtDistance("GlassBreak", Handler.Player.Location.ToVector2, location, 10);
             }
@@ -624,7 +706,14 @@ namespace Despicaville
 
         public static void Interact(Tile tile)
         {
-            if (tile != null)
+            if (Handler.Player == null ||
+                TimeManager.Now == null)
+            {
+                return;
+            }
+
+            if (tile != null &&
+                tile.Name != null)
             {
                 if (tile.Name.Contains("Sink"))
                 {
@@ -907,19 +996,24 @@ namespace Despicaville
             }
         }
 
-        private static void PathTo(Layer bottom_tiles, Layer middle_tiles, Layer room_tiles, Tile furniture, Character character, bool desperate)
+        private static void PathTo(Layer bottom_tiles, Layer middle_tiles, Layer room_tiles, Tile furniture, Character? character, bool desperate)
         {
+            if (character?.Location == null)
+            {
+                return;
+            }
+
             bool in_room = false;
 
-            Tile room_tile = room_tiles.GetTile(character.Location.ToVector2);
+            Tile? room_tile = room_tiles.GetTile(character.Location.ToVector2);
             if (room_tile != null &&
                 room_tile.Texture != null)
             {
                 in_room = true;
             }
 
-            List<ALocation> path = new List<ALocation>();
-            character.Path = new List<ALocation>();
+            List<ALocation> path = [];
+            character.Path = [];
 
             if (in_room)
             {
@@ -930,16 +1024,17 @@ namespace Despicaville
                 }
                 else
                 {
-                    Tile exit = WorldUtil.GetNearestExit_ToFurniture(character, middle_tiles, furniture);
+                    Tile? exit = WorldUtil.GetNearestExit_ToFurniture(character, middle_tiles, furniture);
                     if (exit != null)
                     {
-                        Tile tile = null;
+                        Tile? tile = null;
 
                         if (!string.IsNullOrEmpty(exit.Texture?.Name))
                         {
                             if (exit.Texture.Name.Contains("NorthSouth"))
                             {
-                                if (exit.Name.Contains("Open"))
+                                if (exit.Name != null &&
+                                    exit.Name.Contains("Open"))
                                 {
                                     if (exit.Location.Y < character.Location.Y)
                                     {
@@ -964,7 +1059,8 @@ namespace Despicaville
                             }
                             else if (exit.Texture.Name.Contains("WestEast"))
                             {
-                                if (exit.Name.Contains("Open"))
+                                if (exit.Name != null &&
+                                    exit.Name.Contains("Open"))
                                 {
                                     if (exit.Location.X < character.Location.X)
                                     {
@@ -1003,9 +1099,10 @@ namespace Despicaville
             }
             else
             {
-                Tile middle_tile = middle_tiles.GetTile(character.Location.ToVector2);
-                if (middle_tile != null &&
-                    middle_tile.Name.Contains("Door"))
+                Tile? middle_tile = middle_tiles.GetTile(character.Location.ToVector2);
+                if (middle_tile?.Name != null &&
+                    middle_tile.Name.Contains("Door") &&
+                    TimeManager.Now != null)
                 {
                     if (desperate)
                     {
@@ -1055,8 +1152,15 @@ namespace Despicaville
             }
         }
 
-        private static void ContinuePathing(Character character, bool desperate)
+        private static void ContinuePathing(Character? character, bool desperate)
         {
+            if (character == null ||
+                character.Location == null ||
+                TimeManager.Now == null)
+            {
+                return;
+            }
+
             Direction direction = WorldUtil.GetDirection(character.Location, new Location(character.Path[0].X, character.Path[0].Y, 0));
             if (direction == Direction.North)
             {

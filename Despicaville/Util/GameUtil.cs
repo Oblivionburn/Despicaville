@@ -21,6 +21,18 @@ namespace Despicaville.Util
     {
         public static void Start()
         {
+            if (Main.Game == null ||
+                Handler.Player == null)
+            {
+                return;
+            }
+
+            Scene? scene = SceneManager.GetScene("Gameplay");
+            if (scene == null)
+            {
+                return;
+            }
+
             CenterToPlayer_OnStart();
 
             TimeTracker.Reset();
@@ -28,27 +40,37 @@ namespace Despicaville.Util
             Main.Game.GameStarted = true;
             Toggle_MainMenu();
 
-            Menu ui = MenuManager.GetMenu("UI");
-            ui.Active = true;
-            ui.Visible = true;
+            Menu? ui = MenuManager.GetMenu("UI");
+            if (ui != null)
+            {
+                ui.Active = true;
+                ui.Visible = true;
+            }
 
             SoundManager.StopMusic();
             SoundManager.NeedMusic = true;
 
             AddMessage("You awake.");
 
-            Scene scene = SceneManager.GetScene("Gameplay");
             scene.Resize(Main.Game.Resolution);
             SceneManager.ChangeScene(scene);
 
             CenterToPlayer_OnFrame();
             CharacterUtil.UpdateSight(Handler.Player);
 
-            WorldUtil.UpdateWorld(scene.World);
+            if (scene.World != null)
+            {
+                WorldUtil.UpdateWorld(scene.World);
+            }
         }
 
         public static void ReturnToTitle()
         {
+            if (Main.Game == null)
+            {
+                return;
+            }
+
             Main.Game.GameStarted = false;
             TimeManager.Paused = false;
 
@@ -60,28 +82,34 @@ namespace Despicaville.Util
             ResetInventories();
 
             Handler.CharGen_Stage = 0;
-            Handler.Loading_Stage = 3;
+            Handler.Loading_Stage = 2;
             Handler.Loading_Percent = 0;
             Handler.Loading_Message = "";
 
             Toggle_MainMenu();
 
-            Menu ui = MenuManager.GetMenu("UI");
-            ui.Visible = false;
-            ui.Active = false;
+            Menu? ui = MenuManager.GetMenu("UI");
+            if (ui != null)
+            {
+                ui.Visible = false;
+                ui.Active = false;
+            }
 
             for (int i = 0; i < Handler.MessageMax; i++)
             {
-                Label label = ui.GetLabel("Message" + i.ToString());
+                Label? label = ui?.GetLabel("Message" + i.ToString());
                 if (label != null)
                 {
                     label.Text = "";
                 }
             }
 
-            Menu main = MenuManager.GetMenu("Main");
-            main.Visible = true;
-            main.Active = true;
+            Menu? main = MenuManager.GetMenu("Main");
+            if (main != null)
+            {
+                main.Visible = true;
+                main.Active = true;
+            }
 
             SceneManager.ChangeScene("Title");
 
@@ -91,14 +119,14 @@ namespace Despicaville.Util
 
         public static void ResetArmy()
         {
-            CharacterManager.Armies = new List<Army>
-            {
+            CharacterManager.Armies =
+            [
                 new Army
                 {
                     ID = Handler.GetID(),
                     Name = "Characters",
-                    Squads = new List<Squad>
-                    {
+                    Squads =
+                    [
                         new Squad
                         {
                             ID = Handler.GetID(),
@@ -109,9 +137,9 @@ namespace Despicaville.Util
                             ID = Handler.GetID(),
                             Name = "Citizens"
                         }
-                    }
+                    ]
                 }
-            };
+            ];
         }
 
         public static void ResetInventories()
@@ -129,7 +157,19 @@ namespace Despicaville.Util
 
         public static void CenterToPlayer_OnStart()
         {
-            Army army = CharacterManager.GetArmy("Characters");
+            if (Handler.Player == null ||
+                Handler.Player.Region == null ||
+                Handler.Player.Location == null ||
+                Main.Game == null)
+            {
+                return;
+            }
+
+            Army? army = CharacterManager.GetArmy("Characters");
+            if (army == null)
+            {
+                return;
+            }
 
             Handler.Player.MoveSpeed = (Main.Game.TileSize.X / 32);
             Handler.Player.Move_TotalDistance = Main.Game.TileSize.X;
@@ -139,22 +179,22 @@ namespace Despicaville.Util
             Handler.Player.Region.Width = Main.Game.TileSize.X;
             Handler.Player.Region.Height = Main.Game.TileSize.Y;
 
-            World world = SceneManager.GetScene("Gameplay").World;
+            World? world = SceneManager.GetScene("Gameplay")?.World;
             if (world != null)
             {
                 Map map = world.Maps[0];
                 if (map != null)
                 {
-                    Layer bottom_tiles = map.GetLayer("BottomTiles");
-                    Layer room_tiles = map.GetLayer("RoomTiles");
-                    Layer middle_tiles = map.GetLayer("MiddleTiles");
-                    Layer top_tiles = map.GetLayer("TopTiles");
-                    Layer effect_tiles = map.GetLayer("EffectTiles");
-                    Layer roof_tiles = map.GetLayer("RoofTiles");
+                    Layer? bottom_tiles = map.GetLayer("BottomTiles");
+                    Layer? room_tiles = map.GetLayer("RoomTiles");
+                    Layer? middle_tiles = map.GetLayer("MiddleTiles");
+                    Layer? top_tiles = map.GetLayer("TopTiles");
+                    Layer? effect_tiles = map.GetLayer("EffectTiles");
+                    Layer? roof_tiles = map.GetLayer("RoofTiles");
 
                     if (bottom_tiles != null)
                     {
-                        Tile current = bottom_tiles.GetTile(Handler.Player.Location.ToVector2);
+                        Tile? current = bottom_tiles.GetTile(Handler.Player.Location.ToVector2);
                         if (current != null)
                         {
                             current.Region.X = Handler.Player.Region.X;
@@ -205,7 +245,7 @@ namespace Despicaville.Util
                                 tile.Region.Width = Main.Game.TileSize.X;
                                 tile.Region.Height = Main.Game.TileSize.Y;
 
-                                Tile middle_tile = middle_tiles.GetTile(tile.Location.ToVector2);
+                                Tile? middle_tile = middle_tiles?.GetTile(tile.Location.ToVector2);
                                 if (middle_tile != null)
                                 {
                                     middle_tile.Region.X = tile.Region.X;
@@ -306,25 +346,25 @@ namespace Despicaville.Util
                                     }
                                 }
 
-                                Tile top_tile = top_tiles.GetTile(tile.Location.ToVector2);
+                                Tile? top_tile = top_tiles?.GetTile(tile.Location.ToVector2);
                                 if (top_tile != null)
                                 {
                                     top_tile.Region = tile.Region;
                                 }
 
-                                Tile room_tile = room_tiles.GetTile(tile.Location.ToVector2);
+                                Tile? room_tile = room_tiles?.GetTile(tile.Location.ToVector2);
                                 if (room_tile != null)
                                 {
                                     room_tile.Region = tile.Region;
                                 }
 
-                                Tile effect_tile = effect_tiles.GetTile(tile.Location.ToVector3);
+                                Tile? effect_tile = effect_tiles?.GetTile(tile.Location.ToVector3);
                                 if (effect_tile != null)
                                 {
                                     effect_tile.Region = tile.Region;
                                 }
 
-                                Tile roof_tile = roof_tiles.GetTile(tile.Location.ToVector2);
+                                Tile? roof_tile = roof_tiles?.GetTile(tile.Location.ToVector2);
                                 if (roof_tile != null)
                                 {
                                     roof_tile.Region = tile.Region;
@@ -336,7 +376,9 @@ namespace Despicaville.Util
                                     {
                                         foreach (Character character in squad.Characters)
                                         {
-                                            if (character.Location.X == tile.Location.X &&
+                                            if (character.Location != null &&
+                                                character.Region != null &&
+                                                character.Location.X == tile.Location.X &&
                                                 character.Location.Y == tile.Location.Y)
                                             {
                                                 character.MoveSpeed = 1;
@@ -347,7 +389,8 @@ namespace Despicaville.Util
                                                 character.Region.Width = Main.Game.TileSize.X;
                                                 character.Region.Height = Main.Game.TileSize.Y;
 
-                                                if (character.Moving)
+                                                if (character.Moving &&
+                                                    character.Destination != null)
                                                 {
                                                     if (character.Destination.Y < character.Location.Y)
                                                     {
@@ -367,10 +410,10 @@ namespace Despicaville.Util
                                                     }
                                                 }
 
-                                                JobTask task = character.Job.CurrentTask;
+                                                JobTask? task = character.Job.CurrentTask;
                                                 if (task != null)
                                                 {
-                                                    ProgressBar taskbar = task.TaskBar;
+                                                    ProgressBar? taskbar = task.TaskBar;
                                                     if (taskbar != null)
                                                     {
                                                         if (taskbar.Base_Texture != null)
@@ -393,7 +436,19 @@ namespace Despicaville.Util
 
         public static void CenterToPlayer_OnFrame()
         {
-            Army characters = CharacterManager.GetArmy("Characters");
+            if (Handler.Player == null ||
+                Handler.Player.Region == null ||
+                Handler.Player.Location == null ||
+                Main.Game == null)
+            {
+                return;
+            }
+
+            Army? characters = CharacterManager.GetArmy("Characters");
+            if (characters == null)
+            {
+                return;
+            }
 
             int center_x = (int)((Main.Game.ScreenWidth / 2) - (Main.Game.TileSize.X / 2));
             int center_y = (int)((Main.Game.ScreenHeight / 2) - (Main.Game.TileSize.Y / 2) - (Main.Game.TileSize.Y * 2));
@@ -404,10 +459,15 @@ namespace Despicaville.Util
             Handler.Player.Region.X += x_diff;
             Handler.Player.Region.Y += y_diff;
 
-            Map map = WorldUtil.GetMap();
+            Map? map = WorldUtil.GetMap();
 
-            Layer bottom_tiles = map.GetLayer("BottomTiles");
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
+            Layer? middle_tiles = map?.GetLayer("MiddleTiles");
+
+            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+            if (bottom_tiles == null)
+            {
+                return;
+            }
 
             int count = bottom_tiles.Tiles.Count;
             for (int i = 0; i < count; i++)
@@ -419,7 +479,7 @@ namespace Despicaville.Util
                 float x = location.X;
                 float y = location.Y;
 
-                Vector2 loc = new Vector2(x, y);
+                Vector2 loc = new(x, y);
 
                 Region bottom_region = bottom_tile.Region;
 
@@ -433,7 +493,7 @@ namespace Despicaville.Util
                     bottom_region.Y += y_diff;
                 }
 
-                Tile middle_tile = middle_tiles.GetTile(loc);
+                Tile? middle_tile = middle_tiles?.GetTile(loc);
                 if (middle_tile != null)
                 {
                     Region middle_region = middle_tile.Region;
@@ -459,18 +519,20 @@ namespace Despicaville.Util
                 for (int c = 0; c < charCount; c++)
                 {
                     Character character = squad.Characters[c];
-                    if (character.Type != "Player")
+                    if (character.Type != "Player" &&
+                        character.Region != null)
                     {
                         character.Region.X += x_diff;
                         character.Region.Y += y_diff;
 
-                        JobTask task = character.Job.CurrentTask;
+                        JobTask? task = character.Job.CurrentTask;
                         if (task != null)
                         {
-                            ProgressBar taskbar = task.TaskBar;
+                            ProgressBar? taskbar = task.TaskBar;
                             if (taskbar != null)
                             {
-                                if (taskbar.Base_Texture != null)
+                                if (taskbar.Base_Texture != null &&
+                                    taskbar.Base_Region != null)
                                 {
                                     taskbar.Base_Region.X += x_diff;
                                     taskbar.Base_Region.Y += y_diff;
@@ -483,9 +545,20 @@ namespace Despicaville.Util
             }
         }
 
-        public static void Examine(Menu menu, string text)
+        public static void Examine(Menu? menu, string? text)
         {
-            Label examine = menu.GetLabel("Examine");
+            if (Main.Game == null ||
+                InputManager.Mouse == null)
+            {
+                return;
+            }
+
+            Label? examine = menu?.GetLabel("Examine");
+            if (examine == null)
+            {
+                return;
+            }
+
             examine.Text = text;
 
             int width = (int)(Main.Game.MenuSize_X * 4);
@@ -517,6 +590,11 @@ namespace Despicaville.Util
 
         public static void AddMessage(string message)
         {
+            if (TimeManager.Now == null)
+            {
+                return;
+            }
+
             int NewHours = (int)TimeManager.Now.Hours;
             string am_pm = " AM";
 
@@ -584,7 +662,7 @@ namespace Despicaville.Util
                 Handler.Messages.Add(new_message);
             }
 
-            Menu UI = MenuManager.GetMenu("UI");
+            Menu? UI = MenuManager.GetMenu("UI");
             if (UI != null)
             {
                 int start = 0;
@@ -599,7 +677,7 @@ namespace Despicaville.Util
                 {
                     int message_num = (i + Handler.MessageMax) - Handler.Messages.Count;
 
-                    Label label = UI.GetLabel("Message" + message_num.ToString());
+                    Label? label = UI.GetLabel("Message" + message_num.ToString());
                     if (label != null)
                     {
                         if (Handler.Messages.Count >= i + 1)
@@ -617,29 +695,98 @@ namespace Despicaville.Util
 
         public static void Toggle_MainMenu()
         {
-            Menu menu = MenuManager.GetMenu("Main");
+            if (Main.Game == null)
+            {
+                return;
+            }
+
+            Menu? menu = MenuManager.GetMenu("Main");
+            if (menu == null)
+            {
+                return;
+            }
 
             if (Main.Game.GameStarted)
             {
-                menu.GetButton("Back").Visible = true;
-                menu.GetButton("Play").Visible = false;
-                menu.GetButton("MapEditor").Visible = false;
-                menu.GetButton("Main").Visible = true;
-                menu.GetButton("Exit").Visible = false;
+                Button? back = menu.GetButton("Back");
+                if (back != null)
+                {
+                    back.Visible = true;
+                }
+
+                Button? play = menu.GetButton("Play");
+                if (play != null)
+                {
+                    play.Visible = false;
+                }
+
+                Button? mapEditor = menu.GetButton("MapEditor");
+                if (mapEditor != null)
+                {
+                    mapEditor.Visible = false;
+                }
+
+                Button? main = menu.GetButton("Main");
+                if (main != null)
+                {
+                    main.Visible = true;
+                }
+
+                Button? exit = menu.GetButton("Exit");
+                if (exit != null)
+                {
+                    exit.Visible = false;
+                }
             }
             else
             {
-                menu.GetButton("Back").Visible = false;
-                menu.GetButton("Play").Visible = true;
-                menu.GetButton("MapEditor").Visible = true;
-                menu.GetButton("Main").Visible = false;
-                menu.GetButton("Exit").Visible = true;
+                Button? back = menu.GetButton("Back");
+                if (back != null)
+                {
+                    back.Visible = false;
+                }
+
+                Button? play = menu.GetButton("Play");
+                if (play != null)
+                {
+                    play.Visible = true;
+                }
+
+                Button? mapEditor = menu.GetButton("MapEditor");
+                if (mapEditor != null)
+                {
+                    mapEditor.Visible = true;
+                }
+
+                Button? main = menu.GetButton("Main");
+                if (main != null)
+                {
+                    main.Visible = false;
+                }
+
+                Button? exit = menu.GetButton("Exit");
+                if (exit != null)
+                {
+                    exit.Visible = true;
+                }
             }
         }
 
         public static bool MouseOnPixel(Picture picture)
         {
-            Texture2D texture = picture.Texture;
+            if (InputManager.Mouse == null)
+            {
+                return false;
+            }
+
+            Texture2D? texture = picture.Texture;
+            if (texture == null ||
+                picture.Region == null ||
+                picture.Texture == null)
+            {
+                return false;
+            }
+
             Color[] colors = new Color[texture.Width * texture.Height];
             texture.GetData(colors);
 
@@ -662,7 +809,12 @@ namespace Despicaville.Util
 
         public static void ResetHover(Picture picture)
         {
-            Texture2D texture = picture.Texture;
+            Texture2D? texture = picture.Texture;
+            if (texture == null)
+            {
+                return;
+            }
+
             Color[] colors = new Color[texture.Width * texture.Height];
             texture.GetData(colors);
 
@@ -684,7 +836,12 @@ namespace Despicaville.Util
 
         public static void Texture_ChangeColor(Picture picture, Color new_color)
         {
-            Texture2D texture = picture.Texture;
+            Texture2D? texture = picture.Texture;
+            if (texture == null)
+            {
+                return;
+            }
+
             Color[] colors = new Color[texture.Width * texture.Height];
             texture.GetData(colors);
 
@@ -716,7 +873,7 @@ namespace Despicaville.Util
 
         public static string DetectKeyPresses(InputBox input, string name)
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             sb.Append(name);
 
             if (InputManager.KeyPressed("Back"))
@@ -753,7 +910,7 @@ namespace Despicaville.Util
                         if (InputManager.KeyPressed("Space"))
                         {
                             found = true;
-                            sb.Append(" ");
+                            sb.Append(' ');
                         }
 
                         if (!found)
@@ -763,7 +920,7 @@ namespace Despicaville.Util
                                 if (InputManager.KeyPressed("D" + i))
                                 {
                                     found = true;
-                                    sb.Append(i.ToString());
+                                    sb.Append(i);
                                     break;
                                 }
                             }
@@ -775,11 +932,9 @@ namespace Despicaville.Util
                             {
                                 if (InputManager.KeyPressed(c.ToString()))
                                 {
-                                    found = true;
-
                                     if (upper)
                                     {
-                                        sb.Append(c.ToString());
+                                        sb.Append(c);
                                     }
                                     else
                                     {
@@ -797,7 +952,7 @@ namespace Despicaville.Util
             return sb.ToString();
         }
 
-        public static Color ColorFromName(string name)
+        public static Color ColorFromName(string? name)
         {
             if (name == "Black")
             {
@@ -858,8 +1013,13 @@ namespace Despicaville.Util
             }
         }
 
-        public static bool NameStartsWithVowel(string name)
+        public static bool NameStartsWithVowel(string? name)
         {
+            if (name == null)
+            {
+                return false;
+            }
+
             if (name[0] == 'A' ||
                 name[0] == 'E' ||
                 name[0] == 'I' ||

@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using OP_Engine.Enums;
 using OP_Engine.Inventories;
 using OP_Engine.Sounds;
@@ -17,11 +16,10 @@ namespace Despicaville.Util
     {
         #region Variables
 
-        private static List<FileInfo> Textures = new List<FileInfo>();
-        private static List<FileInfo> Sounds = new List<FileInfo>();
-        private static List<FileInfo> Items = new List<FileInfo>();
-        private static List<FileInfo> Maps = new List<FileInfo>();
-        private static List<FileInfo> Furniture = new List<FileInfo>();
+        private static List<FileInfo> Sounds = [];
+        private static List<FileInfo> Items = [];
+        private static List<FileInfo> Maps = [];
+        private static List<FileInfo> Furniture = [];
 
         #endregion
 
@@ -29,7 +27,6 @@ namespace Despicaville.Util
 
         public static void LoadMods()
         {
-            Textures.Clear();
             Sounds.Clear();
             Items.Clear();
             Maps.Clear();
@@ -51,7 +48,6 @@ namespace Despicaville.Util
                 {
                     ScanTextures(dir);
                 }
-                LoadTextures(modName);
 
                 //Load Sounds
                 foreach (DirectoryInfo dir in modDirs)
@@ -90,41 +86,13 @@ namespace Despicaville.Util
             int count = files.Length;
             for (int i = 0; i < count; i++)
             {
-                Textures.Add(files[i]);
+                Handler.Textures.Add(files[i]);
             }
 
             DirectoryInfo[] dirs = dir.GetDirectories();
             foreach (DirectoryInfo subDir in dirs)
             {
                 ScanTextures(subDir);
-            }
-        }
-
-        private static void LoadTextures(string modName)
-        {
-            Handler.Loading_Percent = 0;
-            Handler.Loading_Message = "Loading " + modName + " Textures...";
-
-            int current = 0;
-            int total = Textures.Count;
-
-            for (int i = 0; i < total; i++)
-            {
-                FileInfo fileInfo = Textures[i];
-
-                string fileName = Path.GetFileNameWithoutExtension(fileInfo.Name);
-                if (!AssetManager.Textures.ContainsKey(fileName))
-                {
-                    using (FileStream stream = new FileStream(fileInfo.FullName, FileMode.Open))
-                    {
-                        Texture2D texture2D = Texture2D.FromStream(Main.Game.GraphicsManager.GraphicsDevice, stream);
-                        texture2D.Name = fileName;
-                        AssetManager.Textures.Add(fileName, texture2D);
-                    }
-
-                    current++;
-                    Handler.Loading_Percent = (current * 100) / total;
-                }
             }
         }
 
@@ -248,7 +216,7 @@ namespace Despicaville.Util
                     }
                     catch (Exception e)
                     {
-                        Main.Game.CrashHandler(e);
+                        Main.Game?.CrashHandler(e);
                     }
                 }
             }
@@ -292,8 +260,8 @@ namespace Despicaville.Util
 
         private static void LoadItem(XmlTextReader reader)
         {
-            Inventory assets = InventoryManager.GetInventory("Assets");
-            Item item = null;
+            Inventory? assets = InventoryManager.GetInventory("Assets");
+            Item? item = null;
 
             while (reader.Read())
             {
@@ -305,7 +273,7 @@ namespace Despicaville.Util
                     case "Properties":
                         item = new Item();
                         LoadItemProperties(reader, item);
-                        assets.Items.Add(item);
+                        assets?.Items.Add(item);
                         break;
 
                     case "Wounds":
@@ -317,7 +285,10 @@ namespace Despicaville.Util
                         break;
 
                     case "Rooms":
-                        LoadRooms(reader, item);
+                        if (item != null)
+                        {
+                            LoadRooms(reader, item);
+                        }
                         break;
                 }
             }
@@ -339,22 +310,31 @@ namespace Despicaville.Util
 
                         try
                         {
-                            item.Icon = AssetManager.Textures[icon];
+                            item.Icon = Handler.GetTexture(icon);
                         }
                         catch (Exception ex)
                         {
                             string error = ex.Message;
                         }
 
-                        item.Icon_Image = new Rectangle(0, 0, item.Icon.Width, item.Icon.Height);
+                        if (item.Icon != null)
+                        {
+                            item.Icon_Image = new Rectangle(0, 0, item.Icon.Width, item.Icon.Height);
+                        }
+                        
                         item.Icon_DrawColor = Color.White;
                         break;
 
                     case "Texture":
                         string texture = reader.Value;
 
-                        item.Texture = AssetManager.Textures[texture];
-                        item.Image = new Rectangle(0, 0, item.Texture.Width, item.Texture.Height);
+                        item.Texture = Handler.GetTexture(texture);
+
+                        if (item.Texture != null)
+                        {
+                            item.Image = new Rectangle(0, 0, item.Texture.Width, item.Texture.Height);
+                        }
+                        
                         item.Visible = true;
                         break;
 
@@ -389,7 +369,7 @@ namespace Despicaville.Util
             }
         }
 
-        private static void LoadWounds(XmlTextReader reader, Item item)
+        private static void LoadWounds(XmlTextReader reader, Item? item)
         {
             while (reader.Read())
             {
@@ -399,9 +379,9 @@ namespace Despicaville.Util
                 switch (reader.Name)
                 {
                     case "Wound":
-                        Property property = new Property();
+                        Property property = new();
                         LoadWound(reader, property);
-                        item.Properties.Add(property);
+                        item?.Properties.Add(property);
                         break;
                 }
             }
@@ -420,7 +400,7 @@ namespace Despicaville.Util
             }
         }
 
-        private static void LoadEffects(XmlTextReader reader, Item item)
+        private static void LoadEffects(XmlTextReader reader, Item? item)
         {
             while (reader.Read())
             {
@@ -430,9 +410,9 @@ namespace Despicaville.Util
                 switch (reader.Name)
                 {
                     case "Effect":
-                        Property property = new Property();
+                        Property property = new();
                         LoadEffect(reader, property);
-                        item.Properties.Add(property);
+                        item?.Properties.Add(property);
                         break;
                 }
             }
@@ -538,7 +518,7 @@ namespace Despicaville.Util
                     }
                     catch (Exception e)
                     {
-                        Main.Game.CrashHandler(e);
+                        Main.Game?.CrashHandler(e);
                     }
                 }
             }
@@ -575,8 +555,12 @@ namespace Despicaville.Util
                     case "Texture":
                         string texture = reader.Value;
 
-                        tile.Texture = AssetManager.Textures[texture];
-                        tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+                        tile.Texture = Handler.GetTexture(texture);
+                        if (tile.Texture != null)
+                        {
+                            tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+                        }
+                        
                         tile.DrawColor = Color.White;
                         break;
 

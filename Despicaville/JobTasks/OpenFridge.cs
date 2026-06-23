@@ -4,7 +4,6 @@ using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
 using OP_Engine.Enums;
-using OP_Engine.Scenes;
 using Despicaville.Util;
 
 namespace Despicaville.JobTasks
@@ -13,18 +12,30 @@ namespace Despicaville.JobTasks
     {
         public override void Action_End()
         {
-            Character character = GetOwner();
+            if (Name == null ||
+                Location == null ||
+                Main.Game == null ||
+                Handler.Player?.Location == null)
+            {
+                return;
+            }
+
+            Character? character = GetOwner();
             if (character == null)
             {
                 return;
             }
 
-            Scene scene = SceneManager.GetScene("Gameplay");
-            Map map = scene.World.Maps[0];
+            Map? map = WorldUtil.GetMap();
 
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
-            Tile tile = middle_tiles.GetTile(Location.ToVector2);
-            if (tile.Texture.Name.Contains("Used"))
+            Layer? middle_tiles = map?.GetLayer("MiddleTiles");
+            Tile? tile = middle_tiles?.GetTile(Location.ToVector2);
+            if (tile?.Texture == null)
+            {
+                return;
+            }
+            if (tile.Texture.Name != null &&
+                tile.Texture.Name.Contains("Used"))
             {
                 return;
             }
@@ -55,28 +66,32 @@ namespace Despicaville.JobTasks
             if (character.Direction == Direction.North &&
                 tile.Direction == Direction.South)
             {
-                tile.Texture = AssetManager.Textures["Fridge_South_Used"];
+                tile.Texture = Handler.GetTexture("Fridge_South_Used");
                 tile.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width, Main.Game.TileSize.Y * 2);
             }
             else if (character.Direction == Direction.East &&
                      tile.Direction == Direction.West)
             {
-                tile.Texture = AssetManager.Textures["Fridge_West_Used"];
+                tile.Texture = Handler.GetTexture("Fridge_West_Used");
                 tile.Region = new Region(tile.Region.X - Main.Game.TileSize.X, tile.Region.Y, Main.Game.TileSize.X * 2, tile.Region.Height);
             }
             else if (character.Direction == Direction.South &&
                      tile.Direction == Direction.North)
             {
-                tile.Texture = AssetManager.Textures["Fridge_North_Used"];
+                tile.Texture = Handler.GetTexture("Fridge_North_Used");
                 tile.Region = new Region(tile.Region.X, tile.Region.Y - Main.Game.TileSize.Y, tile.Region.Width, Main.Game.TileSize.Y * 2);
             }
             else if (character.Direction == Direction.West &&
                      tile.Direction == Direction.East)
             {
-                tile.Texture = AssetManager.Textures["Fridge_East_Used"];
+                tile.Texture = Handler.GetTexture("Fridge_East_Used");
                 tile.Region = new Region(tile.Region.X, tile.Region.Y, Main.Game.TileSize.X * 2, tile.Region.Height);
             }
-            tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+
+            if (tile.Texture != null)
+            {
+                tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+            }
 
             if (character.Type != "Player" &&
                 !Handler.Player.Unconscious)
@@ -101,9 +116,9 @@ namespace Despicaville.JobTasks
             }
         }
 
-        public Character GetOwner()
+        public Character? GetOwner()
         {
-            if (Handler.Player.ID == OwnerID)
+            if (Handler.Player?.ID == OwnerID)
             {
                 return Handler.Player;
             }

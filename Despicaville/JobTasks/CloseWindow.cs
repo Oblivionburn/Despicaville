@@ -3,7 +3,6 @@ using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
 using OP_Engine.Enums;
-using OP_Engine.Scenes;
 using Despicaville.Util;
 
 namespace Despicaville.JobTasks
@@ -12,18 +11,30 @@ namespace Despicaville.JobTasks
     {
         public override void Action_End()
         {
-            Character character = GetOwner();
+            if (Name == null ||
+                Location == null ||
+                Main.Game == null ||
+                Handler.Player?.Location == null)
+            {
+                return;
+            }
+
+            Character? character = GetOwner();
             if (character == null)
             {
                 return;
             }
 
-            Scene scene = SceneManager.GetScene("Gameplay");
-            Map map = scene.World.Maps[0];
+            Map? map = WorldUtil.GetMap();
 
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
-            Tile tile = middle_tiles.GetTile(Location.ToVector2);
-            if (tile.Name.Contains("Closed"))
+            Layer? middle_tiles = map?.GetLayer("MiddleTiles");
+            Tile? tile = middle_tiles?.GetTile(Location.ToVector2);
+            if (tile == null)
+            {
+                return;
+            }
+            if (tile.Name != null &&
+                tile.Name.Contains("Closed"))
             {
                 return;
             }
@@ -51,9 +62,12 @@ namespace Despicaville.JobTasks
                 AssetManager.PlaySound_Random_AtDistance("WindowClose", Handler.Player.Location.ToVector2, Location.ToVector2, 8);
             }
 
-            Layer bottom_tiles = map.GetLayer("BottomTiles");
-            Tile bottom_tile = bottom_tiles.GetTile(tile.Location.ToVector2);
-            tile.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
+            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+            Tile? bottom_tile = bottom_tiles?.GetTile(tile.Location.ToVector2);
+            if (bottom_tile != null)
+            {
+                tile.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
+            }
 
             if (character.Direction == Direction.North ||
                 character.Direction == Direction.South)
@@ -89,9 +103,9 @@ namespace Despicaville.JobTasks
             }
         }
 
-        public Character GetOwner()
+        public Character? GetOwner()
         {
-            if (Handler.Player.ID == OwnerID)
+            if (Handler.Player?.ID == OwnerID)
             {
                 return Handler.Player;
             }

@@ -14,7 +14,7 @@ namespace Despicaville.Util
 
         public static void ParseINI(string file)
         {
-            using (XmlTextReader reader = new XmlTextReader(File.OpenRead(file)))
+            using (XmlTextReader reader = new(File.OpenRead(file)))
             {
                 try
                 {
@@ -57,6 +57,11 @@ namespace Despicaville.Util
 
         private static void VisitOptions(XmlTextReader reader)
         {
+            if (Main.Game?.Form == null)
+            {
+                return;
+            }
+
             while (reader.MoveToNextAttribute())
             {
                 switch (reader.Name)
@@ -129,13 +134,22 @@ namespace Despicaville.Util
 
         private static void VisitControls(XmlTextReader reader)
         {
+            if (InputManager.Keyboard == null)
+            {
+                return;
+            }
+
             while (reader.MoveToNextAttribute())
             {
                 foreach (var map in InputManager.Keyboard.KeysMapped)
                 {
                     if ("Key_" + map.Key == reader.Name)
                     {
-                        InputManager.Keyboard.KeysMapped[map.Key] = (Keys)InputManager.GetKey(reader.Value);
+                        Keys? key = InputManager.GetKey(reader.Value);
+                        if (key != null)
+                        {
+                            InputManager.Keyboard.KeysMapped[map.Key] = (Keys)key;
+                        }
                         break;
                     }
                 }

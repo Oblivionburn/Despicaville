@@ -2,7 +2,6 @@
 using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
-using OP_Engine.Scenes;
 using OP_Engine.Time;
 using OP_Engine.Menus;
 using Despicaville.Util;
@@ -13,37 +12,44 @@ namespace Despicaville.JobTasks
     {
         public override void Action_End()
         {
-            Character character = GetOwner();
+            if (Location == null)
+            {
+                return;
+            }
+
+            Character? character = GetOwner();
             if (character == null)
             {
                 return;
             }
 
-            Scene scene = SceneManager.GetScene("Gameplay");
-            Map map = scene.World.Maps[0];
-            Layer bottom_tiles = map.GetLayer("BottomTiles");
+            Map? map = WorldUtil.GetMap();
+            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
 
-            Tile tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, Location);
+            Tile? tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, Location);
             if (tile == null)
             {
-                tile = bottom_tiles.GetTile(Location.ToVector2);
+                tile = bottom_tiles?.GetTile(Location.ToVector2);
             }
 
-            if (tile.Texture != null)
+            if (tile?.Texture != null)
             {
-                if (tile.Inventory.Items.Count > 0)
+                if (tile.Inventory?.Items.Count > 0)
                 {
                     TimeManager.Paused = true;
 
                     Handler.Trading = true;
                     Handler.Trading_InventoryID.Add(tile.Inventory.ID);
 
-                    Menu main = MenuManager.GetMenu("Inventory");
-                    main.Load();
-                    main.Active = true;
-                    main.Visible = true;
+                    Menu? main = MenuManager.GetMenu("Inventory");
+                    if (main != null)
+                    {
+                        main.Load();
+                        main.Active = true;
+                        main.Visible = true;
+                    }
                 }
-                else
+                else if (Name != null)
                 {
                     int loudness = 2;
                     if (Name.Contains("Quiet"))
@@ -71,9 +77,9 @@ namespace Despicaville.JobTasks
             }
         }
 
-        public Character GetOwner()
+        public Character? GetOwner()
         {
-            if (Handler.Player.ID == OwnerID)
+            if (Handler.Player?.ID == OwnerID)
             {
                 return Handler.Player;
             }

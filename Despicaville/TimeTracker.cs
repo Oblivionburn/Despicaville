@@ -17,11 +17,16 @@ namespace Despicaville
 
         public static void Tick(long milliseconds)
         {
-            TimeManager.Now.AddMilliseconds(milliseconds);
+            TimeManager.Now?.AddMilliseconds(milliseconds);
         }
 
-        public static void MillisecondsChanged(object sender, EventArgs e)
+        public static void MillisecondsChanged(object? sender, EventArgs e)
         {
+            if (TimeManager.Now == null)
+            {
+                return;
+            }
+
             Handler.Action = false;
 
             Handler.TimeToAction++;
@@ -31,7 +36,11 @@ namespace Despicaville
                 Handler.TimeToAction = 0;
             }
 
-            Squad citizens = CharacterManager.GetArmy("Characters").GetSquad("Citizens");
+            Squad? citizens = CharacterManager.GetArmy("Characters")?.GetSquad("Citizens");
+            if (citizens == null)
+            {
+                return;
+            }
 
             Character[] citizens_array = citizens.Characters.ToArray();
             int count = citizens_array.Length;
@@ -50,7 +59,7 @@ namespace Despicaville
                     continue;
                 }
 
-                JobTask task = character.Job.CurrentTask;
+                JobTask? task = character.Job.CurrentTask;
                 if (task?.Name == "Sleep")
                 {
                     continue;
@@ -76,7 +85,7 @@ namespace Despicaville
                 }
             }
 
-            JobTask playerTask = Handler.Player.Job.CurrentTask;
+            JobTask? playerTask = Handler.Player?.Job.CurrentTask;
             if (playerTask != null)
             {
                 if (playerTask.Name != "Sneak" &&
@@ -84,14 +93,19 @@ namespace Despicaville
                     playerTask.Name != "Run" &&
                     playerTask.Name != "Push")
                 {
-                    Handler.Player.Job.Update(TimeManager.Now);
+                    Handler.Player?.Job.Update(TimeManager.Now);
                 }
             }
         }
 
-        public static void SecondsChanged(object sender, EventArgs e)
+        public static void SecondsChanged(object? sender, EventArgs e)
         {
-            Army army = CharacterManager.GetArmy("Characters");
+            Army? army = CharacterManager.GetArmy("Characters");
+            if (army == null)
+            {
+                return;
+            }
+
             foreach (Squad squad in army.Squads)
             {
                 for (int i = 0; i < squad.Characters.Count; i++)
@@ -110,7 +124,7 @@ namespace Despicaville
                         continue;
                     }
 
-                    JobTask task = character.Job.CurrentTask;
+                    JobTask? task = character.Job.CurrentTask;
                     if (task?.Name == "Sleep")
                     {
                         CharacterUtil.Sleep(character);
@@ -144,15 +158,20 @@ namespace Despicaville
             }
         }
 
-        public static void MinutesChanged(object sender, EventArgs e)
+        public static void MinutesChanged(object? sender, EventArgs e)
         {
-            if (RenderingManager.Lighting.LerpAmount < 1)
+            if (RenderingManager.Lighting?.LerpAmount < 1)
             {
                 RenderingManager.Lighting.LerpAmount += 0.0167f;
             }
-            RenderingManager.Lighting.Update();
+            RenderingManager.Lighting?.Update();
 
-            Army characters = CharacterManager.GetArmy("Characters");
+            Army? characters = CharacterManager.GetArmy("Characters");
+            if (characters == null)
+            {
+                return;
+            }
+
             foreach (Squad squad in characters.Squads)
             {
                 foreach (Character character in squad.Characters)
@@ -162,7 +181,7 @@ namespace Despicaville
                         continue;
                     }
 
-                    Property poisoned = character.GetStatusEffect("Poisoned");
+                    Property? poisoned = character.GetStatusEffect("Poisoned");
                     if (poisoned != null)
                     {
                         character.Stats.Blood--;
@@ -182,11 +201,19 @@ namespace Despicaville
             }
         }
 
-        public static void HoursChanged(object sender, EventArgs e)
+        public static void HoursChanged(object? sender, EventArgs e)
         {
-            RenderingManager.Lighting.LerpAmount = 0;
+            if (RenderingManager.Lighting != null)
+            {
+                RenderingManager.Lighting.LerpAmount = 0;
+            }
 
-            Army characters = CharacterManager.GetArmy("Characters");
+            Army? characters = CharacterManager.GetArmy("Characters");
+            if (characters == null)
+            {
+                return;
+            }
+
             foreach (Squad squad in characters.Squads)
             {
                 foreach (Character character in squad.Characters)
@@ -219,7 +246,12 @@ namespace Despicaville
         public static void Reset()
         {
             TimeManager.Init(1984, 6, 1, 6);
-            RenderingManager.Lighting.Reset();
+            RenderingManager.Lighting?.Reset();
+
+            if (TimeManager.Now == null)
+            {
+                return;
+            }
 
             TimeManager.Now.OnMillisecondsChange -= MillisecondsChanged;
             TimeManager.Now.OnMillisecondsChange += MillisecondsChanged;

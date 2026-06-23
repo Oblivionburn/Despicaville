@@ -3,7 +3,6 @@ using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
 using OP_Engine.Enums;
-using OP_Engine.Scenes;
 using Despicaville.Util;
 
 namespace Despicaville.JobTasks
@@ -12,18 +11,30 @@ namespace Despicaville.JobTasks
     {
         public override void Action_End()
         {
-            Character character = GetOwner();
+            if (Name == null ||
+                Location == null ||
+                Main.Game == null ||
+                Handler.Player?.Location == null)
+            {
+                return;
+            }
+
+            Character? character = GetOwner();
             if (character == null)
             {
                 return;
             }
 
-            Scene scene = SceneManager.GetScene("Gameplay");
-            Map map = scene.World.Maps[0];
+            Map? map = WorldUtil.GetMap();
 
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
-            Tile tile = middle_tiles.GetTile(Location.ToVector2);
-            if (tile.Name.Contains("Open"))
+            Layer? middle_tiles = map?.GetLayer("MiddleTiles");
+            Tile? tile = middle_tiles?.GetTile(Location.ToVector2);
+            if (tile == null)
+            {
+                return;
+            }
+            if (tile.Name != null &&
+                tile.Name.Contains("Open"))
             {
                 return;
             }
@@ -87,9 +98,9 @@ namespace Despicaville.JobTasks
             }
         }
 
-        public Character GetOwner()
+        public Character? GetOwner()
         {
-            if (Handler.Player.ID == OwnerID)
+            if (Handler.Player?.ID == OwnerID)
             {
                 return Handler.Player;
             }

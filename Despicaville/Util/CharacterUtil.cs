@@ -16,9 +16,14 @@ namespace Despicaville.Util
 {
     public static class CharacterUtil
     {
-        public static Character GenCharacter(string last_name)
+        public static Character? GenCharacter(string? last_name)
         {
-            Character character = new Character
+            if (Main.Game == null)
+            {
+                return null;
+            }
+
+            Character character = new()
             {
                 ID = Handler.GetID(),
                 Type = "Citizen",
@@ -48,7 +53,7 @@ namespace Despicaville.Util
             }
 
             //Get Gender
-            CryptoRandom random = new CryptoRandom();
+            CryptoRandom random = new();
             int gender = random.Next(0, 2);
             if (gender == 0)
             {
@@ -78,17 +83,21 @@ namespace Despicaville.Util
             int skin_color = random.Next(0, 3);
             if (skin_color == 0)
             {
-                character.Texture = AssetManager.Textures["Naked_Dark"];
+                character.Texture = Handler.GetTexture("Naked_Dark");
             }
             else if (skin_color == 1)
             {
-                character.Texture = AssetManager.Textures["Naked_Light"];
+                character.Texture = Handler.GetTexture("Naked_Light");
             }
             else if (skin_color == 2)
             {
-                character.Texture = AssetManager.Textures["Naked_Tan"];
+                character.Texture = Handler.GetTexture("Naked_Tan");
             }
-            character.Image = new Rectangle(0, 0, character.Texture.Width / 4, character.Texture.Height / 4);
+
+            if (character.Texture != null)
+            {
+                character.Image = new Rectangle(0, 0, character.Texture.Width / 4, character.Texture.Height / 4);
+            }
 
             //Get Hair
             random = new CryptoRandom();
@@ -101,13 +110,13 @@ namespace Despicaville.Util
 
                 string hairType = "Hair_" + Handler.HairLength[hair_length] + "_" + Handler.HairColor[hair_color];
 
-                Item hair = new Item
+                Item hair = new()
                 {
                     Name = Handler.HairLength[hair_length] + " " + Handler.HairColor[hair_color] + " Hair",
                     Type = hairType,
                     Equipped = true,
                     Assignment = "Hair",
-                    Texture = AssetManager.Textures[hairType],
+                    Texture = Handler.GetTexture(hairType),
                     Image = character.Image,
                     Region = character.Region,
                     DrawColor = Color.White,
@@ -116,56 +125,68 @@ namespace Despicaville.Util
                 character.Inventory.Items.Add(hair);
             }
 
-            Inventory assets = InventoryManager.GetInventory("Assets");
+            Inventory? assets = InventoryManager.GetInventory("Assets");
 
             if (Utility.RandomPercent(10))
             {
                 random = new CryptoRandom();
                 int hat_color = random.Next(0, Handler.Colors.Length);
 
-                Item hat = InventoryUtil.NewItem(assets.GetItem(Handler.Colors[hat_color] + " Hat"));
-                hat.Equipped = true;
-                hat.Assignment = "Hat Slot";
-                hat.Image = character.Image;
-                hat.Region = character.Region;
-                character.Inventory.Items.Add(hat);
+                Item? hat = InventoryUtil.NewItem(assets?.GetItem(Handler.Colors[hat_color] + " Hat"));
+                if (hat != null)
+                {
+                    hat.Equipped = true;
+                    hat.Assignment = "Hat Slot";
+                    hat.Image = character.Image;
+                    hat.Region = character.Region;
+                    character.Inventory.Items.Add(hat);
+                }
             }
 
             //Get Shirt
             random = new CryptoRandom();
             int shirt_color = random.Next(0, Handler.Colors.Length);
 
-            Item shirt = InventoryUtil.NewItem(assets.GetItem(Handler.Colors[shirt_color] + " Shirt"));
-            shirt.Equipped = true;
-            shirt.Assignment = "Shirt Slot";
-            shirt.Image = character.Image;
-            shirt.Region = character.Region;
-            character.Inventory.Items.Add(shirt);
+            Item? shirt = InventoryUtil.NewItem(assets?.GetItem(Handler.Colors[shirt_color] + " Shirt"));
+            if (shirt != null)
+            {
+                shirt.Equipped = true;
+                shirt.Assignment = "Shirt Slot";
+                shirt.Image = character.Image;
+                shirt.Region = character.Region;
+                character.Inventory.Items.Add(shirt);
+            }
 
             //Get Pants
             random = new CryptoRandom();
             int pants_color = random.Next(0, Handler.Colors.Length);
 
-            Item pants = InventoryUtil.NewItem(assets.GetItem(Handler.Colors[pants_color] + " Pants"));
-            pants.Equipped = true;
-            pants.Assignment = "Pants Slot";
-            pants.Image = character.Image;
-            pants.Region = character.Region;
-            pants.Visible = false;
-            InventoryManager.Inventories.Add(pants.Inventory);
-            character.Inventory.Items.Add(pants);
+            Item? pants = InventoryUtil.NewItem(assets?.GetItem(Handler.Colors[pants_color] + " Pants"));
+            if (pants != null)
+            {
+                pants.Equipped = true;
+                pants.Assignment = "Pants Slot";
+                pants.Image = character.Image;
+                pants.Region = character.Region;
+                pants.Visible = false;
+                InventoryManager.Inventories.Add(pants.Inventory);
+                character.Inventory.Items.Add(pants);
+            }
 
             //Get Shoes
             random = new CryptoRandom();
             int shoes_color = random.Next(0, Handler.Colors.Length);
 
-            Item shoes = InventoryUtil.NewItem(assets.GetItem(Handler.Colors[shoes_color] + " Shoes"));
-            shoes.Equipped = true;
-            shoes.Assignment = "Shoes Slot";
-            shoes.Image = character.Image;
-            shoes.Region = character.Region;
-            shoes.Visible = false;
-            character.Inventory.Items.Add(shoes);
+            Item? shoes = InventoryUtil.NewItem(assets?.GetItem(Handler.Colors[shoes_color] + " Shoes"));
+            if (shoes != null)
+            {
+                shoes.Equipped = true;
+                shoes.Assignment = "Shoes Slot";
+                shoes.Image = character.Image;
+                shoes.Region = character.Region;
+                shoes.Visible = false;
+                character.Inventory.Items.Add(shoes);
+            }
 
             return character;
         }
@@ -297,8 +318,8 @@ namespace Despicaville.Util
 
         public static List<BodyPart> BodyParts()
         {
-            List<BodyPart> parts = new List<BodyPart>
-            {
+            List<BodyPart> parts =
+            [
                 GenBodyPart("Head", "Head"),
                 GenBodyPart("Neck", "Neck"),
                 GenBodyPart("Torso", "Torso"),
@@ -311,7 +332,7 @@ namespace Despicaville.Util
                 GenBodyPart("Right_Foot", "Right Foot"),
                 GenBodyPart("Left_Leg", "Left Leg"),
                 GenBodyPart("Left_Foot", "Left Foot")
-            };
+            ];
 
             return parts;
         }
@@ -322,8 +343,8 @@ namespace Despicaville.Util
             {
                 Name = name,
                 Description = description,
-                Stats = new List<Property>
-                {
+                Stats =
+                [
                     new Property
                     {
                         Name = "HP",
@@ -342,121 +363,53 @@ namespace Despicaville.Util
                         Max_Value = 100,
                         Value = 0
                     }
-                }
+                ]
             };
         }
 
-        public static string BodyPartToName(string body_part)
+        public static string? BodyPartToName(string body_part)
         {
-            if (body_part == "Head")
+            return body_part switch
             {
-                return "Head";
-            }
-            else if (body_part == "Neck")
-            {
-                return "Neck";
-            }
-            else if (body_part == "Torso")
-            {
-                return "Torso";
-            }
-            else if (body_part == "Groin")
-            {
-                return "Groin";
-            }
-            else if (body_part == "Right_Arm")
-            {
-                return "Right Arm";
-            }
-            else if (body_part == "Right_Hand")
-            {
-                return "Right Hand";
-            }
-            else if (body_part == "Left_Arm")
-            {
-                return "Left Arm";
-            }
-            else if (body_part == "Left_Hand")
-            {
-                return "Left Hand";
-            }
-            else if (body_part == "Right_Leg")
-            {
-                return "Right Leg";
-            }
-            else if (body_part == "Right_Foot")
-            {
-                return "Right Foot";
-            }
-            else if (body_part == "Left_Leg")
-            {
-                return "Left Leg";
-            }
-            else if (body_part == "Left_Foot")
-            {
-                return "Left Foot";
-            }
-
-            return null;
+                "Head" => "Head",
+                "Neck" => "Neck",
+                "Torso" => "Torso",
+                "Groin" => "Groin",
+                "Right_Arm" => "Right Arm",
+                "Right_Hand" => "Right Hand",
+                "Left_Arm" => "Left Arm",
+                "Left_Hand" => "Left Hand",
+                "Right_Leg" => "Right Leg",
+                "Right_Foot" => "Right Foot",
+                "Left_Leg" => "Left Leg",
+                "Left_Foot" => "Left Foot",
+                _ => null,
+            };
         }
 
-        public static string BodyPartFromName(string body_part)
+        public static string? BodyPartFromName(string body_part)
         {
-            if (body_part == "Head")
+            return body_part switch
             {
-                return "Head";
-            }
-            else if (body_part == "Neck")
-            {
-                return "Neck";
-            }
-            else if (body_part == "Torso")
-            {
-                return "Torso";
-            }
-            else if (body_part == "Groin")
-            {
-                return "Groin";
-            }
-            else if (body_part == "Right Arm")
-            {
-                return "Right_Arm";
-            }
-            else if (body_part == "Right Hand")
-            {
-                return "Right_Hand";
-            }
-            else if (body_part == "Left Arm")
-            {
-                return "Left_Arm";
-            }
-            else if (body_part == "Left Hand")
-            {
-                return "Left_Hand";
-            }
-            else if (body_part == "Right Leg")
-            {
-                return "Right_Leg";
-            }
-            else if (body_part == "Right Foot")
-            {
-                return "Right_Foot";
-            }
-            else if (body_part == "Left Leg")
-            {
-                return "Left_Leg";
-            }
-            else if (body_part == "Left Foot")
-            {
-                return "Left_Foot";
-            }
-
-            return null;
+                "Head" => "Head",
+                "Neck" => "Neck",
+                "Torso" => "Torso",
+                "Groin" => "Groin",
+                "Right Arm" => "Right_Arm",
+                "Right Hand" => "Right_Hand",
+                "Left Arm" => "Left_Arm",
+                "Left Hand" => "Left_Hand",
+                "Right Leg" => "Right_Leg",
+                "Right Foot" => "Right_Foot",
+                "Left Leg" => "Left_Leg",
+                "Left Foot" => "Left_Foot",
+                _ => null,
+            };
         }
 
         public static List<Property> Traits(Character character)
         {
-            List<Property> traits = new List<Property>();
+            List<Property> traits = [];
 
             int STR = (int)character.Stats.Strength;
             int END = (int)character.Stats.Endurance;
@@ -717,15 +670,20 @@ namespace Despicaville.Util
 
         public static void UpdateSight(Character character)
         {
+            if (character.Location == null)
+            {
+                return;
+            }
+
             Handler.VisibleTiles.Remove(character.ID);
-            List<Vector2> locations = new List<Vector2>();
+            List<Vector2> locations = [];
 
-            Point starting = new Point((int)character.Location.X, (int)character.Location.Y);
+            Point starting = new((int)character.Location.X, (int)character.Location.Y);
 
-            Scene gameplay = SceneManager.GetScene("Gameplay");
-            Map map = gameplay.World.Maps[0];
-            Layer bottom_tiles = map.GetLayer("BottomTiles");
-            Layer middle_tiles = map.GetLayer("MiddleTiles");
+            Scene? gameplay = SceneManager.GetScene("Gameplay");
+            Map? map = gameplay?.World?.Maps[0];
+            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+            Layer? middle_tiles = map?.GetLayer("MiddleTiles");
 
             Vector2 left_corner;
             Vector2 right_corner;
@@ -739,7 +697,7 @@ namespace Despicaville.Util
 
                 for (int x = (int)left_corner.X; x <= right_corner.X; x++)
                 {
-                    Point dest = new Point(x, (int)left_corner.Y);
+                    Point dest = new(x, (int)left_corner.Y);
 
                     List<Point> points = Utility.GetLine(starting, dest);
 
@@ -755,8 +713,8 @@ namespace Despicaville.Util
                         int X = point.X;
                         int Y = point.Y;
 
-                        Vector2 current_location = new Vector2(X, Y);
-                        Tile bottom_tile = bottom_tiles.GetTile(current_location);
+                        Vector2 current_location = new(X, Y);
+                        Tile? bottom_tile = bottom_tiles?.GetTile(current_location);
 
                         if (!locations.Contains(current_location))
                         {
@@ -770,9 +728,10 @@ namespace Despicaville.Util
                         }
                         else
                         {
-                            Tile middle_tile = middle_tiles.GetTile(current_location);
+                            Tile? middle_tile = middle_tiles?.GetTile(current_location);
                             if (middle_tile != null &&
                                 middle_tile.BlocksSight &&
+                                middle_tile.Name != null &&
                                 !middle_tile.Name.Contains("Open"))
                             {
                                 break;
@@ -792,7 +751,7 @@ namespace Despicaville.Util
 
                 for (int y = (int)left_corner.Y; y <= right_corner.Y; y++)
                 {
-                    Point dest = new Point((int)left_corner.X, y);
+                    Point dest = new((int)left_corner.X, y);
 
                     List<Point> points = Utility.GetLine(starting, dest);
 
@@ -808,8 +767,8 @@ namespace Despicaville.Util
                         int X = point.X;
                         int Y = point.Y;
 
-                        Vector2 current_location = new Vector2(X, Y);
-                        Tile bottom_tile = bottom_tiles.GetTile(current_location);
+                        Vector2 current_location = new(X, Y);
+                        Tile? bottom_tile = bottom_tiles?.GetTile(current_location);
 
                         if (!locations.Contains(current_location))
                         {
@@ -823,9 +782,10 @@ namespace Despicaville.Util
                         }
                         else
                         {
-                            Tile middle_tile = middle_tiles.GetTile(current_location);
+                            Tile? middle_tile = middle_tiles?.GetTile(current_location);
                             if (middle_tile != null &&
                                 middle_tile.BlocksSight &&
+                                middle_tile.Name != null &&
                                 !middle_tile.Name.Contains("Open"))
                             {
                                 break;
@@ -845,7 +805,7 @@ namespace Despicaville.Util
 
                 for (int x = (int)left_corner.X; x <= right_corner.X; x++)
                 {
-                    Point dest = new Point(x, (int)left_corner.Y);
+                    Point dest = new(x, (int)left_corner.Y);
 
                     List<Point> points = Utility.GetLine(starting, dest);
 
@@ -861,8 +821,8 @@ namespace Despicaville.Util
                         int X = point.X;
                         int Y = point.Y;
 
-                        Vector2 current_location = new Vector2(X, Y);
-                        Tile bottom_tile = bottom_tiles.GetTile(current_location);
+                        Vector2 current_location = new(X, Y);
+                        Tile? bottom_tile = bottom_tiles?.GetTile(current_location);
 
                         if (!locations.Contains(current_location))
                         {
@@ -876,9 +836,10 @@ namespace Despicaville.Util
                         }
                         else
                         {
-                            Tile middle_tile = middle_tiles.GetTile(current_location);
+                            Tile? middle_tile = middle_tiles?.GetTile(current_location);
                             if (middle_tile != null &&
                                 middle_tile.BlocksSight &&
+                                middle_tile.Name != null &&
                                 !middle_tile.Name.Contains("Open"))
                             {
                                 break;
@@ -898,7 +859,7 @@ namespace Despicaville.Util
 
                 for (int y = (int)right_corner.Y; y <= left_corner.Y; y++)
                 {
-                    Point dest = new Point((int)left_corner.X, y);
+                    Point dest = new((int)left_corner.X, y);
 
                     List<Point> points = Utility.GetLine(starting, dest);
 
@@ -914,8 +875,8 @@ namespace Despicaville.Util
                         int X = point.X;
                         int Y = point.Y;
 
-                        Vector2 current_location = new Vector2(X, Y);
-                        Tile bottom_tile = bottom_tiles.GetTile(current_location);
+                        Vector2 current_location = new(X, Y);
+                        Tile? bottom_tile = bottom_tiles?.GetTile(current_location);
 
                         if (!locations.Contains(current_location))
                         {
@@ -929,9 +890,10 @@ namespace Despicaville.Util
                         }
                         else
                         {
-                            Tile middle_tile = middle_tiles.GetTile(current_location);
+                            Tile? middle_tile = middle_tiles?.GetTile(current_location);
                             if (middle_tile != null &&
                                 middle_tile.BlocksSight &&
+                                middle_tile.Name != null &&
                                 !middle_tile.Name.Contains("Open"))
                             {
                                 break;
@@ -943,33 +905,36 @@ namespace Despicaville.Util
                 #endregion
             }
 
-            List<Tile> tiles = new List<Tile>();
-            Texture2D selection = AssetManager.Textures["Selection"];
+            List<Tile> tiles = [];
 
-            int count = locations.Count;
-            for (int i = 0; i < count; i++)
+            Texture2D? selection = Handler.GetTexture("Selection");
+            if (selection != null)
             {
-                Vector2 location = locations[i];
-                Location tileLocation = new Location(location.X, location.Y, 0);
-
-                Tile new_tile = new Tile
+                int count = locations.Count;
+                for (int i = 0; i < count; i++)
                 {
-                    Location = tileLocation,
-                    Texture = selection,
-                    Image = new Rectangle(0, 0, selection.Width, selection.Height)
-                };
+                    Vector2 location = locations[i];
+                    Location tileLocation = new(location.X, location.Y, 0);
 
-                Tile existing = bottom_tiles.GetTile(location);
-                if (existing != null)
-                {
-                    new_tile.Region = existing.Region;
+                    Tile new_tile = new()
+                    {
+                        Location = tileLocation,
+                        Texture = selection,
+                        Image = new Rectangle(0, 0, selection.Width, selection.Height)
+                    };
+
+                    Tile? existing = bottom_tiles?.GetTile(location);
+                    if (existing != null)
+                    {
+                        new_tile.Region = existing.Region;
+                    }
+
+                    new_tile.DrawColor = Color.White;
+                    tiles.Add(new_tile);
                 }
 
-                new_tile.DrawColor = Color.White;
-                tiles.Add(new_tile);
+                Handler.VisibleTiles.Add(character.ID, tiles);
             }
-
-            Handler.VisibleTiles.Add(character.ID, tiles);
         }
 
         public static void UpdateGear(Character character)
@@ -984,9 +949,21 @@ namespace Despicaville.Util
             }
         }
 
-        public static ProgressBar GenTaskbar(Character character, int max_value)
+        public static ProgressBar? GenTaskbar(Character character, int max_value)
         {
-            Texture2D baseTexture = AssetManager.Textures["ProgressBase"];
+            if (Main.Game == null ||
+                character.Region == null)
+            {
+                return null;
+            }
+
+            Texture2D? baseTexture = Handler.GetTexture("ProgressBase");
+            if (baseTexture == null)
+            {
+                return null;
+            }
+
+            Texture2D? barTexture = Handler.GetTexture("ProgressBar");
 
             return new ProgressBar
             {
@@ -994,7 +971,7 @@ namespace Despicaville.Util
                 Value = 0,
                 Rate = 1,
                 Base_Texture = baseTexture,
-                Bar_Texture = AssetManager.Textures["ProgressBar"],
+                Bar_Texture = barTexture,
                 Bar_Image = new Rectangle(0, 0, 0, baseTexture.Height),
                 Base_Region = new Region(character.Region.X + (Main.Game.TileSize.X / 8), character.Region.Y + character.Region.Height - (Main.Game.TileSize.Y / 4), Main.Game.TileSize.X - (Main.Game.TileSize.X / 4), Main.Game.TileSize.Y / 8),
                 DrawColor = new Color(0, 255, 0, 255),
@@ -1026,6 +1003,11 @@ namespace Despicaville.Util
 
         public static void UpdateConsciousness(Character character)
         {
+            if (TimeManager.Now == null)
+            {
+                return;
+            }
+
             if (character.Stats.Stamina <= 0)
             {
                 character.Stats.Consciousness++;
@@ -1080,9 +1062,18 @@ namespace Despicaville.Util
 
             foreach (BodyPart part in character.BodyParts)
             {
-                Property hp = part.GetStat("HP");
+                Property? hp = part.GetStat("HP");
+                if (hp == null)
+                {
+                    continue;
+                }
 
-                Property pain = part.GetStat("Pain");
+                Property? pain = part.GetStat("Pain");
+                if (pain == null)
+                {
+                    continue;
+                }
+
                 pain.Value = 0;
 
                 foreach (Wound wound in part.Wounds)
@@ -1183,16 +1174,16 @@ namespace Despicaville.Util
                 total += pain.Value;
             }
 
-            Property painKiller = character.GetStatusEffect("Painkillers");
+            Property? painKiller = character.GetStatusEffect("Painkillers");
             if (painKiller != null)
             {
                 total -= painKiller.Value;
             }
 
-            Property adrenaline = character.GetStatusEffect("Adrenaline");
+            Property? adrenaline = character.GetStatusEffect("Adrenaline");
             if (adrenaline != null)
             {
-                total -= painKiller.Value;
+                total -= adrenaline.Value;
             }
 
             character.Stats.Pain = total;
@@ -1231,6 +1222,11 @@ namespace Despicaville.Util
 
         public static void UpdateBloodLoss(Character character)
         {
+            if (character.Location == null)
+            {
+                return;
+            }
+
             float total = 0;
 
             foreach (BodyPart part in character.BodyParts)
@@ -1288,15 +1284,13 @@ namespace Despicaville.Util
                     character.Stats.Blood = 0;
                 }
 
-                Map map = WorldUtil.GetMap();
+                Map? map = WorldUtil.GetMap();
                 if (map != null)
                 {
-                    Layer bottom_tiles = map.GetLayer("BottomTiles");
-
-                    Layer effect_tiles = map.GetLayer("EffectTiles");
+                    Layer? effect_tiles = map.GetLayer("EffectTiles");
                     if (effect_tiles != null)
                     {
-                        Tile blood = null;
+                        Tile? blood = null;
 
                         bool trail_north_found = false;
                         bool trail_east_found = false;
@@ -1354,27 +1348,27 @@ namespace Despicaville.Util
                                 if (blood.Value < 0.1f)
                                 {
                                     blood.Name = "Small Blood";
-                                    blood.Texture = AssetManager.Textures["Blood_Small"];
+                                    blood.Texture = Handler.GetTexture("Blood_Small");
                                 }
                                 else if (blood.Value < 1)
                                 {
                                     blood.Name = "Medium Blood";
-                                    blood.Texture = AssetManager.Textures["Blood_Medium"];
+                                    blood.Texture = Handler.GetTexture("Blood_Medium");
                                 }
                                 else if (blood.Value < 10)
                                 {
                                     blood.Name = "Large Blood";
-                                    blood.Texture = AssetManager.Textures["Blood_Large"];
+                                    blood.Texture = Handler.GetTexture("Blood_Large");
                                 }
                                 else if (blood.Value < 100)
                                 {
                                     blood.Name = "Pool Blood";
-                                    blood.Texture = AssetManager.Textures["Blood_Pool"];
+                                    blood.Texture = Handler.GetTexture("Blood_Pool");
                                 }
                                 else if (blood.Value >= 1000)
                                 {
                                     blood.Name = "Puddle Blood";
-                                    blood.Texture = AssetManager.Textures["Blood_Puddle"];
+                                    blood.Texture = Handler.GetTexture("Blood_Puddle");
                                 }
 
                                 if (blood.Texture != null)
@@ -1460,6 +1454,11 @@ namespace Despicaville.Util
 
         public static void Fall(Character character)
         {
+            if (TimeManager.Now == null)
+            {
+                return;
+            }
+
             character.Laying = true;
 
             if (character.Type == "Player")
