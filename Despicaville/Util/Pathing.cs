@@ -6,7 +6,7 @@ using OP_Engine.Tiles;
 
 namespace Despicaville.Util
 {
-    public static class DPathing
+    public static class Pathing
     {
         private static List<Character> nearby_characters = [];
 
@@ -356,8 +356,7 @@ namespace Despicaville.Util
                     if (middle_tile.BlocksMovement)
                     {
                         if (middle_tile.Name != null &&
-                            !middle_tile.Name.Contains("Door") &&
-                            !middle_tile.Name.Contains("Window"))
+                            !middle_tile.Name.Contains("Door"))
                         {
                             return false;
                         }

@@ -178,7 +178,8 @@ namespace Despicaville.JobTasks
                 {
                     Layer? middle_tiles = map.GetLayer("MiddleTiles");
                     Tile? tile = middle_tiles?.GetTile(character.Destination.ToVector2);
-                    if (tile?.Name != null)
+                    if (tile != null &&
+                        !string.IsNullOrEmpty(tile.Name))
                     {
                         if (tile.Name.Contains("Window") &&
                             tile.Name.Contains("Closed"))
@@ -201,7 +202,7 @@ namespace Despicaville.JobTasks
                                 Name = "OpenDoor",
                                 OwnerID = character.ID,
                                 StartTime = new TimeHandler(TimeManager.Now),
-                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(10)),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
                                 Location = character.Destination,
                                 Direction = Direction
                             });
@@ -214,7 +215,7 @@ namespace Despicaville.JobTasks
                             Name = "Wait",
                             OwnerID = character.ID,
                             StartTime = new TimeHandler(TimeManager.Now),
-                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(21))
+                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(30))
                         });
                     }
                 }

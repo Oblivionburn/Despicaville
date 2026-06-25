@@ -209,10 +209,10 @@ namespace Despicaville.Util
             character.Stats.Stamina = 100;
             character.Stats.Comfort = 100;
 
-            character.Stats.Hunger = 60;
-            character.Stats.Thirst = 60;
+            character.Stats.Hunger = 30;
+            character.Stats.Thirst = 0;
             character.Stats.Boredom = 0;
-            character.Stats.Bladder = 0;
+            character.Stats.Bladder = 60;
             character.Stats.Grime = 0;
             character.Stats.Pain = 0;
             character.Stats.Paranoia = 0;

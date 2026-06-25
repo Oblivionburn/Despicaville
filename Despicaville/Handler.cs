@@ -69,7 +69,8 @@ namespace Despicaville
 
         public static Dictionary<long, List<Tile>> VisibleTiles = [];
 
-        public static List<Tile> Furniture = [];
+        public static List<Tile> Furniture = []; //List of furniture assets, not stuff in the world
+
         public static List<Tile> TopFurniture = [];
         public static List<Tile> MiddleFurniture = [];
         public static Dictionary<long, List<Tile>> OwnedFurniture = [];

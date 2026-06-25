@@ -41,20 +41,30 @@ namespace Despicaville
                 return;
             }
 
-            if (character.Stats.Thirst >= 60)
+            if (character.Stats.Bladder >= 60)
+            {
+                FindToilet(character, true);
+                return;
+            }
+            else if (character.Stats.Thirst >= 60)
             {
                 FindWater(character, true);
+                return;
+            }
+            else if (character.Stats.Hunger >= 60)
+            {
+                FindFood(character, true);
+                return;
+            }
+
+            if (character.Stats.Bladder >= 30)
+            {
+                FindToilet(character, false);
                 return;
             }
             else if (character.Stats.Thirst >= 30)
             {
                 FindWater(character, false);
-                return;
-            }
-
-            if (character.Stats.Hunger >= 60)
-            {
-                FindFood(character, true);
                 return;
             }
             else if (character.Stats.Hunger >= 30)
@@ -63,11 +73,7 @@ namespace Despicaville
                 return;
             }
 
-            if (character.Stats.Thirst < 30 &&
-                character.Stats.Hunger < 30)
-            {
-                Wander(character);
-            }
+            Wander(character);
         }
 
         public static void Attacking(Character character)
@@ -196,7 +202,7 @@ namespace Despicaville
                 {
                     if (WorldUtil.NextTo(sink.Location, character.Location))
                     {
-                        Direction direction = WorldUtil.GetFurnitureDirection(sink, character);
+                        Direction direction = WorldUtil.GetDirection(character.Location, sink.Location);
                         if (direction != character.Direction)
                         {
                             character.Job.Tasks.Add(new Turn
@@ -235,7 +241,7 @@ namespace Despicaville
                             middle_tiles != null &&
                             room_tiles != null)
                         {
-                            PathTo(bottom_tiles, middle_tiles, room_tiles, sink, character, desperate);
+                            PathTo(bottom_tiles, middle_tiles, room_tiles, sink, character, desperate, true);
                         }
                     }
 
@@ -272,7 +278,7 @@ namespace Despicaville
                     {
                         if (WorldUtil.NextTo(fridge.Location, character.Location))
                         {
-                            Direction direction = WorldUtil.GetFurnitureDirection(fridge, character);
+                            Direction direction = WorldUtil.GetDirection(character.Location, fridge.Location);
                             if (direction != character.Direction)
                             {
                                 character.Job.Tasks.Add(new Turn
@@ -326,7 +332,7 @@ namespace Despicaville
                                 middle_tiles != null &&
                                 room_tiles != null)
                             {
-                                PathTo(bottom_tiles, middle_tiles, room_tiles, fridge, character, desperate);
+                                PathTo(bottom_tiles, middle_tiles, room_tiles, fridge, character, desperate, true);
                             }
                         }
 
@@ -408,7 +414,7 @@ namespace Despicaville
                     {
                         if (WorldUtil.NextTo(fridge.Location, character.Location))
                         {
-                            Direction direction = WorldUtil.GetFurnitureDirection(fridge, character);
+                            Direction direction = WorldUtil.GetDirection(character.Location, fridge.Location);
                             if (direction != character.Direction)
                             {
                                 character.Job.Tasks.Add(new Turn
@@ -462,12 +468,115 @@ namespace Despicaville
                                 middle_tiles != null &&
                                 room_tiles != null)
                             {
-                                PathTo(bottom_tiles, middle_tiles, room_tiles, fridge, character, desperate);
+                                PathTo(bottom_tiles, middle_tiles, room_tiles, fridge, character, desperate, true);
                             }
                         }
 
                         return;
                     }
+                }
+            }
+
+            Wander(character);
+        }
+
+        public static void FindToilet(Character character, bool desperate)
+        {
+            if (TimeManager.Now == null ||
+                character.Location == null)
+            {
+                return;
+            }
+
+            //Are we already pathing to something?
+            if (character.Path.Count > 0)
+            {
+                ContinuePathing(character, desperate);
+                return;
+            }
+
+            //Where is the nearest toilet?
+            List<Tile> toilets = WorldUtil.GetFurniture_Unused(Handler.MiddleFurniture, "Toilet");
+            if (toilets.Count > 0)
+            {
+                Tile? toilet = WorldUtil.GetClosestTile(toilets, character);
+                if (toilet != null)
+                {
+                    bool nextTo = false;
+                    bool okay = false;
+
+                    if (WorldUtil.NextTo(toilet.Location, character.Location) &&
+                        character.Gender == "Male")
+                    {
+                        nextTo = true;
+                        okay = true;
+                    }
+                    else if (toilet.Location.X == character.Location.X &&
+                             toilet.Location.Y == character.Location.Y)
+                    {
+                        okay = true;
+                    }
+
+                    if (okay)
+                    {
+                        if (nextTo)
+                        {
+                            Direction direction = WorldUtil.GetDirection(character.Location, toilet.Location);
+                            if (direction != character.Direction)
+                            {
+                                character.Job.Tasks.Add(new Turn
+                                {
+                                    Name = "Turn",
+                                    OwnerID = character.ID,
+                                    StartTime = new TimeHandler(TimeManager.Now),
+                                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
+                                    Direction = direction
+                                });
+                                return;
+                            }
+                        }
+                        else if (toilet.Direction != character.Direction)
+                        {
+                            character.Job.Tasks.Add(new Turn
+                            {
+                                Name = "Turn",
+                                OwnerID = character.ID,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
+                                Direction = toilet.Direction
+                            });
+                            return;
+                        }
+
+                        TimeSpan duration = TimeSpan.FromSeconds(character.Stats.Bladder);
+
+                        character.Job.Tasks.Add(new UseToilet
+                        {
+                            Name = "UseToilet",
+                            OwnerID = character.ID,
+                            Location = toilet.Location,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, duration),
+                            TaskBar = CharacterUtil.GenTaskbar(character, (int)duration.TotalMilliseconds)
+                        });
+                        return;
+                    }
+                    else
+                    {
+                        Map? map = WorldUtil.GetMap();
+                        Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+                        Layer? middle_tiles = map?.GetLayer("MiddleTiles");
+                        Layer? room_tiles = map?.GetLayer("RoomTiles");
+
+                        if (bottom_tiles != null &&
+                            middle_tiles != null &&
+                            room_tiles != null)
+                        {
+                            PathTo(bottom_tiles, middle_tiles, room_tiles, toilet, character, desperate, character.Gender == "Male");
+                        }
+                    }
+
+                    return;
                 }
             }
 
@@ -508,7 +617,7 @@ namespace Despicaville
 
             if (location != null)
             {
-                CloseDoor task = new()
+                character.Job.Tasks.Add(new CloseDoor
                 {
                     Name = "CloseDoor",
                     OwnerID = character.ID,
@@ -516,8 +625,7 @@ namespace Despicaville
                     EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
                     Location = location,
                     Direction = direction
-                };
-                character.Job.Tasks.Add(task);
+                });
             }
         }
 
@@ -555,7 +663,7 @@ namespace Despicaville
 
             if (location != null)
             {
-                CloseWindow task = new()
+                character.Job.Tasks.Add(new CloseWindow
                 {
                     Name = "CloseWindow",
                     OwnerID = character.ID,
@@ -563,8 +671,7 @@ namespace Despicaville
                     EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(2)),
                     Location = location,
                     Direction = direction
-                };
-                character.Job.Tasks.Add(task);
+                });
             }
         }
 
@@ -605,7 +712,7 @@ namespace Despicaville
                     Name = "Wait",
                     OwnerID = character.ID,
                     StartTime = new TimeHandler(TimeManager.Now),
-                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(10))
+                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(30))
                 });
             }
             else if (choice > 5 &&
@@ -628,6 +735,14 @@ namespace Despicaville
                     StartTime = new TimeHandler(TimeManager.Now),
                     EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
                     Direction = direction
+                });
+
+                character.Job.Tasks.Add(new Wait
+                {
+                    Name = "Wait",
+                    OwnerID = character.ID,
+                    StartTime = new TimeHandler(TimeManager.Now),
+                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(10))
                 });
             }
         }
@@ -996,7 +1111,7 @@ namespace Despicaville
             }
         }
 
-        private static void PathTo(Layer bottom_tiles, Layer middle_tiles, Layer room_tiles, Tile furniture, Character? character, bool desperate)
+        private static void PathTo(Layer bottom_tiles, Layer middle_tiles, Layer room_tiles, Tile furniture, Character? character, bool desperate, bool stop_next_to_tile)
         {
             if (character?.Location == null)
             {
@@ -1020,7 +1135,7 @@ namespace Despicaville
                 if (WorldUtil.Furniture_InRoom(furniture, character))
                 {
                     int distance = WorldUtil.GetDistance(character.Location, furniture.Location) * 2;
-                    path = DPathing.GetPath(bottom_tiles, middle_tiles, character, furniture, distance, true);
+                    path = Pathing.GetPath(bottom_tiles, middle_tiles, character, furniture, distance, stop_next_to_tile);
                 }
                 else
                 {
@@ -1092,7 +1207,7 @@ namespace Despicaville
                         if (tile != null)
                         {
                             int distance = WorldUtil.GetDistance(character.Location, tile.Location) * 4;
-                            path = DPathing.GetPath(bottom_tiles, middle_tiles, character, tile, distance, false);
+                            path = Pathing.GetPath(bottom_tiles, middle_tiles, character, tile, distance, stop_next_to_tile);
                         }
                     }
                 }
@@ -1128,7 +1243,7 @@ namespace Despicaville
                 else
                 {
                     int distance = WorldUtil.GetDistance(character.Location, furniture.Location) * 8;
-                    path = DPathing.GetPath(bottom_tiles, middle_tiles, character, furniture, distance, true);
+                    path = Pathing.GetPath(bottom_tiles, middle_tiles, character, furniture, distance, stop_next_to_tile);
                 }
             }
 

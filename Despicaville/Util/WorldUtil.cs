@@ -296,46 +296,21 @@ namespace Despicaville.Util
 
         public static Direction GetDirection(Location source, Location target)
         {
-            if (target.X > source.X)
+            if (target.Y < source.Y)
             {
-                if (target.Y > source.Y)
-                {
-                    return Direction.SouthEast;
-                }
-                else if (target.Y < source.Y)
-                {
-                    return Direction.NorthEast;
-                }
-                else if (target.Y == source.Y)
-                {
-                    return Direction.East;
-                }
+                return Direction.North;
+            }
+            else if (target.X > source.X)
+            {
+                return Direction.East;
+            }
+            else if (target.Y > source.Y)
+            {
+                return Direction.South;
             }
             else if (target.X < source.X)
             {
-                if (target.Y > source.Y)
-                {
-                    return Direction.SouthWest;
-                }
-                else if (target.Y < source.Y)
-                {
-                    return Direction.NorthWest;
-                }
-                else if (target.Y == source.Y)
-                {
-                    return Direction.West;
-                }
-            }
-            else if (target.X == source.X)
-            {
-                if (target.Y > source.Y)
-                {
-                    return Direction.South;
-                }
-                else if (target.Y < source.Y)
-                {
-                    return Direction.North;
-                }
+                return Direction.West;
             }
 
             return Direction.Nowhere;
@@ -1199,6 +1174,27 @@ namespace Despicaville.Util
             return null;
         }
 
+        public static List<Tile> GetFurniture_Unused(List<Tile> furniture, string name)
+        {
+            List<Tile> result = [];
+
+            Tile[] tiles = furniture.ToArray();
+
+            int count = tiles.Length;
+            for (int i = 0; i < count; i++)
+            {
+                Tile tile = tiles[i];
+                if (tile.Texture != null &&
+                    tile.Texture.Name.Contains(name) &&
+                    !tile.Texture.Name.Contains("Used"))
+                {
+                    result.Add(tile);
+                }
+            }
+
+            return result;
+        }
+
         public static Region? GetSize(Tile tile)
         {
             if (Main.Game == null)
@@ -1288,37 +1284,6 @@ namespace Despicaville.Util
             }
 
             return tiles;
-        }
-
-        public static Direction GetFurnitureDirection(Tile tile, Character character)
-        {
-            if (tile.Location == null ||
-                character.Location == null)
-            {
-                return Direction.Nowhere;
-            }
-
-            if (tile.Location.X > character.Location.X)
-            {
-                return Direction.East;
-            }
-            else if (tile.Location.X < character.Location.X)
-            {
-                return Direction.West;
-            }
-            else if (tile.Location.X == character.Location.X)
-            {
-                if (tile.Location.Y > character.Location.Y)
-                {
-                    return Direction.South;
-                }
-                else if (tile.Location.Y < character.Location.Y)
-                {
-                    return Direction.North;
-                }
-            }
-
-            return Direction.Nowhere;
         }
 
         public static bool Furniture_InRoom(Tile furniture, Character character)
