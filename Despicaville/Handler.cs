@@ -69,9 +69,9 @@ namespace Despicaville
 
         public static Dictionary<long, List<Tile>> VisibleTiles = [];
 
-        public static List<Tile> Furniture = new List<Tile>();
-        public static List<Tile> TopFurniture = new List<Tile>();
-        public static List<Tile> MiddleFurniture = new List<Tile>();
+        public static List<Tile> Furniture = [];
+        public static List<Tile> TopFurniture = [];
+        public static List<Tile> MiddleFurniture = [];
         public static Dictionary<long, List<Tile>> OwnedFurniture = [];
 
         public static Dictionary<string, string> Stats = [];

@@ -44,40 +44,6 @@ namespace Despicaville.Scenes
                     AssetManager.PlayMusic_Random("Loading", true);
                 }
 
-                ProgressBar? bar = Menu?.GetProgressBar("Loading1");
-                if (bar != null)
-                {
-                    bar.Max_Value = 1;
-                }
-
-                UpdateMessagebar();
-
-                //if (Handler.Loading_Stage == 0)
-                //{
-                //    #region Load Textures
-                //
-                //    if (Handler.Loading_Percent == 0 &&
-                //        Handler.LoadingTask == null)
-                //    {
-                //        Handler.LoadingTokenSource = new CancellationTokenSource();
-                //        Handler.LoadingTask = Task.Factory.StartNew(() => Handler.LoadWorldTextures(), Handler.LoadingTokenSource.Token);
-                //    }
-                //
-                //    if (Handler.LoadingTask != null)
-                //    {
-                //        if (Handler.LoadingTask.Status == TaskStatus.RanToCompletion)
-                //        {
-                //            Handler.LoadingTask = null;
-                //            Handler.LoadingTokenSource.Dispose();
-                //            Handler.Loading_Percent = 0;
-                //            Handler.Loading_Stage++;
-                //        }
-                //    }
-                //
-                //    UpdateLoadbar();
-                //
-                //    #endregion
-                //}
                 if (Handler.Loading_Stage == 0)
                 {
                     #region Load Mods
@@ -86,7 +52,7 @@ namespace Despicaville.Scenes
                         Handler.LoadingTask == null)
                     {
                         Handler.LoadingTokenSource = new CancellationTokenSource();
-                        Handler.LoadingTask = Task.Factory.StartNew(() => ModUtil.LoadMods(), Handler.LoadingTokenSource.Token);
+                        Handler.LoadingTask = Task.Factory.StartNew(ModUtil.LoadMods, Handler.LoadingTokenSource.Token);
                     }
 
                     if (Handler.LoadingTask != null)
@@ -118,6 +84,8 @@ namespace Despicaville.Scenes
                 {
                     #region GenMap
 
+                    UpdateMessagebar();
+
                     if (Handler.Loading_Percent == 0 &&
                         Handler.LoadingTask == null)
                     {
@@ -144,6 +112,8 @@ namespace Despicaville.Scenes
                 {
                     #region GenTown
 
+                    UpdateMessagebar();
+
                     if (Handler.Loading_Percent == 0 &&
                         Handler.LoadingTask == null)
                     {
@@ -169,6 +139,8 @@ namespace Despicaville.Scenes
                 else if (Handler.Loading_Stage == 4)
                 {
                     #region GenLoot
+
+                    UpdateMessagebar();
 
                     if (Handler.Loading_Percent == 0 &&
                         Handler.LoadingTask == null)
@@ -206,6 +178,7 @@ namespace Despicaville.Scenes
 
                     Handler.Loading_Percent = 100;
                     Handler.Loading_Message = "Ready!";
+                    UpdateMessagebar();
                     UpdateLoadbar();
 
                     Handler.Loading_Stage++;
@@ -295,8 +268,10 @@ namespace Despicaville.Scenes
                 Handler.LoadingTask = null;
             }
 
-            Handler.Loading_Stage = 3;
+            Handler.CharGen_Stage = 0;
+            Handler.Loading_Stage = 2;
             Handler.Loading_Percent = 0;
+            Handler.Loading_Message = "";
 
             Scene? gameplay = SceneManager.GetScene("Gameplay");
             if (gameplay != null)
@@ -330,13 +305,11 @@ namespace Despicaville.Scenes
                 bar.Bar_Texture != null &&
                 bar.Base_Region != null)
             {
-                bar.Value = Handler.Loading_Stage;
-
-                float CurrentVal = ((float)bar.Bar_Texture.Width / 100) * bar.Value;
-                bar.Bar_Image = new Rectangle(bar.Bar_Image.X, bar.Bar_Image.Y, (int)CurrentVal, bar.Bar_Image.Height);
-
-                CurrentVal = ((float)bar.Base_Region.Width / 100) * bar.Value;
-                bar.Bar_Region = new Region(bar.Base_Region.X, bar.Base_Region.Y, (int)CurrentVal, bar.Base_Region.Height);
+                bar.Value = Handler.Loading_Stage * 20;
+                if (bar.Value > bar.Max_Value)
+                {
+                    bar.Value = bar.Max_Value;
+                }
             }
         }
 

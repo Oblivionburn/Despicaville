@@ -4,8 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using Microsoft.Xna.Framework;
+using OP_Engine.Controls;
 using OP_Engine.Enums;
 using OP_Engine.Inventories;
+using OP_Engine.Menus;
+using OP_Engine.Scenes;
 using OP_Engine.Sounds;
 using OP_Engine.Tiles;
 using OP_Engine.Utility;
@@ -35,7 +38,7 @@ namespace Despicaville.Util
             WorldGen.Blocks.Clear();
             Handler.Furniture.Clear();
 
-            DirectoryInfo modsBaseDir = new DirectoryInfo(AssetManager.Directories["Mods"]);
+            DirectoryInfo modsBaseDir = new(AssetManager.Directories["Mods"]);
             DirectoryInfo[] modsDirs = modsBaseDir.GetDirectories();
             foreach (DirectoryInfo modDir in modsDirs)
             {
@@ -77,6 +80,8 @@ namespace Despicaville.Util
                 }
                 LoadMaps(modName);
             }
+
+            UpdateLoadingBar(100);
         }
 
         private static void ScanTextures(DirectoryInfo dir)
@@ -129,6 +134,7 @@ namespace Despicaville.Util
         {
             Handler.Loading_Percent = 0;
             Handler.Loading_Message = "Loading " + modName + " Sounds...";
+            UpdateLoadingBar(20);
 
             int current = 0;
             int total = Sounds.Count;
@@ -137,7 +143,7 @@ namespace Despicaville.Util
             {
                 FileInfo fileInfo = Sounds[i];
 
-                Sound sound = new Sound
+                Sound sound = new()
                 {
                     Extension = fileInfo.Extension,
                     Name = Path.GetFileNameWithoutExtension(fileInfo.FullName),
@@ -151,7 +157,7 @@ namespace Despicaville.Util
 
                 if (!AssetManager.Sounds.ContainsKey(sound.Type))
                 {
-                    Dictionary<string, Sound> sounds = new Dictionary<string, Sound>
+                    Dictionary<string, Sound> sounds = new()
                     {
                         { sound.Name, sound }
                     };
@@ -189,6 +195,7 @@ namespace Despicaville.Util
         {
             Handler.Loading_Percent = 0;
             Handler.Loading_Message = "Loading " + modName + " Items...";
+            UpdateLoadingBar(40);
 
             int current = 0;
             int total = Items.Count;
@@ -243,6 +250,7 @@ namespace Despicaville.Util
         {
             Handler.Loading_Percent = 0;
             Handler.Loading_Message = "Loading " + modName + " Maps...";
+            UpdateLoadingBar(80);
 
             int current = 0;
             int total = Maps.Count;
@@ -491,6 +499,7 @@ namespace Despicaville.Util
         {
             Handler.Loading_Percent = 0;
             Handler.Loading_Message = "Loading " + modName + " Furniture...";
+            UpdateLoadingBar(60);
 
             int current = 0;
             int total = Furniture.Count;
@@ -534,7 +543,7 @@ namespace Despicaville.Util
                 switch (reader.Name)
                 {
                     case "Properties":
-                        Tile tile = new Tile();
+                        Tile tile = new();
                         LoadFurnitureProperties(reader, tile);
                         Handler.Furniture.Add(tile);
                         break;
@@ -615,6 +624,28 @@ namespace Despicaville.Util
 
                         tile.LightColor = new Color(R, G, B, 255);
                         break;
+                }
+            }
+        }
+
+        private static void UpdateLoadingBar(float value)
+        {
+            Scene? loading = SceneManager.GetScene("Loading");
+            Menu? loading_menu = loading?.Menu;
+
+            Label? label = loading_menu?.GetLabel("Loading1");
+            if (label != null)
+            {
+                label.Text = Handler.Loading_Message;
+            }
+
+            ProgressBar? bar = loading_menu?.GetProgressBar("Loading1");
+            if (bar != null)
+            {
+                bar.Value = value;
+                if (bar.Value > bar.Max_Value)
+                {
+                    bar.Value = bar.Max_Value;
                 }
             }
         }

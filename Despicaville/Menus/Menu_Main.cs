@@ -126,18 +126,11 @@ namespace Despicaville.Menus
                 Visible = false;
                 Active = false;
 
-                Picture? title = SceneManager.GetScene("Title")?.Menu?.GetPicture("Title");
-                if (title != null)
-                {
-                    title.Visible = false;
-                }
-
-                Menu? mapEditor = MenuManager.GetMenu("MapEditor");
+                Scene? mapEditor = SceneManager.GetScene("MapEditor");
                 if (mapEditor != null)
                 {
+                    SceneManager.ChangeScene(mapEditor);
                     mapEditor.Load();
-                    mapEditor.Visible = true;
-                    mapEditor.Active = true;
                 }
             }
             else if (button.Name == "Main")

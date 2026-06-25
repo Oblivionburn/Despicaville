@@ -216,6 +216,7 @@ namespace Despicaville
         {
             SceneManager.Scenes.Add(new Logo());
             SceneManager.Scenes.Add(new Title(Content));
+            SceneManager.Scenes.Add(new MapEditor(Content));
             SceneManager.Scenes.Add(new Loading(Content));
             SceneManager.Scenes.Add(new CharGen(Content));
             SceneManager.Scenes.Add(new Gameplay(Content));
@@ -226,7 +227,6 @@ namespace Despicaville
             MenuManager.Menus.Add(new Menu_Main(Content));
             MenuManager.Menus.Add(new Menu_Options(Content));
             MenuManager.Menus.Add(new Menu_Controls(Content));
-            MenuManager.Menus.Add(new Menu_MapEditor(Content));
             MenuManager.Menus.Add(new Menu_Inventory());
             MenuManager.Menus.Add(new Menu_Combat(Content));
             MenuManager.Menus.Add(new Menu_Health(Content));
