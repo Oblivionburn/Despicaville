@@ -11,7 +11,8 @@
 - Pulling/pushing mechanics
 - Combat with body-part targeting, hit chance calculations, and different weapons taking different amounts of time to attack with (e.g. stabs are quick while swinging a sledgehammer takes longer)
 - Character health based on pain from wounds (e.g. bruises, cuts, stabs, etc) and blood remaining in body
-- Very basic NPC AI to satisfy survival needs (eating and drinking)
+- NPC AI to satisfy survival needs (eating and drinking)
+- NPC jobs and daily schedules
 
 ### Planned features not yet implemented:
 - More dynamic and personality-based reactions for NPCs being attacked
@@ -19,7 +20,6 @@
 - NPCs witnessing crimes calling the police and/or attempting citizens arrest
 - Police investigation of crimes
 - Vehicles/driving
-- NPC job/ai schedules
 - Key-word based NPC dialogue
 - Implementing memory system for NPCs (tracking of in-game events that they experience/witness)
 - Dialogue between NPCs that the player can overhear, and a means for NPCs to share/spread event knowledge from their memory
