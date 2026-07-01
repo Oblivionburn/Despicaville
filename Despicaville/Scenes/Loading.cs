@@ -338,46 +338,45 @@ namespace Despicaville.Scenes
 
         private void Finish()
         {
-            Scene? gameplay = SceneManager.GetScene("Gameplay");
-            if (gameplay != null)
+            Map? map = WorldUtil.GetMap();
+            if (map == null)
             {
-                World? world = gameplay.World;
-                if (world != null)
+                return;
+            }
+
+            Character? player = Handler.Player;
+            if (player == null)
+            {
+                return;
+            }
+
+            WorldUtil.AssignPlayerBed(map);
+
+            if (player.Location == null)
+            {
+                player.Location = new Location(0, 0, 0);
+            }
+            else if (player.Location.X == 0 &&
+                     player.Location.Y == 0)
+            {
+                Layer? bottom_tiles = map.GetLayer("BottomTiles");
+
+                Tile? center = bottom_tiles?.GetTile(new Vector2(bottom_tiles.Columns / 2, bottom_tiles.Rows / 2));
+                if (center?.Location != null)
                 {
-                    WorldUtil.AssignPlayerBed(world);
-                }
-
-                Character? player = Handler.Player;
-                if (player != null)
-                {
-                    if (player.Location == null)
-                    {
-                        player.Location = new Location(0, 0, 0);
-                    }
-                    else if (player.Location.X == 0 &&
-                             player.Location.Y == 0)
-                    {
-                        Map? map = world?.Maps[0];
-                        Layer? bottom_tiles = map?.GetLayer("BottomTiles");
-
-                        Tile? center = bottom_tiles?.GetTile(new Vector2(bottom_tiles.Columns / 2, bottom_tiles.Rows / 2));
-                        if (center != null)
-                        {
-                            player.Location = new Location(center.Location.X, center.Location.Y, 0);
-                        }
-                    }
-
-                    WorldUtil.SetCurrentMap(player);
-
-                    Button? next = Menu?.GetButton("Next");
-                    if (next != null)
-                    {
-                        next.Visible = false;
-                    }
-
-                    GameUtil.Start();
+                    player.Location = new Location(center.Location.X, center.Location.Y, 0);
                 }
             }
+
+            WorldUtil.SetCurrentMap(player);
+
+            Button? next = Menu?.GetButton("Next");
+            if (next != null)
+            {
+                next.Visible = false;
+            }
+
+            GameUtil.Start();
         }
 
         public override void Load(ContentManager content)

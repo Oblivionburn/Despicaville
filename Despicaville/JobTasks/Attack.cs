@@ -29,14 +29,13 @@ namespace Despicaville.JobTasks
                 return;
             }
 
-            Character? character = GetOwner();
-            if (character?.Location == null)
+            if (Owner_Character?.Location == null)
             {
                 return;
             }
 
-            rightHandItem = InventoryUtil.Get_EquippedItem(character, "Right Weapon Slot");
-            leftHandItem = InventoryUtil.Get_EquippedItem(character, "Left Weapon Slot");
+            rightHandItem = InventoryUtil.Get_EquippedItem(Owner_Character, "Right Weapon Slot");
+            leftHandItem = InventoryUtil.Get_EquippedItem(Owner_Character, "Left Weapon Slot");
 
             dual_wield = false;
 
@@ -59,7 +58,7 @@ namespace Despicaville.JobTasks
                     rightAction == "Stab" ||
                     rightAction == "Cut")
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
+                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 2);
 
                     effect = true;
                     TimeSpan startTime = TimeSpan.FromMilliseconds(StartTime.TotalMilliseconds);
@@ -69,18 +68,18 @@ namespace Despicaville.JobTasks
                 }
                 else if (rightAction == "Throw")
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 3);
+                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 3);
                 }
                 else if (rightAction == "Shoot")
                 {
                     if (rightWeapon == "Sling")
                     {
-                        AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
+                        AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 5);
                     }
                     else if (rightWeapon != null &&
                              rightWeapon.Contains("Bow"))
                     {
-                        AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
+                        AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 5);
                     }
                 }
 
@@ -91,7 +90,7 @@ namespace Despicaville.JobTasks
                     leftAction == "Stab" ||
                     leftAction == "Cut")
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
+                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 2);
 
                     if (!effect)
                     {
@@ -103,24 +102,24 @@ namespace Despicaville.JobTasks
                 }
                 else if (leftAction == "Throw")
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 3);
+                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 3);
                 }
                 else if (leftAction == "Shoot")
                 {
                     if (leftWeapon == "Sling")
                     {
-                        AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
+                        AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 5);
                     }
                     else if (leftWeapon != null &&
                              leftWeapon.Contains("Bow"))
                     {
-                        AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
+                        AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 5);
                     }
                 }
             }
             else
             {
-                AttackingWith = CombatUtil.AttackChoice(character);
+                AttackingWith = CombatUtil.AttackChoice(Owner_Character);
                 string weapon = AttackingWith.ElementAt(0).Key;
                 string action = AttackingWith.ElementAt(0).Value;
 
@@ -129,7 +128,7 @@ namespace Despicaville.JobTasks
                     action == "Stab" ||
                     action == "Cut")
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 2);
+                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 2);
 
                     TimeSpan startTime = TimeSpan.FromMilliseconds(StartTime.TotalMilliseconds);
                     int duration = (int)(EndTime.TotalMilliseconds - StartTime.TotalMilliseconds);
@@ -138,17 +137,17 @@ namespace Despicaville.JobTasks
                 }
                 else if (action == "Throw")
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 3);
+                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 3);
                 }
                 else if (action == "Shoot")
                 {
                     if (weapon == "Sling")
                     {
-                        AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
+                        AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 5);
                     }
                     else if (weapon.Contains("Bow"))
                     {
-                        AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, character.Location.ToVector2, 5);
+                        AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 5);
                     }
                 }
             }
@@ -164,8 +163,7 @@ namespace Despicaville.JobTasks
                 return;
             }
 
-            Character? character = GetOwner();
-            if (character == null)
+            if (Owner_Character == null)
             {
                 return;
             }
@@ -177,11 +175,11 @@ namespace Despicaville.JobTasks
                 {
                     if (rightHandItem != null)
                     {
-                        WeaponAttack_Character(character, target, rightHandItem);
+                        WeaponAttack_Character(Owner_Character, target, rightHandItem);
                     }
                     if (leftHandItem != null)
                     {
-                        WeaponAttack_Character(character, target, leftHandItem);
+                        WeaponAttack_Character(Owner_Character, target, leftHandItem);
                     }
                 }
                 else
@@ -189,9 +187,9 @@ namespace Despicaville.JobTasks
                     string? weapon = AttackingWith?.ElementAt(0).Key;
 
                     Item? weaponItem = null;
-                    for (int i = 0; i < character.Inventory.Items.Count; i++)
+                    for (int i = 0; i < Owner_Character.Inventory.Items.Count; i++)
                     {
-                        Item item = character.Inventory.Items[i];
+                        Item item = Owner_Character.Inventory.Items[i];
                         if (item.Name == weapon)
                         {
                             weaponItem = item;
@@ -201,11 +199,11 @@ namespace Despicaville.JobTasks
 
                     if (weaponItem != null)
                     {
-                        WeaponAttack_Character(character, target, weaponItem);
+                        WeaponAttack_Character(Owner_Character, target, weaponItem);
                     }
                     else
                     {
-                        MeleeAttack_Character(character, target);
+                        MeleeAttack_Character(Owner_Character, target);
                     }
                 }
 
@@ -247,11 +245,11 @@ namespace Despicaville.JobTasks
                     {
                         if (rightHandItem != null)
                         {
-                            WeaponAttack_Tile(character, tile, rightHandItem);
+                            WeaponAttack_Tile(Owner_Character, tile, rightHandItem);
                         }
                         if (leftHandItem != null)
                         {
-                            WeaponAttack_Tile(character, tile, leftHandItem);
+                            WeaponAttack_Tile(Owner_Character, tile, leftHandItem);
                         }
                     }
                     else
@@ -259,9 +257,9 @@ namespace Despicaville.JobTasks
                         string? weapon = AttackingWith?.ElementAt(0).Key;
 
                         Item? weaponItem = null;
-                        for (int i = 0; i < character.Inventory.Items.Count; i++)
+                        for (int i = 0; i < Owner_Character.Inventory.Items.Count; i++)
                         {
-                            Item item = character.Inventory.Items[i];
+                            Item item = Owner_Character.Inventory.Items[i];
                             if (item.Name == weapon)
                             {
                                 weaponItem = item;
@@ -271,27 +269,27 @@ namespace Despicaville.JobTasks
 
                         if (weaponItem != null)
                         {
-                            WeaponAttack_Tile(character, tile, weaponItem);
+                            WeaponAttack_Tile(Owner_Character, tile, weaponItem);
                         }
                         else
                         {
-                            MeleeAttack_Tile(character, tile);
+                            MeleeAttack_Tile(Owner_Character, tile);
                         }
                     }
                 }
             }
 
-            if (character.Type != "Player" &&
+            if (Owner_Character.Type != "Player" &&
                 TimeManager.Now != null)
             {
                 CryptoRandom random = new();
                 int waitTime = random.Next(0, 3);
                 if (waitTime > 0)
                 {
-                    character.Job.Tasks.Add(new Wait
+                    Owner_Character.Job.Tasks.Add(new Wait
                     {
                         Name = "Wait",
-                        OwnerID = character.ID,
+                        Owner_Character = Owner_Character,
                         StartTime = new TimeHandler(TimeManager.Now),
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(waitTime))
                     });
@@ -384,7 +382,7 @@ namespace Despicaville.JobTasks
                     defender.Job.Tasks.Add(new Wait
                     {
                         Name = "Wait",
-                        OwnerID = defender.ID,
+                        Owner_Character = defender,
                         StartTime = new TimeHandler(TimeManager.Now),
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(stunTime))
                     });
@@ -455,7 +453,8 @@ namespace Despicaville.JobTasks
         public void WeaponAttack_Tile(Character attacker, Tile tile, Item weapon)
         {
             if (Handler.Player?.Location != null &&
-                weapon.Sound != null)
+                weapon.Sound != null &&
+                tile.Location != null)
             {
                 AssetManager.PlaySound_Random_AtDistance(weapon.Sound, Handler.Player.Location.ToVector2, tile.Location.ToVector2, weapon.SoundRange);
             }
@@ -559,7 +558,7 @@ namespace Despicaville.JobTasks
                     defender.Job.Tasks.Add(new Wait
                     {
                         Name = "Wait",
-                        OwnerID = defender.ID,
+                        Owner_Character = defender,
                         StartTime = new TimeHandler(TimeManager.Now),
                         EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(stunTime))
                     });
@@ -582,7 +581,8 @@ namespace Despicaville.JobTasks
 
         public void MeleeAttack_Tile(Character attacker, Tile tile)
         {
-            if (Handler.Player?.Location != null)
+            if (Handler.Player?.Location != null &&
+                tile.Location != null)
             {
                 AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 2);
             }
@@ -591,29 +591,6 @@ namespace Despicaville.JobTasks
             {
                 GameUtil.AddMessage("You punched a " + WorldUtil.GetTile_Name(tile) + ".");
             }
-        }
-
-        public Character? GetOwner()
-        {
-            if (Handler.Player?.ID == OwnerID)
-            {
-                return Handler.Player;
-            }
-
-            Army army = CharacterManager.Armies[0];
-            Squad citizens = army.Squads[1];
-
-            int count = citizens.Characters.Count;
-            for (int c = 0; c < count; c++)
-            {
-                Character citizen = citizens.Characters[c];
-                if (citizen.ID == OwnerID)
-                {
-                    return citizen;
-                }
-            }
-
-            return null;
         }
     }
 }

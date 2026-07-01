@@ -1,5 +1,4 @@
-﻿using OP_Engine.Characters;
-using OP_Engine.Jobs;
+﻿using OP_Engine.Jobs;
 using OP_Engine.Enums;
 using Despicaville.Util;
 
@@ -9,62 +8,38 @@ namespace Despicaville.JobTasks
     {
         public override void Action_End()
         {
-            Character? character = GetOwner();
-            if (character == null)
+            if (Owner_Character == null)
             {
                 return;
             }
 
-            if (Direction != character.Direction)
+            if (Direction != Owner_Character.Direction)
             {
                 if (Direction == Direction.North)
                 {
-                    character.FaceNorth();
+                    Owner_Character.FaceNorth();
                 }
                 else if (Direction == Direction.East)
                 {
-                    character.FaceEast();
+                    Owner_Character.FaceEast();
                 }
                 else if (Direction == Direction.South)
                 {
-                    character.FaceSouth();
+                    Owner_Character.FaceSouth();
                 }
                 else if (Direction == Direction.West)
                 {
-                    character.FaceWest();
+                    Owner_Character.FaceWest();
                 }
             }
 
-            CharacterUtil.UpdateGear(character);
-            CharacterUtil.UpdateSight(character);
+            CharacterUtil.UpdateGear(Owner_Character);
+            CharacterUtil.UpdateSight(Owner_Character);
 
-            if (character.Target_ID > 0)
+            if (Owner_Character.Target_ID > 0)
             {
-                character.InCombat = true;
+                Owner_Character.InCombat = true;
             }
-        }
-
-        public Character? GetOwner()
-        {
-            if (Handler.Player?.ID == OwnerID)
-            {
-                return Handler.Player;
-            }
-
-            Army army = CharacterManager.Armies[0];
-            Squad citizens = army.Squads[1];
-
-            int count = citizens.Characters.Count;
-            for (int c = 0; c < count; c++)
-            {
-                Character citizen = citizens.Characters[c];
-                if (citizen.ID == OwnerID)
-                {
-                    return citizen;
-                }
-            }
-
-            return null;
         }
     }
 }

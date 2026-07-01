@@ -15,7 +15,9 @@ using OP_Engine.Tiles;
 using OP_Engine.Controls;
 using OP_Engine.Menus;
 using OP_Engine.Jobs;
+using OP_Engine.Time;
 using Despicaville.Util;
+using Despicaville.JobTasks;
 
 namespace Despicaville
 {
@@ -81,7 +83,7 @@ namespace Despicaville
         public static float ComfortRate = 0.00556f;
         public static float BoredomRate = 0.00695f;
 
-        public static List<JobTask> Jobs = [];
+        public static List<Job> Jobs = [];
 
         public static int CharGen_Stage;
         public static string? Selected_BodyPart;
@@ -285,6 +287,113 @@ namespace Despicaville
             };
 
             CharacterManager.LastNames.Sort();
+        }
+
+        public static void LoadJobs()
+        {
+            Jobs =
+            [
+                new Job
+                {
+                    ID = GetID(),
+                    Name = "1st-Shift_Diner_Cashier",
+                    Schedule =
+                    [
+                        new Appointment
+                        {
+                            Name = "Attend_Register",
+                            StartTime = new TimeHandler((long)7, 0, 0, 0),
+                            EndTime = new TimeHandler((long)14, 0, 0, 0)
+                        }
+                    ],
+                    Tasks =
+                    [
+                        new Cashier
+                        {
+                            Name = "Cashier",
+                            Type = "Attend",
+                            Assignment = "Register",
+                            StartTime = new TimeHandler((long)7, 0, 0, 0),
+                            EndTime = new TimeHandler((long)14, 0, 0, 0)
+                        }
+                    ]
+                },
+                new Job
+                {
+                    ID = GetID(),
+                    Name = "2nd-Shift_Diner_Cashier",
+                    Schedule =
+                    [
+                        new Appointment
+                        {
+                            Name = "Attend_Register",
+                            StartTime = new TimeHandler((long)7, 0, 0, 0),
+                            EndTime = new TimeHandler((long)14, 0, 0, 0)
+                        }
+                    ],
+                    Tasks =
+                    [
+                        new Cashier
+                        {
+                            Name = "Cashier",
+                            Type = "Attend",
+                            Assignment = "Register",
+                            StartTime = new TimeHandler((long)7, 0, 0, 0),
+                            EndTime = new TimeHandler((long)14, 0, 0, 0)
+                        }
+                    ]
+                },
+                new Job
+                {
+                    ID = GetID(),
+                    Name = "1st-Shift_Grocery_Cashier",
+                    Schedule =
+                    [
+                        new Appointment
+                        {
+                            Name = "Attend_Register",
+                            StartTime = new TimeHandler((long)7, 0, 0, 0),
+                            EndTime = new TimeHandler((long)14, 0, 0, 0)
+                        }
+                    ],
+                    Tasks =
+                    [
+                        new Cashier
+                        {
+                            Name = "Cashier",
+                            Type = "Attend",
+                            Assignment = "Register",
+                            StartTime = new TimeHandler((long)7, 0, 0, 0),
+                            EndTime = new TimeHandler((long)14, 0, 0, 0)
+                        }
+                    ]
+                },
+                new Job
+                {
+                    ID = GetID(),
+                    Name = "2nd-Shift_Grocery_Cashier",
+                    Schedule =
+                    [
+                        new Appointment
+                        {
+                            Name = "Attend_Register",
+                            StartTime = new TimeHandler((long)7, 0, 0, 0),
+                            EndTime = new TimeHandler((long)14, 0, 0, 0)
+                        }
+                    ],
+                    Tasks =
+                    [
+                        new Cashier
+                        {
+                            Name = "Cashier",
+                            Type = "Attend",
+                            Assignment = "Register",
+                            StartTime = new TimeHandler((long)7, 0, 0, 0),
+                            EndTime = new TimeHandler((long)14, 0, 0, 0)
+                        }
+                    ]
+                }
+            ];
         }
 
         #endregion

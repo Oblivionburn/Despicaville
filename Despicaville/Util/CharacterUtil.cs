@@ -10,6 +10,7 @@ using OP_Engine.Tiles;
 using OP_Engine.Utility;
 using OP_Engine.Enums;
 using OP_Engine.Time;
+using OP_Engine.Jobs;
 using Despicaville.JobTasks;
 
 namespace Despicaville.Util
@@ -34,8 +35,54 @@ namespace Despicaville.Util
                 Visible = true
             };
             character.Inventory.ID = Handler.GetID();
-            character.Job.OwnerID = character.ID;
+            character.Job.Owner_Character = character;
             InventoryManager.Inventories.Add(character.Inventory);
+
+            character.Job.Schedule =
+            [
+                new Appointment
+                {
+                    Name = "FreeTime_Morning",
+                    StartTime = new TimeHandler((long)6, 0, 0, 0),
+                    EndTime = new TimeHandler((long)7, 0, 0, 0)
+                },
+                new Appointment
+                {
+                    Name = "Work_1st-Shift",
+                    StartTime = new TimeHandler((long)7, 0, 0, 0),
+                    EndTime = new TimeHandler((long)14, 0, 0, 0)
+                },
+                new Appointment
+                {
+                    Name = "FreeTime_Afternoon",
+                    StartTime = new TimeHandler((long)7, 0, 0, 0),
+                    EndTime = new TimeHandler((long)14, 0, 0, 0)
+                },
+                new Appointment
+                {
+                    Name = "Work_2nd-Shift",
+                    StartTime = new TimeHandler((long)14, 0, 0, 0),
+                    EndTime = new TimeHandler((long)21, 0, 0, 0)
+                },
+                new Appointment
+                {
+                    Name = "FreeTime_Evening",
+                    StartTime = new TimeHandler((long)14, 0, 0, 0),
+                    EndTime = new TimeHandler((long)21, 0, 0, 0)
+                },
+                new Appointment
+                {
+                    Name = "FreeTime_Night",
+                    StartTime = new TimeHandler((long)21, 0, 0, 0),
+                    EndTime = new TimeHandler((long)23, 0, 0, 0)
+                },
+                new Appointment
+                {
+                    Name = "Sleep",
+                    StartTime = new TimeHandler((long)23, 0, 0, 0),
+                    EndTime = new TimeHandler((long)6, 0, 0, 0)
+                },
+            ];
 
             ResetStats(character);
             GenStats(character);
@@ -1048,7 +1095,7 @@ namespace Despicaville.Util
                 character.Job.Tasks.Add(new Stand
                 {
                     Name = "Stand",
-                    OwnerID = character.ID,
+                    Owner_Character = character,
                     StartTime = new TimeHandler(TimeManager.Now),
                     EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(standTime)),
                     Direction = character.Direction
@@ -1299,7 +1346,8 @@ namespace Despicaville.Util
 
                         foreach (Tile existing in effect_tiles.Tiles)
                         {
-                            if (existing.Location.X == character.Location.X &&
+                            if (existing.Location != null &&
+                                existing.Location.X == character.Location.X &&
                                 existing.Location.Y == character.Location.Y)
                             {
                                 if (!string.IsNullOrEmpty(existing.Name))
@@ -1428,26 +1476,46 @@ namespace Despicaville.Util
 
         public static void Sleep(Character character)
         {
+            //Updated per second
+
             if (character.Stats.Stamina < 100)
             {
-                //Per second
                 character.Stats.Stamina += 0.00348f;
                 if (character.Stats.Stamina > 100)
                 {
                     character.Stats.Stamina = 100;
                 }
             }
+
+            if (character.Stats.Comfort < 100)
+            {
+                character.Stats.Comfort += 0.00348f;
+                if (character.Stats.Comfort > 100)
+                {
+                    character.Stats.Comfort = 100;
+                }
+            }
         }
 
         public static void Rest(Character character)
         {
+            //Updated per millisecond
+
             if (character.Stats.Stamina < 100)
             {
-                //Per millisecond
-                character.Stats.Stamina += 0.00002f;
+                character.Stats.Stamina += 0.00000138f;
                 if (character.Stats.Stamina > 100)
                 {
                     character.Stats.Stamina = 100;
+                }
+            }
+
+            if (character.Stats.Comfort < 100)
+            {
+                character.Stats.Comfort += 0.00000138f;
+                if (character.Stats.Comfort > 100)
+                {
+                    character.Stats.Comfort = 100;
                 }
             }
         }
@@ -1470,7 +1538,7 @@ namespace Despicaville.Util
             character.Job.Tasks.Add(new Stand
             {
                 Name = "Stand",
-                OwnerID = character.ID,
+                Owner_Character = character,
                 StartTime = new TimeHandler(TimeManager.Now),
                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(standTime)),
                 Direction = character.Direction
@@ -1485,6 +1553,26 @@ namespace Despicaville.Util
             {
                 GameUtil.AddMessage("You fell unconscious.");
             }
+        }
+
+        public static Character? GetCharacter_Target(Character character)
+        {
+            Army? army = CharacterManager.GetArmy("Characters");
+            if (army != null)
+            {
+                foreach (Squad squad in army.Squads)
+                {
+                    foreach (Character existing in squad.Characters)
+                    {
+                        if (existing.ID == character.Target_ID)
+                        {
+                            return existing;
+                        }
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }

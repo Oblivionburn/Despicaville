@@ -322,8 +322,13 @@ namespace Despicaville.Util
             float per_chance = attacker.Stats.Perception / 10;
             float luk_chance = attacker.Stats.Luck / 10;
 
-            int distance = WorldUtil.GetDistance(attacker.Location, defender.Location);
-            int distance_penalty = distance * 2;
+            int distance_penalty = 0;
+
+            int? distance = WorldUtil.GetDistance(attacker.Location, defender.Location);
+            if (distance != null)
+            {
+                distance_penalty = (int)distance * 2;
+            }
 
             float chance = base_chance + agi_chance + per_chance + luk_chance - distance_penalty;
             if (chance > 100)
@@ -390,7 +395,7 @@ namespace Despicaville.Util
                     {
                         AssetManager.PlaySound_Random_AtDistance("Stab", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 2);
                     }
-                    else if (tile != null)
+                    else if (tile.Location != null)
                     {
                         AssetManager.PlaySound_Random_AtDistance("Stab", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 2);
                     }
@@ -403,7 +408,7 @@ namespace Despicaville.Util
                         {
                             AssetManager.PlaySound_Random_AtDistance("Pistol", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 20);
                         }
-                        else if (tile != null)
+                        else if (tile.Location != null)
                         {
                             AssetManager.PlaySound_Random_AtDistance("Pistol", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 20);
                         }
@@ -416,7 +421,7 @@ namespace Despicaville.Util
                         {
                             AssetManager.PlaySound_Random_AtDistance("Rifle", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 30);
                         }
-                        else if (tile != null)
+                        else if (tile.Location != null)
                         {
                             AssetManager.PlaySound_Random_AtDistance("Rifle", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 30);
                         }
@@ -428,7 +433,7 @@ namespace Despicaville.Util
                         {
                             AssetManager.PlaySound_Random_AtDistance("Shotgun", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 40);
                         }
-                        else if (tile != null)
+                        else if (tile.Location != null)
                         {
                             AssetManager.PlaySound_Random_AtDistance("Shotgun", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 40);
                         }
@@ -441,7 +446,7 @@ namespace Despicaville.Util
                         {
                             AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 2);
                         }
-                        else if (tile != null)
+                        else if (tile.Location != null)
                         {
                             AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 2);
                         }
@@ -454,7 +459,7 @@ namespace Despicaville.Util
                     {
                         AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 2);
                     }
-                    else if (tile != null)
+                    else if (tile.Location != null)
                     {
                         AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 2);
                     }

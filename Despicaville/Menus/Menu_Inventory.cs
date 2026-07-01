@@ -1161,7 +1161,7 @@ namespace Despicaville.Menus
                         Handler.Player.Job.Tasks.Add(new UseItem
                         {
                             Name = "UseItem_" + item.ID,
-                            OwnerID = Handler.Player.ID,
+                            Owner_Character = Handler.Player,
                             StartTime = new TimeHandler(TimeManager.Now),
                             EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(hunger.Value * -1)),
                         });
@@ -1180,7 +1180,7 @@ namespace Despicaville.Menus
                             Handler.Player.Job.Tasks.Add(new UseItem
                             {
                                 Name = "UseItem_" + item.ID,
-                                OwnerID = Handler.Player.ID,
+                                Owner_Character = Handler.Player,
                                 StartTime = new TimeHandler(TimeManager.Now),
                                 EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(thirst.Value * -1)),
                             });
@@ -1195,7 +1195,7 @@ namespace Despicaville.Menus
                 Handler.Player.Job.Tasks.Add(new UseItem
                 {
                     Name = "UseItem_" + item.ID,
-                    OwnerID = Handler.Player.ID,
+                    Owner_Character = Handler.Player,
                     StartTime = new TimeHandler(TimeManager.Now),
                     EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
                 });

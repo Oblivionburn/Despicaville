@@ -1,5 +1,4 @@
-﻿using OP_Engine.Characters;
-using OP_Engine.Jobs;
+﻿using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
 using OP_Engine.Enums;
@@ -18,8 +17,7 @@ namespace Despicaville.JobTasks
                 return;
             }
 
-            Character? character = GetOwner();
-            if (character == null)
+            if (Owner_Character == null)
             {
                 return;
             }
@@ -28,7 +26,7 @@ namespace Despicaville.JobTasks
 
             Layer? middle_tiles = map?.GetLayer("MiddleTiles");
             Tile? tile = middle_tiles?.GetTile(Location.ToVector2);
-            if (tile == null)
+            if (tile?.Location == null)
             {
                 return;
             }
@@ -63,36 +61,36 @@ namespace Despicaville.JobTasks
 
             Layer? bottom_tiles = map?.GetLayer("BottomTiles");
             Tile? bottom_tile = bottom_tiles?.GetTile(tile.Location.ToVector2);
-            if (bottom_tile != null)
+            if (bottom_tile?.Region != null)
             {
                 tile.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
             }
 
-            if (character.Direction == Direction.North)
+            if (Owner_Character.Direction == Direction.North)
             {
                 tile.Texture = Handler.GetTexture("Door_WestEast");
                 tile.Name = "Door_WestEast_Closed";
             }
-            else if (character.Direction == Direction.East)
+            else if (Owner_Character.Direction == Direction.East)
             {
                 tile.Texture = Handler.GetTexture("Door_NorthSouth");
                 tile.Name = "Door_NorthSouth_Closed";
             }
-            else if (character.Direction == Direction.South)
+            else if (Owner_Character.Direction == Direction.South)
             {
                 tile.Texture = Handler.GetTexture("Door_WestEast");
                 tile.Name = "Door_WestEast_Closed";
             }
-            else if (character.Direction == Direction.West)
+            else if (Owner_Character.Direction == Direction.West)
             {
                 tile.Texture = Handler.GetTexture("Door_NorthSouth");
                 tile.Name = "Door_NorthSouth_Closed";
             }
 
             tile.BlocksMovement = true;
-            CharacterUtil.UpdateSight(character);
+            CharacterUtil.UpdateSight(Owner_Character);
 
-            if (character.Type != "Player")
+            if (Owner_Character.Type != "Player")
             {
                 CharacterUtil.UpdateSight(Handler.Player);
 
@@ -117,29 +115,6 @@ namespace Despicaville.JobTasks
                     }
                 }
             }
-        }
-
-        public Character? GetOwner()
-        {
-            if (Handler.Player?.ID == OwnerID)
-            {
-                return Handler.Player;
-            }
-
-            Army army = CharacterManager.Armies[0];
-            Squad citizens = army.Squads[1];
-
-            int count = citizens.Characters.Count;
-            for (int c = 0; c < count; c++)
-            {
-                Character citizen = citizens.Characters[c];
-                if (citizen.ID == OwnerID)
-                {
-                    return citizen;
-                }
-            }
-
-            return null;
         }
     }
 }

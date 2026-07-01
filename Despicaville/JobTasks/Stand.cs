@@ -1,5 +1,4 @@
-﻿using OP_Engine.Characters;
-using OP_Engine.Jobs;
+﻿using OP_Engine.Jobs;
 using Despicaville.Util;
 
 namespace Despicaville.JobTasks
@@ -8,53 +7,29 @@ namespace Despicaville.JobTasks
     {
         public override void Action_End()
         {
-            Character? character = GetOwner();
-            if (character == null)
+            if (Owner_Character == null)
             {
                 return;
             }
 
-            if (character.Unconscious)
+            if (Owner_Character.Unconscious)
             {
-                character.Unconscious = false;
+                Owner_Character.Unconscious = false;
 
-                if (character.Type == "Player")
+                if (Owner_Character.Type == "Player")
                 {
                     GameUtil.AddMessage("You regained consciousness.");
                 }
             }
-            else if (character.Laying)
+            else if (Owner_Character.Laying)
             {
-                character.Laying = false;
+                Owner_Character.Laying = false;
 
-                if (character.Type == "Player")
+                if (Owner_Character.Type == "Player")
                 {
                     GameUtil.AddMessage("You rose to your feet.");
                 }
             }
-        }
-
-        public Character? GetOwner()
-        {
-            if (Handler.Player?.ID == OwnerID)
-            {
-                return Handler.Player;
-            }
-
-            Army army = CharacterManager.Armies[0];
-            Squad citizens = army.Squads[1];
-
-            int count = citizens.Characters.Count;
-            for (int c = 0; c < count; c++)
-            {
-                Character citizen = citizens.Characters[c];
-                if (citizen.ID == OwnerID)
-                {
-                    return citizen;
-                }
-            }
-
-            return null;
         }
     }
 }

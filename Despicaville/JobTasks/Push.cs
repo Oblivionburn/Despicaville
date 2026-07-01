@@ -27,8 +27,7 @@ namespace Despicaville.JobTasks
                 return;
             }
 
-            Character? owner = GetOwner();
-            if (owner == null)
+            if (Owner_Character == null)
             {
                 return;
             }
@@ -83,11 +82,11 @@ namespace Despicaville.JobTasks
                             isBlocked = true;
                             EndTime = new TimeHandler(TimeManager.Now);
 
-                            string bodyPartName = CombatUtil.RandomBodyPart(owner, character);
+                            string bodyPartName = CombatUtil.RandomBodyPart(Owner_Character, character);
                             BodyPart? bodyPart = character.GetBodyPart(bodyPartName);
                             if (bodyPart != null)
                             {
-                                CombatUtil.AddWound(owner, character, bodyPart, "Bruise", true);
+                                CombatUtil.AddWound(Owner_Character, character, bodyPart, "Bruise", true);
                             }
                         }
                         else if (blockingTile.Layer?.Name != "BottomTiles")
@@ -118,7 +117,7 @@ namespace Despicaville.JobTasks
 
                 #endregion
             }
-            else if (tile != null)
+            else if (tile?.Location != null)
             {
                 #region Tile
 
@@ -258,8 +257,7 @@ namespace Despicaville.JobTasks
                 return;
             }
 
-            Character? owner = GetOwner();
-            if (owner == null ||
+            if (Owner_Character == null ||
                 isBlocked)
             {
                 return;
@@ -330,7 +328,7 @@ namespace Despicaville.JobTasks
                     }
                 }
             }
-            else if (tile != null)
+            else if (tile?.Region != null)
             {
                 if (destination.X > newLocation.X)
                 {
@@ -394,7 +392,7 @@ namespace Despicaville.JobTasks
                 EndTime = new TimeHandler(TimeManager.Now);
             }
 
-            if (owner.Type == "Player")
+            if (Owner_Character.Type == "Player")
             {
                 TimeTracker.Tick(Handler.ActionRate);
             }
@@ -407,8 +405,7 @@ namespace Despicaville.JobTasks
                 return;
             }
 
-            Character? owner = GetOwner();
-            if (owner == null)
+            if (Owner_Character == null)
             {
                 return;
             }
@@ -422,19 +419,19 @@ namespace Despicaville.JobTasks
                     Map? map = WorldUtil.GetMap();
                     Layer? bottom_tiles = map?.GetLayer("BottomTiles");
                     Tile? bottom_tile = bottom_tiles?.GetTile(character.Location.ToVector2);
-                    if (bottom_tile != null)
+                    if (bottom_tile?.Region != null)
                     {
                         character.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
                         CharacterUtil.UpdateGear(character);
                     }
 
                     if (fall ||
-                        Utility.RandomPercent(owner.Stats.Strength))
+                        Utility.RandomPercent(Owner_Character.Stats.Strength))
                     {
                         CharacterUtil.Fall(character);
                     }
                 }
-                else if (tile != null)
+                else if (tile?.Location != null)
                 {
                     WorldUtil.Push_Tile(tile, newLocation);
 
@@ -450,7 +447,7 @@ namespace Despicaville.JobTasks
                         Map? map = WorldUtil.GetMap();
                         Layer? bottom_tiles = map?.GetLayer("BottomTiles");
                         Tile? bottom_tile = bottom_tiles?.GetTile(blockingCharacter.Location.ToVector2);
-                        if (bottom_tile != null)
+                        if (bottom_tile?.Region != null)
                         {
                             blockingCharacter.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
                             CharacterUtil.UpdateGear(blockingCharacter);
@@ -460,29 +457,6 @@ namespace Despicaville.JobTasks
                     }
                 }
             }
-        }
-
-        public Character? GetOwner()
-        {
-            if (Handler.Player?.ID == OwnerID)
-            {
-                return Handler.Player;
-            }
-
-            Army army = CharacterManager.Armies[0];
-            Squad citizens = army.Squads[1];
-
-            int count = citizens.Characters.Count;
-            for (int c = 0; c < count; c++)
-            {
-                Character citizen = citizens.Characters[c];
-                if (citizen.ID == OwnerID)
-                {
-                    return citizen;
-                }
-            }
-
-            return null;
         }
     }
 }

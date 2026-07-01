@@ -1,5 +1,4 @@
-﻿using OP_Engine.Characters;
-using OP_Engine.Jobs;
+﻿using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
 using OP_Engine.Enums;
@@ -18,8 +17,7 @@ namespace Despicaville.JobTasks
                 return;
             }
 
-            Character? character = GetOwner();
-            if (character == null)
+            if (Owner_Character == null)
             {
                 return;
             }
@@ -28,7 +26,7 @@ namespace Despicaville.JobTasks
 
             Layer? middle_tiles = map?.GetLayer("MiddleTiles");
             Tile? tile = middle_tiles?.GetTile(Location.ToVector2);
-            if (tile == null)
+            if (tile?.Region == null)
             {
                 return;
             }
@@ -61,25 +59,25 @@ namespace Despicaville.JobTasks
                 AssetManager.PlaySound_Random_AtDistance("DoorOpen", Handler.Player.Location.ToVector2, Location.ToVector2, 8);
             }
 
-            if (character.Direction == Direction.North)
+            if (Owner_Character.Direction == Direction.North)
             {
                 tile.Texture = Handler.GetTexture("Door_NorthSouth");
                 tile.Region = new Region(tile.Region.X + (tile.Region.Width / 2), tile.Region.Y + (tile.Region.Height / 2), tile.Region.Width, tile.Region.Height);
                 tile.Name = "Door_WestEast_Open";
             }
-            else if (character.Direction == Direction.East)
+            else if (Owner_Character.Direction == Direction.East)
             {
                 tile.Texture = Handler.GetTexture("Door_WestEast");
                 tile.Region = new Region(tile.Region.X + (tile.Region.Width / 2), tile.Region.Y - (tile.Region.Height / 2), tile.Region.Width, tile.Region.Height);
                 tile.Name = "Door_NorthSouth_Open";
             }
-            else if (character.Direction == Direction.South)
+            else if (Owner_Character.Direction == Direction.South)
             {
                 tile.Texture = Handler.GetTexture("Door_NorthSouth");
                 tile.Region = new Region(tile.Region.X + (tile.Region.Width / 2), tile.Region.Y + (tile.Region.Height / 2), tile.Region.Width, tile.Region.Height);
                 tile.Name = "Door_WestEast_Open";
             }
-            else if (character.Direction == Direction.West)
+            else if (Owner_Character.Direction == Direction.West)
             {
                 tile.Texture = Handler.GetTexture("Door_WestEast");
                 tile.Region = new Region(tile.Region.X + (tile.Region.Width / 2), tile.Region.Y - (tile.Region.Height / 2), tile.Region.Width, tile.Region.Height);
@@ -87,9 +85,9 @@ namespace Despicaville.JobTasks
             }
 
             tile.BlocksMovement = false;
-            CharacterUtil.UpdateSight(character);
+            CharacterUtil.UpdateSight(Owner_Character);
 
-            if (character.Type != "Player")
+            if (Owner_Character.Type != "Player")
             {
                 CharacterUtil.UpdateSight(Handler.Player);
 
@@ -114,29 +112,6 @@ namespace Despicaville.JobTasks
                     }
                 }
             }
-        }
-
-        public Character? GetOwner()
-        {
-            if (Handler.Player?.ID == OwnerID)
-            {
-                return Handler.Player;
-            }
-
-            Army army = CharacterManager.Armies[0];
-            Squad citizens = army.Squads[1];
-
-            int count = citizens.Characters.Count;
-            for (int c = 0; c < count; c++)
-            {
-                Character citizen = citizens.Characters[c];
-                if (citizen.ID == OwnerID)
-                {
-                    return citizen;
-                }
-            }
-
-            return null;
         }
     }
 }

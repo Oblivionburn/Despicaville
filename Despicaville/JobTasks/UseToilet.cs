@@ -1,5 +1,4 @@
-﻿using OP_Engine.Characters;
-using OP_Engine.Enums;
+﻿using OP_Engine.Enums;
 using OP_Engine.Jobs;
 using OP_Engine.Tiles;
 using OP_Engine.Utility;
@@ -11,14 +10,17 @@ namespace Despicaville.JobTasks
     {
         public override void Action_Start()
         {
-            Character? character = GetOwner();
-            if (character?.Location == null)
+            if (Owner_Character?.Location == null)
             {
                 return;
             }
 
-            Map? block_map = WorldUtil.GetCurrentMap(character);
-            Layer? middle_tiles = block_map?.GetLayer("MiddleTiles");
+            if (Owner_Character.Map == null)
+            {
+                WorldUtil.SetCurrentMap(Owner_Character);
+            }
+
+            Layer? middle_tiles = Owner_Character.Map?.GetLayer("MiddleTiles");
             if (middle_tiles == null)
             {
                 return;
@@ -30,18 +32,19 @@ namespace Despicaville.JobTasks
 
             foreach (Tile tile in middle_tiles.Tiles)
             {
-                if (tile.Name != null &&
+                if (tile.Location != null &&
+                    tile.Name != null &&
                     tile.Name.Contains("Toilet"))
                 {
-                    if (WorldUtil.NextTo(tile.Location, character.Location) &&
-                        character.Gender == "Male")
+                    if (WorldUtil.NextTo(tile.Location, Owner_Character.Location) &&
+                        Owner_Character.Gender == "Male")
                     {
                         nextTo = true;
                         toilet = tile;
                         break;
                     }
-                    else if (tile.Location.X == character.Location.X &&
-                             tile.Location.Y == character.Location.Y)
+                    else if (tile.Location.X == Owner_Character.Location.X &&
+                             tile.Location.Y == Owner_Character.Location.Y)
                     {
                         toilet = tile;
                         break;
@@ -49,55 +52,55 @@ namespace Despicaville.JobTasks
                 }
             }
 
-            if (toilet != null)
+            if (toilet?.Location != null)
             {
                 if (nextTo)
                 {
-                    Direction furniture_direction = WorldUtil.GetDirection(character.Location, toilet.Location);
-                    if (character.Direction != furniture_direction)
+                    Direction furniture_direction = WorldUtil.GetDirection(Owner_Character.Location, toilet.Location);
+                    if (Owner_Character.Direction != furniture_direction)
                     {
                         if (furniture_direction == Direction.North)
                         {
-                            character.FaceNorth();
+                            Owner_Character.FaceNorth();
                         }
                         else if (furniture_direction == Direction.East)
                         {
-                            character.FaceEast();
+                            Owner_Character.FaceEast();
                         }
                         else if (furniture_direction == Direction.South)
                         {
-                            character.FaceSouth();
+                            Owner_Character.FaceSouth();
                         }
                         else if (furniture_direction == Direction.West)
                         {
-                            character.FaceWest();
+                            Owner_Character.FaceWest();
                         }
                     }
                 }
                 else
                 {
-                    if (character.Direction != toilet.Direction)
+                    if (Owner_Character.Direction != toilet.Direction)
                     {
                         if (toilet.Direction == Direction.North)
                         {
-                            character.FaceNorth();
+                            Owner_Character.FaceNorth();
                         }
                         else if (toilet.Direction == Direction.East)
                         {
-                            character.FaceEast();
+                            Owner_Character.FaceEast();
                         }
                         else if (toilet.Direction == Direction.South)
                         {
-                            character.FaceSouth();
+                            Owner_Character.FaceSouth();
                         }
                         else if (toilet.Direction == Direction.West)
                         {
-                            character.FaceWest();
+                            Owner_Character.FaceWest();
                         }
                     }
                 }
 
-                CharacterUtil.UpdateGear(character);
+                CharacterUtil.UpdateGear(Owner_Character);
 
                 if (toilet.Texture != null &&
                     !toilet.Texture.Name.Contains("Used"))
@@ -115,8 +118,7 @@ namespace Despicaville.JobTasks
                 return;
             }
 
-            Character? character = GetOwner();
-            if (character == null)
+            if (Owner_Character == null)
             {
                 return;
             }
@@ -131,16 +133,17 @@ namespace Despicaville.JobTasks
                     toilet.Texture = Handler.GetTexture(name_parts[0] + "_" + name_parts[1]);
                 }
 
-                character.Stats.Bladder = 0;
+                Owner_Character.Stats.Bladder = 0;
 
-                if (!Handler.Player.Unconscious)
+                if (!Handler.Player.Unconscious &&
+                    toilet.Location != null)
                 {
                     if (toilet.Sound != null)
                     {
                         AssetManager.PlaySound_Random_AtDistance(toilet.Sound, Handler.Player.Location.ToVector2, toilet.Location.ToVector2, toilet.SoundRange);
                     }
 
-                    if (character.Type != "Player")
+                    if (Owner_Character.Type != "Player")
                     {
                         Direction direction = WorldUtil.GetDirection(Handler.Player.Location, toilet.Location);
                         if (WorldUtil.InRange(Handler.Player.Location, toilet.Location, 5))
@@ -150,29 +153,6 @@ namespace Despicaville.JobTasks
                     }
                 }
             }
-        }
-
-        public Character? GetOwner()
-        {
-            if (Handler.Player?.ID == OwnerID)
-            {
-                return Handler.Player;
-            }
-
-            Army army = CharacterManager.Armies[0];
-            Squad citizens = army.Squads[1];
-
-            int count = citizens.Characters.Count;
-            for (int c = 0; c < count; c++)
-            {
-                Character citizen = citizens.Characters[c];
-                if (citizen.ID == OwnerID)
-                {
-                    return citizen;
-                }
-            }
-
-            return null;
         }
     }
 }

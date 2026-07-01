@@ -255,7 +255,7 @@ namespace Despicaville.Menus
                 Handler.Player.Job.Tasks.Add(new Attack
                 {
                     Name = "Attack",
-                    OwnerID = Handler.Player.ID,
+                    Owner_Character = Handler.Player,
                     Location = Handler.Interaction_Character.Location,
                     Direction = Handler.Player.Direction,
                     StartTime = new TimeHandler(TimeManager.Now),
@@ -295,7 +295,7 @@ namespace Despicaville.Menus
                 Handler.Player.Job.Tasks.Add(new Wait
                 {
                     Name = "Wait",
-                    OwnerID = Handler.Player.ID,
+                    Owner_Character = Handler.Player,
                     StartTime = new TimeHandler(TimeManager.Now),
                     EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(attackTime))
                 });

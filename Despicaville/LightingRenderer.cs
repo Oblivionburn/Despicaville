@@ -52,7 +52,7 @@ namespace Despicaville
                     Tile? source_tile = middle_tiles?.GetTile(new Vector2(light_source.X, light_source.Y));
 
                     if (source_tile != null &&
-                        starting_tile != null)
+                        starting_tile?.Region != null)
                     {
                         if (source_tile.IsLightSource)
                         {
@@ -125,7 +125,7 @@ namespace Despicaville
                                             Vector2 current_location = new(point.X, point.Y);
 
                                             Tile? bottom_tile = bottom_tiles?.GetTile(current_location);
-                                            if (bottom_tile != null)
+                                            if (bottom_tile?.Region != null)
                                             {
                                                 if (bottom_tile.BlocksMovement)
                                                 {
@@ -160,7 +160,8 @@ namespace Despicaville
                                                                 bool found = false;
                                                                 foreach (Tile existing in Handler.light_maps[region_center_point])
                                                                 {
-                                                                    if (existing.Location.X == current.Location.X &&
+                                                                    if (existing.Location != null &&
+                                                                        existing.Location.X == current.Location.X &&
                                                                         existing.Location.Y == current.Location.Y)
                                                                     {
                                                                         found = true;
@@ -188,7 +189,16 @@ namespace Despicaville
                                         for (int j = 0; j < light_points_count - 1; j++)
                                         {
                                             Tile first_point = light_points[j];
+                                            if (first_point.Region == null)
+                                            {
+                                                continue;
+                                            }
+
                                             Tile second_point = light_points[j + 1];
+                                            if (second_point.Region == null)
+                                            {
+                                                continue;
+                                            }
 
                                             if (first_point.Region.Y > second_point.Region.Y)
                                             {
@@ -240,6 +250,12 @@ namespace Despicaville
                 for (int i = 0; i < light_maps.Count; i++)
                 {
                     Tile map = light_maps[i];
+                    if (map.Location == null ||
+                        map.Region == null)
+                    {
+                        continue;
+                    }
+
                     Vector2 coord = map.Location.ToVector2;
 
                     Rectangle region = new((int)map.Region.X, (int)map.Region.Y, (int)Main.Game.TileSize.X, (int)Main.Game.TileSize.Y);

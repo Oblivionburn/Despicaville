@@ -1,5 +1,4 @@
-﻿using OP_Engine.Characters;
-using OP_Engine.Jobs;
+﻿using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
 using OP_Engine.Enums;
@@ -19,8 +18,7 @@ namespace Despicaville.JobTasks
                 return;
             }
 
-            Character? character = GetOwner();
-            if (character == null)
+            if (Owner_Character == null)
             {
                 return;
             }
@@ -29,7 +27,7 @@ namespace Despicaville.JobTasks
 
             Layer? middle_tiles = map?.GetLayer("MiddleTiles");
             Tile? tile = middle_tiles?.GetTile(Location.ToVector2);
-            if (tile == null)
+            if (tile?.Region == null)
             {
                 return;
             }
@@ -62,20 +60,20 @@ namespace Despicaville.JobTasks
                 AssetManager.PlaySound_Random_AtDistance("WindowOpen", Handler.Player.Location.ToVector2, Location.ToVector2, 8);
             }
 
-            if (character.Direction == Direction.North ||
-                character.Direction == Direction.South)
+            if (Owner_Character.Direction == Direction.North ||
+                Owner_Character.Direction == Direction.South)
             {
                 tile.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width / 8, tile.Region.Height);
                 tile.Name = "Window_WestEast_Open";
             }
-            else if (character.Direction == Direction.East ||
-                     character.Direction == Direction.West)
+            else if (Owner_Character.Direction == Direction.East ||
+                     Owner_Character.Direction == Direction.West)
             {
                 tile.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width, tile.Region.Height / 8);
                 tile.Name = "Window_NorthSouth_Open";
             }
 
-            if (character.Type != "Player" &&
+            if (Owner_Character.Type != "Player" &&
                 !Handler.Player.Unconscious)
             {
                 Direction direction = WorldUtil.GetDirection(Handler.Player.Location, Location);
@@ -96,29 +94,6 @@ namespace Despicaville.JobTasks
                     GameUtil.AddMessage("You hear a window loudly open to the " + direction.ToString() + ".");
                 }
             }
-        }
-
-        public Character? GetOwner()
-        {
-            if (Handler.Player?.ID == OwnerID)
-            {
-                return Handler.Player;
-            }
-
-            Army army = CharacterManager.Armies[0];
-            Squad citizens = army.Squads[1];
-
-            int count = citizens.Characters.Count;
-            for (int c = 0; c < count; c++)
-            {
-                Character citizen = citizens.Characters[c];
-                if (citizen.ID == OwnerID)
-                {
-                    return citizen;
-                }
-            }
-
-            return null;
         }
     }
 }

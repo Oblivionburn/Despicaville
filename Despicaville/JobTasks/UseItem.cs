@@ -1,5 +1,4 @@
 ﻿using Despicaville.Util;
-using OP_Engine.Characters;
 using OP_Engine.Inventories;
 using OP_Engine.Jobs;
 using OP_Engine.Utility;
@@ -10,8 +9,7 @@ namespace Despicaville.JobTasks
     {
         public override void Action_End()
         {
-            Character? character = GetOwner();
-            if (character == null)
+            if (Owner_Character == null)
             {
                 return;
             }
@@ -19,7 +17,7 @@ namespace Despicaville.JobTasks
             Inventory? inventory = null;
             Item? item = null;
 
-            foreach (Item existing in character.Inventory.Items)
+            foreach (Item existing in Owner_Character.Inventory.Items)
             {
                 if (InventoryUtil.IsContainer(existing))
                 {
@@ -41,7 +39,7 @@ namespace Despicaville.JobTasks
                 else if (Name == "UseItem_" + existing.ID)
                 {
                     item = existing;
-                    inventory = character.Inventory;
+                    inventory = Owner_Character.Inventory;
                     break;
                 }
             }
@@ -104,11 +102,11 @@ namespace Despicaville.JobTasks
                 {
                     eat++;
 
-                    character.Stats.Hunger += hunger.Value;
+                    Owner_Character.Stats.Hunger += hunger.Value;
 
-                    if (character.Stats.Hunger > 100)
+                    if (Owner_Character.Stats.Hunger > 100)
                     {
-                        character.Stats.Hunger = 100;
+                        Owner_Character.Stats.Hunger = 100;
                     }
                 }
 
@@ -117,11 +115,11 @@ namespace Despicaville.JobTasks
                 {
                     drink++;
 
-                    character.Stats.Thirst += thirst.Value;
+                    Owner_Character.Stats.Thirst += thirst.Value;
 
-                    if (character.Stats.Thirst > 100)
+                    if (Owner_Character.Stats.Thirst > 100)
                     {
-                        character.Stats.Thirst = 100;
+                        Owner_Character.Stats.Thirst = 100;
                     }
                 }
 
@@ -131,11 +129,11 @@ namespace Despicaville.JobTasks
                     eat++;
                     drink++;
 
-                    character.Stats.Stamina += stamina.Value;
+                    Owner_Character.Stats.Stamina += stamina.Value;
 
-                    if (character.Stats.Stamina > 100)
+                    if (Owner_Character.Stats.Stamina > 100)
                     {
-                        character.Stats.Stamina = 100;
+                        Owner_Character.Stats.Stamina = 100;
                     }
                 }
 
@@ -144,11 +142,11 @@ namespace Despicaville.JobTasks
                 {
                     eat++;
 
-                    character.Stats.Consciousness += consciousness.Value;
+                    Owner_Character.Stats.Consciousness += consciousness.Value;
 
-                    if (character.Stats.Consciousness > 100)
+                    if (Owner_Character.Stats.Consciousness > 100)
                     {
-                        character.Stats.Consciousness = 100;
+                        Owner_Character.Stats.Consciousness = 100;
                     }
                 }
 
@@ -157,11 +155,11 @@ namespace Despicaville.JobTasks
                 {
                     eat++;
 
-                    character.Stats.Paranoia += paranoia.Value;
+                    Owner_Character.Stats.Paranoia += paranoia.Value;
 
-                    if (character.Stats.Paranoia > 100)
+                    if (Owner_Character.Stats.Paranoia > 100)
                     {
-                        character.Stats.Paranoia = 100;
+                        Owner_Character.Stats.Paranoia = 100;
                     }
                 }
 
@@ -170,11 +168,11 @@ namespace Despicaville.JobTasks
                 {
                     drink++;
 
-                    character.Stats.Bladder += bladder.Value;
+                    Owner_Character.Stats.Bladder += bladder.Value;
 
-                    if (character.Stats.Bladder > 100)
+                    if (Owner_Character.Stats.Bladder > 100)
                     {
-                        character.Stats.Bladder = 100;
+                        Owner_Character.Stats.Bladder = 100;
                     }
                 }
 
@@ -183,11 +181,11 @@ namespace Despicaville.JobTasks
                 {
                     drink++;
 
-                    character.Stats.Blood += blood.Value;
+                    Owner_Character.Stats.Blood += blood.Value;
 
-                    if (character.Stats.Blood > 100)
+                    if (Owner_Character.Stats.Blood > 100)
                     {
-                        character.Stats.Blood = 100;
+                        Owner_Character.Stats.Blood = 100;
                     }
                 }
 
@@ -196,7 +194,7 @@ namespace Despicaville.JobTasks
                 {
                     eat++;
 
-                    Property? stat = character.GetStatusEffect("Painkiller");
+                    Property? stat = Owner_Character.GetStatusEffect("Painkiller");
                     if (stat != null)
                     {
                         stat.Value += pain.Value;
@@ -208,7 +206,7 @@ namespace Despicaville.JobTasks
                     }
                     else
                     {
-                        character.StatusEffects.Add(new Property
+                        Owner_Character.StatusEffects.Add(new Property
                         {
                             Name = "Painkiller",
                             Value = pain.Value
@@ -221,7 +219,7 @@ namespace Despicaville.JobTasks
                 {
                     drink++;
 
-                    Property? stat = character.GetStatusEffect("Poisoned");
+                    Property? stat = Owner_Character.GetStatusEffect("Poisoned");
                     if (stat != null)
                     {
                         stat.Value += poison.Value;
@@ -233,7 +231,7 @@ namespace Despicaville.JobTasks
                     }
                     else
                     {
-                        character.StatusEffects.Add(new Property
+                        Owner_Character.StatusEffects.Add(new Property
                         {
                             Name = "Poisoned",
                             Value = poison.Value
@@ -272,12 +270,12 @@ namespace Despicaville.JobTasks
                     Item? copy = InventoryUtil.NewItem(asset);
                     if (copy != null)
                     {
-                        character.Inventory.Items.Add(copy);
+                        Owner_Character.Inventory.Items.Add(copy);
                     }
                 }
             }
 
-            if (character.Type == "Player")
+            if (Owner_Character.Type == "Player")
             {
                 if (InventoryUtil.IsFood(item))
                 {
@@ -309,29 +307,6 @@ namespace Despicaville.JobTasks
                     }
                 }
             }
-        }
-
-        public Character? GetOwner()
-        {
-            if (Handler.Player?.ID == OwnerID)
-            {
-                return Handler.Player;
-            }
-
-            Army army = CharacterManager.Armies[0];
-            Squad citizens = army.Squads[1];
-
-            int count = citizens.Characters.Count;
-            for (int c = 0; c < count; c++)
-            {
-                Character citizen = citizens.Characters[c];
-                if (citizen.ID == OwnerID)
-                {
-                    return citizen;
-                }
-            }
-
-            return null;
         }
     }
 }

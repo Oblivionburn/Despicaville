@@ -9,6 +9,7 @@ using OP_Engine.Scenes;
 using OP_Engine.Inventories;
 using OP_Engine.Characters;
 using OP_Engine.Enums;
+using OP_Engine.Jobs;
 
 namespace Despicaville.Util
 {
@@ -16,7 +17,7 @@ namespace Despicaville.Util
     {
         #region Variables
 
-        public static List<Tile> Worldmap = [];
+        public static List<Map> Worldmap = [];
         public static List<Map> Blocks = [];
         private static Dictionary<long, List<Map>> BlockRooms = [];
 
@@ -27,10 +28,9 @@ namespace Despicaville.Util
         private static List<Map> ParkBlocks = [];
 
         public static List<Map> Residential = [];
-        public static List<Map> Commercial = [];
-        public static List<Map> Service = [];
-        public static List<Map> Parks = [];
-        public static List<Map> Roads = [];
+        public static Map? Police = null;
+        public static Map? Grocery = null;
+        public static Map? Diner = null;
         public static Dictionary<long, List<Map>> Rooms = [];
 
         private static int column;
@@ -197,8 +197,10 @@ namespace Despicaville.Util
 
                     case "Location":
                         string[] values = reader.Value.Split(',');
-                        tile.Location.X = int.Parse(values[0]);
-                        tile.Location.Y = int.Parse(values[1]);
+                        int x = int.Parse(values[0]);
+                        int y = int.Parse(values[1]);
+
+                        tile.Location = new Location(x, y);
                         break;
                 }
             }
@@ -240,8 +242,10 @@ namespace Despicaville.Util
 
                     case "Location":
                         string[] values = reader.Value.Split(',');
-                        tile.Location.X = int.Parse(values[0]);
-                        tile.Location.Y = int.Parse(values[1]);
+                        int x = int.Parse(values[0]);
+                        int y = int.Parse(values[1]);
+
+                        tile.Location = new Location(x, y);
                         break;
                 }
             }
@@ -450,10 +454,9 @@ namespace Despicaville.Util
             ParkBlocks.Clear();
 
             Residential.Clear();
-            Commercial.Clear();
-            Service.Clear();
-            Parks.Clear();
-            Roads.Clear();
+            Police = null;
+            Grocery = null;
+            Diner = null;
             Rooms.Clear();
 
             foreach (Map block in Blocks)
@@ -643,7 +646,7 @@ namespace Despicaville.Util
         {
             CryptoRandom random = new();
             string? this_block = "";
-            Tile upper_block = Worldmap[x + (Handler.MapSize_X * (row - 1))];
+            Map upper_block = Worldmap[x + (Handler.MapSize_X * (row - 1))];
 
             column++;
 
@@ -1039,7 +1042,7 @@ namespace Despicaville.Util
         private static string? AddToMap_LastRow(int x)
         {
             column++;
-            Tile upper_block = Worldmap[x + (Handler.MapSize_X * (row - 1))];
+            Map upper_block = Worldmap[x + (Handler.MapSize_X * (row - 1))];
 
             if (upper_block.Name == "Road_Cross" ||
                 upper_block.Name == "Road_TSection_S" ||
@@ -1064,7 +1067,7 @@ namespace Despicaville.Util
                 return null;
             }
 
-            Tile tile = new()
+            Map map = new()
             {
                 ID = Handler.GetID(),
                 Name = name,
@@ -1075,29 +1078,41 @@ namespace Despicaville.Util
                 Visible = true
             };
 
-            if (tile.Texture != null)
+            if (map.Texture != null)
             {
-                tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+                map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
             }
-            
-            Worldmap.Add(tile);
+
+            Layer bottom_tiles = NewLayer_Worldmap(map, "BottomTiles");
+            map.Layers.Add(bottom_tiles);
+
+            Layer room_tiles = NewLayer_Worldmap(map, "RoomTiles");
+            map.Layers.Add(room_tiles);
+
+            Layer middle_tiles = NewLayer_Worldmap(map, "MiddleTiles");
+            map.Layers.Add(middle_tiles);
+
+            Layer top_tiles = NewLayer_Worldmap(map, "TopTiles");
+            map.Layers.Add(top_tiles);
+
+            Worldmap.Add(map);
 
             return name;
         }
 
-        private static void UpdateWorldmap(Tile tile, string? name, string? type)
+        private static void UpdateWorldmap(Map map, string? name, string? type)
         {
-            tile.Name = name;
-            tile.Type = type;
+            map.Name = name;
+            map.Type = type;
 
-            if (tile.Type != null)
+            if (map.Type != null)
             {
-                tile.Texture = Handler.GetTexture(tile.Type);
+                map.Texture = Handler.GetTexture(map.Type);
             }
 
-            if (tile.Texture != null)
+            if (map.Texture != null)
             {
-                tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+                map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
             }
         }
 
@@ -1106,9 +1121,9 @@ namespace Despicaville.Util
             int residential_count = 0;
 
             int open_count = 0;
-            foreach (Tile tile in Worldmap)
+            foreach (Map map in Worldmap)
             {
-                if (tile.Name == "Open")
+                if (map.Name == "Open")
                 {
                     open_count++;
                 }
@@ -1116,19 +1131,18 @@ namespace Despicaville.Util
 
             CryptoRandom random;
 
-            foreach (Tile tile in Worldmap)
+            foreach (Map map in Worldmap)
             {
-                Map map = new()
+                if (map.Location == null)
                 {
-                    ID = tile.ID,
-                    Location = new(tile.Location.X, tile.Location.Y, 0)
-                };
+                    continue;
+                }
 
-                if (tile.Name == "Open")
+                if (map.Name == "Open")
                 {
                     bool force_park = false;
 
-                    if (open_count <= 1 &&
+                    if (open_count <= 3 &&
                         PoliceBlocks.Count > 0)
                     {
                         Map? block = null;
@@ -1136,7 +1150,7 @@ namespace Despicaville.Util
                         //Force police
                         if (PoliceBlocks.Count > 0)
                         {
-                            block = GetRandomBlock(PoliceBlocks, tile.Location);
+                            block = GetRandomBlock(PoliceBlocks, map.Location);
                             if (block != null)
                             {
                                 PoliceBlocks.Clear();
@@ -1145,16 +1159,8 @@ namespace Despicaville.Util
 
                         if (block != null)
                         {
-                            map.Name = block.Name;
-                            map.Type = "Map_Service";
-                            map.Texture = Handler.GetTexture(map.Type);
-
-                            if (map.Texture != null)
-                            {
-                                map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
-                            }
-                            
-                            Service.Add(map);
+                            UpdateWorldmap(map, block.Name, "Map_Service");
+                            Police = map;
                             open_count--;
                         }
                         else
@@ -1163,41 +1169,38 @@ namespace Despicaville.Util
                         }
                     }
                     else if (open_count <= 3 &&
-                             (GroceryBlocks.Count > 0 ||
-                             DinerBlocks.Count > 0))
+                             GroceryBlocks.Count > 0)
                     {
                         Map? block = null;
 
                         //Force commercial
-                        if (GroceryBlocks.Count > 0)
-                        {
-                            block = GetRandomBlock(GroceryBlocks, tile.Location);
-                            if (block != null)
-                            {
-                                GroceryBlocks.Clear();
-                            }
-                        }
-                        else if (DinerBlocks.Count > 0)
-                        {
-                            block = GetRandomBlock(DinerBlocks, tile.Location);
-                            if (block != null)
-                            {
-                                DinerBlocks.Clear();
-                            }
-                        }
-
+                        block = GetRandomBlock(GroceryBlocks, map.Location);
                         if (block != null)
                         {
-                            map.Name = block.Name;
-                            map.Type = "Map_Commercial";
-                            map.Texture = Handler.GetTexture(map.Type);
+                            GroceryBlocks.Clear();
 
-                            if (map.Texture != null)
-                            {
-                                map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
-                            }
+                            UpdateWorldmap(map, block.Name, "Map_Commercial");
+                            Grocery = map;
+                            open_count--;
+                        }
+                        else
+                        {
+                            force_park = true;
+                        }
+                    }
+                    else if (open_count <= 3 &&
+                             DinerBlocks.Count > 0)
+                    {
+                        Map? block = null;
 
-                            Commercial.Add(map);
+                        //Force commercial
+                        block = GetRandomBlock(DinerBlocks, map.Location);
+                        if (block != null)
+                        {
+                            DinerBlocks.Clear();
+
+                            UpdateWorldmap(map, block.Name, "Map_Commercial");
+                            Diner = map;
                             open_count--;
                         }
                         else
@@ -1209,18 +1212,10 @@ namespace Despicaville.Util
                              residential_count < 3)
                     {
                         //Force residential
-                        Map? block = GetRandomBlock(ResidentialBlocks, tile.Location);
+                        Map? block = GetRandomBlock(ResidentialBlocks, map.Location);
                         if (block != null)
                         {
-                            map.Name = block.Name;
-                            map.Type = "Map_Residential";
-                            map.Texture = Handler.GetTexture(map.Type);
-
-                            if (map.Texture != null)
-                            {
-                                map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
-                            }
-
+                            UpdateWorldmap(map, block.Name, "Map_Residential");
                             Residential.Add(map);
                             residential_count++;
                             open_count--;
@@ -1240,19 +1235,11 @@ namespace Despicaville.Util
                             if (PoliceBlocks.Count > 0)
                             {
                                 //Police
-                                Map? block = GetRandomBlock(PoliceBlocks, tile.Location);
+                                Map? block = GetRandomBlock(PoliceBlocks, map.Location);
                                 if (block != null)
                                 {
-                                    map.Name = block.Name;
-                                    map.Type = "Map_Service";
-                                    map.Texture = Handler.GetTexture(map.Type);
-
-                                    if (map.Texture != null)
-                                    {
-                                        map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
-                                    }
-
-                                    Service.Add(map);
+                                    UpdateWorldmap(map, block.Name, "Map_Service");
+                                    Police = map;
                                     open_count--;
 
                                     PoliceBlocks.Clear();
@@ -1265,19 +1252,11 @@ namespace Despicaville.Util
                             else if (GroceryBlocks.Count > 0)
                             {
                                 //Grocery
-                                Map? block = GetRandomBlock(GroceryBlocks, tile.Location);
+                                Map? block = GetRandomBlock(GroceryBlocks, map.Location);
                                 if (block != null)
                                 {
-                                    map.Name = block.Name;
-                                    map.Type = "Map_Commercial";
-                                    map.Texture = Handler.GetTexture(map.Type);
-
-                                    if (map.Texture != null)
-                                    {
-                                        map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
-                                    }
-
-                                    Commercial.Add(map);
+                                    UpdateWorldmap(map, block.Name, "Map_Commercial");
+                                    Grocery = map;
                                     open_count--;
 
                                     GroceryBlocks.Clear();
@@ -1290,19 +1269,11 @@ namespace Despicaville.Util
                             else if (DinerBlocks.Count > 0)
                             {
                                 //Diner
-                                Map? block = GetRandomBlock(DinerBlocks, tile.Location);
+                                Map? block = GetRandomBlock(DinerBlocks, map.Location);
                                 if (block != null)
                                 {
-                                    map.Name = block.Name;
-                                    map.Type = "Map_Commercial";
-                                    map.Texture = Handler.GetTexture(map.Type);
-
-                                    if (map.Texture != null)
-                                    {
-                                        map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
-                                    }
-
-                                    Commercial.Add(map);
+                                    UpdateWorldmap(map, block.Name, "Map_Commercial");
+                                    Diner = map;
                                     open_count--;
 
                                     DinerBlocks.Clear();
@@ -1320,18 +1291,10 @@ namespace Despicaville.Util
                         else if (block_choice == 1)
                         {
                             //Residential
-                            Map? block = GetRandomBlock(ResidentialBlocks, tile.Location);
+                            Map? block = GetRandomBlock(ResidentialBlocks, map.Location);
                             if (block != null)
                             {
-                                map.Name = block.Name;
-                                map.Type = "Map_Residential";
-                                map.Texture = Handler.GetTexture(map.Type);
-
-                                if (map.Texture != null)
-                                {
-                                    map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
-                                }
-
+                                UpdateWorldmap(map, block.Name, "Map_Residential");
                                 Residential.Add(map);
                                 residential_count++;
                                 open_count--;
@@ -1350,58 +1313,26 @@ namespace Despicaville.Util
                     if (force_park)
                     {
                         //Park
-                        Map? block = GetRandomBlock(ParkBlocks, tile.Location);
+                        Map? block = GetRandomBlock(ParkBlocks, map.Location);
                         if (block != null)
                         {
-                            map.Name = block.Name;
-                            map.Type = "Map_Park";
-                            map.Texture = Handler.GetTexture(map.Type);
-
-                            if (map.Texture != null)
-                            {
-                                map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
-                            }
-
-                            Parks.Add(map);
+                            UpdateWorldmap(map, block.Name, "Map_Park");
                             open_count--;
                         }
                     }
                 }
-                else if (tile.Type != null &&
-                         tile.Type.Contains("Road"))
+                else if (map.Type != null &&
+                         map.Type.Contains("Road"))
                 {
                     foreach (Map block in Blocks)
                     {
-                        if (block.Name == tile.Name)
+                        if (block.Name == map.Name)
                         {
-                            map.Name = block.Name;
-                            map.Type = tile.Type;
-                            map.Texture = Handler.GetTexture(map.Type);
-
-                            if (map.Texture != null)
-                            {
-                                map.Image = new Rectangle(0, 0, map.Texture.Width, map.Texture.Height);
-                            }
-
-                            Roads.Add(map);
+                            UpdateWorldmap(map, block.Name, "Map_" + block.Name);
                             break;
                         }
                     }
                 }
-
-                UpdateWorldmap(tile, map.Name, map.Type);
-
-                Layer bottom_tiles = NewLayer(map, "BottomTiles");
-                map.Layers.Add(bottom_tiles);
-
-                Layer room_tiles = NewLayer(map, "RoomTiles");
-                map.Layers.Add(room_tiles);
-
-                Layer middle_tiles = NewLayer(map, "MiddleTiles");
-                map.Layers.Add(middle_tiles);
-
-                Layer top_tiles = NewLayer(map, "TopTiles");
-                map.Layers.Add(top_tiles);
 
                 current++;
                 Handler.Loading_Percent = (current * 100) / total;
@@ -1414,35 +1345,37 @@ namespace Despicaville.Util
             List<Direction> blocked_directions = [];
             CryptoRandom random = new();
 
-            foreach (Tile tile in Worldmap)
+            foreach (Map map in Worldmap)
             {
-                if (tile.Type == null)
+                if (map.Location == null ||
+                    map.Type == null)
                 {
                     continue;
                 }
 
-                if (tile.Type.Contains("Commercial") ||
-                    tile.Type.Contains("Residential") ||
-                    tile.Type.Contains("Park") ||
-                    tile.Type.Contains("Open"))
+                if (map.Type.Contains("Service") || 
+                    map.Type.Contains("Commercial") ||
+                    map.Type.Contains("Residential") ||
+                    map.Type.Contains("Park") ||
+                    map.Type.Contains("Open"))
                 {
-                    if (tile.Location.Y == location.Y - 1 &&
-                        tile.Location.X == location.X)
+                    if (map.Location.Y == location.Y - 1 &&
+                        map.Location.X == location.X)
                     {
                         blocked_directions.Add(Direction.North);
                     }
-                    else if (tile.Location.Y == location.Y &&
-                             tile.Location.X == location.X + 1)
+                    else if (map.Location.Y == location.Y &&
+                             map.Location.X == location.X + 1)
                     {
                         blocked_directions.Add(Direction.East);
                     }
-                    else if (tile.Location.Y == location.Y + 1 &&
-                             tile.Location.X == location.X)
+                    else if (map.Location.Y == location.Y + 1 &&
+                             map.Location.X == location.X)
                     {
                         blocked_directions.Add(Direction.South);
                     }
-                    else if (tile.Location.Y == location.Y &&
-                             tile.Location.X == location.X - 1)
+                    else if (map.Location.Y == location.Y &&
+                             map.Location.X == location.X - 1)
                     {
                         blocked_directions.Add(Direction.West);
                     }
@@ -1470,6 +1403,18 @@ namespace Despicaville.Util
             }
 
             return null;
+        }
+
+        private static Layer NewLayer_Worldmap(Map map, string name)
+        {
+            return new Layer
+            {
+                ID = Handler.GetID(),
+                Name = name,
+                Map = map,
+                Rows = 20,
+                Columns = 20
+            };
         }
 
         #endregion
@@ -1524,6 +1469,7 @@ namespace Despicaville.Util
 
             AddRoofTiles(bottom_tiles, middle_tiles, room_tiles, roof_tiles);
             AddRooms();
+            AssignJobs();
 
             Scene? gameplay = SceneManager.GetScene("Gameplay");
             if (gameplay != null)
@@ -1565,9 +1511,14 @@ namespace Despicaville.Util
             {
                 for (int x = 0; x < bottom_tiles.Columns; x++)
                 {
-                    Tile? worldTile = null;
-                    foreach (Tile existing in Worldmap)
+                    Map? worldTile = null;
+                    foreach (Map existing in Worldmap)
                     {
+                        if (existing.Location == null)
+                        {
+                            continue;
+                        }
+
                         if (existing.Location.X == x / 20 &&
                             existing.Location.Y == y / 20)
                         {
@@ -1576,7 +1527,7 @@ namespace Despicaville.Util
                         }
                     }
 
-                    if (worldTile != null)
+                    if (worldTile?.Location != null)
                     {
                         Map? block = null;
                         foreach (Map existing in Blocks)
@@ -1603,6 +1554,11 @@ namespace Despicaville.Util
                             {
                                 foreach (Tile tile in block_bottom_tiles.Tiles)
                                 {
+                                    if (tile.Location == null)
+                                    {
+                                        continue;
+                                    }
+
                                     int tile_x = -1;
                                     int tile_y = -1;
 
@@ -1647,6 +1603,11 @@ namespace Despicaville.Util
                                 {
                                     foreach (Tile tile in block_middle_tiles.Tiles)
                                     {
+                                        if (tile.Location == null)
+                                        {
+                                            continue;
+                                        }
+
                                         int tile_x = -1;
                                         int tile_y = -1;
 
@@ -1692,6 +1653,11 @@ namespace Despicaville.Util
                                 {
                                     foreach (Tile tile in block_top_tiles.Tiles)
                                     {
+                                        if (tile.Location == null)
+                                        {
+                                            continue;
+                                        }
+
                                         int tile_x = -1;
                                         int tile_y = -1;
 
@@ -1737,6 +1703,11 @@ namespace Despicaville.Util
                                 {
                                     foreach (Tile tile in block_room_tiles.Tiles)
                                     {
+                                        if (tile.Location == null)
+                                        {
+                                            continue;
+                                        }
+
                                         int tile_x = -1;
                                         int tile_y = -1;
 
@@ -1775,9 +1746,11 @@ namespace Despicaville.Util
             }
         }
 
-        private static void AddTile(string blockName, Map map, Layer layer, Tile worldTile, Tile tile)
+        private static void AddTile(string blockName, Map map, Layer layer, Map worldTile, Tile tile)
         {
             if (Main.Game == null ||
+                worldTile.Location == null ||
+                tile.Location == null ||
                 tile.Texture == null)
             {
                 return;
@@ -1870,52 +1843,7 @@ namespace Despicaville.Util
                 !new_tile.Name.Contains("RoomType") &&
                 !blockName.Contains("Police"))
             {
-                Squad? citizens = CharacterManager.GetArmy("Characters")?.GetSquad("Citizens");
-                if (citizens?.Characters.Count < Handler.MaxPop)
-                {
-                    Character? character = CharacterUtil.GenCharacter(last_name);
-                    if (character != null)
-                    {
-                        character.Direction = new_tile.Direction;
-
-                        if (new_tile.Direction == Direction.North)
-                        {
-                            character.FaceNorth();
-                        }
-                        else if (new_tile.Direction == Direction.East)
-                        {
-                            character.FaceEast();
-                        }
-                        else if (new_tile.Direction == Direction.South)
-                        {
-                            character.FaceSouth();
-                        }
-                        else if (new_tile.Direction == Direction.West)
-                        {
-                            character.FaceWest();
-                        }
-
-                        if (new_tile.Direction == Direction.North)
-                        {
-                            character.Location = new Location(new_tile.Location.X, new_tile.Location.Y + 1, new_tile.Location.Z);
-                            character.Region = new Region(new_tile.Region.X, new_tile.Region.Y + Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
-                        }
-                        else if (new_tile.Direction == Direction.West)
-                        {
-                            character.Location = new Location(new_tile.Location.X + 1, new_tile.Location.Y, new_tile.Location.Z);
-                            character.Region = new Region(new_tile.Region.X + Main.Game.TileSize.X, new_tile.Region.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
-                        }
-                        else
-                        {
-                            character.Location = new Location(new_tile.Location.X, new_tile.Location.Y, new_tile.Location.Z);
-                            character.Region = new Region(new_tile.Region.X, new_tile.Region.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
-                        }
-
-                        CharacterUtil.UpdateGear(character);
-
-                        citizens.Characters.Add(character);
-                    }
-                }
+                AddCharacter(new_tile);
             }
 
             if (layer.Name == "BottomTiles" ||
@@ -1941,74 +1869,15 @@ namespace Despicaville.Util
             //Add to world
             layer.Tiles.Add(new_tile);
 
-            //Add to block list
-            if (worldTile.Type != null &&
-                layer.Name != null)
+            //Add to Worldmap
+            if (layer.Name != null)
             {
-                if (worldTile.Type.Contains("Residential"))
-                {
-                    foreach (Map residential in Residential)
-                    {
-                        if (residential.ID == worldTile.ID)
-                        {
-                            Layer? map_layer = residential.GetLayer(layer.Name);
-                            map_layer?.Tiles.Add(new_tile);
-                            break;
-                        }
-                    }
-                }
-                else if (worldTile.Type.Contains("Commercial"))
-                {
-                    foreach (Map commercial in Commercial)
-                    {
-                        if (commercial.ID == worldTile.ID)
-                        {
-                            Layer? map_layer = commercial.GetLayer(layer.Name);
-                            map_layer?.Tiles.Add(new_tile);
-                            break;
-                        }
-                    }
-                }
-                else if (worldTile.Type.Contains("Service"))
-                {
-                    foreach (Map service in Service)
-                    {
-                        if (service.ID == worldTile.ID)
-                        {
-                            Layer? map_layer = service.GetLayer(layer.Name);
-                            map_layer?.Tiles.Add(new_tile);
-                            break;
-                        }
-                    }
-                }
-                else if (worldTile.Type.Contains("Park"))
-                {
-                    foreach (Map park in Parks)
-                    {
-                        if (park.ID == worldTile.ID)
-                        {
-                            Layer? map_layer = park.GetLayer(layer.Name);
-                            map_layer?.Tiles.Add(new_tile);
-                            break;
-                        }
-                    }
-                }
-                else if (worldTile.Type.Contains("Road"))
-                {
-                    foreach (Map road in Roads)
-                    {
-                        if (road.ID == worldTile.ID)
-                        {
-                            Layer? map_layer = road.GetLayer(layer.Name);
-                            map_layer?.Tiles.Add(new_tile);
-                            break;
-                        }
-                    }
-                }
+                Layer? map_layer = worldTile.GetLayer(layer.Name);
+                map_layer?.Tiles.Add(new_tile);
             }
         }
 
-        private static void AddEmptyTile(Map map, Layer layer, Tile worldTile, Location location)
+        private static void AddEmptyTile(Map map, Layer layer, Map worldTile, Location location)
         {
             if (Main.Game == null)
             {
@@ -2029,58 +1898,11 @@ namespace Despicaville.Util
             //Add to world
             layer.Tiles.Add(new_tile);
 
-            //Add to block list
-            if (worldTile.Type != null &&
-                layer.Name != null)
+            //Add to Worldmap
+            if (layer.Name != null)
             {
-                if (worldTile.Type.Contains("Residential"))
-                {
-                    foreach (Map residential in Residential)
-                    {
-                        if (residential.ID == worldTile.ID)
-                        {
-                            Layer? map_layer = residential.GetLayer(layer.Name);
-                            map_layer?.Tiles.Add(new_tile);
-                            break;
-                        }
-                    }
-                }
-                else if (worldTile.Type.Contains("Commercial"))
-                {
-                    foreach (Map commercial in Commercial)
-                    {
-                        if (commercial.ID == worldTile.ID)
-                        {
-                            Layer? map_layer = commercial.GetLayer(layer.Name);
-                            map_layer?.Tiles.Add(new_tile);
-                            break;
-                        }
-                    }
-                }
-                else if (worldTile.Type.Contains("Park"))
-                {
-                    foreach (Map park in Parks)
-                    {
-                        if (park.ID == worldTile.ID)
-                        {
-                            Layer? map_layer = park.GetLayer(layer.Name);
-                            map_layer?.Tiles.Add(new_tile);
-                            break;
-                        }
-                    }
-                }
-                else if (worldTile.Type.Contains("Road"))
-                {
-                    foreach (Map road in Roads)
-                    {
-                        if (road.ID == worldTile.ID)
-                        {
-                            Layer? map_layer = road.GetLayer(layer.Name);
-                            map_layer?.Tiles.Add(new_tile);
-                            break;
-                        }
-                    }
-                }
+                Layer? map_layer = worldTile.GetLayer(layer.Name);
+                map_layer?.Tiles.Add(new_tile);
             }
         }
 
@@ -2089,6 +1911,11 @@ namespace Despicaville.Util
             for (int i = middle_tiles.Tiles.Count - 1; i >= 0; i--)
             {
                 Tile middle_tile = middle_tiles.Tiles[i];
+                if (middle_tile.Location == null)
+                {
+                    continue;
+                }
+
                 if (!string.IsNullOrEmpty(middle_tile.Name))
                 {
                     if (middle_tile.Name.Contains("Tree"))
@@ -2098,7 +1925,7 @@ namespace Despicaville.Util
 
                         int index = (y * middle_tiles.Columns) + x;
                         Tile existing = middle_tiles.Tiles[index];
-                        if (existing != null)
+                        if (existing?.Location != null)
                         {
                             //Swap tree with tile at X+1/Y+1
                             middle_tiles.Tiles[index] = middle_tile;
@@ -2124,6 +1951,11 @@ namespace Despicaville.Util
 
             foreach (Tile bottom_tile in bottom_tiles.Tiles)
             {
+                if (bottom_tile.Location == null)
+                {
+                    continue;
+                }
+
                 Tile roof_tile = new()
                 {
                     Location = new Location(bottom_tile.Location.X, bottom_tile.Location.Y, 0)
@@ -2148,6 +1980,11 @@ namespace Despicaville.Util
 
             foreach (Tile middle_tile in middle_tiles.Tiles)
             {
+                if (middle_tile.Location == null)
+                {
+                    continue;
+                }
+
                 Tile? roof_tile = roof_tiles.GetTile(middle_tile.Location.ToVector2);
                 if (roof_tile != null)
                 {
@@ -2170,6 +2007,11 @@ namespace Despicaville.Util
 
             foreach (Tile room_tile in room_tiles.Tiles)
             {
+                if (room_tile.Location == null)
+                {
+                    continue;
+                }
+
                 Tile? roof_tile = roof_tiles.GetTile(room_tile.Location.ToVector2);
                 if (roof_tile != null)
                 {
@@ -2199,46 +2041,70 @@ namespace Despicaville.Util
 
         private static void AddRooms()
         {
-            foreach (Tile worldTile in Worldmap)
+            foreach (Map worldTile in Worldmap)
             {
+                if (worldTile.Location == null)
+                {
+                    continue;
+                }
+
                 foreach (Map block in Blocks)
                 {
                     if (block.Name == worldTile.Name)
                     {
-                        if (BlockRooms.ContainsKey(block.ID))
+                        if (BlockRooms.TryGetValue(block.ID, out List<Map>? blockRooms))
                         {
-                            if (!Rooms.ContainsKey(worldTile.ID))
+                            World world = new()
                             {
-                                Rooms.Add(worldTile.ID, new List<Map>());
+                                ID = worldTile.ID
+                            };
 
-                                foreach (Map blockRoom in BlockRooms[block.ID])
+                            foreach (Map blockRoom in blockRooms)
+                            {
+                                Map room = new()
                                 {
-                                    Map room = new Map
+                                    ID = Handler.GetID(),
+                                    Name = blockRoom.Name,
+                                    Location = new Location(worldTile.Location.X, worldTile.Location.Y, 0),
+                                    World = world
+                                };
+
+                                foreach (Layer blockLayer in blockRoom.Layers)
+                                {
+                                    Layer layer = new()
                                     {
-                                        ID = worldTile.ID,
-                                        Name = worldTile.Name,
-                                        Location = new Location(worldTile.Location.X, worldTile.Location.Y, 0)
+                                        Name = blockLayer.Name,
+                                        Map = room,
+                                        World = world
                                     };
-                                    Rooms[worldTile.ID].Add(room);
+                                    room.Layers.Add(layer);
 
-                                    foreach (Layer blockLayer in blockRoom.Layers)
+                                    foreach (Tile blockTile in blockLayer.Tiles)
                                     {
-                                        Layer layer = new Layer
+                                        if (blockTile.Location == null)
                                         {
-                                            Name = blockLayer.Name
-                                        };
-                                        room.Layers.Add(layer);
-
-                                        foreach (Tile blockTile in blockLayer.Tiles)
-                                        {
-                                            Tile tile = new Tile
-                                            {
-                                                Name = blockTile.Name,
-                                                Location = new Location(blockTile.Location.X, blockTile.Location.Y, 0)
-                                            };
-                                            layer.Tiles.Add(tile);
+                                            continue;
                                         }
+
+                                        Tile tile = new()
+                                        {
+                                            Name = blockTile.Name,
+                                            Location = new Location(blockTile.Location.X, blockTile.Location.Y, 0),
+                                            Layer = layer,
+                                            Map = room,
+                                            World = world
+                                        };
+                                        layer.Tiles.Add(tile);
                                     }
+                                }
+
+                                if (Rooms.TryGetValue(worldTile.ID, out List<Map>? rooms))
+                                {
+                                    rooms.Add(room);
+                                }
+                                else
+                                {
+                                    Rooms.Add(worldTile.ID, [room]);
                                 }
                             }
                         }
@@ -2249,7 +2115,7 @@ namespace Despicaville.Util
             }
         }
 
-        private static void AssignOwners(Layer tiles)
+        private static void AssignOwners(Layer layer)
         {
             Army? army = CharacterManager.GetArmy("Characters");
             Squad? squad = army?.GetSquad("Citizens");
@@ -2271,22 +2137,257 @@ namespace Despicaville.Util
                 int block_x = (int)character.Location.X / 20;
                 int block_y = (int)character.Location.Y / 20;
 
-                List<Tile> furniture = WorldUtil.GetAllFurniture(tiles, new Point(block_x, block_y));
-                foreach (Tile tile in furniture)
+                List<Tile> tiles = WorldUtil.GetFurniture_All(layer, new Point(block_x, block_y));
+                foreach (Tile furniture in tiles)
                 {
-                    if (!Handler.OwnedFurniture.TryGetValue(character.ID, out List<Tile>? value))
+                    if (furniture.Location != null)
                     {
-                        Handler.OwnedFurniture.Add(character.ID, [tile]);
-                    }
-                    else
-                    {
-                        value.Add(tile);
+                        bool addFurniture = false;
+
+                        if (furniture.Name != null &&
+                            furniture.Name.Contains("Bed"))
+                        {
+                            //Don't grant ownership of someone else's bed
+
+                            Location? sleepSpot = null;
+                            if (furniture.Direction == Direction.North)
+                            {
+                                sleepSpot = new Location(furniture.Location.X, furniture.Location.Y + 1);
+                            }
+                            else if (furniture.Direction == Direction.West)
+                            {
+                                sleepSpot = new Location(furniture.Location.X + 1, furniture.Location.Y);
+                            }
+                            else
+                            {
+                                sleepSpot = new Location(furniture.Location.X, furniture.Location.Y);
+                            }
+
+                            if (sleepSpot != null)
+                            {
+                                if (character.Location.X == sleepSpot.X &&
+                                    character.Location.Y == sleepSpot.Y)
+                                {
+                                    addFurniture = true;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            addFurniture = true;
+                        }
+
+                        if (addFurniture)
+                        {
+                            if (!Handler.OwnedFurniture.TryGetValue(character.ID, out List<Tile>? value))
+                            {
+                                Handler.OwnedFurniture.Add(character.ID, [furniture]);
+                            }
+                            else
+                            {
+                                value.Add(furniture);
+                            }
+                        }
                     }
                 }
             }
         }
 
         #endregion
+
+        private static void AddCharacter(Tile bed)
+        {
+            if (Main.Game == null ||
+                bed.Location == null ||
+                bed.Region == null)
+            {
+                return;
+            }
+
+            Squad? citizens = CharacterManager.GetArmy("Characters")?.GetSquad("Citizens");
+            if (citizens?.Characters.Count < Handler.MaxPop)
+            {
+                Character? character = CharacterUtil.GenCharacter(last_name);
+                if (character != null)
+                {
+                    character.Direction = bed.Direction;
+
+                    if (bed.Direction == Direction.North)
+                    {
+                        character.FaceNorth();
+                    }
+                    else if (bed.Direction == Direction.East)
+                    {
+                        character.FaceEast();
+                    }
+                    else if (bed.Direction == Direction.South)
+                    {
+                        character.FaceSouth();
+                    }
+                    else if (bed.Direction == Direction.West)
+                    {
+                        character.FaceWest();
+                    }
+
+                    if (bed.Direction == Direction.North)
+                    {
+                        character.Location = new Location(bed.Location.X, bed.Location.Y + 1);
+                        character.Region = new Region(bed.Region.X, bed.Region.Y + Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
+                    }
+                    else if (bed.Direction == Direction.West)
+                    {
+                        character.Location = new Location(bed.Location.X + 1, bed.Location.Y);
+                        character.Region = new Region(bed.Region.X + Main.Game.TileSize.X, bed.Region.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
+                    }
+                    else
+                    {
+                        character.Location = new Location(bed.Location.X, bed.Location.Y);
+                        character.Region = new Region(bed.Region.X, bed.Region.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
+                    }
+
+                    CharacterUtil.UpdateGear(character);
+
+                    citizens.Characters.Add(character);
+                }
+            }
+        }
+
+        private static void AssignJobs()
+        {
+            Handler.LoadJobs();
+
+            List<Job> OpenJobs = [];
+
+            int jobCount = Handler.Jobs.Count;
+            for (int i = 0; i < jobCount; i++)
+            {
+                Job job = Handler.Jobs[i];
+                if (job.Name == null)
+                {
+                    continue;
+                }
+
+                OpenJobs.Add(job);
+
+                string[] jobNameParts = job.Name.Split('_');
+                
+                string place = jobNameParts[1];
+
+                Layer? middle_tiles = null;
+                Layer? top_tiles = null;
+
+                if (place == "Police")
+                {
+                    middle_tiles = Police?.GetLayer("MiddleTiles");
+                    top_tiles = Police?.GetLayer("TopTiles");
+                }
+                else if (place == "Grocery")
+                {
+                    middle_tiles = Grocery?.GetLayer("MiddleTiles");
+                    top_tiles = Grocery?.GetLayer("TopTiles");
+                }
+                else if (place == "Diner")
+                {
+                    middle_tiles = Diner?.GetLayer("MiddleTiles");
+                    top_tiles = Diner?.GetLayer("TopTiles");
+                }
+
+                for (int jt = 0; jt < job.Tasks.Count; jt++)
+                {
+                    JobTask task = job.Tasks[jt];
+
+                    if (task.Name == "Cashier")
+                    {
+                        if (top_tiles == null)
+                        {
+                            continue;
+                        }
+
+                        int tileCount = top_tiles.Tiles.Count;
+                        for (int t = 0; t < tileCount; t++)
+                        {
+                            Tile tile = top_tiles.Tiles[t];
+                            if (tile.Location == null ||
+                                tile.Name == null)
+                            {
+                                continue;
+                            }
+
+                            if (tile.Name.Contains("Register"))
+                            {
+                                task.Owner_Tile = tile;
+
+                                if (tile.Direction == Direction.North)
+                                {
+                                    task.Location = new Location(tile.Location.X, tile.Location.Y - 1);
+                                    task.Direction = Direction.South;
+                                }
+                                else if (tile.Direction == Direction.East)
+                                {
+                                    task.Location = new Location(tile.Location.X + 1, tile.Location.Y);
+                                    task.Direction = Direction.West;
+                                }
+                                else if (tile.Direction == Direction.South)
+                                {
+                                    task.Location = new Location(tile.Location.X, tile.Location.Y + 1);
+                                    task.Direction = Direction.North;
+                                }
+                                else if (tile.Direction == Direction.West)
+                                {
+                                    task.Location = new Location(tile.Location.X - 1, tile.Location.Y);
+                                    task.Direction = Direction.East;
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            Squad? citizens = CharacterManager.GetArmy("Characters")?.GetSquad("Citizens");
+            if (citizens == null)
+            {
+                return;
+            }
+
+            CryptoRandom random;
+
+            int count = citizens.Characters.Count;
+            for (int i = 0; i < count; i++)
+            {
+                if (OpenJobs.Count == 0)
+                {
+                    break;
+                }
+
+                random = new();
+                int job_choice = random.Next(0, OpenJobs.Count);
+                Job openJob = OpenJobs[job_choice];
+
+                Character character = citizens.Characters[i];
+                character.Job.ID = openJob.ID;
+                character.Job.Name = openJob.Name;
+
+                for (int j = 0; j < jobCount; j++)
+                {
+                    Job job = Handler.Jobs[j];
+                    if (job.ID == openJob.ID)
+                    {
+                        job.Owner_Character = character;
+
+                        for (int t = 0; t < job.Tasks.Count; t++)
+                        {
+                            JobTask task = job.Tasks[t];
+                            task.Owner_Character = character;
+                        }
+                        break;
+                    }
+                }
+
+                OpenJobs.Remove(openJob);
+            }
+        }
 
         public static void GenLoot()
         {
@@ -2306,7 +2407,8 @@ namespace Despicaville.Util
                         current++;
                         Handler.Loading_Percent = (current * 100) / total;
 
-                        if (middle_tile.Texture != null)
+                        if (middle_tile.Location != null &&
+                            middle_tile.Texture != null)
                         {
                             Tile? room_tile = room_tiles.GetTile(middle_tile.Location.ToVector2);
                             if (room_tile != null)

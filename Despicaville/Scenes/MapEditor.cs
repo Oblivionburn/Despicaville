@@ -660,7 +660,8 @@ namespace Despicaville.Scenes
         {
             foreach (Tile tile in Tiles)
             {
-                if (tile.Visible)
+                if (tile.Visible &&
+                    tile.Region != null)
                 {
                     if (InputManager.MouseWithin(tile.Region.ToRectangle))
                     {
@@ -701,7 +702,8 @@ namespace Despicaville.Scenes
         {
             foreach (Tile tile in Furniture)
             {
-                if (tile.Visible)
+                if (tile.Visible &&
+                    tile.Region != null)
                 {
                     if (InputManager.MouseWithin(tile.Region.ToRectangle))
                     {
@@ -748,7 +750,8 @@ namespace Despicaville.Scenes
                 case "Bottom":
                     foreach (Tile existing in BottomTiles.Tiles)
                     {
-                        if (InputManager.MouseWithin(existing.Region.ToRectangle))
+                        if (existing.Region != null &&
+                            InputManager.MouseWithin(existing.Region.ToRectangle))
                         {
                             tile = existing;
                             break;
@@ -759,7 +762,8 @@ namespace Despicaville.Scenes
                 case "Middle":
                     foreach (Tile existing in MiddleTiles.Tiles)
                     {
-                        if (InputManager.MouseWithin(existing.Region.ToRectangle))
+                        if (existing.Region != null &&
+                            InputManager.MouseWithin(existing.Region.ToRectangle))
                         {
                             tile = existing;
                             break;
@@ -770,7 +774,8 @@ namespace Despicaville.Scenes
                 case "Top":
                     foreach (Tile existing in TopTiles.Tiles)
                     {
-                        if (InputManager.MouseWithin(existing.Region.ToRectangle))
+                        if (existing.Region != null &&
+                            InputManager.MouseWithin(existing.Region.ToRectangle))
                         {
                             tile = existing;
                             break;
@@ -781,7 +786,8 @@ namespace Despicaville.Scenes
                 case "Room":
                     foreach (Tile existing in RoomTiles.Tiles)
                     {
-                        if (InputManager.MouseWithin(existing.Region.ToRectangle))
+                        if (existing.Region != null &&
+                            InputManager.MouseWithin(existing.Region.ToRectangle))
                         {
                             tile = existing;
                             break;
@@ -1041,7 +1047,8 @@ namespace Despicaville.Scenes
 
             if (RemovingTiles)
             {
-                if (tile.Texture != null)
+                if (tile.Texture != null &&
+                    tile.Region != null)
                 {
                     tile.Name = "";
                     tile.Texture = null;
@@ -1091,7 +1098,8 @@ namespace Despicaville.Scenes
                         tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
                     }
 
-                    if (SelectedTile != null)
+                    if (SelectedTile != null &&
+                        tile.Region != null)
                     {
                         tile.Region = new Region(tile.Region.X, tile.Region.Y, width * SelectedTile.Dimensions.Width, height * SelectedTile.Dimensions.Height);
                     }
@@ -1240,7 +1248,7 @@ namespace Despicaville.Scenes
                     {
                         EnterNode("BottomTile");
                         Writer.WriteAttributeString("Texture", tile.Texture?.Name);
-                        Writer.WriteAttributeString("Location", tile.Location.X.ToString() + "," + tile.Location.Y.ToString());
+                        Writer.WriteAttributeString("Location", tile.Location?.X.ToString() + "," + tile.Location?.Y.ToString());
                         ExitNode();
                     }
                     ExitNode();
@@ -1250,7 +1258,7 @@ namespace Despicaville.Scenes
                     {
                         EnterNode("MiddleTile");
                         Writer.WriteAttributeString("Texture", tile.Texture?.Name);
-                        Writer.WriteAttributeString("Location", tile.Location.X.ToString() + "," + tile.Location.Y.ToString());
+                        Writer.WriteAttributeString("Location", tile.Location?.X.ToString() + "," + tile.Location?.Y.ToString());
                         ExitNode();
                     }
                     ExitNode();
@@ -1260,7 +1268,7 @@ namespace Despicaville.Scenes
                     {
                         EnterNode("TopTile");
                         Writer.WriteAttributeString("Texture", tile.Texture?.Name);
-                        Writer.WriteAttributeString("Location", tile.Location.X.ToString() + "," + tile.Location.Y.ToString());
+                        Writer.WriteAttributeString("Location", tile.Location?.X.ToString() + "," + tile.Location?.Y.ToString());
                         ExitNode();
                     }
                     ExitNode();
@@ -1270,7 +1278,7 @@ namespace Despicaville.Scenes
                     {
                         EnterNode("RoomTile");
                         Writer.WriteAttributeString("Texture", tile.Texture?.Name);
-                        Writer.WriteAttributeString("Location", tile.Location.X.ToString() + "," + tile.Location.Y.ToString());
+                        Writer.WriteAttributeString("Location", tile.Location?.X.ToString() + "," + tile.Location?.Y.ToString());
                         ExitNode();
                     }
                     ExitNode();
@@ -1318,7 +1326,7 @@ namespace Despicaville.Scenes
                             {
                                 EnterNode("Tile");
                                 Writer.WriteAttributeString("Texture", tile.Texture?.Name);
-                                Writer.WriteAttributeString("Location", tile.Location.X.ToString() + "," + tile.Location.Y.ToString());
+                                Writer.WriteAttributeString("Location", tile.Location?.X.ToString() + "," + tile.Location?.Y.ToString());
                                 ExitNode();
                             }
                             ExitNode();
@@ -1575,6 +1583,10 @@ namespace Despicaville.Scenes
             for (int i = 0; i < count; i++)
             {
                 Tile tile = Tiles[i];
+                if (tile.Region == null)
+                {
+                    continue;
+                }
 
                 tile.Region.Y += width + 4;
 
@@ -1612,6 +1624,10 @@ namespace Despicaville.Scenes
             for (int i = 0; i < count; i++)
             {
                 Tile tile = Tiles[i];
+                if (tile.Region == null)
+                {
+                    continue;
+                }
 
                 tile.Region.Y -= width + 4;
 
@@ -1649,6 +1665,10 @@ namespace Despicaville.Scenes
             for (int i = 0; i < count; i++)
             {
                 Tile tile = Furniture[i];
+                if (tile.Region == null)
+                {
+                    continue;
+                }
 
                 tile.Region.Y += width + 4;
 
@@ -1686,6 +1706,10 @@ namespace Despicaville.Scenes
             for (int i = 0; i < count; i++)
             {
                 Tile tile = Furniture[i];
+                if (tile.Region == null)
+                {
+                    continue;
+                }
 
                 tile.Region.Y -= width + 4;
 
@@ -1950,6 +1974,11 @@ namespace Despicaville.Scenes
 
                     foreach (Tile tile in Furniture)
                     {
+                        if (tile.Region == null)
+                        {
+                            continue;
+                        }
+
                         for (int y = (int)region.Y; y < region.Y + region.Width; y++)
                         {
                             for (int x = (int)region.X; x < region.X + region.Width; x++)
@@ -2692,7 +2721,8 @@ namespace Despicaville.Scenes
                             for (int i = 0; i < BottomTiles.Tiles.Count; i++)
                             {
                                 Tile existing = BottomTiles.Tiles[i];
-                                if (existing.Location.X == tile.Location.X &&
+                                if (existing.Location != null &&
+                                    existing.Location.X == tile.Location.X &&
                                     existing.Location.Y == tile.Location.Y)
                                 {
                                     BottomTiles.Tiles[i] = tile;
@@ -2794,7 +2824,8 @@ namespace Despicaville.Scenes
                             for (int i = 0; i < MiddleTiles.Tiles.Count; i++)
                             {
                                 Tile existing = MiddleTiles.Tiles[i];
-                                if (existing.Location.X == tile.Location.X &&
+                                if (existing.Location != null &&
+                                    existing.Location.X == tile.Location.X &&
                                     existing.Location.Y == tile.Location.Y)
                                 {
                                     MiddleTiles.Tiles[i] = tile;
@@ -2876,7 +2907,8 @@ namespace Despicaville.Scenes
                             for (int i = 0; i < TopTiles.Tiles.Count; i++)
                             {
                                 Tile existing = TopTiles.Tiles[i];
-                                if (existing.Location.X == tile.Location.X &&
+                                if (existing.Location != null &&
+                                    existing.Location.X == tile.Location.X &&
                                     existing.Location.Y == tile.Location.Y)
                                 {
                                     TopTiles.Tiles[i] = tile;
@@ -2959,7 +2991,8 @@ namespace Despicaville.Scenes
                             for (int i = 0; i < RoomTiles.Tiles.Count; i++)
                             {
                                 Tile existing = RoomTiles.Tiles[i];
-                                if (existing.Location.X == tile.Location.X &&
+                                if (existing.Location != null &&
+                                    existing.Location.X == tile.Location.X &&
                                     existing.Location.Y == tile.Location.Y)
                                 {
                                     RoomTiles.Tiles[i] = tile;
@@ -2978,6 +3011,11 @@ namespace Despicaville.Scenes
 
         private bool HasRoom(Map rooms, Tile tile)
         {
+            if (tile.Location == null)
+            {
+                return false;
+            }
+
             int layerCount = rooms.Layers.Count;
             for (int l = 0; l < layerCount; l++)
             {
@@ -2987,6 +3025,10 @@ namespace Despicaville.Scenes
                 for (int t = 0; t < tileCount; t++)
                 {
                     Tile existing = layer.Tiles[t];
+                    if (existing.Location == null)
+                    {
+                        continue;
+                    }
 
                     if (existing.Name == tile.Name &&
                         existing.Location.X == tile.Location.X &&
@@ -3002,10 +3044,19 @@ namespace Despicaville.Scenes
 
         private bool HasTile(Layer room, Tile tile)
         {
+            if (tile.Location == null)
+            {
+                return false;
+            }
+
             int tileCount = room.Tiles.Count;
             for (int t = 0; t < tileCount; t++)
             {
                 Tile existing = room.Tiles[t];
+                if (existing.Location == null)
+                {
+                    continue;
+                }
 
                 if (existing.Location.X == tile.Location.X &&
                     existing.Location.Y == tile.Location.Y)
@@ -3019,6 +3070,11 @@ namespace Despicaville.Scenes
 
         private void GetRoomTiles(Layer room_tiles, Layer room, Tile room_tile)
         {
+            if (room_tile.Location == null)
+            {
+                return;
+            }
+
             room.Tiles.Add(room_tile);
 
             Tile? north = room_tiles.GetTile(new Vector2(room_tile.Location.X, room_tile.Location.Y - 1));
@@ -3081,6 +3137,11 @@ namespace Despicaville.Scenes
             {
                 foreach (Tile tile in room.Tiles)
                 {
+                    if (tile.Location == null)
+                    {
+                        continue;
+                    }
+
                     Tile? middle = middle_tiles.GetTile(tile.Location.ToVector2);
                     if (middle != null)
                     {

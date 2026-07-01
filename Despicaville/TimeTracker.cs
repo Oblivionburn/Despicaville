@@ -81,7 +81,7 @@ namespace Despicaville
                     !character.Laying &&
                     !CharacterUtil.PulledByPlayer(character))
                 {
-                    Tasker.GiveTask_Citizen(character);
+                    Tasker.GetTask(character);
                 }
             }
 

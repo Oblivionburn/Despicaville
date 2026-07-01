@@ -195,7 +195,9 @@ namespace Despicaville.Util
                     if (bottom_tiles != null)
                     {
                         Tile? current = bottom_tiles.GetTile(Handler.Player.Location.ToVector2);
-                        if (current != null)
+                        if (current != null &&
+                            current.Region != null &&
+                            current.Location != null)
                         {
                             current.Region.X = Handler.Player.Region.X;
                             current.Region.Y = Handler.Player.Region.Y;
@@ -204,6 +206,12 @@ namespace Despicaville.Util
 
                             foreach (Tile tile in bottom_tiles.Tiles)
                             {
+                                if (tile.Region == null ||
+                                    tile.Location == null)
+                                {
+                                    continue;
+                                }
+
                                 int x_diff = (int)tile.Location.X - (int)current.Location.X;
                                 if (x_diff < 0)
                                 {
@@ -246,7 +254,7 @@ namespace Despicaville.Util
                                 tile.Region.Height = Main.Game.TileSize.Y;
 
                                 Tile? middle_tile = middle_tiles?.GetTile(tile.Location.ToVector2);
-                                if (middle_tile != null)
+                                if (middle_tile?.Region != null)
                                 {
                                     middle_tile.Region.X = tile.Region.X;
                                     middle_tile.Region.Y = tile.Region.Y;
@@ -473,6 +481,11 @@ namespace Despicaville.Util
             for (int i = 0; i < count; i++)
             {
                 Tile bottom_tile = bottom_tiles.Tiles[i];
+                if (bottom_tile.Region == null ||
+                    bottom_tile.Location == null)
+                {
+                    continue;
+                }
 
                 Location location = bottom_tile.Location;
 
@@ -494,7 +507,7 @@ namespace Despicaville.Util
                 }
 
                 Tile? middle_tile = middle_tiles?.GetTile(loc);
-                if (middle_tile != null)
+                if (middle_tile?.Region != null)
                 {
                     Region middle_region = middle_tile.Region;
 

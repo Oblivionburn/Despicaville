@@ -1,5 +1,4 @@
 ﻿using Microsoft.Xna.Framework;
-using OP_Engine.Characters;
 using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
@@ -20,8 +19,7 @@ namespace Despicaville.JobTasks
                 return;
             }
 
-            Character? character = GetOwner();
-            if (character == null)
+            if (Owner_Character == null)
             {
                 return;
             }
@@ -30,7 +28,7 @@ namespace Despicaville.JobTasks
 
             Layer? middle_tiles = map?.GetLayer("MiddleTiles");
             Tile? tile = middle_tiles?.GetTile(Location.ToVector2);
-            if (tile == null)
+            if (tile?.Region == null)
             {
                 return;
             }
@@ -63,25 +61,25 @@ namespace Despicaville.JobTasks
                 AssetManager.PlaySound_Random_AtDistance("DoorClose", Handler.Player.Location.ToVector2, Location.ToVector2, 8);
             }
 
-            if (character.Direction == Direction.North &&
+            if (Owner_Character.Direction == Direction.North &&
                 tile.Direction == Direction.South)
             {
                 tile.Texture = Handler.GetTexture("Fridge_South");
                 tile.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width, Main.Game.TileSize.Y);
             }
-            else if (character.Direction == Direction.East &&
+            else if (Owner_Character.Direction == Direction.East &&
                      tile.Direction == Direction.West)
             {
                 tile.Texture = Handler.GetTexture("Fridge_West");
                 tile.Region = new Region(tile.Region.X + Main.Game.TileSize.X, tile.Region.Y, Main.Game.TileSize.X, tile.Region.Height);
             }
-            else if (character.Direction == Direction.South &&
+            else if (Owner_Character.Direction == Direction.South &&
                      tile.Direction == Direction.North)
             {
                 tile.Texture = Handler.GetTexture("Fridge_North");
                 tile.Region = new Region(tile.Region.X, tile.Region.Y + Main.Game.TileSize.Y, tile.Region.Width, Main.Game.TileSize.Y);
             }
-            else if (character.Direction == Direction.West &&
+            else if (Owner_Character.Direction == Direction.West &&
                      tile.Direction == Direction.East)
             {
                 tile.Texture = Handler.GetTexture("Fridge_East");
@@ -95,7 +93,7 @@ namespace Despicaville.JobTasks
 
             tile.BlocksMovement = true;
 
-            if (character.Type != "Player" &&
+            if (Owner_Character.Type != "Player" &&
                 !Handler.Player.Unconscious)
             {
                 Direction direction = WorldUtil.GetDirection(Handler.Player.Location, Location);
@@ -116,29 +114,6 @@ namespace Despicaville.JobTasks
                     GameUtil.AddMessage("You hear a fridge slammed shut to the " + direction.ToString() + ".");
                 }
             }
-        }
-
-        public Character? GetOwner()
-        {
-            if (Handler.Player?.ID == OwnerID)
-            {
-                return Handler.Player;
-            }
-
-            Army army = CharacterManager.Armies[0];
-            Squad citizens = army.Squads[1];
-
-            int count = citizens.Characters.Count;
-            for (int c = 0; c < count; c++)
-            {
-                Character citizen = citizens.Characters[c];
-                if (citizen.ID == OwnerID)
-                {
-                    return citizen;
-                }
-            }
-
-            return null;
         }
     }
 }

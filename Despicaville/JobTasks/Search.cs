@@ -1,5 +1,4 @@
-﻿using OP_Engine.Characters;
-using OP_Engine.Jobs;
+﻿using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
 using OP_Engine.Time;
@@ -17,8 +16,7 @@ namespace Despicaville.JobTasks
                 return;
             }
 
-            Character? character = GetOwner();
-            if (character == null)
+            if (Owner_Character?.Type != "Player")
             {
                 return;
             }
@@ -41,12 +39,12 @@ namespace Despicaville.JobTasks
                     Handler.Trading = true;
                     Handler.Trading_InventoryID.Add(tile.Inventory.ID);
 
-                    Menu? main = MenuManager.GetMenu("Inventory");
-                    if (main != null)
+                    Menu? menu = MenuManager.GetMenu("Inventory");
+                    if (menu != null)
                     {
-                        main.Load();
-                        main.Active = true;
-                        main.Visible = true;
+                        menu.Load();
+                        menu.Active = true;
+                        menu.Visible = true;
                     }
                 }
                 else if (Name != null)
@@ -75,29 +73,6 @@ namespace Despicaville.JobTasks
                     }
                 }
             }
-        }
-
-        public Character? GetOwner()
-        {
-            if (Handler.Player?.ID == OwnerID)
-            {
-                return Handler.Player;
-            }
-
-            Army army = CharacterManager.Armies[0];
-            Squad citizens = army.Squads[1];
-
-            int count = citizens.Characters.Count;
-            for (int c = 0; c < count; c++)
-            {
-                Character citizen = citizens.Characters[c];
-                if (citizen.ID == OwnerID)
-                {
-                    return citizen;
-                }
-            }
-
-            return null;
         }
     }
 }
