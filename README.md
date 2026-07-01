@@ -15,11 +15,11 @@
 - NPC jobs and daily schedules
 
 ### Planned features not yet implemented:
+- Vehicles/driving
 - More dynamic and personality-based reactions for NPCs being attacked
 - NPCs under attack calling for help from other nearby NPCs and/or calling the police
 - NPCs witnessing crimes calling the police and/or attempting citizens arrest
 - Police investigation of crimes
-- Vehicles/driving
 - Key-word based NPC dialogue
 - Implementing memory system for NPCs (tracking of in-game events that they experience/witness)
 - Dialogue between NPCs that the player can overhear, and a means for NPCs to share/spread event knowledge from their memory
