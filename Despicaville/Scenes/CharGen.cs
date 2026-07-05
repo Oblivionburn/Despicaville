@@ -608,7 +608,7 @@ namespace Despicaville.Scenes
                                         pool_Amount.Text = Pool.ToString();
                                     }
 
-                                    Button? stat_Amount = Menu?.GetButton(stat + "_Amount");
+                                    Label? stat_Amount = Menu?.GetLabel(stat + "_Amount");
                                     if (stat_Amount != null)
                                     {
                                         stat_Amount.Text = Stats[stat].ToString();
