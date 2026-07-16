@@ -932,18 +932,12 @@ namespace Despicaville
             List<Tile> comfortSpots = WorldUtil.GetComfortSpots(character);
             if (comfortSpots.Count > 0)
             {
-                Tile? tile = WorldUtil.GetClosestTile(comfortSpots, character);
-                if (tile?.Location != null)
+                Tile? furniture = WorldUtil.GetClosestTile(comfortSpots, character);
+                if (furniture?.Location != null)
                 {
-                    if (character.Location.X == tile.Location.X &&
-                        character.Location.Y == tile.Location.Y)
+                    if (character.Location.X == furniture.Location.X &&
+                        character.Location.Y == furniture.Location.Y)
                     {
-                        Tile? furniture = WorldUtil.GetFurniture(Handler.MiddleFurniture, tile.Location);
-                        if (furniture == null)
-                        {
-                            return false;
-                        }
-
                         if (character.Direction != furniture.Direction)
                         {
                             character.Job.Tasks.Add(new Turn
@@ -971,7 +965,7 @@ namespace Despicaville
                         if (bottom_tiles != null &&
                             middle_tiles != null)
                         {
-                            PathTo(bottom_tiles, middle_tiles, tile.Location, character, desperate, false);
+                            PathTo(bottom_tiles, middle_tiles, furniture.Location, character, desperate, false);
                             return false;
                         }
                     }
