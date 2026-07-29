@@ -643,7 +643,9 @@ namespace Despicaville
             if (!Handler.Player.Unconscious &&
                 Handler.Player.Location != null)
             {
-                AssetManager.PlaySound_Random_AtDistance("GlassBreak", Handler.Player.Location.ToVector2, location, 10);
+                int x_diff = (int)(Handler.Player.Location.X - location.X) * -1;
+                int y_diff = (int)(Handler.Player.Location.Y - location.Y) * -1;
+                AssetManager.PlaySound_Random_In3D("GlassBreak", new Vector3(x_diff, y_diff, 1), 1, 20);
             }
 
             string name = "BrokenGlass_" + direction.ToString();

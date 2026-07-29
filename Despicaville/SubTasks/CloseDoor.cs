@@ -1,4 +1,5 @@
-﻿using OP_Engine.Jobs;
+﻿using Microsoft.Xna.Framework;
+using OP_Engine.Jobs;
 using OP_Engine.Utility;
 using OP_Engine.Tiles;
 using OP_Engine.Enums;
@@ -36,28 +37,9 @@ namespace Despicaville.SubTasks
                 return;
             }
 
-            int loudness = 2;
-            if (Name.Contains("Quiet"))
-            {
-                loudness = 1;
-            }
-            else if (Name.Contains("Loud"))
-            {
-                loudness = 3;
-            }
-
-            if (loudness == 1)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorClose", Handler.Player.Location.ToVector2, Location.ToVector2, 2);
-            }
-            else if (loudness == 2)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorClose", Handler.Player.Location.ToVector2, Location.ToVector2, 4);
-            }
-            else if (loudness == 3)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorClose", Handler.Player.Location.ToVector2, Location.ToVector2, 8);
-            }
+            int x_diff = (int)(Handler.Player.Location.X - Location.X) * -1;
+            int y_diff = (int)(Handler.Player.Location.Y - Location.Y) * -1;
+            AssetManager.PlaySound_Random_In3D("DoorClose", new Vector3(x_diff, y_diff, 1), 1, 20);
 
             Layer? bottom_tiles = map?.GetLayer("BottomTiles");
             Tile? bottom_tile = bottom_tiles?.GetTile(tile.Location.ToVector2);

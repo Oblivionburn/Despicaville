@@ -44,28 +44,9 @@ namespace Despicaville.SubTasks
                 return;
             }
 
-            int loudness = 2;
-            if (Name.Contains("Quiet"))
-            {
-                loudness = 1;
-            }
-            else if (Name.Contains("Loud"))
-            {
-                loudness = 3;
-            }
-
-            if (loudness == 1)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorOpen", Handler.Player.Location.ToVector2, Location.ToVector2, 2);
-            }
-            else if (loudness == 2)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorOpen", Handler.Player.Location.ToVector2, Location.ToVector2, 4);
-            }
-            else if (loudness == 3)
-            {
-                AssetManager.PlaySound_Random_AtDistance("DoorOpen", Handler.Player.Location.ToVector2, Location.ToVector2, 8);
-            }
+            int x_diff = (int)(Handler.Player.Location.X - Location.X) * -1;
+            int y_diff = (int)(Handler.Player.Location.Y - Location.Y) * -1;
+            AssetManager.PlaySound_Random_In3D("DoorOpen", new Vector3(x_diff, y_diff, 1), 1, 20);
 
             if (tile.Direction == Direction.South)
             {
@@ -91,28 +72,6 @@ namespace Despicaville.SubTasks
             if (tile.Texture != null)
             {
                 tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
-            }
-
-            if (Owner_Character.Type != "Player" &&
-                !Handler.Player.Unconscious)
-            {
-                Direction direction = WorldUtil.GetDirection(Handler.Player.Location, Location);
-
-                if (loudness == 1 &&
-                    WorldUtil.InRange(Handler.Player.Location, Location, 2))
-                {
-                    GameUtil.AddMessage("You hear a fridge quietly open to the " + direction.ToString() + ".");
-                }
-                else if (loudness == 2 &&
-                         WorldUtil.InRange(Handler.Player.Location, Location, 4))
-                {
-                    GameUtil.AddMessage("You hear a fridge open to the " + direction.ToString() + ".");
-                }
-                else if (loudness == 3 &&
-                         WorldUtil.InRange(Handler.Player.Location, Location, 8))
-                {
-                    GameUtil.AddMessage("You hear a fridge loudly open to the " + direction.ToString() + ".");
-                }
             }
         }
     }

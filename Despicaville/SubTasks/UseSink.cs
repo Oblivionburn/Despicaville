@@ -1,4 +1,5 @@
-﻿using OP_Engine.Enums;
+﻿using Microsoft.Xna.Framework;
+using OP_Engine.Enums;
 using OP_Engine.Jobs;
 using OP_Engine.Tiles;
 using OP_Engine.Utility;
@@ -44,7 +45,9 @@ namespace Despicaville.SubTasks
                     {
                         if (sink.Sound != null)
                         {
-                            AssetManager.PlaySound_Random_AtDistance(sink.Sound, Handler.Player.Location.ToVector2, sink.Location.ToVector2, sink.SoundRange);
+                            int x_diff = (int)(Handler.Player.Location.X - sink.Location.X) * -1;
+                            int y_diff = (int)(Handler.Player.Location.Y - sink.Location.Y) * -1;
+                            AssetManager.PlaySound_Random_In3D(sink.Sound, new Vector3(x_diff, y_diff, 1), 1, 20);
                         }
 
                         if (Owner_Character.Type != "Player")

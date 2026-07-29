@@ -281,13 +281,16 @@ namespace Despicaville.Menus
                     if (weaponItem.Sound != null &&
                         Handler.Player.Location != null)
                     {
-                        AssetManager.PlaySound_Random_AtDistance(weaponItem.Sound, Handler.Player.Location.ToVector2,
-                        Handler.Interaction_Character.Location.ToVector2, weaponItem.SoundRange);
+                        int x_diff = (int)(Handler.Player.Location.X - Handler.Interaction_Character.Location.X) * -1;
+                        int y_diff = (int)(Handler.Player.Location.Y - Handler.Interaction_Character.Location.Y) * -1;
+                        AssetManager.PlaySound_Random_In3D(weaponItem.Sound, new Vector3(x_diff, y_diff, 1), 1, 20);
                     }
                 }
                 else if (Handler.Player.Location != null)
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, Handler.Interaction_Character.Location.ToVector2, 2);
+                    int x_diff = (int)(Handler.Player.Location.X - Handler.Interaction_Character.Location.X) * -1;
+                    int y_diff = (int)(Handler.Player.Location.Y - Handler.Interaction_Character.Location.Y) * -1;
+                    AssetManager.PlaySound_Random_In3D("Punch", new Vector3(x_diff, y_diff, 1), 1, 20);
                 }
 
                 GameUtil.AddMessage("You missed the shot at their " + CharacterUtil.BodyPartToName(button.Name)?.ToLower() + ".");

@@ -8,6 +8,7 @@ using OP_Engine.Tiles;
 using OP_Engine.Time;
 using OP_Engine.Inventories;
 using Despicaville.Util;
+using Microsoft.Xna.Framework;
 
 namespace Despicaville.SubTasks
 {
@@ -34,6 +35,9 @@ namespace Despicaville.SubTasks
                 return;
             }
 
+            int x_diff = (int)(Handler.Player.Location.X - Owner_Character.Location.X) * -1;
+            int y_diff = (int)(Handler.Player.Location.Y - Owner_Character.Location.Y) * -1;
+
             rightHandItem = InventoryUtil.Get_EquippedItem(Owner_Character, "Right Weapon Slot");
             leftHandItem = InventoryUtil.Get_EquippedItem(Owner_Character, "Left Weapon Slot");
 
@@ -58,7 +62,7 @@ namespace Despicaville.SubTasks
                     rightAction == "Stab" ||
                     rightAction == "Cut")
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 2);
+                    AssetManager.PlaySound_Random_In3D("Swing", new Vector3(x_diff, y_diff, 1), 1, 20);
 
                     effect = true;
                     TimeSpan startTime = TimeSpan.FromMilliseconds(StartTime.TotalMilliseconds);
@@ -68,18 +72,18 @@ namespace Despicaville.SubTasks
                 }
                 else if (rightAction == "Throw")
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 3);
+                    AssetManager.PlaySound_Random_In3D("Swing", new Vector3(x_diff, y_diff, 1), 1, 20);
                 }
                 else if (rightAction == "Shoot")
                 {
                     if (rightWeapon == "Sling")
                     {
-                        AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 5);
+                        AssetManager.PlaySound_Random_In3D("Swing", new Vector3(x_diff, y_diff, 1), 1, 20);
                     }
                     else if (rightWeapon != null &&
                              rightWeapon.Contains("Bow"))
                     {
-                        AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 5);
+                        AssetManager.PlaySound_Random_In3D("Bow", new Vector3(x_diff, y_diff, 1), 1, 20);
                     }
                 }
 
@@ -90,7 +94,7 @@ namespace Despicaville.SubTasks
                     leftAction == "Stab" ||
                     leftAction == "Cut")
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 2);
+                    AssetManager.PlaySound_Random_In3D("Swing", new Vector3(x_diff, y_diff, 1), 1, 20);
 
                     if (!effect)
                     {
@@ -102,18 +106,18 @@ namespace Despicaville.SubTasks
                 }
                 else if (leftAction == "Throw")
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 3);
+                    AssetManager.PlaySound_Random_In3D("Swing", new Vector3(x_diff, y_diff, 1), 1, 20);
                 }
                 else if (leftAction == "Shoot")
                 {
                     if (leftWeapon == "Sling")
                     {
-                        AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 5);
+                        AssetManager.PlaySound_Random_In3D("Swing", new Vector3(x_diff, y_diff, 1), 1, 20);
                     }
                     else if (leftWeapon != null &&
                              leftWeapon.Contains("Bow"))
                     {
-                        AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 5);
+                        AssetManager.PlaySound_Random_In3D("Bow", new Vector3(x_diff, y_diff, 1), 1, 20);
                     }
                 }
             }
@@ -128,7 +132,7 @@ namespace Despicaville.SubTasks
                     action == "Stab" ||
                     action == "Cut")
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 2);
+                    AssetManager.PlaySound_Random_In3D("Swing", new Vector3(x_diff, y_diff, 1), 1, 20);
 
                     TimeSpan startTime = TimeSpan.FromMilliseconds(StartTime.TotalMilliseconds);
                     int duration = (int)(EndTime.TotalMilliseconds - StartTime.TotalMilliseconds);
@@ -137,17 +141,17 @@ namespace Despicaville.SubTasks
                 }
                 else if (action == "Throw")
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 3);
+                    AssetManager.PlaySound_Random_In3D("Swing", new Vector3(x_diff, y_diff, 1), 1, 20);
                 }
                 else if (action == "Shoot")
                 {
                     if (weapon == "Sling")
                     {
-                        AssetManager.PlaySound_Random_AtDistance("Swing", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 5);
+                        AssetManager.PlaySound_Random_In3D("Swing", new Vector3(x_diff, y_diff, 1), 1, 20);
                     }
                     else if (weapon.Contains("Bow"))
                     {
-                        AssetManager.PlaySound_Random_AtDistance("Bow", Handler.Player.Location.ToVector2, Owner_Character.Location.ToVector2, 5);
+                        AssetManager.PlaySound_Random_In3D("Bow", new Vector3(x_diff, y_diff, 1), 1, 20);
                     }
                 }
             }
@@ -300,10 +304,14 @@ namespace Despicaville.SubTasks
         public void WeaponAttack_Character(Character attacker, Character defender, Item weapon)
         {
             if (Handler.Player?.Location == null ||
+                attacker.Location == null ||
                 defender.Location == null)
             {
                 return;
             }
+
+            int x_diff = (int)(Handler.Player.Location.X - attacker.Location.X) * -1;
+            int y_diff = (int)(Handler.Player.Location.Y - attacker.Location.Y) * -1;
 
             string? bodyPart = Handler.Selected_BodyPart;
             if (string.IsNullOrEmpty(bodyPart))
@@ -348,7 +356,7 @@ namespace Despicaville.SubTasks
             {
                 if (weapon.Sound != null)
                 {
-                    AssetManager.PlaySound_Random_AtDistance(weapon.Sound, Handler.Player.Location.ToVector2, defender.Location.ToVector2, weapon.SoundRange);
+                    AssetManager.PlaySound_Random_In3D(weapon.Sound, new Vector3(x_diff, y_diff, 1), 1, 20);
                 }
 
                 if (weapon.Name != null &&
@@ -409,7 +417,7 @@ namespace Despicaville.SubTasks
                             !weapon.Name.Contains("Bow") &&
                             weapon.Sound != null)
                         {
-                            AssetManager.PlaySound_Random_AtDistance(weapon.Sound, Handler.Player.Location.ToVector2, defender.Location.ToVector2, weapon.SoundRange);
+                            AssetManager.PlaySound_Random_In3D(weapon.Sound, new Vector3(x_diff, y_diff, 1), 1, 20);
                         }
 
                         GameUtil.AddMessage("You tried to " + weapon?.Task.ToLower() + " their " + CharacterUtil.BodyPartToName(bodyPart)?.ToLower() + ", but missed.");
@@ -437,7 +445,7 @@ namespace Despicaville.SubTasks
                             weapon.Sound != null &&
                             attacker.Location != null)
                         {
-                            AssetManager.PlaySound_Random_AtDistance(weapon.Sound, Handler.Player.Location.ToVector2, attacker.Location.ToVector2, weapon.SoundRange);
+                            AssetManager.PlaySound_Random_In3D(weapon.Sound, new Vector3(x_diff, y_diff, 1), 1, 20);
                         }
 
                         GameUtil.AddMessage(attacker.Name + " tried to " + weapon.Task.ToLower() + " your " + CharacterUtil.BodyPartToName(bodyPart)?.ToLower() + ", but missed.");
@@ -477,6 +485,16 @@ namespace Despicaville.SubTasks
 
         public void MeleeAttack_Character(Character attacker, Character defender)
         {
+            if (Handler.Player?.Location == null ||
+                attacker.Location == null ||
+                defender.Location == null)
+            {
+                return;
+            }
+
+            int x_diff = (int)(Handler.Player.Location.X - attacker.Location.X) * -1;
+            int y_diff = (int)(Handler.Player.Location.Y - attacker.Location.Y) * -1;
+
             string? bodyPart = Handler.Selected_BodyPart;
             if (string.IsNullOrEmpty(bodyPart))
             {
@@ -521,7 +539,7 @@ namespace Despicaville.SubTasks
                 if (Handler.Player?.Location != null &&
                     defender.Location != null)
                 {
-                    AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, defender.Location.ToVector2, 2);
+                    AssetManager.PlaySound_Random_In3D("Punch", new Vector3(x_diff, y_diff, 1), 1, 20);
                 }
                 
                 CombatUtil.DoDamage(attacker, defender, "Right Hand", "Punch", bodyPart);
