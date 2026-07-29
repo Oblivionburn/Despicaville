@@ -150,7 +150,17 @@ namespace Despicaville.Util
 
                     if (open.Count > 0)
                     {
-                        ALocation? next_block = Get_MinLocation_Target(open);
+                        ALocation? next_block;
+
+                        if (open.Count == 1)
+                        {
+                            next_block = open[0];
+                        }
+                        else
+                        {
+                            next_block = Get_MinLocation_Target(open);
+                        }
+
                         if (next_block != null)
                         {
                             open.Clear();
@@ -347,7 +357,17 @@ namespace Despicaville.Util
 
                     if (open.Count > 0)
                     {
-                        Map? min = Get_MinRoom(open, target_location);
+                        Map? min;
+
+                        if (open.Count == 1)
+                        {
+                            min = open[0];
+                        }
+                        else
+                        {
+                            min = Get_MinRoom(open, target_location);
+                        }
+                           
                         if (min != null)
                         {
                             open.Clear();
@@ -406,7 +426,17 @@ namespace Despicaville.Util
 
                 if (open.Count > 0)
                 {
-                    Map? min = Get_MinRoom(open, start_location);
+                    Map? min;
+
+                    if (open.Count == 1)
+                    {
+                        min = open[0];
+                    }
+                    else
+                    {
+                        min = Get_MinRoom(open, start_location);
+                    }
+
                     if (min != null)
                     {
                         open.Clear();
@@ -460,9 +490,14 @@ namespace Despicaville.Util
         {
             List<Location> result = [];
 
+            if (room.Location == null ||
+                next_room.Location == null)
+            {
+                return result;
+            }
+
             Layer? exits = room.GetLayer("Exits");
-            if (exits != null &&
-                room.Location != null)
+            if (exits != null)
             {
                 int count = exits.Tiles.Count;
                 for (int i = 0; i < count; i++)
@@ -473,10 +508,6 @@ namespace Despicaville.Util
                         continue;
                     }
 
-                    //Convert exit location to world coordinates
-                    int x = (int)(exit.Location.X + (room.Location.X * 20));
-                    int y = (int)(exit.Location.Y + (room.Location.Y * 20));
-
                     //Is the current exit tile overlapping some other room's exit tile?
                     Layer? other_exits = next_room.GetLayer("Exits");
                     if (other_exits != null)
@@ -485,20 +516,15 @@ namespace Despicaville.Util
                         for (int e = 0; e < exitCount; e++)
                         {
                             Tile other_exit = other_exits.Tiles[e];
-                            if (other_exit.Location == null ||
-                                next_room.Location == null)
+                            if (other_exit.Location == null)
                             {
                                 continue;
                             }
 
-                            //Convert other exit location to world coordinates
-                            int other_x = (int)(other_exit.Location.X + (next_room.Location.X * 20));
-                            int other_y = (int)(other_exit.Location.Y + (next_room.Location.Y * 20));
-
-                            if (x == other_x &&
-                                y == other_y)
+                            if (exit.Location.X == other_exit.Location.X &&
+                                exit.Location.Y == other_exit.Location.Y)
                             {
-                                result.Add(new Location(other_x, other_y));
+                                result.Add(other_exit.Location);
                             }
                         }
                     }
@@ -511,20 +537,15 @@ namespace Despicaville.Util
                         for (int e = 0; e < tileCount; e++)
                         {
                             Tile tile = tiles.Tiles[e];
-                            if (tile.Location == null ||
-                                next_room.Location == null)
+                            if (tile.Location == null)
                             {
                                 continue;
                             }
 
-                            //Convert tile location to world coordinates
-                            int other_x = (int)(tile.Location.X + (next_room.Location.X * 20));
-                            int other_y = (int)(tile.Location.Y + (next_room.Location.Y * 20));
-
-                            if (x == other_x &&
-                                y == other_y)
+                            if (exit.Location.X == tile.Location.X &&
+                                exit.Location.Y == tile.Location.Y)
                             {
-                                result.Add(new Location(other_x, other_y));
+                                result.Add(tile.Location);
                             }
                         }
                     }
@@ -574,15 +595,11 @@ namespace Despicaville.Util
                         continue;
                     }
 
-                    //Convert exit location to world coordinates
-                    int x = (int)(exit.Location.X + (room.Location.X * 20));
-                    int y = (int)(exit.Location.Y + (room.Location.Y * 20));
-
                     //Is the room exit within the next block?
-                    if (x >= next_block_min_x && x < next_block_max_x &&
-                        y >= next_block_min_y && y < next_block_max_y)
+                    if (exit.Location.X >= next_block_min_x && exit.Location.X < next_block_max_x &&
+                        exit.Location.Y >= next_block_min_y && exit.Location.Y < next_block_max_y)
                     {
-                        return new Location(x, y);
+                        return exit.Location;
                     }
                 }
             }
@@ -632,15 +649,11 @@ namespace Despicaville.Util
                         continue;
                     }
 
-                    //Convert exit location to world coordinates
-                    int x = (int)(exit.Location.X + (room.Location.X * 20));
-                    int y = (int)(exit.Location.Y + (room.Location.Y * 20));
-
                     //Is the room exit within the next block?
-                    if (x >= next_block_min_x && x < next_block_max_x &&
-                        y >= next_block_min_y && y < next_block_max_y)
+                    if (exit.Location.X >= next_block_min_x && exit.Location.X < next_block_max_x &&
+                        exit.Location.Y >= next_block_min_y && exit.Location.Y < next_block_max_y)
                     {
-                        result.Add(new Location(x, y));
+                        result.Add(exit.Location);
                     }
                 }
             }
@@ -688,13 +701,9 @@ namespace Despicaville.Util
                         continue;
                     }
 
-                    //Convert exit location to world coordinates
-                    int x = (int)(exit.Location.X + (room.Location.X * 20));
-                    int y = (int)(exit.Location.Y + (room.Location.Y * 20));
-
                     //Is the room exit within the next block?
-                    if (x >= next_block_min_x && x < next_block_max_x &&
-                        y >= next_block_min_y && y < next_block_max_y)
+                    if (exit.Location.X >= next_block_min_x && exit.Location.X < next_block_max_x &&
+                        exit.Location.Y >= next_block_min_y && exit.Location.Y < next_block_max_y)
                     {
                         return room;
                     }
@@ -723,23 +732,20 @@ namespace Despicaville.Util
         {
             Map room = rooms[0];
 
-            Layer? exits = room.GetLayer("Exits");
-            if (exits == null)
+            Layer? tiles = room.GetLayer("Tiles");
+            if (tiles == null)
             {
                 return null;
             }
 
-            Tile? exit = WorldUtil.GetClosestTile(exits.Tiles, target, true);
-            if (exit?.Location == null ||
+            Tile? tile = WorldUtil.GetClosestTile(tiles.Tiles, target);
+            if (tile?.Location == null ||
                 room.Location == null)
             {
                 return null;
             }
 
-            float x = exit.Location.X + (room.Location.X * 20);
-            float y = exit.Location.Y + (room.Location.Y * 20);
-
-            int? distance = WorldUtil.GetDistance(new Location(x, y), target);
+            int? distance = WorldUtil.GetDistance(new Location(tile.Location.X, tile.Location.Y), target);
 
             int count = rooms.Count;
             for (int i = 0; i < count; i++)
@@ -752,23 +758,19 @@ namespace Despicaville.Util
 
                 if (other_room.ID != room.ID)
                 {
-                    Layer? other_exits = other_room.GetLayer("Exits");
-                    if (other_exits == null)
+                    Layer? other_tiles = other_room.GetLayer("Tiles");
+                    if (other_tiles == null)
                     {
                         return null;
                     }
 
-                    Tile? other_exit = WorldUtil.GetClosestTile(other_exits.Tiles, target, true);
-                    if (other_exit?.Location == null)
+                    Tile? other_tile = WorldUtil.GetClosestTile(other_tiles.Tiles, target);
+                    if (other_tile?.Location == null)
                     {
                         return null;
                     }
 
-                    float other_x = other_exit.Location.X + (other_room.Location.X * 20);
-                    float other_y = other_exit.Location.Y + (other_room.Location.Y * 20);
-
-                    int? other_distance = WorldUtil.GetDistance(new Location(other_x, other_y), target);
-
+                    int? other_distance = WorldUtil.GetDistance(new Location(other_tile.Location.X, other_tile.Location.Y), target);
                     if (other_distance < distance)
                     {
                         room = other_room;
@@ -802,11 +804,8 @@ namespace Despicaville.Util
                     continue;
                 }
 
-                float x = tile.Location.X + (room.Location.X * 20);
-                float y = tile.Location.Y + (room.Location.Y * 20);
-
-                if (x == target.X &&
-                    y == target.Y)
+                if (tile.Location.X == target.X &&
+                    tile.Location.Y == target.Y)
                 {
                     return true;
                 }
@@ -884,7 +883,17 @@ namespace Despicaville.Util
 
                     if (open.Count > 0)
                     {
-                        ALocation? min = Get_MinLocation_Target(open);
+                        ALocation? min;
+
+                        if (open.Count == 1)
+                        {
+                            min = open[0];
+                        }
+                        else
+                        {
+                            min = Get_MinLocation_Target(open);
+                        }
+
                         if (min != null)
                         {
                             open.Clear();
@@ -977,7 +986,17 @@ namespace Despicaville.Util
 
                     if (open.Count > 0)
                     {
-                        ALocation? min = Get_MinLocation_Target(open);
+                        ALocation? min;
+
+                        if (open.Count == 1)
+                        {
+                            min = open[0];
+                        }
+                        else
+                        {
+                            min = Get_MinLocation_Target(open);
+                        }
+
                         if (min != null)
                         {
                             open.Clear();
@@ -1077,43 +1096,62 @@ namespace Despicaville.Util
             return locations;
         }
 
-        private static List<ALocation> Optimize_Path(List<ALocation> possible, ALocation start)
+        private static List<ALocation> Optimize_Path(List<ALocation> possible, ALocation target)
         {
-            List<ALocation> path = [];
+            ALocation start = possible[possible.Count - 1];
+            List<ALocation> path = [start];
 
-            ALocation min = possible[possible.Count - 1];
             List<ALocation> open = [];
-            path.Add(min);
-            ALocation last_min = min;
+            ALocation last_min = start;
 
             bool reached = false;
             int path_max = possible.Count;
             for (int i = 0; i < path_max; i++)
             {
-                List<ALocation> locations = Get_ClosedLocations(possible, last_min);
-
-                int count = locations.Count;
-                for (int l = 0; l < count; l++)
+                if (last_min != null)
                 {
-                    ALocation location = locations[l];
-
-                    if (!HasLocation(path, location))
-                    {
-                        open.Add(location);
-                    }
-                }
-
-                if (open.Count > 0)
-                {
-                    min = Get_MinLocation_Start(open);
-                    open.Clear();
-                    path.Add(min);
-                    last_min = min;
-
-                    if (min.X == start.X &&
-                        min.Y == start.Y)
+                    if (last_min.X == target.X &&
+                        last_min.Y == target.Y)
                     {
                         reached = true;
+                        break;
+                    }
+
+                    List<ALocation> locations = Get_ClosedLocations(possible, last_min);
+
+                    int count = locations.Count;
+                    for (int l = 0; l < count; l++)
+                    {
+                        ALocation location = locations[l];
+
+                        if (!HasLocation(path, location))
+                        {
+                            open.Add(location);
+                        }
+                    }
+
+                    if (open.Count > 0)
+                    {
+                        ALocation? min;
+
+                        if (open.Count == 1)
+                        {
+                            min = open[0];
+                        }
+                        else
+                        {
+                            min = Get_MinLocation_Start(open);
+                        }
+
+                        if (min != null)
+                        {
+                            open.Clear();
+                            path.Add(min);
+                            last_min = min;
+                        }
+                    }
+                    else
+                    {
                         break;
                     }
                 }
@@ -1359,15 +1397,23 @@ namespace Despicaville.Util
                 return false;
             }
 
+            bool isDoor = false;
+
             Tile? middle_tile = middle_tiles?.GetTile(new Vector2(location.X, location.Y));
             if (middle_tile != null)
             {
                 if (middle_tile.BlocksMovement)
                 {
-                    if (middle_tile.Name != null &&
-                        !middle_tile.Name.Contains("Door"))
+                    if (middle_tile.Name != null)
                     {
-                        return false;
+                        if (middle_tile.Name.Contains("Door"))
+                        {
+                            isDoor = true;
+                        }
+                        else
+                        {
+                            return false;
+                        }
                     }
                 }
                 else if (middle_tile.Name != null &&
@@ -1377,19 +1423,22 @@ namespace Despicaville.Util
                 }
             }
 
-            bool inCurrentRoom = InRoom(room, location);
-            if (!inCurrentRoom)
+            if (!isDoor)
             {
-                bool inNextRoom = InRoom(next_room, location);
-                if (!inNextRoom)
+                bool inCurrentRoom = InRoom(room, location);
+                if (!inCurrentRoom)
                 {
-                    if (location.X == target.X &&
-                        location.Y == target.Y)
+                    bool inNextRoom = InRoom(next_room, location);
+                    if (!inNextRoom)
                     {
-                        return true;
-                    }
+                        if (location.X == target.X &&
+                            location.Y == target.Y)
+                        {
+                            return true;
+                        }
 
-                    return false;
+                        return false;
+                    }
                 }
             }
 
@@ -1427,11 +1476,8 @@ namespace Despicaville.Util
                     continue;
                 }
 
-                float x = tile.Location.X + (room.Location.X * 20);
-                float y = tile.Location.Y + (room.Location.Y * 20);
-
-                if (x == location.X &&
-                    y == location.Y)
+                if (tile.Location.X == location.X &&
+                    tile.Location.Y == location.Y)
                 {
                     return true;
                 }

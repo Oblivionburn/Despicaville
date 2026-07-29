@@ -5,7 +5,7 @@ using OP_Engine.Time;
 using OP_Engine.Menus;
 using Despicaville.Util;
 
-namespace Despicaville.JobTasks
+namespace Despicaville.SubTasks
 {
     public class Search : JobTask
     {

@@ -697,7 +697,7 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static Tile? GetClosestTile(List<Tile> tiles, Location location, bool convert_world_coords)
+        public static Tile? GetClosestTile(List<Tile> tiles, Location location)
         {
             Tile[] tilesArray = tiles.ToArray();
             int count = tilesArray.Length;
@@ -712,22 +712,7 @@ namespace Despicaville.Util
                         return null;
                     }
 
-                    Location closest_location = new(tile.Location.X, tile.Location.Y);
-                    if (convert_world_coords)
-                    {
-                        if (tile.Map?.Location == null)
-                        {
-                            return null;
-                        }
-
-                        float x = tile.Location.X + (tile.Map.Location.X * 20);
-                        float y = tile.Location.Y + (tile.Map.Location.Y * 20);
-
-                        closest_location = new(x, y);
-                    }
-
-                    int? distance = GetDistance(location, closest_location);
-
+                    int? distance = GetDistance(location, new Location(tile.Location.X, tile.Location.Y));
                     for (int i = 1; i < count; i++)
                     {
                         Tile new_tile = tilesArray[i];
@@ -736,21 +721,7 @@ namespace Despicaville.Util
                             return null;
                         }
 
-                        Location new_location = new(new_tile.Location.X, new_tile.Location.Y);
-                        if (convert_world_coords)
-                        {
-                            if (new_tile.Map?.Location == null)
-                            {
-                                return null;
-                            }
-
-                            float x = new_tile.Location.X + (new_tile.Map.Location.X * 20);
-                            float y = new_tile.Location.Y + (new_tile.Map.Location.Y * 20);
-
-                            new_location = new(x, y);
-                        }
-
-                        int? new_distance = GetDistance(location, new_location);
+                        int? new_distance = GetDistance(location, new Location(new_tile.Location.X, new_tile.Location.Y));
                         if (new_distance < distance)
                         {
                             distance = new_distance;
@@ -978,11 +949,8 @@ namespace Despicaville.Util
                                     continue;
                                 }
 
-                                int world_x = (int)((room.Location.X * 20) + tile.Location.X);
-                                int world_y = (int)((room.Location.Y * 20) + tile.Location.Y);
-
-                                if (world_x == character.Location.X &&
-                                    world_y == character.Location.Y)
+                                if (tile.Location.X == character.Location.X &&
+                                    tile.Location.Y == character.Location.Y)
                                 {
                                     return room;
                                 }
@@ -1430,11 +1398,8 @@ namespace Despicaville.Util
                             continue;
                         }
 
-                        int world_x = (int)((room.Location.X * 20) + tile.Location.X);
-                        int world_y = (int)((room.Location.Y * 20) + tile.Location.Y);
-
-                        if (world_x == furniture?.Location?.X &&
-                            world_y == furniture.Location.Y)
+                        if (tile.Location.X == furniture?.Location?.X &&
+                            tile.Location.Y == furniture.Location.Y)
                         {
                             return true;
                         }
@@ -1467,10 +1432,7 @@ namespace Despicaville.Util
                         continue;
                     }
 
-                    int nearest_world_x = (int)((room.Location.X * 20) + nearest_exit.Location.X);
-                    int nearest_world_y = (int)((room.Location.Y * 20) + nearest_exit.Location.Y);
-
-                    int? distance = GetDistance(new Location(nearest_world_x, nearest_world_y, 0), furniture.Location);
+                    int? distance = GetDistance(new Location(nearest_exit.Location.X, nearest_exit.Location.Y, 0), furniture.Location);
 
                     int tileCount = layer.Tiles.Count;
                     for (int t = 0; t < tileCount; t++)
@@ -1481,10 +1443,7 @@ namespace Despicaville.Util
                             continue;
                         }
 
-                        int exit_world_x = (int)((room.Location.X * 20) + exit.Location.X);
-                        int exit_world_y = (int)((room.Location.Y * 20) + exit.Location.Y);
-
-                        int? new_distance = GetDistance(new Location(exit_world_x, exit_world_y, 0), furniture.Location);
+                        int? new_distance = GetDistance(new Location(exit.Location.X, exit.Location.Y, 0), furniture.Location);
                         if (new_distance < distance)
                         {
                             nearest_exit = exit;
@@ -1492,10 +1451,7 @@ namespace Despicaville.Util
                         }
                     }
 
-                    nearest_world_x = (int)((room.Location.X * 20) + nearest_exit.Location.X);
-                    nearest_world_y = (int)((room.Location.Y * 20) + nearest_exit.Location.Y);
-
-                    Tile? door = middle_tiles?.GetTile(new Vector2(nearest_world_x, nearest_world_y));
+                    Tile? door = middle_tiles?.GetTile(new Vector2(nearest_exit.Location.X, nearest_exit.Location.Y));
                     if (door?.Name != null &&
                         door.Name.Contains("Door"))
                     {
@@ -1505,7 +1461,7 @@ namespace Despicaville.Util
                     {
                         return new Tile
                         {
-                            Location = new Location(nearest_world_x, nearest_world_y, 0)
+                            Location = new Location(nearest_exit.Location.X, nearest_exit.Location.Y, 0)
                         };
                     }
                 }
@@ -1584,7 +1540,11 @@ namespace Despicaville.Util
                             Tile? tile = bottom_tiles.GetTile(location.ToVector2);
                             if (tile != null)
                             {
-                                result.Add(tile);
+                                result.Add(new Tile
+                                {
+                                    Location = tile.Location,
+                                    Direction = furniture.Direction
+                                });
                             }
                         }
                     }

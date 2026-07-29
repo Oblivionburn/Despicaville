@@ -3,7 +3,7 @@ using OP_Engine.Inventories;
 using OP_Engine.Jobs;
 using OP_Engine.Utility;
 
-namespace Despicaville.JobTasks
+namespace Despicaville.SubTasks
 {
     public class UseItem : JobTask
     {

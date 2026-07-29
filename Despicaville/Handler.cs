@@ -17,7 +17,7 @@ using OP_Engine.Menus;
 using OP_Engine.Jobs;
 using OP_Engine.Time;
 using Despicaville.Util;
-using Despicaville.JobTasks;
+using Despicaville.SubTasks;
 
 namespace Despicaville
 {

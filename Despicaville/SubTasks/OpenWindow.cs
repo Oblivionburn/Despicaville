@@ -4,7 +4,7 @@ using OP_Engine.Tiles;
 using OP_Engine.Enums;
 using Despicaville.Util;
 
-namespace Despicaville.JobTasks
+namespace Despicaville.SubTasks
 {
     public class OpenWindow : JobTask
     {

@@ -1469,7 +1469,6 @@ namespace Despicaville.Util
 
             AddRoofTiles(bottom_tiles, middle_tiles, room_tiles, roof_tiles);
             AddRooms();
-            AssignJobs();
 
             Scene? gameplay = SceneManager.GetScene("Gameplay");
             if (gameplay != null)
@@ -2048,6 +2047,9 @@ namespace Despicaville.Util
                     continue;
                 }
 
+                int world_x = (int)(worldTile.Location.X * 20);
+                int world_y = (int)(worldTile.Location.Y * 20);
+
                 foreach (Map block in Blocks)
                 {
                     if (block.Name == worldTile.Name)
@@ -2089,7 +2091,7 @@ namespace Despicaville.Util
                                         Tile tile = new()
                                         {
                                             Name = blockTile.Name,
-                                            Location = new Location(blockTile.Location.X, blockTile.Location.Y, 0),
+                                            Location = new Location(blockTile.Location.X + world_x, blockTile.Location.Y + world_y, 0),
                                             Layer = layer,
                                             Map = room,
                                             World = world
@@ -2125,6 +2127,7 @@ namespace Despicaville.Util
                 return;
             }
 
+            //Grant ownership of furniture in each character's house
             int char_count = squad.Characters.Count;
             for (int i = 0; i < char_count; i++)
             {
@@ -2191,6 +2194,50 @@ namespace Despicaville.Util
                     }
                 }
             }
+
+            //Grant ownership of all furniture in non-residential properties
+            for (int i = 0; i < char_count; i++)
+            {
+                Character character = squad.Characters[i];
+                if (character.Location == null)
+                {
+                    continue;
+                }
+
+                int block_x = (int)character.Location.X / 20;
+                int block_y = (int)character.Location.Y / 20;
+
+                for (int y = 0; y < Handler.MapSize_Y; y++)
+                {
+                    for (int x = 0; x < Handler.MapSize_X; x++)
+                    {
+                        if (x != block_x ||
+                            y != block_y)
+                        {
+                            Map? worldTile = WorldUtil.GetWorldTile(new Location(x, y));
+                            if (worldTile != null &&
+                                worldTile.Type != "Residential")
+                            {
+                                List<Tile> tiles = WorldUtil.GetFurniture_All(layer, new Point(x, y));
+                                foreach (Tile furniture in tiles)
+                                {
+                                    if (furniture.Location != null)
+                                    {
+                                        if (!Handler.OwnedFurniture.TryGetValue(character.ID, out List<Tile>? value))
+                                        {
+                                            Handler.OwnedFurniture.Add(character.ID, [furniture]);
+                                        }
+                                        else
+                                        {
+                                            value.Add(furniture);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         #endregion
@@ -2252,7 +2299,7 @@ namespace Despicaville.Util
             }
         }
 
-        private static void AssignJobs()
+        public static void AssignJobs()
         {
             Handler.LoadJobs();
 

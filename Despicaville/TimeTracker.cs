@@ -52,15 +52,11 @@ namespace Despicaville
                     continue;
                 }
 
+                Tasker.UpdateNeeds(character);
+
                 character.Job.Update(TimeManager.Now);
 
                 if (character.Moving)
-                {
-                    continue;
-                }
-
-                JobTask? task = character.Job.CurrentTask;
-                if (task?.Name == "Sleep")
                 {
                     continue;
                 }
@@ -73,6 +69,12 @@ namespace Despicaville
                 else if (character.Laying)
                 {
                     CharacterUtil.Rest(character);
+                    continue;
+                }
+
+                JobTask? task = character.Job.CurrentTask;
+                if (task?.Name == "Sleep")
+                {
                     continue;
                 }
 

@@ -6,7 +6,7 @@ using OP_Engine.Enums;
 using OP_Engine.Time;
 using Despicaville.Util;
 
-namespace Despicaville.JobTasks
+namespace Despicaville.SubTasks
 {
     public class Move : JobTask
     {
@@ -22,6 +22,8 @@ namespace Despicaville.JobTasks
             {
                 return;
             }
+
+            JobTask? majorTask = Owner_Character.Job.Get_CurrentTask();
 
             if (CharacterUtil.PulledByPlayer(Owner_Character))
             {
@@ -86,18 +88,32 @@ namespace Despicaville.JobTasks
             {
                 #region Move
 
-                if (Direction != Owner_Character.Direction)
+                if (Owner_Character.Direction != Direction)
                 {
                     EndTime = new TimeHandler(TimeManager.Now);
 
-                    Owner_Character.Job.Tasks.Add(new Turn
+                    if (Owner_Character.Type == "Player")
                     {
-                        Name = "Turn",
-                        Owner_Character = Owner_Character,
-                        StartTime = new TimeHandler(TimeManager.Now),
-                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(Owner_Character))),
-                        Direction = Direction
-                    });
+                        Owner_Character.Job.Tasks.Add(new Turn
+                        {
+                            Name = "Turn",
+                            Owner_Character = Owner_Character,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(Owner_Character))),
+                            Direction = Direction
+                        });
+                    }
+                    else
+                    {
+                        majorTask?.SubTasks.Add(new Turn
+                        {
+                            Name = "Turn",
+                            Owner_Character = Owner_Character,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(Owner_Character))),
+                            Direction = Direction
+                        });
+                    }
                 }
                 else
                 {
@@ -161,16 +177,30 @@ namespace Despicaville.JobTasks
 
                 EndTime = new TimeHandler(TimeManager.Now);
 
-                if (Direction != Owner_Character.Direction)
+                if (Owner_Character.Direction != Direction)
                 {
-                    Owner_Character.Job.Tasks.Add(new Turn
+                    if (Owner_Character.Type == "Player")
                     {
-                        Name = "Turn",
-                        Owner_Character = Owner_Character,
-                        StartTime = new TimeHandler(TimeManager.Now),
-                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(Owner_Character))),
-                        Direction = Direction
-                    });
+                        Owner_Character.Job.Tasks.Add(new Turn
+                        {
+                            Name = "Turn",
+                            Owner_Character = Owner_Character,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(Owner_Character))),
+                            Direction = Direction
+                        });
+                    }
+                    else
+                    {
+                        majorTask?.SubTasks.Add(new Turn
+                        {
+                            Name = "Turn",
+                            Owner_Character = Owner_Character,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(Owner_Character))),
+                            Direction = Direction
+                        });
+                    }
                 }
                 else if (Owner_Character.Type != "Player")
                 {
@@ -182,7 +212,7 @@ namespace Despicaville.JobTasks
                         if (tile.Name.Contains("Window") &&
                             tile.Name.Contains("Closed"))
                         {
-                            Owner_Character.Job.Tasks.Add(new OpenWindow
+                            majorTask?.SubTasks.Add(new OpenWindow
                             {
                                 Name = "OpenWindow",
                                 Owner_Character = Owner_Character,
@@ -195,7 +225,7 @@ namespace Despicaville.JobTasks
                         else if (tile.Name.Contains("Door") &&
                                  tile.Name.Contains("Closed"))
                         {
-                            Owner_Character.Job.Tasks.Add(new OpenDoor
+                            majorTask?.SubTasks.Add(new OpenDoor
                             {
                                 Name = "OpenDoor",
                                 Owner_Character = Owner_Character,
@@ -209,7 +239,6 @@ namespace Despicaville.JobTasks
                     else
                     {
                         Owner_Character.Path.Clear();
-                        Tasker.Wander(Owner_Character);
                     }
                 }
 
@@ -577,8 +606,10 @@ namespace Despicaville.JobTasks
                 if (!reached_destination &&
                     TimeManager.Now != null)
                 {
+                    JobTask? majorTask = Owner_Character.Job.Get_CurrentTask();
+
                     Direction direction = WorldUtil.GetDirection(Owner_Character.Location, destination);
-                    if (direction == Owner_Character.Direction)
+                    if (Owner_Character.Direction == direction)
                     {
                         if (direction == Direction.North)
                         {
@@ -597,7 +628,7 @@ namespace Despicaville.JobTasks
                             Owner_Character.Destination = new Location(Owner_Character.Location.X - 1, Owner_Character.Location.Y, Owner_Character.Location.Z);
                         }
 
-                        Owner_Character.Job.Tasks.Add(new Move
+                        majorTask?.SubTasks.Add(new Move
                         {
                             Name = Name,
                             Owner_Character = Owner_Character,
@@ -608,7 +639,7 @@ namespace Despicaville.JobTasks
                     }
                     else
                     {
-                        Owner_Character.Job.Tasks.Add(new Turn
+                        majorTask?.SubTasks.Add(new Turn
                         {
                             Name = "Turn",
                             Owner_Character = Owner_Character,

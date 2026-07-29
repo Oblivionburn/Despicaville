@@ -9,7 +9,7 @@ using OP_Engine.Time;
 using OP_Engine.Inventories;
 using Despicaville.Util;
 
-namespace Despicaville.JobTasks
+namespace Despicaville.SubTasks
 {
     public class Attack : JobTask
     {
@@ -452,13 +452,6 @@ namespace Despicaville.JobTasks
 
         public void WeaponAttack_Tile(Character attacker, Tile tile, Item weapon)
         {
-            if (Handler.Player?.Location != null &&
-                weapon.Sound != null &&
-                tile.Location != null)
-            {
-                AssetManager.PlaySound_Random_AtDistance(weapon.Sound, Handler.Player.Location.ToVector2, tile.Location.ToVector2, weapon.SoundRange);
-            }
-
             if (attacker.Type == "Player")
             {
                 switch (weapon.Task)
@@ -581,12 +574,6 @@ namespace Despicaville.JobTasks
 
         public void MeleeAttack_Tile(Character attacker, Tile tile)
         {
-            if (Handler.Player?.Location != null &&
-                tile.Location != null)
-            {
-                AssetManager.PlaySound_Random_AtDistance("Punch", Handler.Player.Location.ToVector2, tile.Location.ToVector2, 2);
-            }
-
             if (attacker.Type == "Player")
             {
                 GameUtil.AddMessage("You punched a " + WorldUtil.GetTile_Name(tile) + ".");

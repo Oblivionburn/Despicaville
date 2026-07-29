@@ -11,7 +11,7 @@ using OP_Engine.Utility;
 using OP_Engine.Enums;
 using OP_Engine.Time;
 using OP_Engine.Jobs;
-using Despicaville.JobTasks;
+using Despicaville.SubTasks;
 
 namespace Despicaville.Util
 {
@@ -54,19 +54,7 @@ namespace Despicaville.Util
                 },
                 new Appointment
                 {
-                    Name = "FreeTime_Afternoon",
-                    StartTime = new TimeHandler((long)7, 0, 0, 0),
-                    EndTime = new TimeHandler((long)14, 0, 0, 0)
-                },
-                new Appointment
-                {
                     Name = "Work_2nd-Shift",
-                    StartTime = new TimeHandler((long)14, 0, 0, 0),
-                    EndTime = new TimeHandler((long)21, 0, 0, 0)
-                },
-                new Appointment
-                {
-                    Name = "FreeTime_Evening",
                     StartTime = new TimeHandler((long)14, 0, 0, 0),
                     EndTime = new TimeHandler((long)21, 0, 0, 0)
                 },

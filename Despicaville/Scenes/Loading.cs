@@ -351,6 +351,7 @@ namespace Despicaville.Scenes
             }
 
             WorldUtil.AssignPlayerBed(map);
+            WorldGen.AssignJobs();
 
             if (player.Location == null)
             {

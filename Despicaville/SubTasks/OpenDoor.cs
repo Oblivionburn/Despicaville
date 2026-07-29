@@ -4,7 +4,7 @@ using OP_Engine.Tiles;
 using OP_Engine.Enums;
 using Despicaville.Util;
 
-namespace Despicaville.JobTasks
+namespace Despicaville.SubTasks
 {
     public class OpenDoor : JobTask
     {
@@ -90,27 +90,6 @@ namespace Despicaville.JobTasks
             if (Owner_Character.Type != "Player")
             {
                 CharacterUtil.UpdateSight(Handler.Player);
-
-                if (!Handler.Player.Unconscious)
-                {
-                    Direction direction = WorldUtil.GetDirection(Handler.Player.Location, Location);
-
-                    if (loudness == 1 &&
-                        WorldUtil.InRange(Handler.Player.Location, Location, 2))
-                    {
-                        GameUtil.AddMessage("You hear a door quietly open to the " + direction.ToString() + ".");
-                    }
-                    else if (loudness == 2 &&
-                             WorldUtil.InRange(Handler.Player.Location, Location, 4))
-                    {
-                        GameUtil.AddMessage("You hear a door open to the " + direction.ToString() + ".");
-                    }
-                    else if (loudness == 3 &&
-                             WorldUtil.InRange(Handler.Player.Location, Location, 8))
-                    {
-                        GameUtil.AddMessage("You hear a door loudly open to the " + direction.ToString() + ".");
-                    }
-                }
             }
         }
     }

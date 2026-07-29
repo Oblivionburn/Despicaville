@@ -349,16 +349,16 @@ namespace Despicaville.Util
             if (attack_type == "Stab" ||
                 attack_type == "Punch")
             {
-                base_speed = 2000;
+                base_speed = 10000;
             }
             else if (attack_type == "Shoot" ||
                      attack_type == "Throw")
             {
-                base_speed = 3000;
+                base_speed = 15000;
             }
             else if (attack_type == "Swing")
             {
-                base_speed = 4000;
+                base_speed = 20000;
             }
 
             int strength = (int)character.Stats.Strength;

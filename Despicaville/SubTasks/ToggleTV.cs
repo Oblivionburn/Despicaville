@@ -3,7 +3,7 @@ using OP_Engine.Utility;
 using OP_Engine.Tiles;
 using Despicaville.Util;
 
-namespace Despicaville.JobTasks
+namespace Despicaville.SubTasks
 {
     public class ToggleTV : JobTask
     {

@@ -464,92 +464,111 @@ namespace Despicaville.Util
             float x_diff = center_x - Handler.Player.Region.X;
             float y_diff = center_y - Handler.Player.Region.Y;
 
-            Handler.Player.Region.X += x_diff;
-            Handler.Player.Region.Y += y_diff;
-
-            Map? map = WorldUtil.GetMap();
-
-            Layer? middle_tiles = map?.GetLayer("MiddleTiles");
-
-            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
-            if (bottom_tiles == null)
+            if (x_diff != 0 ||
+                y_diff != 0)
             {
-                return;
-            }
+                Handler.Player.Region.X += x_diff;
+                Handler.Player.Region.Y += y_diff;
 
-            int count = bottom_tiles.Tiles.Count;
-            for (int i = 0; i < count; i++)
-            {
-                Tile bottom_tile = bottom_tiles.Tiles[i];
-                if (bottom_tile.Region == null ||
-                    bottom_tile.Location == null)
+                Map? map = WorldUtil.GetMap();
+
+                Layer? middle_tiles = map?.GetLayer("MiddleTiles");
+
+                Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+                if (bottom_tiles == null)
                 {
-                    continue;
+                    return;
                 }
 
-                Location location = bottom_tile.Location;
-
-                float x = location.X;
-                float y = location.Y;
-
-                Vector2 loc = new(x, y);
-
-                Region bottom_region = bottom_tile.Region;
-
-                if (x_diff != 0)
+                int count = bottom_tiles.Tiles.Count;
+                for (int i = 0; i < count; i++)
                 {
-                    bottom_region.X += x_diff;
-                }
+                    Tile bottom_tile = bottom_tiles.Tiles[i];
+                    if (bottom_tile.Region == null ||
+                        bottom_tile.Location == null)
+                    {
+                        continue;
+                    }
 
-                if (y_diff != 0)
-                {
-                    bottom_region.Y += y_diff;
-                }
+                    Location location = bottom_tile.Location;
 
-                Tile? middle_tile = middle_tiles?.GetTile(loc);
-                if (middle_tile?.Region != null)
-                {
-                    Region middle_region = middle_tile.Region;
+                    float x = location.X;
+                    float y = location.Y;
+
+                    Vector2 loc = new(x, y);
+
+                    Region bottom_region = bottom_tile.Region;
 
                     if (x_diff != 0)
                     {
-                        middle_region.X += x_diff;
+                        bottom_region.X += x_diff;
                     }
 
                     if (y_diff != 0)
                     {
-                        middle_region.Y += y_diff;
+                        bottom_region.Y += y_diff;
+                    }
+
+                    Tile? middle_tile = middle_tiles?.GetTile(loc);
+                    if (middle_tile?.Region != null)
+                    {
+                        Region middle_region = middle_tile.Region;
+
+                        if (x_diff != 0)
+                        {
+                            middle_region.X += x_diff;
+                        }
+
+                        if (y_diff != 0)
+                        {
+                            middle_region.Y += y_diff;
+                        }
                     }
                 }
-            }
 
-            int squadCount = characters.Squads.Count;
-            for (int s = 0; s < squadCount; s++)
-            {
-                Squad squad = characters.Squads[s];
-
-                int charCount = squad.Characters.Count;
-                for (int c = 0; c < charCount; c++)
+                int squadCount = characters.Squads.Count;
+                for (int s = 0; s < squadCount; s++)
                 {
-                    Character character = squad.Characters[c];
-                    if (character.Type != "Player" &&
-                        character.Region != null)
-                    {
-                        character.Region.X += x_diff;
-                        character.Region.Y += y_diff;
+                    Squad squad = characters.Squads[s];
 
-                        JobTask? task = character.Job.CurrentTask;
-                        if (task != null)
+                    int charCount = squad.Characters.Count;
+                    for (int c = 0; c < charCount; c++)
+                    {
+                        Character character = squad.Characters[c];
+                        if (character.Type != "Player" &&
+                            character.Region != null)
                         {
-                            ProgressBar? taskbar = task.TaskBar;
-                            if (taskbar != null)
+                            character.Region.X += x_diff;
+                            character.Region.Y += y_diff;
+
+                            JobTask? task = character.Job.CurrentTask;
+                            if (task != null)
                             {
-                                if (taskbar.Base_Texture != null &&
-                                    taskbar.Base_Region != null)
+                                ProgressBar? taskbar = task.TaskBar;
+                                if (taskbar != null)
                                 {
-                                    taskbar.Base_Region.X += x_diff;
-                                    taskbar.Base_Region.Y += y_diff;
-                                    taskbar.Update();
+                                    if (taskbar.Base_Region != null)
+                                    {
+                                        taskbar.Base_Region.X += x_diff;
+                                        taskbar.Base_Region.Y += y_diff;
+                                        taskbar.Update();
+                                    }
+                                }
+
+                                if (task.SubTasks.Count > 0)
+                                {
+                                    JobTask subTask = task.SubTasks[0];
+
+                                    ProgressBar? subTaskbar = subTask.TaskBar;
+                                    if (subTaskbar != null)
+                                    {
+                                        if (subTaskbar.Base_Region != null)
+                                        {
+                                            subTaskbar.Base_Region.X += x_diff;
+                                            subTaskbar.Base_Region.Y += y_diff;
+                                            subTaskbar.Update();
+                                        }
+                                    }
                                 }
                             }
                         }

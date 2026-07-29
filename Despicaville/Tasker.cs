@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using OP_Engine.Characters;
@@ -11,7 +10,8 @@ using OP_Engine.Inputs;
 using OP_Engine.Enums;
 using OP_Engine.Jobs;
 using Despicaville.Util;
-using Despicaville.JobTasks;
+using Despicaville.MajorTasks;
+using Despicaville.SubTasks;
 
 namespace Despicaville
 {
@@ -34,22 +34,35 @@ namespace Despicaville
 
         #region Methods
 
+        public static void UpdateNeeds(Character character)
+        {
+            if (character.InCombat)
+            {
+                HandleCombat(character);
+            }
+
+            if (character.Stats.Bladder >= 30)
+            {
+                HandleBladder(character);
+            }
+
+            if (character.Stats.Thirst >= 30)
+            {
+                HandleThirst(character);
+            }
+
+            if (character.Stats.Hunger >= 30)
+            {
+                HandleHunger(character);
+            }
+
+            character.Job.Sort_ByPriority(false);
+        }
+
         public static void GetTask(Character character)
         {
             if (TimeManager.Now == null)
             {
-                return;
-            }
-
-            if (character.InCombat)
-            {
-                Attacking(character);
-                return;
-            }
-
-            if (character.Stats.Bladder >= 60)
-            {
-                FindToilet(character, true);
                 return;
             }
 
@@ -61,7 +74,48 @@ namespace Despicaville
 
             if (appointment.Name.Contains("Sleep"))
             {
-                FindBed(character, appointment);
+                JobTask? findBed = character.Job.GetTask("FindBed");
+                if (findBed == null)
+                {
+                    if (appointment.StartTime == null ||
+                        appointment.EndTime == null)
+                    {
+                        return;
+                    }
+
+                    int days_Now = (int)TimeManager.Now.TotalDays;
+                    int hours_Now = TimeManager.Now.Hours;
+                    int minutes_Now = TimeManager.Now.Minutes;
+                    int seconds_Now = TimeManager.Now.Seconds;
+                    int milliseconds_Now = TimeManager.Now.Milliseconds;
+
+                    int days_EndTime = 0;
+                    if (TimeManager.Now.Hours >= appointment.StartTime.Hours)
+                    {
+                        days_EndTime = (int)TimeManager.Now.TotalDays + 1;
+                    }
+                    else
+                    {
+                        days_EndTime = (int)TimeManager.Now.TotalDays;
+                    }
+
+                    int hours_EndTime = appointment.EndTime.Hours;
+                    int minutes_EndTime = appointment.EndTime.Minutes;
+                    int seconds_EndTime = appointment.EndTime.Seconds;
+                    int milliseconds_EndTime = appointment.EndTime.Milliseconds;
+
+                    TimeSpan duration = new TimeSpan(days_EndTime, hours_EndTime, minutes_EndTime, seconds_EndTime, milliseconds_EndTime) -
+                        new TimeSpan(days_Now, hours_Now, minutes_Now, seconds_Now, milliseconds_Now);
+
+                    character.Job.Tasks.Add(new FindBed
+                    {
+                        Name = "FindBed",
+                        Owner_Character = character,
+                        Priority = 80,
+                        StartTime = new TimeHandler(TimeManager.Now),
+                        EndTime = new TimeHandler(TimeManager.Now, duration)
+                    });
+                }
                 return;
             }
             else if (appointment.Name.Contains("Work") &&
@@ -72,349 +126,146 @@ namespace Despicaville
                     (appointment.Name.Contains("2nd-Shift") &&
                     character.Job.Name.Contains("2nd-Shift")))
                 {
-                    WorkJob(character);
+                    JobTask? workJob = character.Job.GetTask("WorkJob");
+                    if (workJob == null)
+                    {
+                        character.Job.Tasks.Add(new WorkJob
+                        {
+                            Name = "WorkJob",
+                            Owner_Character = character,
+                            Priority = 30,
+                            StartTime = new TimeHandler(TimeManager.Now)
+                        });
+                    }
                     return;
                 }
             }
-            else if (appointment.Name.Contains("FreeTime"))
+
+            JobTask? findEntertainment = character.Job.GetTask("FindEntertainment");
+            if (findEntertainment == null)
             {
-                if (character.Stats.Thirst >= 60)
+                character.Job.Tasks.Add(new FindEntertainment
                 {
-                    bool hasDrink = HasDrink(character);
-                    if (hasDrink)
-                    {
-                        bool foundComfort = FindComfort(character, true);
-                        if (foundComfort)
-                        {
-                            ConsumeDrink(character);
-                        }
-                    }
-                    else
-                    {
-                        bool foundDrink = FindDrink(character, true);
-                        if (!foundDrink)
-                        {
-                            FindSink(character, true);
-                        }
-                    }
-                    return;
-                }
-                else if (character.Stats.Hunger >= 60)
-                {
-                    bool hasFood = HasFood(character);
-                    if (hasFood)
-                    {
-                        bool foundComfort = FindComfort(character, true);
-                        if (foundComfort)
-                        {
-                            ConsumeFood(character);
-                        }
-                    }
-                    else
-                    {
-                        FindFood(character, true);
-                    }
-                    return;
-                }
-
-                if (character.Stats.Bladder >= 30)
-                {
-                    FindToilet(character, false);
-                    return;
-                }
-                else if (character.Stats.Thirst >= 30)
-                {
-                    bool hasDrink = HasDrink(character);
-                    if (hasDrink)
-                    {
-                        bool foundComfort = FindComfort(character, false);
-                        if (foundComfort)
-                        {
-                            ConsumeDrink(character);
-                        }
-                    }
-                    else
-                    {
-                        bool foundDrink = FindDrink(character, false);
-                        if (!foundDrink)
-                        {
-                            FindSink(character, false);
-                        }
-                    }
-                    return;
-                }
-                else if (character.Stats.Hunger >= 30)
-                {
-                    bool hasFood = HasFood(character);
-                    if (hasFood)
-                    {
-                        bool foundComfort = FindComfort(character, false);
-                        if (foundComfort)
-                        {
-                            ConsumeFood(character);
-                        }
-                    }
-                    else
-                    {
-                        FindFood(character, false);
-                    }
-                    return;
-                }
-
-                FindEntertainment(character);
-                return;
-            }
-
-            FindComfort(character, false);
-            return;
-        }
-
-        private static void Attacking(Character character)
-        {
-            if (TimeManager.Now == null ||
-                character.Location == null)
-            {
-                return;
-            }
-
-            Character? target = CharacterUtil.GetCharacter_Target(character);
-            if (target?.Location != null)
-            {
-                Direction direction = WorldUtil.GetDirection(character.Location, target.Location);
-
-                if (direction != character.Direction)
-                {
-                    character.Job.Tasks.Add(new Turn
-                    {
-                        Name = "Turn",
-                        Owner_Character = character,
-                        StartTime = new TimeHandler(TimeManager.Now),
-                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
-                        Direction = direction
-                    });
-                }
-                else if (!WorldUtil.InRange(target.Location, character.Location, 1))
-                {
-                    character.Job.Tasks.Add(new Move
-                    {
-                        Name = "Walk",
-                        Owner_Character = character,
-                        StartTime = new TimeHandler(TimeManager.Now),
-                        Direction = character.Direction
-                    });
-                }
-                else if (character.Location != null)
-                {
-                    Location location = new();
-                    if (character.Direction == Direction.North)
-                    {
-                        location = new Location(character.Location.X, character.Location.Y - 1, 1);
-                    }
-                    else if (character.Direction == Direction.East)
-                    {
-                        location = new Location(character.Location.X + 1, character.Location.Y, 1);
-                    }
-                    else if (character.Direction == Direction.South)
-                    {
-                        location = new Location(character.Location.X, character.Location.Y + 1, 1);
-                    }
-                    else if (character.Direction == Direction.West)
-                    {
-                        location = new Location(character.Location.X - 1, character.Location.Y, 1);
-                    }
-
-                    Dictionary<string, string> AttackingWith = CombatUtil.AttackChoice(character);
-                    string action = AttackingWith.ElementAt(0).Value;
-
-                    int attackTime = CombatUtil.AttackTime(character, action);
-                    character.Job.Tasks.Add(new Attack
-                    {
-                        Name = "Attack",
-                        Owner_Character = character,
-                        Location = location,
-                        Direction = character.Direction,
-                        StartTime = new TimeHandler(TimeManager.Now),
-                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(attackTime)),
-                        TaskBar = CharacterUtil.GenTaskbar(character, attackTime)
-                    });
-                }
-            }
-            else
-            {
-                AbortTask(character);
+                    Name = "FindEntertainment",
+                    Owner_Character = character,
+                    Priority = 10,
+                    StartTime = new TimeHandler(TimeManager.Now)
+                });
             }
         }
 
-        private static bool FindDrink(Character character, bool desperate)
-        {
-            if (TimeManager.Now == null ||
-                character.Location == null)
-            {
-                return false;
-            }
-
-            //Are we already pathing to something?
-            if (character.Path.Count > 0)
-            {
-                ContinuePathing(character, desperate);
-                return false;
-            }
-
-            //Does a nearby fridge have something to drink?
-            List<Tile> fridges = WorldUtil.GetFurniture_Owned(character, "Fridge");
-            if (fridges.Count > 0)
-            {
-                Tile? fridge = WorldUtil.GetClosestTile(fridges, character);
-                if (fridge?.Location != null)
-                {
-                    Item? item = null;
-
-                    if (fridge.Inventory != null)
-                    {
-                        int fridgeCount = fridge.Inventory.Items.Count;
-                        for (int i = 0; i < fridgeCount; i++)
-                        {
-                            Item existing = fridge.Inventory.Items[i];
-
-                            Property? thirst = existing.GetProperty("Thirst");
-                            if (thirst != null)
-                            {
-                                item = existing;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (item != null)
-                    {
-                        if (WorldUtil.NextTo(fridge.Location, character.Location))
-                        {
-                            Direction direction = WorldUtil.GetDirection(character.Location, fridge.Location);
-                            if (direction != character.Direction)
-                            {
-                                character.Job.Tasks.Add(new Turn
-                                {
-                                    Name = "Turn",
-                                    Owner_Character = character,
-                                    StartTime = new TimeHandler(TimeManager.Now),
-                                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
-                                    Direction = direction
-                                });
-                                return false;
-                            }
-                            else
-                            {
-                                if (fridge.Texture != null &&
-                                    fridge.Texture.Name.Contains("Used"))
-                                {
-                                    InventoryUtil.TransferItem(fridge.Inventory, character.Inventory, item);
-
-                                    int seconds = desperate ? 10 : 20;
-                                    int milliseconds = seconds * 1000;
-
-                                    character.Job.Tasks.Add(new Search
-                                    {
-                                        Name = "Search",
-                                        Owner_Character = character,
-                                        Location = fridge.Location,
-                                        StartTime = new TimeHandler(TimeManager.Now),
-                                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(seconds)),
-                                        TaskBar = CharacterUtil.GenTaskbar(character, milliseconds)
-                                    });
-
-                                    seconds = desperate ? 1 : 2;
-
-                                    character.Job.Tasks.Add(new CloseFridge
-                                    {
-                                        Name = "CloseFridge",
-                                        Owner_Character = character,
-                                        StartTime = new TimeHandler(TimeManager.Now),
-                                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(seconds)),
-                                        Location = fridge.Location,
-                                        Direction = direction
-                                    });
-
-                                    return true;
-                                }
-                                else
-                                {
-                                    int seconds = desperate ? 1 : 2;
-
-                                    character.Job.Tasks.Add(new OpenFridge
-                                    {
-                                        Name = "OpenFridge",
-                                        Owner_Character = character,
-                                        StartTime = new TimeHandler(TimeManager.Now),
-                                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(seconds)),
-                                        Location = fridge.Location,
-                                        Direction = direction
-                                    });
-
-                                    return false;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            Map? map = WorldUtil.GetMap();
-                            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
-                            Layer? middle_tiles = map?.GetLayer("MiddleTiles");
-
-                            if (bottom_tiles != null &&
-                                middle_tiles != null)
-                            {
-                                PathTo(bottom_tiles, middle_tiles, fridge.Location, character, desperate, true);
-                                return false;
-                            }
-                        }
-                    }
-                }
-            }
-
-            Wander(character);
-            return false;
-        }
-
-        private static void ConsumeDrink(Character character)
+        private static void HandleCombat(Character character)
         {
             if (TimeManager.Now == null)
             {
                 return;
             }
 
-            Inventory inventory = character.Inventory;
-
-            int itemCount = inventory.Items.Count;
-            for (int i = 0; i < itemCount; i++)
+            JobTask? attacking = character.Job.GetTask("Attacking");
+            if (attacking == null)
             {
-                Item existing = inventory.Items[i];
-
-                Property? thirst = existing.GetProperty("Thirst");
-                if (thirst != null)
+                character.Job.Tasks.Add(new Attacking
                 {
-                    TimeSpan duration = TimeSpan.FromMilliseconds(thirst.Value * -10 * 1000);
+                    Name = "Attacking",
+                    Owner_Character = character,
+                    Priority = 101,
+                    StartTime = new TimeHandler(TimeManager.Now)
+                });
+            }
+        }
 
-                    character.Job.Tasks.Add(new UseItem
+        private static void HandleBladder(Character character)
+        {
+            if (TimeManager.Now == null)
+            {
+                return;
+            }
+
+            JobTask? findToilet = character.Job.GetTask("FindToilet");
+            if (findToilet != null)
+            {
+                findToilet.Priority = (int)character.Stats.Bladder;
+            }
+            else
+            {
+                character.Job.Tasks.Add(new FindToilet
+                {
+                    Name = "FindToilet",
+                    Owner_Character = character,
+                    Priority = (int)character.Stats.Bladder,
+                    StartTime = new TimeHandler(TimeManager.Now)
+                });
+            }
+        }
+
+        private static void HandleThirst(Character character)
+        {
+            if (TimeManager.Now == null)
+            {
+                return;
+            }
+
+            bool hasDrink = HasDrink(character);
+            if (hasDrink)
+            {
+                bool stillBusy = false;
+
+                JobTask? findDrink = character.Job.GetTask("FindDrink");
+                if (findDrink != null)
+                {
+                    stillBusy = true;
+                }
+
+                if (!stillBusy)
+                {
+                    bool seated = Seated(character);
+                    if (seated)
                     {
-                        Name = "UseItem_" + existing.ID,
+                        ConsumeDrink(character);
+                    }
+                    else
+                    {
+                        JobTask? findComfort = character.Job.GetTask("FindComfort");
+                        if (findComfort != null)
+                        {
+                            findComfort.Description = character.Stats.Thirst >= 60 ? "Desperate" : "";
+                        }
+                        else
+                        {
+                            character.Job.Tasks.Add(new FindComfort
+                            {
+                                Name = "FindComfort",
+                                Description = character.Stats.Thirst >= 60 ? "Desperate" : "",
+                                Owner_Character = character,
+                                Priority = 101,
+                                StartTime = new TimeHandler(TimeManager.Now)
+                            });
+                        }
+                    }
+                }
+            }
+            else
+            {
+                JobTask? findDrink = character.Job.GetTask("FindDrink");
+                if (findDrink != null)
+                {
+                    findDrink.Priority = (int)character.Stats.Thirst;
+                }
+                else
+                {
+                    character.Job.Tasks.Add(new FindDrink
+                    {
+                        Name = "FindDrink",
                         Owner_Character = character,
-                        StartTime = new TimeHandler(TimeManager.Now),
-                        EndTime = new TimeHandler(TimeManager.Now, duration),
-                        TaskBar = CharacterUtil.GenTaskbar(character, (int)duration.TotalMilliseconds)
+                        Priority = (int)character.Stats.Thirst,
+                        StartTime = new TimeHandler(TimeManager.Now)
                     });
-
-                    return;
                 }
             }
         }
 
         private static bool HasDrink(Character character)
         {
-            if (TimeManager.Now == null)
-            {
-                return false;
-            }
-
             Inventory inventory = character.Inventory;
 
             int itemCount = inventory.Items.Count;
@@ -432,214 +283,123 @@ namespace Despicaville
             return false;
         }
 
-        private static void FindSink(Character character, bool desperate)
+        private static void ConsumeDrink(Character character)
         {
-            if (TimeManager.Now == null ||
-                character.Location == null)
+            if (TimeManager.Now == null)
             {
                 return;
             }
 
-            //Are we already pathing to something?
-            if (character.Path.Count > 0)
-            {
-                ContinuePathing(character, desperate);
-                return;
-            }
+            JobTask? useItem = null;
 
-            List<Tile> sinks = WorldUtil.GetFurniture_Owned(character, "Sink");
-            if (sinks.Count > 0)
+            int taskCount = character.Job.Tasks.Count;
+            for (int i = 0; i < taskCount; i++)
             {
-                Tile? sink = WorldUtil.GetClosestTile(sinks, character);
-                if (sink?.Location != null)
+                JobTask task = character.Job.Tasks[i];
+                if (!string.IsNullOrEmpty(task.Name) &&
+                    task.Name.Contains("UseItem"))
                 {
-                    if (WorldUtil.NextTo(sink.Location, character.Location))
-                    {
-                        Direction direction = WorldUtil.GetDirection(character.Location, sink.Location);
-                        if (direction != character.Direction)
-                        {
-                            character.Job.Tasks.Add(new Turn
-                            {
-                                Name = "Turn",
-                                Owner_Character = character,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
-                                Direction = direction
-                            });
-                            return;
-                        }
-                        else if (sink.Texture != null &&
-                                 !sink.Texture.Name.Contains("Used"))
-                        {
-                            TimeSpan duration = TimeSpan.FromMilliseconds(character.Stats.Thirst * 1000);
+                    useItem = task;
+                }
+            }
 
-                            character.Job.Tasks.Add(new UseSink
-                            {
-                                Name = "UseSink",
-                                Owner_Character = character,
-                                Location = sink.Location,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                EndTime = new TimeHandler(TimeManager.Now, duration),
-                                TaskBar = CharacterUtil.GenTaskbar(character, (int)duration.TotalMilliseconds)
-                            });
-                            return;
-                        }
+            if (useItem == null)
+            {
+                Inventory inventory = character.Inventory;
+
+                int itemCount = inventory.Items.Count;
+                for (int i = 0; i < itemCount; i++)
+                {
+                    Item existing = inventory.Items[i];
+
+                    Property? thirst = existing.GetProperty("Thirst");
+                    if (thirst != null)
+                    {
+                        TimeSpan duration = TimeSpan.FromMilliseconds(thirst.Value * -10 * 1000);
+
+                        character.Job.Tasks.Add(new UseItem
+                        {
+                            Name = "UseItem_" + existing.ID,
+                            Owner_Character = character,
+                            Priority = 101,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, duration),
+                            TaskBar = CharacterUtil.GenTaskbar(character, (int)duration.TotalMilliseconds)
+                        });
+                        break;
+                    }
+                }
+            }
+        }
+
+        private static void HandleHunger(Character character)
+        {
+            if (TimeManager.Now == null)
+            {
+                return;
+            }
+
+            bool hasFood = HasFood(character);
+            if (hasFood)
+            {
+                bool stillBusy = false;
+
+                JobTask? findFood = character.Job.GetTask("FindFood");
+                if (findFood != null)
+                {
+                    stillBusy = true;
+                }
+
+                if (!stillBusy)
+                {
+                    bool seated = Seated(character);
+                    if (seated)
+                    {
+                        ConsumeFood(character);
                     }
                     else
                     {
-                        Map? map = WorldUtil.GetMap();
-                        Layer? bottom_tiles = map?.GetLayer("BottomTiles");
-                        Layer? middle_tiles = map?.GetLayer("MiddleTiles");
-
-                        if (bottom_tiles != null &&
-                            middle_tiles != null)
+                        JobTask? findComfort = character.Job.GetTask("FindComfort");
+                        if (findComfort != null)
                         {
-                            PathTo(bottom_tiles, middle_tiles, sink.Location, character, desperate, true);
-                            return;
-                        }
-                    }
-                }
-            }
-
-            Wander(character);
-        }
-
-        private static void FindFood(Character character, bool desperate)
-        {
-            if (TimeManager.Now == null ||
-                character.Location == null)
-            {
-                return;
-            }
-
-            //Are we already pathing to something?
-            if (character.Path.Count > 0)
-            {
-                ContinuePathing(character, desperate);
-                return;
-            }
-
-            //Does a nearby fridge have something to eat?
-            List<Tile> fridges = WorldUtil.GetFurniture_Owned(character, "Fridge");
-            if (fridges.Count > 0)
-            {
-                Tile? fridge = WorldUtil.GetClosestTile(fridges, character);
-                if (fridge?.Location != null)
-                {
-                    Item? item = null;
-
-                    if (fridge.Inventory != null)
-                    {
-                        int fridgeCount = fridge.Inventory.Items.Count;
-                        for (int i = 0; i < fridgeCount; i++)
-                        {
-                            Item existing = fridge.Inventory.Items[i];
-
-                            Property? hunger = existing.GetProperty("Hunger");
-                            if (hunger != null)
-                            {
-                                item = existing;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (item != null)
-                    {
-                        if (WorldUtil.NextTo(fridge.Location, character.Location))
-                        {
-                            Direction direction = WorldUtil.GetDirection(character.Location, fridge.Location);
-                            if (direction != character.Direction)
-                            {
-                                character.Job.Tasks.Add(new Turn
-                                {
-                                    Name = "Turn",
-                                    Owner_Character = character,
-                                    StartTime = new TimeHandler(TimeManager.Now),
-                                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
-                                    Direction = direction
-                                });
-                                return;
-                            }
-                            else
-                            {
-                                if (fridge.Texture != null &&
-                                    fridge.Texture.Name.Contains("Used"))
-                                {
-                                    InventoryUtil.TransferItem(fridge.Inventory, character.Inventory, item);
-
-                                    int seconds = desperate ? 10 : 20;
-                                    int milliseconds = seconds * 1000;
-
-                                    character.Job.Tasks.Add(new Search
-                                    {
-                                        Name = "Search",
-                                        Owner_Character = character,
-                                        Location = fridge.Location,
-                                        StartTime = new TimeHandler(TimeManager.Now),
-                                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(seconds)),
-                                        TaskBar = CharacterUtil.GenTaskbar(character, milliseconds)
-                                    });
-
-                                    seconds = desperate ? 1 : 2;
-
-                                    character.Job.Tasks.Add(new CloseFridge
-                                    {
-                                        Name = "CloseFridge",
-                                        Owner_Character = character,
-                                        StartTime = new TimeHandler(TimeManager.Now),
-                                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(seconds)),
-                                        Location = fridge.Location,
-                                        Direction = direction
-                                    });
-
-                                    return;
-                                }
-                                else
-                                {
-                                    int seconds = desperate ? 1 : 2;
-
-                                    character.Job.Tasks.Add(new OpenFridge
-                                    {
-                                        Name = "OpenFridge",
-                                        Owner_Character = character,
-                                        StartTime = new TimeHandler(TimeManager.Now),
-                                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(seconds)),
-                                        Location = fridge.Location,
-                                        Direction = direction
-                                    });
-
-                                    return;
-                                }
-                            }
+                            findComfort.Description = character.Stats.Hunger >= 60 ? "Desperate" : "";
                         }
                         else
                         {
-                            Map? map = WorldUtil.GetMap();
-                            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
-                            Layer? middle_tiles = map?.GetLayer("MiddleTiles");
-
-                            if (bottom_tiles != null &&
-                                middle_tiles != null)
+                            character.Job.Tasks.Add(new FindComfort
                             {
-                                PathTo(bottom_tiles, middle_tiles, fridge.Location, character, desperate, true);
-                                return;
-                            }
+                                Name = "FindComfort",
+                                Description = character.Stats.Hunger >= 60 ? "Desperate" : "",
+                                Owner_Character = character,
+                                Priority = 101,
+                                StartTime = new TimeHandler(TimeManager.Now)
+                            });
                         }
                     }
                 }
             }
-
-            Wander(character);
+            else
+            {
+                JobTask? findFood = character.Job.GetTask("FindFood");
+                if (findFood != null)
+                {
+                    findFood.Priority = (int)character.Stats.Hunger;
+                }
+                else
+                {
+                    character.Job.Tasks.Add(new FindFood
+                    {
+                        Name = "FindFood",
+                        Owner_Character = character,
+                        Priority = (int)character.Stats.Hunger,
+                        StartTime = new TimeHandler(TimeManager.Now)
+                    });
+                }
+            }
         }
 
         private static bool HasFood(Character character)
         {
-            if (TimeManager.Now == null)
-            {
-                return false;
-            }
-
             Inventory inventory = character.Inventory;
 
             int itemCount = inventory.Items.Count;
@@ -664,738 +424,73 @@ namespace Despicaville
                 return;
             }
 
-            Inventory inventory = character.Inventory;
+            JobTask? useItem = null;
 
-            int itemCount = inventory.Items.Count;
-            for (int i = 0; i < itemCount; i++)
+            int taskCount = character.Job.Tasks.Count;
+            for (int i = 0; i < taskCount; i++)
             {
-                Item existing = inventory.Items[i];
-
-                Property? hunger = existing.GetProperty("Hunger");
-                if (hunger != null)
+                JobTask task = character.Job.Tasks[i];
+                if (!string.IsNullOrEmpty(task.Name) &&
+                    task.Name.Contains("UseItem"))
                 {
-                    TimeSpan duration = TimeSpan.FromMilliseconds(hunger.Value * -10 * 1000);
-
-                    character.Job.Tasks.Add(new UseItem
-                    {
-                        Name = "UseItem_" + existing.ID,
-                        Owner_Character = character,
-                        StartTime = new TimeHandler(TimeManager.Now),
-                        EndTime = new TimeHandler(TimeManager.Now, duration),
-                        TaskBar = CharacterUtil.GenTaskbar(character, (int)duration.TotalMilliseconds)
-                    });
+                    useItem = task;
                 }
             }
-        }
 
-        private static void FindToilet(Character character, bool desperate)
-        {
-            if (TimeManager.Now == null ||
-                character.Location == null)
+            if (useItem == null)
             {
-                return;
-            }
+                Inventory inventory = character.Inventory;
 
-            //Are we already pathing to something?
-            if (character.Path.Count > 0)
-            {
-                ContinuePathing(character, desperate);
-                return;
-            }
-
-            //Where is the nearest toilet?
-            List<Tile> toilets = WorldUtil.GetFurniture_Unused(Handler.MiddleFurniture, "Toilet");
-            if (toilets.Count > 0)
-            {
-                Tile? toilet = WorldUtil.GetClosestTile(toilets, character);
-                if (toilet?.Location != null)
+                int itemCount = inventory.Items.Count;
+                for (int i = 0; i < itemCount; i++)
                 {
-                    bool nextTo = false;
-                    bool okay = false;
+                    Item existing = inventory.Items[i];
 
-                    if (WorldUtil.NextTo(toilet.Location, character.Location) &&
-                        character.Gender == "Male")
+                    Property? hunger = existing.GetProperty("Hunger");
+                    if (hunger != null)
                     {
-                        nextTo = true;
-                        okay = true;
-                    }
-                    else if (toilet.Location.X == character.Location.X &&
-                             toilet.Location.Y == character.Location.Y)
-                    {
-                        okay = true;
-                    }
+                        TimeSpan duration = TimeSpan.FromMilliseconds(hunger.Value * -10 * 1000);
 
-                    if (okay)
-                    {
-                        if (nextTo)
+                        character.Job.Tasks.Add(new UseItem
                         {
-                            Direction direction = WorldUtil.GetDirection(character.Location, toilet.Location);
-                            if (direction != character.Direction)
-                            {
-                                character.Job.Tasks.Add(new Turn
-                                {
-                                    Name = "Turn",
-                                    Owner_Character = character,
-                                    StartTime = new TimeHandler(TimeManager.Now),
-                                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
-                                    Direction = direction
-                                });
-                                return;
-                            }
-                        }
-                        else if (toilet.Direction != character.Direction)
-                        {
-                            character.Job.Tasks.Add(new Turn
-                            {
-                                Name = "Turn",
-                                Owner_Character = character,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
-                                Direction = toilet.Direction
-                            });
-                            return;
-                        }
-
-                        TimeSpan duration = TimeSpan.FromSeconds(character.Stats.Bladder);
-
-                        character.Job.Tasks.Add(new UseToilet
-                        {
-                            Name = "UseToilet",
+                            Name = "UseItem_" + existing.ID,
                             Owner_Character = character,
-                            Location = toilet.Location,
+                            Priority = 101,
                             StartTime = new TimeHandler(TimeManager.Now),
                             EndTime = new TimeHandler(TimeManager.Now, duration),
                             TaskBar = CharacterUtil.GenTaskbar(character, (int)duration.TotalMilliseconds)
                         });
-                        return;
-                    }
-                    else
-                    {
-                        Map? map = WorldUtil.GetMap();
-                        Layer? bottom_tiles = map?.GetLayer("BottomTiles");
-                        Layer? middle_tiles = map?.GetLayer("MiddleTiles");
-
-                        if (bottom_tiles != null &&
-                            middle_tiles != null)
-                        {
-                            PathTo(bottom_tiles, middle_tiles, toilet.Location, character, desperate, character.Gender == "Male");
-                            return;
-                        }
-                    }
-                }
-            }
-
-            Wander(character);
-        }
-
-        private static void FindBed(Character character, Appointment appointment)
-        {
-            if (TimeManager.Now == null ||
-                appointment.StartTime == null ||
-                appointment.EndTime == null ||
-                character.Location == null)
-            {
-                return;
-            }
-
-            //Are we already pathing to something?
-            if (character.Path.Count > 0)
-            {
-                ContinuePathing(character, true);
-                return;
-            }
-
-            //Where is our bed?
-            Handler.OwnedFurniture.TryGetValue(character.ID, out List<Tile>? list);
-            if (list?.Count > 0)
-            {
-                Tile? bed = null;
-
-                int count = list.Count;
-                for (int i = 0; i < count; i++)
-                {
-                    Tile furniture = list[i];
-                    if (furniture.Name != null &&
-                        furniture.Name.Contains("Bed"))
-                    {
-                        bed = furniture;
                         break;
                     }
                 }
-
-                if (bed?.Location != null)
-                {
-                    Location? sleepSpot;
-
-                    if (bed.Direction == Direction.North)
-                    {
-                        sleepSpot = new Location(bed.Location.X, bed.Location.Y + 1);
-                    }
-                    else if (bed.Direction == Direction.West)
-                    {
-                        sleepSpot = new Location(bed.Location.X + 1, bed.Location.Y);
-                    }
-                    else
-                    {
-                        sleepSpot = new Location(bed.Location.X, bed.Location.Y);
-                    }
-
-                    if (sleepSpot != null)
-                    {
-                        if (character.Location.X == sleepSpot.X &&
-                            character.Location.Y == sleepSpot.Y)
-                        {
-                            if (character.Direction != bed.Direction)
-                            {
-                                character.Job.Tasks.Add(new Turn
-                                {
-                                    Name = "Turn",
-                                    Owner_Character = character,
-                                    StartTime = new TimeHandler(TimeManager.Now),
-                                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
-                                    Direction = bed.Direction
-                                });
-                                return;
-                            }
-                            else
-                            {
-                                int days_Now = (int)TimeManager.Now.TotalDays;
-                                int hours_Now = TimeManager.Now.Hours;
-                                int minutes_Now = TimeManager.Now.Minutes;
-                                int seconds_Now = TimeManager.Now.Seconds;
-                                int milliseconds_Now = TimeManager.Now.Milliseconds;
-
-                                int days_EndTime = 0;
-                                if (TimeManager.Now.Hours >= appointment.StartTime.Hours)
-                                {
-                                    days_EndTime = (int)TimeManager.Now.TotalDays + 1;
-                                }
-                                else
-                                {
-                                    days_EndTime = (int)TimeManager.Now.TotalDays;
-                                }
-
-                                int hours_EndTime = appointment.EndTime.Hours;
-                                int minutes_EndTime = appointment.EndTime.Minutes;
-                                int seconds_EndTime = appointment.EndTime.Seconds;
-                                int milliseconds_EndTime = appointment.EndTime.Milliseconds;
-
-                                TimeSpan duration = new TimeSpan(days_EndTime, hours_EndTime, minutes_EndTime, seconds_EndTime, milliseconds_EndTime) -
-                                    new TimeSpan(days_Now, hours_Now, minutes_Now, seconds_Now, milliseconds_Now);
-
-                                character.Job.Tasks.Add(new Sleep
-                                {
-                                    Name = "Sleep",
-                                    Owner_Character = character,
-                                    Location = bed.Location,
-                                    StartTime = new TimeHandler(TimeManager.Now),
-                                    EndTime = new TimeHandler(TimeManager.Now, duration)
-                                });
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            Map? map = WorldUtil.GetMap();
-                            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
-                            Layer? middle_tiles = map?.GetLayer("MiddleTiles");
-
-                            if (bottom_tiles != null &&
-                                middle_tiles != null)
-                            {
-                                PathTo(bottom_tiles, middle_tiles, bed.Location, character, true, false);
-                                return;
-                            }
-                        }
-                    }
-                }
             }
-
-            Wander(character);
         }
 
-        private static bool FindComfort(Character character, bool desperate)
+        private static bool Seated(Character character)
         {
-            if (TimeManager.Now == null ||
-                character.Location == null)
+            if (character.Location == null)
             {
-                return false;
-            }
-
-            //Are we already pathing to something?
-            if (character.Path.Count > 0)
-            {
-                ContinuePathing(character, desperate);
                 return false;
             }
 
             List<Tile> comfortSpots = WorldUtil.GetComfortSpots(character);
             if (comfortSpots.Count > 0)
             {
-                Tile? furniture = WorldUtil.GetClosestTile(comfortSpots, character);
-                if (furniture?.Location != null)
+                Tile? comfortSpot = WorldUtil.GetClosestTile(comfortSpots, character);
+                if (comfortSpot?.Location != null)
                 {
-                    if (character.Location.X == furniture.Location.X &&
-                        character.Location.Y == furniture.Location.Y)
+                    if (character.Location.X == comfortSpot.Location.X &&
+                        character.Location.Y == comfortSpot.Location.Y)
                     {
-                        if (character.Direction != furniture.Direction)
+                        if (character.Direction == comfortSpot.Direction)
                         {
-                            character.Job.Tasks.Add(new Turn
-                            {
-                                Name = "Turn",
-                                Owner_Character = character,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
-                                Direction = furniture.Direction
-                            });
-                            return false;
-                        }
-                        else
-                        {
-                            CharacterUtil.Rest(character);
                             return true;
                         }
                     }
-                    else
-                    {
-                        Map? map = WorldUtil.GetMap();
-                        Layer? bottom_tiles = map?.GetLayer("BottomTiles");
-                        Layer? middle_tiles = map?.GetLayer("MiddleTiles");
-
-                        if (bottom_tiles != null &&
-                            middle_tiles != null)
-                        {
-                            PathTo(bottom_tiles, middle_tiles, furniture.Location, character, desperate, false);
-                            return false;
-                        }
-                    }
                 }
             }
 
-            Wander(character);
             return false;
-        }
-
-        private static bool FindEntertainment(Character character)
-        {
-            if (TimeManager.Now == null ||
-                character.Location == null)
-            {
-                return false;
-            }
-
-            //Are we already pathing to something?
-            if (character.Path.Count > 0)
-            {
-                ContinuePathing(character, false);
-                return false;
-            }
-
-            //Is there a TV nearby?
-            List<Tile> list = WorldUtil.GetFurniture_Owned(character, "TV");
-            if (list.Count > 0)
-            {
-                Tile? tv = WorldUtil.GetClosestTile(list, character);
-                if (tv?.Location != null)
-                {
-                    //Is the TV on?
-                    if (tv.IsLightSource)
-                    {
-                        //Is there somewhere to sit near the TV?
-                        List<Tile> comfortSpots = WorldUtil.GetComfortSpots(character);
-                        if (comfortSpots.Count > 0)
-                        {
-                            List<Tile> nearbySpots = [];
-                            for (int i = 0; i < comfortSpots.Count; i++)
-                            {
-                                Tile comfortSpot = comfortSpots[i];
-                                if (comfortSpot.Location == null)
-                                {
-                                    continue;
-                                }
-
-                                int? distance = WorldUtil.GetDistance(comfortSpot.Location, tv.Location);
-                                if (distance <= 5)
-                                {
-                                    if (character.Location.X == comfortSpot.Location.X &&
-                                        character.Location.Y == comfortSpot.Location.Y)
-                                    {
-                                        nearbySpots = [comfortSpot];
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        nearbySpots.Add(comfortSpot);
-                                    }
-                                }
-                            }
-
-                            Tile? nearbySpot = WorldUtil.GetClosestTile(nearbySpots, tv.Location, false);
-                            if (nearbySpot?.Location != null)
-                            {
-                                if (character.Location.X == nearbySpot.Location.X &&
-                                    character.Location.Y == nearbySpot.Location.Y)
-                                {
-                                    Direction direction = WorldUtil.GetDirection(character.Location, tv.Location);
-                                    if (character.Direction != direction)
-                                    {
-                                        character.Job.Tasks.Add(new Turn
-                                        {
-                                            Name = "Turn",
-                                            Owner_Character = character,
-                                            StartTime = new TimeHandler(TimeManager.Now),
-                                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
-                                            Direction = direction
-                                        });
-                                        return false;
-                                    }
-                                    else
-                                    {
-                                        character.Job.Tasks.Add(new Wait
-                                        {
-                                            Name = "Wait",
-                                            Owner_Character = character,
-                                            StartTime = new TimeHandler(TimeManager.Now),
-                                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMinutes(1))
-                                        });
-                                        return true;
-                                    }
-                                }
-                                else
-                                {
-                                    Map? map = WorldUtil.GetMap();
-                                    Layer? bottom_tiles = map?.GetLayer("BottomTiles");
-                                    Layer? middle_tiles = map?.GetLayer("MiddleTiles");
-
-                                    if (bottom_tiles != null &&
-                                        middle_tiles != null)
-                                    {
-                                        PathTo(bottom_tiles, middle_tiles, nearbySpot.Location, character, false, false);
-                                        return false;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (WorldUtil.NextTo(tv.Location, character.Location))
-                        {
-                            Direction direction = WorldUtil.GetDirection(character.Location, tv.Location);
-                            if (direction != character.Direction)
-                            {
-                                character.Job.Tasks.Add(new Turn
-                                {
-                                    Name = "Turn",
-                                    Owner_Character = character,
-                                    StartTime = new TimeHandler(TimeManager.Now),
-                                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
-                                    Direction = direction
-                                });
-                                return false;
-                            }
-                            else
-                            {
-                                character.Job.Tasks.Add(new ToggleTV
-                                {
-                                    Name = "ToggleTV",
-                                    Owner_Character = character,
-                                    Location = tv.Location,
-                                    StartTime = new TimeHandler(TimeManager.Now),
-                                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(1)),
-                                    TaskBar = CharacterUtil.GenTaskbar(character, 1000)
-                                });
-                                return false;
-                            }
-                        }
-                        else
-                        {
-                            Map? map = WorldUtil.GetMap();
-                            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
-                            Layer? middle_tiles = map?.GetLayer("MiddleTiles");
-
-                            if (bottom_tiles != null &&
-                                middle_tiles != null)
-                            {
-                                PathTo(bottom_tiles, middle_tiles, tv.Location, character, false, true);
-                                return false;
-                            }
-                        }
-                    }
-                }
-            }
-
-            Wander(character);
-            return false;
-        }
-
-        private static void WorkJob(Character character)
-        {
-            if (TimeManager.Now == null ||
-                character.Location == null)
-            {
-                return;
-            }
-
-            //Are we already pathing to something?
-            if (character.Path.Count > 0)
-            {
-                ContinuePathing(character, false);
-                return;
-            }
-
-            Job? work = null;
-
-            int jobCount = Handler.Jobs.Count;
-            for (int j = 0; j < jobCount; j++)
-            {
-                Job job = Handler.Jobs[j];
-                if (character.Job.ID == job.ID)
-                {
-                    work = job;
-                    break;
-                }
-            }
-
-            if (work == null)
-            {
-                return;
-            }
-
-            //Get the task we should be working right now
-            JobTask? task = work.GetTask(TimeManager.Now);
-            if (task?.Location != null &&
-                task.StartTime != null &&
-                task.EndTime != null)
-            {
-                //Are we at the task location?
-                if (character.Location.X == task.Location.X &&
-                    character.Location.Y == task.Location.Y)
-                {
-                    //Are we facing the right direction?
-                    if (character.Direction != task.Direction)
-                    {
-                        character.Job.Tasks.Add(new Turn
-                        {
-                            Name = "Turn",
-                            Owner_Character = character,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
-                            Direction = task.Direction
-                        });
-                    }
-                    else
-                    {
-                        //We're ready, so do the current task
-                        character.Job.Tasks.Add(new JobTask
-                        {
-                            ID = task.ID,
-                            Name = task.Name,
-                            Type = task.Type,
-                            Assignment = task.Assignment,
-                            StartTime = new TimeHandler((long)task.StartTime.Hours, 0, 0, 0),
-                            EndTime = new TimeHandler((long)task.EndTime.Hours, 0, 0, 0),
-                            Location = task.Location,
-                            Direction = task.Direction
-                        });
-                    }
-                }
-                else
-                {
-                    Map? map = WorldUtil.GetMap();
-                    Layer? bottom_tiles = map?.GetLayer("BottomTiles");
-                    Layer? middle_tiles = map?.GetLayer("MiddleTiles");
-
-                    if (bottom_tiles != null &&
-                        middle_tiles != null)
-                    {
-                        PathTo(bottom_tiles, middle_tiles, task.Owner_Tile?.Location, character, true, true);
-                    }
-                }
-            }
-        }
-
-        private static void PathTo(Layer bottom_tiles, Layer middle_tiles, Location? target, Character? character, bool desperate, bool stop_next_to_tile)
-        {
-            if (target == null ||
-                character?.Location == null)
-            {
-                return;
-            }
-
-            Tile? middle_tile = middle_tiles.GetTile(character.Location.ToVector2);
-            if (middle_tile?.Name != null &&
-                middle_tile.Name.Contains("Door") &&
-                TimeManager.Now != null)
-            {
-                if (desperate)
-                {
-                    character.Job.Tasks.Add(new Move
-                    {
-                        Name = "Run",
-                        Owner_Character = character,
-                        StartTime = new TimeHandler(TimeManager.Now),
-                        Direction = character.Direction
-                    });
-                }
-                else
-                {
-                    character.Job.Tasks.Add(new Move
-                    {
-                        Name = "Walk",
-                        Owner_Character = character,
-                        StartTime = new TimeHandler(TimeManager.Now),
-                        Direction = character.Direction
-                    });
-                }
-            }
-            else
-            {
-                int? distance = WorldUtil.GetDistance(character.Location, target) * 8;
-                List<ALocation> path = Pathing.GetPath(bottom_tiles, middle_tiles, character, target, distance, stop_next_to_tile);
-
-                if (path.Count > 0)
-                {
-                    if (path[0].X == character.Location.X &&
-                        path[0].Y == character.Location.Y)
-                    {
-                        path.Remove(path[0]);
-                    }
-
-                    character.Path.AddRange(path);
-
-                    ContinuePathing(character, desperate);
-                }
-                else
-                {
-                    Wander(character);
-                }
-            }
-        }
-
-        private static void ContinuePathing(Character? character, bool desperate)
-        {
-            if (character?.Location == null ||
-                TimeManager.Now == null)
-            {
-                return;
-            }
-
-            ALocation next_path = character.Path[0];
-            Location location = new(next_path.X, next_path.Y, 0);
-
-            Direction direction = WorldUtil.GetDirection(character.Location, location);
-            if (direction == Direction.North)
-            {
-                character.Destination = new Location(character.Location.X, character.Location.Y - 1, character.Location.Z);
-            }
-            else if (direction == Direction.East)
-            {
-                character.Destination = new Location(character.Location.X + 1, character.Location.Y, character.Location.Z);
-            }
-            else if (direction == Direction.South)
-            {
-                character.Destination = new Location(character.Location.X, character.Location.Y + 1, character.Location.Z);
-            }
-            else if (direction == Direction.West)
-            {
-                character.Destination = new Location(character.Location.X - 1, character.Location.Y, character.Location.Z);
-            }
-
-            if (desperate)
-            {
-                character.Job.Tasks.Add(new Move
-                {
-                    Name = "Run",
-                    Owner_Character = character,
-                    StartTime = new TimeHandler(TimeManager.Now),
-                    Location = character.Destination,
-                    Direction = direction
-                });
-            }
-            else
-            {
-                character.Job.Tasks.Add(new Move
-                {
-                    Name = "Walk",
-                    Owner_Character = character,
-                    StartTime = new TimeHandler(TimeManager.Now),
-                    Location = character.Destination,
-                    Direction = direction
-                });
-            }
-        }
-
-        public static void Wander(Character character)
-        {
-            if (TimeManager.Now == null)
-            {
-                return;
-            }
-
-            Direction direction = Direction.Nowhere;
-
-            CryptoRandom random = new();
-            int choice = random.Next(1, 101);
-            if (choice <= 28)
-            {
-                direction = Direction.North;
-            }
-            else if (choice <= 50)
-            {
-                direction = Direction.East;
-            }
-            else if (choice <= 72)
-            {
-                direction = Direction.South;
-            }
-            else if (choice <= 100)
-            {
-                direction = Direction.West;
-            }
-
-            random = new CryptoRandom();
-            choice = random.Next(1, 11);
-            if (choice <= 5)
-            {
-                character.Job.Tasks.Add(new Wait
-                {
-                    Name = "Wait",
-                    Owner_Character = character,
-                    StartTime = new TimeHandler(TimeManager.Now),
-                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(30))
-                });
-            }
-            else if (choice > 5 &&
-                     choice <= 8)
-            {
-                character.Job.Tasks.Add(new Move
-                {
-                    Name = "Walk",
-                    Owner_Character = character,
-                    StartTime = new TimeHandler(TimeManager.Now),
-                    Direction = direction
-                });
-            }
-            else if (choice > 8)
-            {
-                character.Job.Tasks.Add(new Turn
-                {
-                    Name = "Turn",
-                    Owner_Character = character,
-                    StartTime = new TimeHandler(TimeManager.Now),
-                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(character))),
-                    Direction = direction
-                });
-
-                character.Job.Tasks.Add(new Wait
-                {
-                    Name = "Wait",
-                    Owner_Character = character,
-                    StartTime = new TimeHandler(TimeManager.Now),
-                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(10))
-                });
-            }
         }
 
         public static void CloseDoor_Behind(Character character)
@@ -1432,7 +527,8 @@ namespace Despicaville
 
             if (location != null)
             {
-                character.Job.Tasks.Add(new CloseDoor
+                JobTask? majorTask = character.Job.Get_CurrentTask();
+                majorTask?.SubTasks.Add(new CloseDoor
                 {
                     Name = "CloseDoor",
                     Owner_Character = character,
@@ -1478,7 +574,8 @@ namespace Despicaville
 
             if (location != null)
             {
-                character.Job.Tasks.Add(new CloseWindow
+                JobTask? majorTask = character.Job.Get_CurrentTask();
+                majorTask?.SubTasks.Add(new CloseWindow
                 {
                     Name = "CloseWindow",
                     Owner_Character = character,

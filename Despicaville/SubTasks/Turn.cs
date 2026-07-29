@@ -2,7 +2,7 @@
 using OP_Engine.Enums;
 using Despicaville.Util;
 
-namespace Despicaville.JobTasks
+namespace Despicaville.SubTasks
 {
     public class Turn : JobTask
     {

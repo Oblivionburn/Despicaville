@@ -1,7 +1,7 @@
 ﻿using OP_Engine.Jobs;
 using Despicaville.Util;
 
-namespace Despicaville.JobTasks
+namespace Despicaville.SubTasks
 {
     public class Stand : JobTask
     {

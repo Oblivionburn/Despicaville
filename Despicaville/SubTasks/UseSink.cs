@@ -5,7 +5,7 @@ using OP_Engine.Utility;
 using OP_Engine.Sounds;
 using Despicaville.Util;
 
-namespace Despicaville.JobTasks
+namespace Despicaville.SubTasks
 {
     public class UseSink : JobTask
     {

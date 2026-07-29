@@ -18,7 +18,7 @@ using OP_Engine.Inventories;
 using OP_Engine.Rendering;
 using OP_Engine.Enums;
 using Despicaville.Util;
-using Despicaville.JobTasks;
+using Despicaville.SubTasks;
 
 namespace Despicaville.Scenes
 {
@@ -310,10 +310,15 @@ namespace Despicaville.Scenes
                                                     character.Draw(spriteBatch, resolution, color);
 
                                                     JobTask? task = character.Job.CurrentTask;
-                                                    if (task != null &&
-                                                        task.TaskBar != null)
+                                                    if (task != null)
                                                     {
-                                                        task.TaskBar.Draw(spriteBatch);
+                                                        task.TaskBar?.Draw(spriteBatch);
+                                                        
+                                                        if (task.SubTasks.Count > 0)
+                                                        {
+                                                            JobTask subTask = task.SubTasks[0];
+                                                            subTask.TaskBar?.Draw(spriteBatch);
+                                                        }
                                                     }
                                                 }
                                             }

@@ -6,7 +6,7 @@ using OP_Engine.Enums;
 using OP_Engine.Time;
 using Despicaville.Util;
 
-namespace Despicaville.JobTasks
+namespace Despicaville.SubTasks
 {
     public class Push : JobTask
     {

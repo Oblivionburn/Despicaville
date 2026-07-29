@@ -5,7 +5,7 @@ using OP_Engine.Tiles;
 using OP_Engine.Enums;
 using Despicaville.Util;
 
-namespace Despicaville.JobTasks
+namespace Despicaville.SubTasks
 {
     public class OpenFridge : JobTask
     {
@@ -67,26 +67,22 @@ namespace Despicaville.JobTasks
                 AssetManager.PlaySound_Random_AtDistance("DoorOpen", Handler.Player.Location.ToVector2, Location.ToVector2, 8);
             }
 
-            if (Owner_Character.Direction == Direction.North &&
-                tile.Direction == Direction.South)
+            if (tile.Direction == Direction.South)
             {
                 tile.Texture = Handler.GetTexture("Fridge_South_Used");
                 tile.Region = new Region(tile.Region.X, tile.Region.Y, tile.Region.Width, Main.Game.TileSize.Y * 2);
             }
-            else if (Owner_Character.Direction == Direction.East &&
-                     tile.Direction == Direction.West)
+            else if (tile.Direction == Direction.West)
             {
                 tile.Texture = Handler.GetTexture("Fridge_West_Used");
                 tile.Region = new Region(tile.Region.X - Main.Game.TileSize.X, tile.Region.Y, Main.Game.TileSize.X * 2, tile.Region.Height);
             }
-            else if (Owner_Character.Direction == Direction.South &&
-                     tile.Direction == Direction.North)
+            else if (tile.Direction == Direction.North)
             {
                 tile.Texture = Handler.GetTexture("Fridge_North_Used");
                 tile.Region = new Region(tile.Region.X, tile.Region.Y - Main.Game.TileSize.Y, tile.Region.Width, Main.Game.TileSize.Y * 2);
             }
-            else if (Owner_Character.Direction == Direction.West &&
-                     tile.Direction == Direction.East)
+            else if (tile.Direction == Direction.East)
             {
                 tile.Texture = Handler.GetTexture("Fridge_East_Used");
                 tile.Region = new Region(tile.Region.X, tile.Region.Y, Main.Game.TileSize.X * 2, tile.Region.Height);

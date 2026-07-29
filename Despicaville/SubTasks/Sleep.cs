@@ -1,7 +1,7 @@
 ﻿using Despicaville.Util;
 using OP_Engine.Jobs;
 
-namespace Despicaville.JobTasks
+namespace Despicaville.SubTasks
 {
     public class Sleep : JobTask
     {
