@@ -1076,5 +1076,591 @@ namespace Despicaville.Util
 
             return hours_str + ":" + minutes_str + ":" + seconds_str;
         }
+
+        public static List<Color> CopyTexture(Color[] colors, int width, int x, int y, int new_width, int new_height)
+        {
+            List<Color> new_data = [];
+            for (int Y = y; Y < y + new_height; Y++)
+            {
+                for (int X = x; X < x + new_width; X++)
+                {
+                    Color current = colors[(Y * width) + X];
+                    new_data.Add(current);
+                }
+            }
+
+            return new_data;
+        }
+
+        public static void ParseAutoTile(string base_texture, string type)
+        {
+            Texture2D? original = Handler.GetTexture(base_texture);
+            if (original != null)
+            {
+                int width = original.Width;
+                int height = original.Height;
+
+                Color[] data = new Color[width * height];
+                original.GetData(data);
+
+                if (data.Length > 0)
+                {
+                    List<Rectangle> list = [];
+
+                    int single = width / 3;
+                    int half = single / 2;
+                    int twice = single * 2;
+                    int triple = single * 3;
+
+                    int single_plus_half = single + half;
+                    int twice_plus_half = twice + half;
+                    int triple_plus_half = triple + half;
+
+                    #region Island
+
+                    list.Add(new Rectangle(0, 0, single, single));
+                    CreateTile(type, type + "_Island", data, width, single, half, list);
+
+                    #endregion
+
+                    #region Cross
+
+                    list.Clear();
+                    list.Add(new Rectangle(twice, 0, single, single));
+                    CreateTile(type, type + "_Cross", data, width, single, half, list);
+
+                    #endregion
+
+                    #region Open
+
+                    list.Clear();
+                    list.Add(new Rectangle(single, twice, single, single));
+                    CreateTile(type, type + "_Open", data, width, single, half, list);
+
+                    #endregion
+
+                    #region WE
+
+                    list.Clear();
+                    list.Add(new Rectangle(single, single, single, half));
+                    list.Add(new Rectangle(single, triple_plus_half, single, half));
+                    CreateTile(type, type + "_WE", data, width, single, half, list);
+
+                    #endregion
+
+                    #region NS
+
+                    list.Clear();
+                    list.Add(new Rectangle(0, twice, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, twice, half, 1));
+                    CreateTile(type, type + "_NS", data, width, single, half, list);
+
+                    #endregion
+
+                    #region End_N
+
+                    list.Clear();
+                    list.Add(new Rectangle(0, single, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, single, half, 1));
+                    list.Add(new Rectangle(0, twice_plus_half, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, twice_plus_half, half, 1));
+                    CreateTile(type, type + "_End_N", data, width, single, half, list);
+
+                    #endregion
+
+                    #region End_E
+
+                    list.Clear();
+                    list.Add(new Rectangle(single, single, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, single, half, 1));
+                    list.Add(new Rectangle(single, triple_plus_half, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, triple_plus_half, half, 1));
+                    CreateTile(type, type + "_End_E", data, width, single, half, list);
+
+                    #endregion
+
+                    #region End_S
+
+                    list.Clear();
+                    list.Add(new Rectangle(0, twice, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, twice, half, 1));
+                    list.Add(new Rectangle(0, triple_plus_half, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, triple_plus_half, half, 1));
+                    CreateTile(type, type + "_End_S", data, width, single, half, list);
+
+                    #endregion
+
+                    #region End_W
+
+                    list.Clear();
+                    list.Add(new Rectangle(0, single, half, 1));
+                    list.Add(new Rectangle(single_plus_half, single, half, 1));
+                    list.Add(new Rectangle(0, triple_plus_half, half, 1));
+                    list.Add(new Rectangle(single_plus_half, triple_plus_half, half, 1));
+                    CreateTile(type, type + "_End_W", data, width, single, half, list);
+
+                    #endregion
+
+                    #region Corner_NE
+
+                    list.Clear();
+                    list.Add(new Rectangle(twice, single, single, half));
+                    list.Add(new Rectangle(twice, half, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, single_plus_half, half, 1));
+
+                    CreateTile(type, type + "_Corner_NE", data, width, single, half, list);
+
+                    #endregion
+
+                    #region Corner_NW
+
+                    list.Clear();
+                    list.Add(new Rectangle(0, single, single, half));
+                    list.Add(new Rectangle(0, single_plus_half, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, half, half, 1));
+                    CreateTile(type, type + "_Corner_NW", data, width, single, half, list);
+
+                    #endregion
+
+                    #region Corner_SE
+
+                    list.Clear();
+                    list.Add(new Rectangle(twice, 0, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, triple, half, 1));
+                    list.Add(new Rectangle(twice, triple_plus_half, single, half));
+                    CreateTile(type, type + "_Corner_SE", data, width, single, half, list);
+
+                    #endregion
+
+                    #region Corner_SW
+
+                    list.Clear();
+                    list.Add(new Rectangle(0, triple, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, 0, half, 1));
+                    list.Add(new Rectangle(0, triple_plus_half, single, half));
+                    CreateTile(type, type + "_Corner_SW", data, width, single, half, list);
+
+                    #endregion
+
+                    #region TSection_W
+
+                    list.Clear();
+                    list.Add(new Rectangle(twice, 0, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, twice, half, 1));
+                    CreateTile(type, type + "_TSection_W", data, width, single, half, list);
+
+                    #endregion
+
+                    #region TSection_E
+
+                    list.Clear();
+                    list.Add(new Rectangle(0, twice, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, 0, half, 1));
+                    CreateTile(type, type + "_TSection_E", data, width, single, half, list);
+
+                    #endregion
+
+                    #region TSection_N
+
+                    list.Clear();
+                    list.Add(new Rectangle(twice, 0, single, half));
+                    list.Add(new Rectangle(single, triple_plus_half, single, half));
+                    CreateTile(type, type + "_TSection_N", data, width, single, half, list);
+
+                    #endregion
+
+                    #region TSection_S
+
+                    list.Clear();
+                    list.Add(new Rectangle(single, single, single, half));
+                    list.Add(new Rectangle(twice, half, single, half));
+                    CreateTile(type, type + "_TSection_S", data, width, single, half, list);
+
+                    #endregion
+
+                    #region Open_N
+
+                    list.Clear();
+                    list.Add(new Rectangle(single, triple, single, single));
+                    CreateTile(type, type + "_Open_N", data, width, single, half, list);
+
+                    #endregion
+
+                    #region Open_E
+
+                    list.Clear();
+                    list.Add(new Rectangle(0, twice, single, single));
+                    CreateTile(type, type + "_Open_E", data, width, single, half, list);
+
+                    #endregion
+
+                    #region Open_S
+
+                    list.Clear();
+                    list.Add(new Rectangle(single, single, single, single));
+                    CreateTile(type, type + "_Open_S", data, width, single, half, list);
+
+                    #endregion
+
+                    #region Open_W
+
+                    list.Clear();
+                    list.Add(new Rectangle(twice, twice, single, single));
+                    CreateTile(type, type + "_Open_W", data, width, single, half, list);
+
+                    #endregion
+
+                    #region Open_NE
+
+                    list.Clear();
+                    list.Add(new Rectangle(single, twice, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, 0, half, 1));
+                    list.Add(new Rectangle(single, twice_plus_half, single, half));
+                    CreateTile(type, type + "_Open_NE", data, width, single, half, list);
+
+                    #endregion
+
+                    #region Open_NW
+
+                    list.Clear();
+                    list.Add(new Rectangle(twice, 0, half, 1));
+                    list.Add(new Rectangle(single_plus_half, twice, half, 1));
+                    list.Add(new Rectangle(single, twice_plus_half, single, half));
+                    CreateTile(type, type + "_Open_NW", data, width, single, half, list);
+
+                    #endregion
+
+                    #region Open_SE
+
+                    list.Clear();
+                    list.Add(new Rectangle(single, twice, single, half));
+                    list.Add(new Rectangle(single, twice_plus_half, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, half, half, 1));
+                    CreateTile(type, type + "_Open_SE", data, width, single, half, list);
+
+                    #endregion
+
+                    #region Open_SW
+
+                    list.Clear();
+                    list.Add(new Rectangle(single, twice, single, half));
+                    list.Add(new Rectangle(twice, half, half, 1));
+                    list.Add(new Rectangle(single_plus_half, twice_plus_half, half, 1));
+                    CreateTile(type, type + "_Open_SW", data, width, single, half, list);
+
+                    #endregion
+
+                    #region Open_NW_SE
+
+                    list.Clear();
+                    list.Add(new Rectangle(single, twice, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, 0, half, 1));
+                    list.Add(new Rectangle(twice, half, half, 1));
+                    list.Add(new Rectangle(single_plus_half, twice_plus_half, half, 1));
+                    CreateTile(type, type + "_Open_NW_SE", data, width, single, half, list);
+
+                    #endregion
+
+                    #region Open_SW_NE
+
+                    list.Clear();
+                    list.Add(new Rectangle(twice, 0, half, 1));
+                    list.Add(new Rectangle(single_plus_half, twice, half, 1));
+                    list.Add(new Rectangle(single, twice_plus_half, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, half, half, 1));
+                    CreateTile(type, type + "_Open_SW_NE", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenCorner_NE
+
+                    list.Clear();
+                    list.Add(new Rectangle(twice, single, single, single));
+                    CreateTile(type, type + "_OpenCorner_NE", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenCorner_NW
+
+                    list.Clear();
+                    list.Add(new Rectangle(0, single, single, single));
+                    CreateTile(type, type + "_OpenCorner_NW", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenCorner_SE
+
+                    list.Clear();
+                    list.Add(new Rectangle(twice, triple, single, single));
+                    CreateTile(type, type + "_OpenCorner_SE", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenCorner_SW
+
+                    list.Clear();
+                    list.Add(new Rectangle(0, triple, single, single));
+                    CreateTile(type, type + "_OpenCorner_SW", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenCross_NE
+
+                    list.Clear();
+                    list.Add(new Rectangle(twice, 0, half, 1));
+                    list.Add(new Rectangle(single_plus_half, twice, half, 1));
+                    list.Add(new Rectangle(twice, half, single, half));
+                    CreateTile(type, type + "_OpenCross_NE", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenCross_NW
+
+                    list.Clear();
+                    list.Add(new Rectangle(single, twice, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, 0, half, 1));
+                    list.Add(new Rectangle(twice, half, single, half));
+                    CreateTile(type, type + "_OpenCross_NW", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenCross_SE
+
+                    list.Clear();
+                    list.Add(new Rectangle(twice, 0, single, half));
+                    list.Add(new Rectangle(twice, half, half, 1));
+                    list.Add(new Rectangle(single_plus_half, twice_plus_half, half, 1));
+                    CreateTile(type, type + "_OpenCross_SE", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenCross_SW
+
+                    list.Clear();
+                    list.Add(new Rectangle(twice, 0, single, half));
+                    list.Add(new Rectangle(single, twice_plus_half, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, half, half, 1));
+                    CreateTile(type, type + "_OpenCross_SW", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenT_N
+
+                    list.Clear();
+                    list.Add(new Rectangle(single, twice, single, half));
+                    list.Add(new Rectangle(twice, half, single, half));
+                    CreateTile(type, type + "_OpenT_N", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenT_E
+
+                    list.Clear();
+                    list.Add(new Rectangle(twice, 0, half, 1));
+                    list.Add(new Rectangle(single_plus_half, twice, half, 1));
+                    list.Add(new Rectangle(twice, half, half, 1));
+                    list.Add(new Rectangle(single_plus_half, twice_plus_half, half, 1));
+                    CreateTile(type, type + "_OpenT_E", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenT_S
+
+                    list.Clear();
+                    list.Add(new Rectangle(twice, 0, single, half));
+                    list.Add(new Rectangle(single, twice_plus_half, single, half));
+                    CreateTile(type, type + "_OpenT_S", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenT_W
+
+                    list.Clear();
+                    list.Add(new Rectangle(single, twice, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, 0, half, 1));
+                    list.Add(new Rectangle(single, twice_plus_half, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, half, half, 1));
+                    CreateTile(type, type + "_OpenT_W", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenT_EN
+
+                    list.Clear();
+                    list.Add(new Rectangle(0, twice, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, 0, half, 1));
+                    list.Add(new Rectangle(0, twice_plus_half, half, 1));
+                    list.Add(new Rectangle(single_plus_half, twice_plus_half, half, 1));
+                    CreateTile(type, type + "_OpenT_EN", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenT_ES
+
+                    list.Clear();
+                    list.Add(new Rectangle(0, twice, half, 1));
+                    list.Add(new Rectangle(single_plus_half, twice, half, 1));
+                    list.Add(new Rectangle(0, twice_plus_half, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, half, half, 1));
+                    CreateTile(type, type + "_OpenT_ES", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenT_NE
+
+                    list.Clear();
+                    list.Add(new Rectangle(single, twice, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, 0, half, 1));
+                    list.Add(new Rectangle(single, triple_plus_half, single, half));
+                    CreateTile(type, type + "_OpenT_NE", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenT_NW
+
+                    list.Clear();
+                    list.Add(new Rectangle(twice, 0, half, 1));
+                    list.Add(new Rectangle(single_plus_half, twice, half, 1));
+                    list.Add(new Rectangle(single, triple_plus_half, single, half));
+                    CreateTile(type, type + "_OpenT_NW", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenT_SE
+
+                    list.Clear();
+                    list.Add(new Rectangle(single, single, single, half));
+                    list.Add(new Rectangle(single, twice_plus_half, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, half, half, 1));
+                    CreateTile(type, type + "_OpenT_SE", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenT_SW
+
+                    list.Clear();
+                    list.Add(new Rectangle(single, single, single, half));
+                    list.Add(new Rectangle(twice, half, half, 1));
+                    list.Add(new Rectangle(single_plus_half, twice_plus_half, half, 1));
+                    CreateTile(type, type + "_OpenT_SW", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenT_WN
+
+                    list.Clear();
+                    list.Add(new Rectangle(twice, 0, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, twice, half, 1));
+                    list.Add(new Rectangle(single, twice_plus_half, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, twice_plus_half, half, 1));
+                    CreateTile(type, type + "_OpenT_WN", data, width, single, half, list);
+
+                    #endregion
+
+                    #region OpenT_WS
+
+                    list.Clear();
+                    list.Add(new Rectangle(single, twice, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, twice, half, 1));
+                    list.Add(new Rectangle(twice, half, half, 1));
+                    list.Add(new Rectangle(twice_plus_half, twice_plus_half, half, 1));
+                    CreateTile(type, type + "_OpenT_WS", data, width, single, half, list);
+
+                    #endregion
+                }
+            }
+        }
+
+        private static void CreateTile(string type, string name, Color[] data, int width, int single, int half, List<Rectangle> list)
+        {
+            Texture2D? new_texture = null;
+
+            if (Main.Game?.GraphicsManager == null)
+            {
+                return;
+            }
+
+            if (list.Count > 0)
+            {
+                new_texture = new(Main.Game.GraphicsManager.GraphicsDevice, single, single)
+                {
+                    Name = name
+                };
+
+                List<Color> colors = [];
+
+                if (list[0].Width == single)
+                {
+                    if (list[0].Height == single)
+                    {
+                        colors.AddRange(CopyTexture(data, width, list[0].X, list[0].Y, list[0].Width, list[0].Height));
+                    }
+                    else if (list[0].Height == half)
+                    {
+                        if (list.Count == 2)
+                        {
+                            colors.AddRange(CopyTexture(data, width, list[0].X, list[0].Y, list[0].Width, list[0].Height));
+                            colors.AddRange(CopyTexture(data, width, list[1].X, list[1].Y, list[1].Width, list[1].Height));
+                        }
+                        else if (list.Count > 2)
+                        {
+                            colors.AddRange(CopyTexture(data, width, list[0].X, list[0].Y, list[0].Width, list[0].Height));
+
+                            for (int i = 0; i < half; i++)
+                            {
+                                colors.AddRange(CopyTexture(data, width, list[1].X, i + list[1].Y, list[1].Width, list[1].Height));
+                                colors.AddRange(CopyTexture(data, width, list[2].X, i + list[2].Y, list[2].Width, list[2].Height));
+                            }
+                        }
+                    }
+                }
+                else if (list[0].Width == half &&
+                         list[0].Height == 1)
+                {
+                    if (list.Count == 2)
+                    {
+                        for (int i = 0; i < single; i++)
+                        {
+                            colors.AddRange(CopyTexture(data, width, list[0].X, i + list[0].Y, list[0].Width, list[0].Height));
+                            colors.AddRange(CopyTexture(data, width, list[1].X, i + list[1].Y, list[1].Width, list[1].Height));
+                        }
+                    }
+                    else if (list.Count == 3)
+                    {
+                        for (int i = 0; i < half; i++)
+                        {
+                            colors.AddRange(CopyTexture(data, width, list[0].X, i + list[0].Y, list[0].Width, list[0].Height));
+                            colors.AddRange(CopyTexture(data, width, list[1].X, i + list[1].Y, list[1].Width, list[1].Height));
+                        }
+
+                        colors.AddRange(CopyTexture(data, width, list[2].X, list[2].Y, list[2].Width, list[2].Height));
+                    }
+                    else if (list.Count == 4)
+                    {
+                        for (int i = 0; i < half; i++)
+                        {
+                            colors.AddRange(CopyTexture(data, width, list[0].X, i + list[0].Y, list[0].Width, list[0].Height));
+                            colors.AddRange(CopyTexture(data, width, list[1].X, i + list[1].Y, list[1].Width, list[1].Height));
+                        }
+
+                        for (int i = 0; i < half; i++)
+                        {
+                            colors.AddRange(CopyTexture(data, width, list[2].X, i + list[2].Y, list[2].Width, list[2].Height));
+                            colors.AddRange(CopyTexture(data, width, list[3].X, i + list[3].Y, list[3].Width, list[3].Height));
+                        }
+                    }
+                }
+
+                if (colors.Count > 0)
+                {
+                    new_texture.SetData(colors.ToArray());
+                }
+            }
+
+            if (new_texture != null)
+            {
+                AssetManager.Textures.Add(name, new_texture);
+            }
+        }
     }
 }

@@ -52,6 +52,15 @@ namespace Despicaville.Util
                     ScanTextures(dir);
                 }
 
+                foreach (DirectoryInfo dir in modDirs)
+                {
+                    if (dir.Name == "AutoTiles")
+                    {
+                        ProcessAutoTiles(dir);
+                        break;
+                    }
+                }
+
                 //Load Sounds
                 foreach (DirectoryInfo dir in modDirs)
                 {
@@ -98,6 +107,19 @@ namespace Despicaville.Util
             foreach (DirectoryInfo subDir in dirs)
             {
                 ScanTextures(subDir);
+            }
+        }
+
+        private static void ProcessAutoTiles(DirectoryInfo dir)
+        {
+            foreach (FileInfo file in dir.GetFiles("*.png"))
+            {
+                string name = Path.GetFileNameWithoutExtension(file.FullName);
+
+                string[] nameParts = name.Split('_');
+                string type = nameParts[1];
+
+                GameUtil.ParseAutoTile(name, type);
             }
         }
 

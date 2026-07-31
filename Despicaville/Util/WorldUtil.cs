@@ -2974,5 +2974,1636 @@ namespace Despicaville.Util
                 spriteBatch.Draw(tile.Texture, region, tile.Image, Color.White, rotation, new Vector2(tile.Texture.Height / 2, tile.Texture.Height / 2), SpriteEffects.None, 0);
             }
         }
+
+        public static void AutoTile(Layer layer, string type, string base_type)
+        {
+            foreach (Tile tile in layer.Tiles)
+            {
+                if (string.IsNullOrEmpty(tile.Type) ||
+                    string.IsNullOrEmpty(tile.Name))
+                {
+                    continue;
+                }
+
+                if (tile.Type.Contains(type))
+                {
+                    List<string> Directions = TypeAround(tile.Location, layer, base_type);
+
+                    #region 8 Tiles
+
+                    if (Directions.Contains("North") &&
+                        Directions.Contains("East") &&
+                        Directions.Contains("South") &&
+                        Directions.Contains("West") &&
+                        Directions.Contains("NorthEast") &&
+                        Directions.Contains("NorthWest") &&
+                        Directions.Contains("SouthEast") &&
+                        Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_Open";
+                    }
+
+                    #endregion
+
+                    #region 7 Tiles
+
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No North
+                        tile.Name = type + "_Open_S";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No East
+                        tile.Name = type + "_Open_W";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No South
+                        tile.Name = type + "_Open_N";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No West
+                        tile.Name = type + "_Open_E";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No NorthEast
+                        tile.Name = type + "_Open_NE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No NorthWest
+                        tile.Name = type + "_Open_NW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No SouthEast
+                        tile.Name = type + "_Open_SE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        //No SouthWest
+                        tile.Name = type + "_Open_SW";
+                    }
+
+                    #endregion
+
+                    #region 6 Tiles
+
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No North or East
+                        tile.Name = type + "_OpenCorner_NE";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No North or South
+                        tile.Name = type + "_WE";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No North or West
+                        tile.Name = type + "_OpenCorner_NW";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No North or NorthEast
+                        tile.Name = type + "_Open_S";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No North or NorthWest
+                        tile.Name = type + "_Open_S";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No North or SouthEast
+                        tile.Name = type + "_Open_S";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        //No North or SouthWest
+                        tile.Name = type + "_Open_S";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No East or West
+                        tile.Name = type + "_NS";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No East or South
+                        tile.Name = type + "_OpenCorner_SE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No East or NorthEast
+                        tile.Name = type + "_Open_W";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No East or NorthWest
+                        tile.Name = type + "_OpenT_WN";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No East or SouthEast
+                        tile.Name = type + "_Open_W";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        //No East or SouthWest
+                        tile.Name = type + "_OpenT_WS";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No South or NorthEast
+                        tile.Name = type + "_OpenT_NE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No South or NorthWest
+                        tile.Name = type + "_OpenT_NW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No South or SouthEast
+                        tile.Name = type + "_Open_N";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        //No South or SouthWest
+                        tile.Name = type + "_Open_N";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No West or NorthEast
+                        tile.Name = type + "_Open_E";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No West or NorthWest
+                        tile.Name = type + "_Open_E";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No West or SouthEast
+                        tile.Name = type + "_OpenT_ES";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        //No West or SouthWest
+                        tile.Name = type + "_Open_E";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No NorthEast or NorthWest
+                        tile.Name = type + "_OpenT_S";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No NorthEast or SouthEast
+                        tile.Name = type + "_OpenT_W";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        //No NorthEast or SouthWest
+                        tile.Name = type + "_Open_NW_SE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        //No SouthEast or SouthWest
+                        tile.Name = type + "_OpenT_N";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        //No SouthEast or NorthWest
+                        tile.Name = type + "_Open_SW_NE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        //No SouthWest or NorthWest
+                        tile.Name = type + "_OpenT_E";
+                    }
+
+                    #endregion
+
+                    #region 5 Tiles
+
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_Open_S";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_Open_W";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_Open_N";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_Open_E";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_OpenCorner_NE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_OpenCorner_SE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_OpenCorner_SW";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_OpenCorner_NW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_S";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_W";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_N";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_E";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_OpenT_NW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_OpenT_NE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_OpenT_ES";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_OpenT_EN";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_OpenT_WN";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_OpenT_WS";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_OpenT_SE";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_OpenT_SW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_OpenCross_NE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_OpenCross_SE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_OpenCross_NW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_OpenCross_SW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_OpenT_WS";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_OpenT_WN";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_OpenT_ES";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_OpenT_EN";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_OpenT_SW";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_OpenT_SE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_OpenT_NW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_OpenT_NE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_TSection_W";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_TSection_N";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_TSection_E";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_TSection_S";
+                    }
+
+                    #endregion
+
+                    #region 4 Tiles
+
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_OpenCorner_NE";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_OpenCorner_NW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_OpenCorner_SE";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_OpenCorner_NE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_OpenCorner_SW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_OpenCorner_SE";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_OpenCorner_NW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_OpenCorner_SW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_NS";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_NS";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_NS";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_NS";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_NS";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_NS";
+                    }
+                    else if (Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        if (type == "Blood")
+                        {
+                            tile.Name = "Rock";
+                        }
+                        else if (type == "Water" ||
+                                 type.Contains("Road"))
+                        {
+                            tile.Name = "Grass";
+                        }
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_OpenT_NE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_OpenT_ES";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_OpenT_SW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_OpenT_WN";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_OpenT_WS";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_OpenT_EN";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_OpenT_NW";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_OpenT_SE";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_OpenT_SW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_Corner_SE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_Corner_SW";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_Corner_NE";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_Corner_NW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_OpenCorner_SE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_OpenCorner_SW";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_OpenCorner_NE";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_OpenCorner_NW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_TSection_N";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_TSection_N";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_TSection_S";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_TSection_S";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_TSection_W";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_TSection_W";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_TSection_E";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_TSection_E";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_WE";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_WE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West"))
+                    {
+                        tile.Name = type + "_Cross";
+                    }
+
+                    #endregion
+
+                    #region 3 Tiles
+
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_End_N";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_End_E";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_End_S";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_W";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_WE";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_WE";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_WE";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_WE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_NS";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_NS";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_NS";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_NS";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_OpenCorner_SW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_Corner_SW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_Corner_SW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_Corner_SW";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_OpenCorner_SE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_Corner_SE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_Corner_SE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_Corner_SE";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_Corner_NW";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_Corner_NW";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_Corner_NW";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_OpenCorner_NW";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_Corner_NE";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_Corner_NE";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_OpenCorner_NE";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("West") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_Corner_NE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_S";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_End_W";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_End_N";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_E";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("West"))
+                    {
+                        tile.Name = type + "_TSection_N";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("East") &&
+                             Directions.Contains("West"))
+                    {
+                        tile.Name = type + "_TSection_S";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("West"))
+                    {
+                        tile.Name = type + "_TSection_W";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South") &&
+                             Directions.Contains("East"))
+                    {
+                        tile.Name = type + "_TSection_E";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_E";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_E";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_End_E";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_End_W";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("SouthWest") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_W";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_S";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_End_S";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("NorthWest") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_End_N";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_N";
+                    }
+
+                    #endregion
+
+                    #region 2 Tiles
+
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_End_N";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_N";
+                    }
+                    else if (Directions.Contains("SouthEast") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        if (type == "Blood")
+                        {
+                            tile.Name = "Rock";
+                        }
+                        else if (type == "Water" ||
+                                 type.Contains("Road"))
+                        {
+                            tile.Name = "Grass";
+                        }
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_End_E";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_End_E";
+                    }
+                    else if (Directions.Contains("SouthWest") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        if (type == "Blood")
+                        {
+                            tile.Name = "Rock";
+                        }
+                        else if (type == "Water" ||
+                                 type.Contains("Road"))
+                        {
+                            tile.Name = "Grass";
+                        }
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_End_S";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_End_S";
+                    }
+                    else if (Directions.Contains("NorthEast") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        if (type == "Blood")
+                        {
+                            tile.Name = "Rock";
+                        }
+                        else if (type == "Water" ||
+                                 type.Contains("Road"))
+                        {
+                            tile.Name = "Grass";
+                        }
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_W";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_End_W";
+                    }
+                    else if (Directions.Contains("NorthEast") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        if (type == "Blood")
+                        {
+                            tile.Name = "Rock";
+                        }
+                        else if (type == "Water" ||
+                                 type.Contains("Road"))
+                        {
+                            tile.Name = "Grass";
+                        }
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("East"))
+                    {
+                        tile.Name = type + "_Corner_SW";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("South"))
+                    {
+                        tile.Name = type + "_Corner_NW";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("West"))
+                    {
+                        tile.Name = type + "_Corner_NE";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("North"))
+                    {
+                        tile.Name = type + "_Corner_SE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("South"))
+                    {
+                        tile.Name = type + "_NS";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("East"))
+                    {
+                        tile.Name = type + "_WE";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_End_S";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_End_S";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_End_N";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_N";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_W";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_End_W";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_End_E";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_End_E";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_End_S";
+                    }
+                    else if (Directions.Contains("North") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_S";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_End_N";
+                    }
+                    else if (Directions.Contains("South") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_End_N";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("NorthEast"))
+                    {
+                        tile.Name = type + "_End_E";
+                    }
+                    else if (Directions.Contains("West") &&
+                             Directions.Contains("SouthEast"))
+                    {
+                        tile.Name = type + "_End_E";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("SouthWest"))
+                    {
+                        tile.Name = type + "_End_W";
+                    }
+                    else if (Directions.Contains("East") &&
+                             Directions.Contains("NorthWest"))
+                    {
+                        tile.Name = type + "_End_W";
+                    }
+
+                    #endregion
+
+                    #region 1 Tile
+
+                    else if (Directions.Contains("North"))
+                    {
+                        tile.Name = type + "_End_S";
+                    }
+                    else if (Directions.Contains("East"))
+                    {
+                        tile.Name = type + "_End_W";
+                    }
+                    else if (Directions.Contains("South"))
+                    {
+                        tile.Name = type + "_End_N";
+                    }
+                    else if (Directions.Contains("West"))
+                    {
+                        tile.Name = type + "_End_E";
+                    }
+                    else
+                    {
+                        tile.Name = type + "_Island";
+                    }
+
+                    #endregion
+
+                    tile.Texture = Handler.GetTexture(tile.Name);
+
+                    if (tile.Texture != null)
+                    {
+                        tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
+                    }
+                }
+            }
+        }
+
+        private static List<string> TypeAround(Location? location, Layer layer, string type)
+        {
+            List<string> directions = [];
+
+            if (location == null)
+            {
+                return directions;
+            }
+
+            Vector2 North = new(location.X, location.Y - 1);
+            Vector2 East = new(location.X + 1, location.Y);
+            Vector2 South = new(location.X, location.Y + 1);
+            Vector2 West = new(location.X - 1, location.Y);
+            Vector2 NorthEast = new(location.X + 1, location.Y - 1);
+            Vector2 NorthWest = new(location.X - 1, location.Y - 1);
+            Vector2 SouthEast = new(location.X + 1, location.Y + 1);
+            Vector2 SouthWest = new(location.X - 1, location.Y + 1);
+
+            if (North.X >= 0 && North.X < layer.Columns &&
+                North.Y >= 0 && North.Y < layer.Rows)
+            {
+                Tile? north = layer.GetTile(North);
+                if (north != null &&
+                    north.Type == type)
+                {
+                    directions.Add("North");
+                }
+            }
+
+            if (East.X >= 0 && East.X < layer.Columns &&
+                East.Y >= 0 && East.Y < layer.Rows)
+            {
+                Tile? east = layer.GetTile(East);
+                if (east != null &&
+                    east.Type == type)
+                {
+                    directions.Add("East");
+                }
+            }
+
+            if (South.X >= 0 && South.X < layer.Columns &&
+                South.Y >= 0 && South.Y < layer.Rows)
+            {
+                Tile? south = layer.GetTile(South);
+                if (south != null &&
+                    south.Type == type)
+                {
+                    directions.Add("South");
+                }
+            }
+
+            if (West.X >= 0 && West.X < layer.Columns &&
+                West.Y >= 0 && West.Y < layer.Rows)
+            {
+                Tile? west = layer.GetTile(West);
+                if (west != null &&
+                    west.Type == type)
+                {
+                    directions.Add("West");
+                }
+            }
+
+            if (NorthEast.X >= 0 && NorthEast.X < layer.Columns &&
+                NorthEast.Y >= 0 && NorthEast.Y < layer.Rows)
+            {
+                Tile? northEast = layer.GetTile(NorthEast);
+                if (northEast != null &&
+                    northEast.Type == type)
+                {
+                    directions.Add("NorthEast");
+                }
+            }
+
+            if (NorthWest.X >= 0 && NorthWest.X < layer.Columns &&
+                NorthWest.Y >= 0 && NorthWest.Y < layer.Rows)
+            {
+                Tile? northWest = layer.GetTile(NorthWest);
+                if (northWest != null &&
+                    northWest.Type == type)
+                {
+                    directions.Add("NorthWest");
+                }
+            }
+
+            if (SouthEast.X >= 0 && SouthEast.X < layer.Columns &&
+                SouthEast.Y >= 0 && SouthEast.Y < layer.Rows)
+            {
+                Tile? southEast = layer.GetTile(SouthEast);
+                if (southEast != null &&
+                    southEast.Type == type)
+                {
+                    directions.Add("SouthEast");
+                }
+            }
+
+            if (SouthWest.X >= 0 && SouthWest.X < layer.Columns &&
+                SouthWest.Y >= 0 && SouthWest.Y < layer.Rows)
+            {
+                Tile? southWest = layer.GetTile(SouthWest);
+                if (southWest != null &&
+                    southWest.Type == type)
+                {
+                    directions.Add("SouthWest");
+                }
+            }
+
+            return directions;
+        }
     }
 }

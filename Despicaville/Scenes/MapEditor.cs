@@ -25,6 +25,7 @@ namespace Despicaville.Scenes
 
         bool TileToggle;
         bool RemovingTiles;
+        bool AutoTiling;
 
         Layer BottomTiles = new();
         Layer MiddleTiles = new();
@@ -49,12 +50,17 @@ namespace Despicaville.Scenes
 
         Tile? SelectedTile;
 
-        int Tiles_TopY;
-        int Tiles_BottomY;
+        List<Picture> AutoTileGrid = [];
+        List<Tile> AutoTiles = [];
+
+        int Tiles_Top;
+        int Tiles_Height = 16;
+        List<Picture> TileGrid = [];
         List<Tile> Tiles = [];
 
-        int Furniture_TopY;
-        int Furniture_BottomY;
+        int Furniture_Top;
+        int Furniture_Height = 18;
+        List<Picture> FurnitureGrid = [];
         List<Tile> Furniture = [];
 
         Stream? SaveStream;
@@ -173,6 +179,14 @@ namespace Despicaville.Scenes
                     }
                 }
 
+                foreach (Tile tile in AutoTiles)
+                {
+                    if (tile.Visible)
+                    {
+                        tile.Draw(spriteBatch, Main.Game.Resolution);
+                    }
+                }
+
                 foreach (Tile tile in Tiles)
                 {
                     if (tile.Visible)
@@ -246,6 +260,15 @@ namespace Despicaville.Scenes
 
         private void UpdateControls()
         {
+            bool hoveringAutoTile = false;
+            if (!Selecting_Layer &&
+                !Selecting_RoomType &&
+                !Selecting_MapType &&
+                !Selecting_MapFacing)
+            {
+                hoveringAutoTile = HoveringAutoTile();
+            }
+
             bool hoveringTile = false;
             if (!Selecting_Layer &&
                 !Selecting_RoomType &&
@@ -323,6 +346,7 @@ namespace Despicaville.Scenes
             }
 
             if (!hoveringButton &&
+                !hoveringAutoTile &&
                 !hoveringTile &&
                 !hoveringFurniture)
             {
@@ -334,6 +358,7 @@ namespace Despicaville.Scenes
             }
 
             if (!hoveringTile &&
+                !hoveringAutoTile &&
                 !hoveringFurniture &&
                 !hoveringMapTile)
             {
@@ -345,107 +370,33 @@ namespace Despicaville.Scenes
             }
 
             Picture? tileWindow = Menu?.GetPicture("TileWindow");
-            Picture? tileWindow_ArrowUp = Menu?.GetPicture("TileWindow_ArrowUp");
-            Picture? tileWindow_ArrowDown = Menu?.GetPicture("TileWindow_ArrowDown");
-
             if (tileWindow?.Region != null &&
                 InputManager.MouseWithin(tileWindow.Region.ToRectangle))
             {
-                if (InputManager.Mouse_ScrolledUp)
+                Button? layer = Menu?.GetButton("Layer");
+                if (layer != null)
                 {
-                    if (Tiles_TopY > 0)
+                    if (layer.Text == "Bottom")
                     {
-                        Tiles_TopY--;
-
-                        if (Tiles_TopY == 0)
+                        if (InputManager.Mouse_ScrolledUp)
                         {
-                            if (tileWindow_ArrowUp != null)
-                            {
-                                tileWindow_ArrowUp.Visible = false;
-                            }
+                            ScrollTiles_Up();
                         }
-
-                        if (tileWindow_ArrowDown != null)
+                        else if (InputManager.Mouse_ScrolledDown)
                         {
-                            tileWindow_ArrowDown.Visible = true;
+                            ScrollTiles_Down();
                         }
-
-                        ScrollTiles_Up(tileWindow);
                     }
-                }
-                else if (InputManager.Mouse_ScrolledDown)
-                {
-                    if (Tiles_TopY < Tiles_BottomY)
+                    else
                     {
-                        Tiles_TopY++;
-
-                        if (Tiles_TopY == Tiles_BottomY)
+                        if (InputManager.Mouse_ScrolledUp)
                         {
-                            if (tileWindow_ArrowDown != null)
-                            {
-                                tileWindow_ArrowDown.Visible = false;
-                            }
+                            ScrollFurniture_Up();
                         }
-
-                        if (tileWindow_ArrowUp != null)
+                        else if (InputManager.Mouse_ScrolledDown)
                         {
-                            tileWindow_ArrowUp.Visible = true;
+                            ScrollFurniture_Down();
                         }
-
-                        ScrollTiles_Down(tileWindow);
-                    }
-                }
-            }
-
-            Picture? objectWindow = Menu?.GetPicture("ObjectWindow");
-            Picture? objectWindow_ArrowUp = Menu?.GetPicture("ObjectWindow_ArrowUp");
-            Picture? objectWindow_ArrowDown = Menu?.GetPicture("ObjectWindow_ArrowDown");
-
-            if (objectWindow?.Region != null &&
-                InputManager.MouseWithin(objectWindow.Region.ToRectangle))
-            {
-                if (InputManager.Mouse_ScrolledUp)
-                {
-                    if (Furniture_TopY > 0)
-                    {
-                        Furniture_TopY--;
-
-                        if (Furniture_TopY == 0)
-                        {
-                            if (objectWindow_ArrowUp != null)
-                            {
-                                objectWindow_ArrowUp.Visible = false;
-                            }
-                        }
-
-                        if (objectWindow_ArrowDown != null)
-                        {
-                            objectWindow_ArrowDown.Visible = true;
-                        }
-
-                        ScrollFurniture_Up(objectWindow);
-                    }
-                }
-                else if (InputManager.Mouse_ScrolledDown)
-                {
-                    if (Furniture_TopY < Furniture_BottomY)
-                    {
-                        Furniture_TopY++;
-
-                        if (Furniture_TopY == Furniture_BottomY)
-                        {
-                            if (objectWindow_ArrowDown != null)
-                            {
-                                objectWindow_ArrowDown.Visible = false;
-                            }
-                        }
-
-                        if (objectWindow_ArrowUp != null)
-                        {
-                            objectWindow_ArrowUp.Visible = true;
-                        }
-
-                        ScrollFurniture_Down(objectWindow);
                     }
                 }
             }
@@ -656,6 +607,48 @@ namespace Despicaville.Scenes
             return false;
         }
 
+        private bool HoveringAutoTile()
+        {
+            foreach (Tile tile in AutoTiles)
+            {
+                if (tile.Visible &&
+                    tile.Region != null)
+                {
+                    if (InputManager.MouseWithin(tile.Region.ToRectangle))
+                    {
+                        Picture? highlight = Menu?.GetPicture("Highlight");
+                        if (highlight != null)
+                        {
+                            highlight.Region = tile.Region;
+                            highlight.DrawColor = Color.Blue;
+                            highlight.Visible = true;
+                        }
+
+                        GameUtil.Examine(Menu, tile.Name);
+
+                        if (InputManager.Mouse_LB_Pressed)
+                        {
+                            AssetManager.PlaySound_Random("Click");
+                            InputManager.Mouse?.Flush();
+
+                            SelectedTile = tile;
+
+                            Picture? selected = Menu?.GetPicture("Selected");
+                            if (selected != null)
+                            {
+                                selected.Region = tile.Region;
+                                selected.Visible = true;
+                            }
+                        }
+
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         private bool HoveringTile()
         {
             foreach (Tile tile in Tiles)
@@ -811,6 +804,7 @@ namespace Despicaville.Scenes
                     if (layer?.Text == "Bottom")
                     {
                         RemovingTiles = false;
+                        AutoTiling = true;
                     }
                     else if (!TileToggle)
                     {
@@ -834,6 +828,18 @@ namespace Despicaville.Scenes
                 {
                     InputManager.Mouse?.Flush();
                     TileToggle = false;
+
+                    if (AutoTiling)
+                    {
+                        AutoTiling = false;
+
+                        if (SelectedTile != null &&
+                            !string.IsNullOrEmpty(SelectedTile.Name) &&
+                            !string.IsNullOrEmpty(SelectedTile.Type))
+                        {
+                            WorldUtil.AutoTile(BottomTiles, SelectedTile.Name, SelectedTile.Type);
+                        }
+                    }
                 }
 
                 return true;
@@ -923,6 +929,118 @@ namespace Despicaville.Scenes
             {
                 layer.Text = button.Text;
                 layer.Enabled = true;
+            }
+
+            Picture? selected = Menu?.GetPicture("Selected");
+            if (selected != null)
+            {
+                selected.Region = null;
+                selected.Visible = false;
+            }
+
+            if (button.Text == "Bottom")
+            {
+                Label? autoTiles = Menu?.GetLabel("AutoTiles");
+                if (autoTiles != null)
+                {
+                    autoTiles.Visible = true;
+                }
+
+                Picture? autoTileWindow = Menu?.GetPicture("AutoTileWindow");
+                if (autoTileWindow != null)
+                {
+                    autoTileWindow.Visible = true;
+                }
+
+                Label? tiles = Menu?.GetLabel("Tiles");
+                if (tiles != null)
+                {
+                    tiles.Visible = true;
+                }
+
+                Picture? tileWindow = Menu?.GetPicture("TileWindow");
+                if (tileWindow != null)
+                {
+                    tileWindow.Visible = true;
+                }
+
+                Label? objects = Menu?.GetLabel("Objects");
+                if (objects != null)
+                {
+                    objects.Visible = false;
+                }
+
+                Picture? objectWindow = Menu?.GetPicture("ObjectWindow");
+                if (objectWindow != null)
+                {
+                    objectWindow.Visible = false;
+                }
+
+                int count = Furniture.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    Tile furniture = Furniture[i];
+                    furniture.Visible = false;
+                }
+
+                LoadTileGrid();
+                LoadAutoTileGrid();
+            }
+            else
+            {
+                Label? autoTiles = Menu?.GetLabel("AutoTiles");
+                if (autoTiles != null)
+                {
+                    autoTiles.Visible = false;
+                }
+
+                Picture? autoTileWindow = Menu?.GetPicture("AutoTileWindow");
+                if (autoTileWindow != null)
+                {
+                    autoTileWindow.Visible = false;
+                }
+
+                ClearAutoTileGrid();
+                int autoTileCount = AutoTiles.Count;
+                for (int i = 0; i < autoTileCount; i++)
+                {
+                    Tile tile = AutoTiles[i];
+                    tile.Visible = false;
+                }
+
+                Label? tiles = Menu?.GetLabel("Tiles");
+                if (tiles != null)
+                {
+                    tiles.Visible = false;
+                }
+
+                Picture? tileWindow = Menu?.GetPicture("TileWindow");
+                if (tileWindow != null)
+                {
+                    tileWindow.Visible = false;
+                }
+
+                ClearTileGrid();
+                int tileCount = Tiles.Count;
+                for (int i = 0; i < tileCount; i++)
+                {
+                    Tile tile = Tiles[i];
+                    tile.Visible = false;
+                }
+
+                Label? objects = Menu?.GetLabel("Objects");
+                if (objects != null)
+                {
+                    objects.Visible = true;
+                }
+
+                Picture? objectWindow = Menu?.GetPicture("ObjectWindow");
+                if (objectWindow != null)
+                {
+                    objectWindow.Visible = true;
+                }
+
+                LoadFurnitureGrid();
             }
 
             if (button.Text == "Room")
@@ -1051,6 +1169,7 @@ namespace Despicaville.Scenes
                     tile.Region != null)
                 {
                     tile.Name = "";
+                    tile.Type = "";
                     tile.Texture = null;
                     tile.Region = new Region(tile.Region.X, tile.Region.Y, width, height);
                 }
@@ -1061,9 +1180,13 @@ namespace Despicaville.Scenes
 
                 if (layer == "Bottom")
                 {
-                    if (SelectedTile?.Type == "Tile")
+                    if (!string.IsNullOrEmpty(SelectedTile?.Type))
                     {
-                        okay = true;
+                        if (SelectedTile.Type.Contains("AutoTile") ||
+                            SelectedTile.Type == "Tile")
+                        {
+                            okay = true;
+                        }
                     }
                 }
                 else if (SelectedTile?.Type == "Furniture")
@@ -1080,6 +1203,7 @@ namespace Despicaville.Scenes
                     if (layer != "Room")
                     {
                         tile.Name = SelectedTile?.Name;
+                        tile.Type = SelectedTile?.Type;
                         tile.Texture = SelectedTile?.Texture;
                     }
                     else
@@ -1570,168 +1694,70 @@ namespace Despicaville.Scenes
             Selecting_MapFacing = false;
         }
 
-        private void ScrollTiles_Up(Picture tileWindow)
+        private void ScrollTiles_Up()
         {
-            if (tileWindow.Region == null)
+            Tiles_Top--;
+            if (Tiles_Top < 0)
             {
-                return;
+                Tiles_Top = 0;
             }
 
-            float width = (tileWindow.Region.Width + 8) / 10;
-
-            int count = Tiles.Count;
-            for (int i = 0; i < count; i++)
-            {
-                Tile tile = Tiles[i];
-                if (tile.Region == null)
-                {
-                    continue;
-                }
-
-                tile.Region.Y += width + 4;
-
-                if (tile.Region.Y < tileWindow.Region.Y ||
-                    tile.Region.X + width > tileWindow.Region.X + tileWindow.Region.Width ||
-                    tile.Region.Y + width > tileWindow.Region.Y + tileWindow.Region.Height)
-                {
-                    tile.Visible = false;
-                }
-                else
-                {
-                    tile.Visible = true;
-                }
-
-                Picture? selected = Menu?.GetPicture("Selected");
-                if (selected?.Region != null &&
-                    selected.Region.X == tile.Region.X &&
-                    selected.Region.Y == tile.Region.Y)
-                {
-                    selected.Visible = tile.Visible;
-                }
-            }
+            ResizeTileGrid();
         }
 
-        private void ScrollTiles_Down(Picture tileWindow)
+        private void ScrollTiles_Down()
         {
-            if (tileWindow.Region == null)
+            Tile? lastTile = null;
+            if (Tiles.Count > 0)
             {
-                return;
+                lastTile = Tiles[Tiles.Count - 1];
             }
 
-            float width = (tileWindow.Region.Width + 8) / 10;
-
-            int count = Tiles.Count;
-            for (int i = 0; i < count; i++)
+            if (lastTile?.Location != null &&
+                lastTile.Location.Y >= Tiles_Height)
             {
-                Tile tile = Tiles[i];
-                if (tile.Region == null)
-                {
-                    continue;
-                }
+                Tiles_Top++;
 
-                tile.Region.Y -= width + 4;
-
-                if (tile.Region.Y < tileWindow.Region.Y ||
-                    tile.Region.X + width > tileWindow.Region.X + tileWindow.Region.Width ||
-                    tile.Region.Y + width > tileWindow.Region.Y + tileWindow.Region.Height)
+                if (Tiles_Top >= lastTile.Location.Y - 17)
                 {
-                    tile.Visible = false;
-                }
-                else
-                {
-                    tile.Visible = true;
-                }
-
-                Picture? selected = Menu?.GetPicture("Selected");
-                if (selected?.Region != null &&
-                    selected.Region.X == tile.Region.X &&
-                    selected.Region.Y == tile.Region.Y)
-                {
-                    selected.Visible = tile.Visible;
+                    Tiles_Top = (int)lastTile.Location.Y - 17;
                 }
             }
+
+            ResizeTileGrid();
         }
 
-        private void ScrollFurniture_Up(Picture objectWindow)
+        private void ScrollFurniture_Up()
         {
-            if (objectWindow.Region == null)
+            Furniture_Top--;
+            if (Furniture_Top < 0)
             {
-                return;
+                Furniture_Top = 0;
             }
 
-            float width = (objectWindow.Region.Width + 8) / 10;
-
-            int count = Furniture.Count;
-            for (int i = 0; i < count; i++)
-            {
-                Tile tile = Furniture[i];
-                if (tile.Region == null)
-                {
-                    continue;
-                }
-
-                tile.Region.Y += width + 4;
-
-                if (tile.Region.Y < objectWindow.Region.Y ||
-                    tile.Region.X + tile.Region.Width > objectWindow.Region.X + objectWindow.Region.Width ||
-                    tile.Region.Y + tile.Region.Height > objectWindow.Region.Y + objectWindow.Region.Height)
-                {
-                    tile.Visible = false;
-                }
-                else
-                {
-                    tile.Visible = true;
-                }
-
-                Picture? selected = Menu?.GetPicture("Selected");
-                if (selected?.Region != null &&
-                    selected.Region.X == tile.Region.X &&
-                    selected.Region.Y == tile.Region.Y)
-                {
-                    selected.Visible = tile.Visible;
-                }
-            }
+            ResizeFurnitureGrid();
         }
 
-        private void ScrollFurniture_Down(Picture objectWindow)
+        private void ScrollFurniture_Down()
         {
-            if (objectWindow.Region == null)
+            Tile? lastFurniture = null;
+            if (Furniture.Count > 0)
             {
-                return;
+                lastFurniture = Furniture[Furniture.Count - 1];
             }
 
-            float width = (objectWindow.Region.Width + 8) / 10;
-
-            int count = Furniture.Count;
-            for (int i = 0; i < count; i++)
+            if (lastFurniture?.Location != null &&
+                lastFurniture.Location.Y >= 18)
             {
-                Tile tile = Furniture[i];
-                if (tile.Region == null)
-                {
-                    continue;
-                }
+                Furniture_Top++;
 
-                tile.Region.Y -= width + 4;
-
-                if (tile.Region.Y < objectWindow.Region.Y ||
-                    tile.Region.X + tile.Region.Width > objectWindow.Region.X + objectWindow.Region.Width ||
-                    tile.Region.Y + tile.Region.Height > objectWindow.Region.Y + objectWindow.Region.Height)
+                if (Furniture_Top >= lastFurniture.Location.Y - 17)
                 {
-                    tile.Visible = false;
-                }
-                else
-                {
-                    tile.Visible = true;
-                }
-
-                Picture? selected = Menu?.GetPicture("Selected");
-                if (selected?.Region != null &&
-                    selected.Region.X == tile.Region.X &&
-                    selected.Region.Y == tile.Region.Y)
-                {
-                    selected.Visible = tile.Visible;
+                    Furniture_Top = (int)lastFurniture.Location.Y - 17;
                 }
             }
+
+            ResizeFurnitureGrid();
         }
 
         private void GenMap()
@@ -1820,23 +1846,76 @@ namespace Despicaville.Scenes
             }
         }
 
+        private void ResizeMap()
+        {
+            Picture? mapWindow = Menu?.GetPicture("MapWindow");
+            if (mapWindow?.Region == null)
+            {
+                return;
+            }
+
+            float X = mapWindow.Region.X;
+            float Y = mapWindow.Region.Y;
+            float width = mapWindow.Region.Width / 20;
+            float height = mapWindow.Region.Height / 20;
+
+            for (int y = 0; y < 20; y++)
+            {
+                for (int x = 0; x < 20; x++)
+                {
+                    Tile? bottomTile = BottomTiles.GetTile(new Vector2(x, y));
+                    if (bottomTile != null)
+                    {
+                        bottomTile.Region = new Region(X + (x * width), Y + (y * height), width, height);
+                    }
+
+                    Tile? middleTile = MiddleTiles.GetTile(new Vector2(x, y));
+                    if (middleTile != null)
+                    {
+                        middleTile.Region = new Region(X + (x * width), Y + (y * height), width, height);
+                    }
+
+                    Tile? topTile = TopTiles.GetTile(new Vector2(x, y));
+                    if (topTile != null)
+                    {
+                        topTile.Region = new Region(X + (x * width), Y + (y * height), width, height);
+                    }
+
+                    Tile? roomTile = RoomTiles.GetTile(new Vector2(x, y));
+                    if (roomTile != null)
+                    {
+                        roomTile.Region = new Region(X + (x * width), Y + (y * height), width, height);
+                    }
+                }
+            }
+        }
+
         public override void Load()
         {
             NewMap();
+
+            Tiles.Clear();
+            Furniture.Clear();
+            RoomTypes.Clear();
+            TileGrid.Clear();
 
             DirectoryInfo modsDir = new(AssetManager.Directories["Mods"]);
             foreach (DirectoryInfo mod in modsDir.GetDirectories())
             {
                 LoadTiles(mod);
+                LoadAutoTiles(mod);
             }
 
             LoadFurniture();
 
             DirectoryInfo dir = new(AssetManager.Directories["Textures"]);
             LoadRoomTypes(dir);
+
+            LoadTileGrid();
+            LoadAutoTileGrid();
         }
 
-        private void LoadTiles(DirectoryInfo TexturesDir)
+        private void LoadTiles(DirectoryInfo modDir)
         {
             Picture? tileWindow = Menu?.GetPicture("TileWindow");
             if (tileWindow?.Region == null)
@@ -1846,66 +1925,386 @@ namespace Despicaville.Scenes
 
             int x = 0;
             int y = 0;
-            float X = tileWindow.Region.X;
-            float Y = tileWindow.Region.Y;
-            float tileWidth = (tileWindow.Region.Width + 8) / 10;
 
-            foreach (DirectoryInfo sub_dir in TexturesDir.GetDirectories())
+            foreach (DirectoryInfo sub_dir in modDir.GetDirectories())
             {
                 if (sub_dir.Name == "Tiles")
                 {
                     foreach (FileInfo file in sub_dir.GetFiles("*.png"))
                     {
                         string name = Path.GetFileNameWithoutExtension(file.FullName);
+
                         Texture2D? texture = Handler.GetTexture(name);
-
-                        Tile tile = new()
+                        if (texture != null)
                         {
-                            Name = name,
-                            Type = "Tile",
-                            Location = new Location(x, y, 0),
-                            Texture = texture,
-                            Region = new Region(X, Y, tileWidth, tileWidth),
-                            Dimensions = new Dimension2(1, 1),
-                            DrawColor = Color.White,
-                            Visible = true
-                        };
+                            Tile tile = new()
+                            {
+                                Name = name,
+                                Type = "Tile",
+                                Location = new Location(x, y),
+                                Texture = texture,
+                                Image = new Rectangle(0, 0, texture.Width, texture.Height),
+                                Dimensions = new Dimension2(1, 1),
+                                DrawColor = Color.White,
+                                Visible = true
+                            };
 
-                        if (tile.Texture != null)
-                        {
-                            tile.Image = new Rectangle(0, 0, tile.Texture.Width, tile.Texture.Height);
-                        }
+                            Tiles.Add(tile);
 
-                        if (Y + tileWidth + 4 > tileWindow.Region.Y + tileWindow.Region.Height)
-                        {
-                            tile.Visible = false;
-                        }
-
-                        Tiles.Add(tile);
-
-                        x++;
-                        X += tileWidth + 4;
-                        if (X + tileWidth + 4 > tileWindow.Region.X + tileWindow.Region.Width)
-                        {
-                            x = 0;
-                            X = tileWindow.Region.X;
-
-                            y++;
-                            Y += tileWidth + 4;
+                            x++;
+                            if (x >= 10)
+                            {
+                                x = 0;
+                                y++;
+                            }
                         }
                     }
 
                     break;
                 }
             }
+        }
 
-            Tiles_BottomY = y - 9;
-            if (Tiles_BottomY < 0)
+        private void ClearTileGrid()
+        {
+            if (Menu == null)
             {
-                Picture? tileWindow_ArrowDown = Menu?.GetPicture("TileWindow_ArrowDown");
-                if (tileWindow_ArrowDown != null)
+                return;
+            }
+
+            for (int y = 0; y < Tiles_Height; y++)
+            {
+                for (int x = 0; x < 10; x++)
                 {
-                    tileWindow_ArrowDown.Visible = false;
+                    Picture? existing = Menu.GetPicture("Tile x:" + x.ToString() + ",y:" + y.ToString());
+                    if (existing != null)
+                    {
+                        Menu.Pictures.Remove(existing);
+
+                        foreach (Picture grid in TileGrid)
+                        {
+                            if (grid.ID == existing.ID)
+                            {
+                                TileGrid.Remove(existing);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void LoadTileGrid()
+        {
+            if (Main.Game == null ||
+                Menu == null)
+            {
+                return;
+            }
+
+            ClearTileGrid();
+
+            for (int y = 0; y < Tiles_Height; y++)
+            {
+                for (int x = 0; x < 10; x++)
+                {
+                    Menu.AddPicture(Handler.GetID(), "Tile x:" + x.ToString() + ",y:" + y.ToString(), Handler.GetTexture("White"),
+                        new Region(0, 0, 0, 0), Color.White, true);
+
+                    Picture? grid = Menu.GetPicture("Tile x:" + x.ToString() + ",y:" + y.ToString());
+                    if (grid != null)
+                    {
+                        grid.Location = new Location(x, y, 0);
+                        TileGrid.Add(grid);
+                    }
+                }
+            }
+
+            ResizeTileGrid();
+        }
+
+        private void ResizeTileGrid()
+        {
+            if (Main.Game == null ||
+                Menu == null)
+            {
+                return;
+            }
+
+            Picture? tileWindow = Menu.GetPicture("TileWindow");
+            if (tileWindow?.Region == null)
+            {
+                return;
+            }
+
+            int margin = (int)(Main.Game.MenuSize_X / 10);
+            float starting_x = tileWindow.Region.X + margin;
+            float starting_y = tileWindow.Region.Y + margin;
+            float tileWidth = (tileWindow.Region.Width - (margin * 11)) / 10;
+
+            for (int y = 0; y < Tiles_Height; y++)
+            {
+                float Y = starting_y + (y * tileWidth) + (y * margin);
+
+                for (int x = 0; x < 10; x++)
+                {
+                    float X = starting_x + (x * tileWidth) + (x * margin);
+
+                    Picture? grid = Menu.GetPicture("Tile x:" + x.ToString() + ",y:" + y.ToString());
+                    if (grid != null)
+                    {
+                        grid.Region = new Region(X, Y, tileWidth, tileWidth);
+                        grid.Location = new Location(x, y + Tiles_Top, 0);
+                    }
+                }
+            }
+
+            Picture? arrow_up = Menu.GetPicture("Arrow_Up");
+            if (arrow_up != null)
+            {
+                arrow_up.Region = new Region(tileWindow.Region.X + tileWindow.Region.Width, tileWindow.Region.Y, tileWidth, tileWidth);
+
+                if (Tiles_Top == 0)
+                {
+                    arrow_up.Visible = false;
+                }
+                else
+                {
+                    arrow_up.Visible = true;
+                }
+            }
+
+            Picture? arrow_down = Menu.GetPicture("Arrow_Down");
+            if (arrow_down != null)
+            {
+                arrow_down.Region = new Region(tileWindow.Region.X + tileWindow.Region.Width, tileWindow.Region.Y + tileWindow.Region.Height - tileWidth, tileWidth, tileWidth);
+
+                Tile? lastTile = null;
+                if (Tiles.Count > 0)
+                {
+                    lastTile = Tiles[Tiles.Count - 1];
+                }
+
+                if (lastTile?.Location != null)
+                {
+                    if (Tiles_Top >= lastTile.Location.Y - 17)
+                    {
+                        arrow_down.Visible = false;
+                    }
+                    else
+                    {
+                        arrow_down.Visible = true;
+                    }
+                }
+            }
+
+            foreach (Tile tile in Tiles)
+            {
+                tile.Visible = false;
+            }
+
+            foreach (Tile tile in Tiles)
+            {
+                if (tile.Location == null)
+                {
+                    continue;
+                }
+
+                foreach (Picture grid in TileGrid)
+                {
+                    if (grid.Region == null)
+                    {
+                        continue;
+                    }
+
+                    if (tile.Location.X == grid.Location.X &&
+                        tile.Location.Y == grid.Location.Y)
+                    {
+                        tile.Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
+
+                        Button? layer = Menu?.GetButton("Layer");
+                        if (layer != null &&
+                            layer.Text == "Bottom")
+                        {
+                            tile.Visible = true;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        private void LoadAutoTiles(DirectoryInfo modDir)
+        {
+            int x = 0;
+
+            foreach (DirectoryInfo sub_dir in modDir.GetDirectories())
+            {
+                if (sub_dir.Name == "AutoTiles")
+                {
+                    foreach (FileInfo file in sub_dir.GetFiles("*.png"))
+                    {
+                        string name = Path.GetFileNameWithoutExtension(file.FullName);
+
+                        string[] nameParts = name.Split('_');
+                        string type = nameParts[1];
+
+                        Texture2D? texture = Handler.GetTexture(type + "_Island");
+                        if (texture != null)
+                        {
+                            Tile tile = new()
+                            {
+                                Name = type,
+                                Type = name,
+                                Location = new Location(x, 0),
+                                Texture = texture,
+                                Image = new Rectangle(0, 0, texture.Width, texture.Height),
+                                Dimensions = new Dimension2(1, 1),
+                                DrawColor = Color.White,
+                                Visible = true
+                            };
+
+                            AutoTiles.Add(tile);
+
+                            x++;
+                            if (x >= 10)
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        private void ClearAutoTileGrid()
+        {
+            if (Menu == null)
+            {
+                return;
+            }
+
+            for (int y = 0; y < 1; y++)
+            {
+                for (int x = 0; x < 10; x++)
+                {
+                    Picture? existing = Menu.GetPicture("AutoTile x:" + x.ToString() + ",y:" + y.ToString());
+                    if (existing != null)
+                    {
+                        Menu.Pictures.Remove(existing);
+
+                        foreach (Picture grid in AutoTileGrid)
+                        {
+                            if (grid.ID == existing.ID)
+                            {
+                                AutoTileGrid.Remove(existing);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void LoadAutoTileGrid()
+        {
+            if (Main.Game == null ||
+                Menu == null)
+            {
+                return;
+            }
+
+            ClearAutoTileGrid();
+
+            for (int y = 0; y < 1; y++)
+            {
+                for (int x = 0; x < 10; x++)
+                {
+                    Menu.AddPicture(Handler.GetID(), "AutoTile x:" + x.ToString() + ",y:" + y.ToString(), Handler.GetTexture("White"),
+                        new Region(0, 0, 0, 0), Color.White, true);
+
+                    Picture? grid = Menu.GetPicture("AutoTile x:" + x.ToString() + ",y:" + y.ToString());
+                    if (grid != null)
+                    {
+                        grid.Location = new Location(x, y, 0);
+                        AutoTileGrid.Add(grid);
+                    }
+                }
+            }
+
+            ResizeAutoTileGrid();
+        }
+
+        private void ResizeAutoTileGrid()
+        {
+            if (Main.Game == null ||
+                Menu == null)
+            {
+                return;
+            }
+
+            Picture? autoTileWindow = Menu.GetPicture("AutoTileWindow");
+            if (autoTileWindow?.Region == null)
+            {
+                return;
+            }
+
+            int margin = (int)(Main.Game.MenuSize_X / 10);
+            float starting_x = autoTileWindow.Region.X + margin;
+            float starting_y = autoTileWindow.Region.Y + margin;
+            float tileWidth = (autoTileWindow.Region.Width - (margin * 11)) / 10;
+
+            for (int y = 0; y < 1; y++)
+            {
+                float Y = starting_y + (y * tileWidth) + (y * margin);
+
+                for (int x = 0; x < 10; x++)
+                {
+                    float X = starting_x + (x * tileWidth) + (x * margin);
+
+                    Picture? grid = Menu.GetPicture("AutoTile x:" + x.ToString() + ",y:" + y.ToString());
+                    if (grid != null)
+                    {
+                        grid.Region = new Region(X, Y, tileWidth, tileWidth);
+                        grid.Location = new Location(x, y + Tiles_Top, 0);
+                    }
+                }
+            }
+
+            foreach (Tile tile in AutoTiles)
+            {
+                tile.Visible = false;
+            }
+
+            foreach (Tile tile in AutoTiles)
+            {
+                if (tile.Location == null)
+                {
+                    continue;
+                }
+
+                foreach (Picture grid in AutoTileGrid)
+                {
+                    if (grid.Region == null)
+                    {
+                        continue;
+                    }
+
+                    if (tile.Location.X == grid.Location.X &&
+                        tile.Location.Y == grid.Location.Y)
+                    {
+                        tile.Region = new Region(grid.Region.X, grid.Region.Y, grid.Region.Width, grid.Region.Height);
+
+                        Button? layer = Menu?.GetButton("Layer");
+                        if (layer != null &&
+                            layer.Text == "Bottom")
+                        {
+                            tile.Visible = true;
+                        }
+                        break;
+                    }
                 }
             }
         }
@@ -1917,12 +2316,6 @@ namespace Despicaville.Scenes
             {
                 return;
             }
-
-            int loc_x = 0;
-            int loc_y = 0;
-            float X = objectWindow.Region.X;
-            float Y = objectWindow.Region.Y;
-            float tileWidth = (objectWindow.Region.Width + 8) / 10;
 
             int count = Handler.Furniture.Count;
             for (int i = 0; i < count; i++)
@@ -1945,26 +2338,119 @@ namespace Despicaville.Scenes
                     height_scale = existing.Texture.Height / 128;
                 }
 
-                if (i > 0)
+                Tile tile = new()
                 {
-                    loc_x++;
-                    X += tileWidth + 4;
-                    if (X + tileWidth + 4 > objectWindow.Region.X + objectWindow.Region.Width)
-                    {
-                        loc_x = 0;
-                        X = objectWindow.Region.X;
+                    Name = existing.Name,
+                    Type = "Furniture",
+                    Location = new Location(0, 0),
+                    Texture = existing.Texture,
+                    Image = new Rectangle(0, 0, existing.Texture.Width, existing.Texture.Height),
+                    Direction = existing.Direction,
+                    BlocksMovement = existing.BlocksMovement,
+                    Dimensions = new Dimension2((int)width_scale, (int)height_scale),
+                    DrawColor = Color.White,
+                    Visible = false
+                };
 
-                        loc_y++;
-                        Y += tileWidth + 4;
+                Furniture.Add(tile);
+            }
+        }
+
+        private void ClearFurnitureGrid()
+        {
+            if (Menu == null)
+            {
+                return;
+            }
+
+            for (int y = 0; y < Furniture_Height; y++)
+            {
+                for (int x = 0; x < 10; x++)
+                {
+                    Picture? existing = Menu.GetPicture("Furniture x:" + x.ToString() + ",y:" + y.ToString());
+                    if (existing != null)
+                    {
+                        Menu.Pictures.Remove(existing);
+
+                        foreach (Picture grid in FurnitureGrid)
+                        {
+                            if (grid.ID == existing.ID)
+                            {
+                                FurnitureGrid.Remove(existing);
+                                break;
+                            }
+                        }
                     }
                 }
+            }
+        }
 
-                Region region = new(X, Y, tileWidth * width_scale, tileWidth * height_scale);
+        private void LoadFurnitureGrid()
+        {
+            if (Main.Game == null ||
+                Menu == null)
+            {
+                return;
+            }
+
+            ClearFurnitureGrid();
+
+            for (int y = 0; y < Furniture_Height; y++)
+            {
+                for (int x = 0; x < 10; x++)
+                {
+                    Menu.AddPicture(Handler.GetID(), "Furniture x:" + x.ToString() + ",y:" + y.ToString(), Handler.GetTexture("White"),
+                        new Region(0, 0, 0, 0), Color.White, false);
+
+                    Picture? grid = Menu.GetPicture("Furniture x:" + x.ToString() + ",y:" + y .ToString());
+                    if (grid != null)
+                    {
+                        grid.Location = new Location(x, y, 0);
+                        FurnitureGrid.Add(grid);
+                    }
+                }
+            }
+
+            int count = Furniture.Count;
+            for (int i = 0; i < count; i++)
+            {
+                Tile furniture = Furniture[i];
+                furniture.Location = new Location(0, 0);
+                furniture.Region = null;
+                furniture.Visible = false;
+            }
+
+            Picture? objectWindow = Menu.GetPicture("ObjectWindow");
+            if (objectWindow?.Region == null)
+            {
+                return;
+            }
+
+            int margin = (int)(Main.Game.MenuSize_X / 10);
+            float starting_x = objectWindow.Region.X + margin;
+            float starting_y = objectWindow.Region.Y + margin;
+            float tileWidth = (objectWindow.Region.Width - (margin * 11)) / 10;
+
+            for (int i = 0; i < count; i++)
+            {
+                Tile furniture = Furniture[i];
+
+                if (furniture.Location == null ||
+                    furniture.Texture == null)
+                {
+                    continue;
+                }
 
                 bool okay = false;
+
                 while (!okay)
                 {
                     okay = true;
+
+                    float X = starting_x + (furniture.Location.X * tileWidth) + (furniture.Location.X * margin);
+                    float Y = starting_y + (furniture.Location.Y * tileWidth) + (furniture.Location.Y * margin);
+
+                    Region region = new(X, Y, tileWidth * furniture.Dimensions.Width, tileWidth * furniture.Dimensions.Height);
 
                     if (region.X >= objectWindow.Region.X + objectWindow.Region.Width ||
                         region.X + region.Width > objectWindow.Region.X + objectWindow.Region.Width)
@@ -1972,23 +2458,42 @@ namespace Despicaville.Scenes
                         okay = false;
                     }
 
-                    foreach (Tile tile in Furniture)
+                    if (okay)
                     {
-                        if (tile.Region == null)
+                        for (int f = 0; f < count; f++)
                         {
-                            continue;
-                        }
+                            Tile existing = Furniture[f];
 
-                        for (int y = (int)region.Y; y < region.Y + region.Width; y++)
-                        {
-                            for (int x = (int)region.X; x < region.X + region.Width; x++)
+                            if (existing.Texture == null ||
+                                existing.Region == null)
                             {
-                                if (x >= tile.Region.X && x < tile.Region.X + tile.Region.Width &&
-                                    y >= tile.Region.Y && y < tile.Region.Y + tile.Region.Height)
-                                {
-                                    okay = false;
-                                    break;
-                                }
+                                continue;
+                            }
+
+                            if (existing.Texture.Name == furniture.Texture.Name)
+                            {
+                                continue;
+                            }
+
+                            if (region.X >= existing.Region.X && region.X < existing.Region.X + existing.Region.Width &&
+                                region.Y >= existing.Region.Y && region.Y < existing.Region.Y + existing.Region.Height)
+                            {
+                                okay = false;
+                            }
+                            else if (region.X + region.Width >= existing.Region.X && region.X + region.Width < existing.Region.X + existing.Region.Width &&
+                                     region.Y >= existing.Region.Y && region.Y < existing.Region.Y + existing.Region.Height)
+                            {
+                                okay = false;
+                            }
+                            else if (region.X >= existing.Region.X && region.X < existing.Region.X + existing.Region.Width &&
+                                     region.Y + region.Height >= existing.Region.Y && region.Y + region.Height < existing.Region.Y + existing.Region.Height)
+                            {
+                                okay = false;
+                            }
+                            else if (region.X + region.Width >= existing.Region.X && region.X + region.Width < existing.Region.X + existing.Region.Width &&
+                                     region.Y + region.Height >= existing.Region.Y && region.Y + region.Height < existing.Region.Y + existing.Region.Height)
+                            {
+                                okay = false;
                             }
 
                             if (!okay)
@@ -2000,54 +2505,148 @@ namespace Despicaville.Scenes
 
                     if (!okay)
                     {
-                        loc_x++;
-                        X += tileWidth + 4;
-                        if (X + tileWidth + 4 > objectWindow.Region.X + objectWindow.Region.Width)
+                        furniture.Location.X++;
+                        if (furniture.Location.X >= 10)
                         {
-                            loc_x = 0;
-                            X = objectWindow.Region.X;
-
-                            loc_y++;
-                            Y += tileWidth + 4;
+                            furniture.Location.X = 0;
+                            furniture.Location.Y++;
                         }
-
-                        region = new Region(X, Y, tileWidth * width_scale, tileWidth * height_scale);
                     }
-                }
-
-                if (okay)
-                {
-                    Tile tile = new()
+                    else
                     {
-                        Name = existing.Name,
-                        Type = "Furniture",
-                        Location = new Location(loc_x, loc_y, 0),
-                        Texture = existing.Texture,
-                        Image = new Rectangle(0, 0, existing.Texture.Width, existing.Texture.Height),
-                        Region = region,
-                        Direction = existing.Direction,
-                        BlocksMovement = existing.BlocksMovement,
-                        Dimensions = new Dimension2((int)width_scale, (int)height_scale),
-                        DrawColor = Color.White,
-                        Visible = true
-                    };
-
-                    if (Y + (tileWidth * height_scale) + 4 > objectWindow.Region.Y + objectWindow.Region.Height)
-                    {
-                        tile.Visible = false;
+                        furniture.Region = new Region(region.X, region.Y, region.Width, region.Height);
                     }
-
-                    Furniture.Add(tile);
                 }
             }
 
-            Furniture_BottomY = loc_y - 8;
-            if (Furniture_BottomY < 0)
+            ResizeFurnitureGrid();
+        }
+
+        private void ResizeFurnitureGrid()
+        {
+            if (Main.Game == null ||
+                Menu == null)
             {
-                Picture? objectWindow_ArrowDown = Menu?.GetPicture("ObjectWindow_ArrowDown");
-                if (objectWindow_ArrowDown != null)
+                return;
+            }
+
+            Picture? objectWindow = Menu.GetPicture("ObjectWindow");
+            if (objectWindow?.Region == null)
+            {
+                return;
+            }
+
+            Button? layer = Menu.GetButton("Layer");
+            if (layer != null &&
+                layer.Text == "Bottom")
+            {
+                return;
+            }
+
+            int margin = (int)(Main.Game.MenuSize_X / 10);
+            float starting_x = objectWindow.Region.X + margin;
+            float starting_y = objectWindow.Region.Y + margin;
+            float tileWidth = (objectWindow.Region.Width - (margin * 11)) / 10;
+
+            for (int y = 0; y < Furniture_Height; y++)
+            {
+                float Y = starting_y + (y * tileWidth) + (y * margin);
+
+                for (int x = 0; x < 10; x++)
                 {
-                    objectWindow_ArrowDown.Visible = false;
+                    float X = starting_x + (x * tileWidth) + (x * margin);
+
+                    Picture? grid = Menu.GetPicture("Furniture x:" + x.ToString() + ",y:" + y.ToString());
+                    if (grid != null)
+                    {
+                        grid.Region = new Region(X, Y, tileWidth, tileWidth);
+                        grid.Location = new Location(x, y + Furniture_Top, 0);
+                    }
+                }
+            }
+
+            Picture? arrow_up = Menu.GetPicture("Arrow_Up");
+            if (arrow_up != null)
+            {
+                arrow_up.Region = new Region(objectWindow.Region.X + objectWindow.Region.Width, objectWindow.Region.Y, tileWidth, tileWidth);
+
+                if (Furniture_Top == 0)
+                {
+                    arrow_up.Visible = false;
+                }
+                else
+                {
+                    arrow_up.Visible = true;
+                }
+            }
+
+            Picture? arrow_down = Menu.GetPicture("Arrow_Down");
+            if (arrow_down != null)
+            {
+                arrow_down.Region = new Region(objectWindow.Region.X + objectWindow.Region.Width, objectWindow.Region.Y + objectWindow.Region.Height - tileWidth, tileWidth, tileWidth);
+
+                Tile? lastFurniture = null;
+                if (Furniture.Count > 0)
+                {
+                    lastFurniture = Furniture[Furniture.Count - 1];
+                }
+
+                if (lastFurniture?.Location != null)
+                {
+                    if (Furniture_Top >= lastFurniture.Location.Y - 17)
+                    {
+                        arrow_down.Visible = false;
+                    }
+                    else
+                    {
+                        arrow_down.Visible = true;
+                    }
+                }
+            }
+
+            int furnitureCount = Furniture.Count;
+            for (int i = 0; i < furnitureCount; i++)
+            {
+                Tile furniture = Furniture[i];
+                furniture.Visible = false;
+            }
+
+            for (int f = 0; f < furnitureCount; f++)
+            {
+                Tile furniture = Furniture[f];
+
+                if (furniture.Location == null ||
+                    furniture.Region == null)
+                {
+                    continue;
+                }
+
+                int gridCount = FurnitureGrid.Count;
+                for (int g = 0; g < gridCount; g++)
+                {
+                    Picture grid = FurnitureGrid[g];
+                    if (grid.Region == null)
+                    {
+                        continue;
+                    }
+
+                    if (furniture.Location.X == grid.Location.X &&
+                        furniture.Location.Y == grid.Location.Y)
+                    {
+                        furniture.Region.X = grid.Region.X;
+                        furniture.Region.Y = grid.Region.Y;
+
+                        furniture.Visible = true;
+                        break;
+                    }
+                }
+
+                Picture? selected = Menu.GetPicture("Selected");
+                if (selected?.Region != null &&
+                    selected.Region.X == furniture.Region.X &&
+                    selected.Region.Y == furniture.Region.Y)
+                {
+                    selected.Visible = furniture.Visible;
                 }
             }
         }
@@ -2268,6 +2867,18 @@ namespace Despicaville.Scenes
                 visible = false
             });
 
+            //AutoTiles
+            Menu.AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "AutoTiles", "AutoTiles:", Color.White, new Region(0, 0, 0, 0), true);
+
+            Label? autoTiles = Menu.GetLabel("AutoTiles");
+            if (autoTiles != null)
+            {
+                autoTiles.Alignment_Horizontal = Alignment.Left;
+            }
+
+            Menu.AddPicture(Handler.GetID(), "AutoTileWindow", white, new Region(0, 0, 0, 0), Color.White, true);
+
+            //Tiles
             Menu.AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Tiles", "Tiles:", Color.White, new Region(0, 0, 0, 0), true);
 
             Label? tiles = Menu.GetLabel("Tiles");
@@ -2277,10 +2888,9 @@ namespace Despicaville.Scenes
             }
 
             Menu.AddPicture(Handler.GetID(), "TileWindow", white, new Region(0, 0, 0, 0), Color.White, true);
-            Menu.AddPicture(Handler.GetID(), "TileWindow_ArrowDown", arrowIcon_Down, new Region(0, 0, 0, 0), Color.White, true);
-            Menu.AddPicture(Handler.GetID(), "TileWindow_ArrowUp", arrowIcon_Up, new Region(0, 0, 0, 0), Color.White, false);
 
-            Menu.AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Objects", "Objects:", Color.White, new Region(0, 0, 0, 0), true);
+            //Objects
+            Menu.AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Objects", "Objects:", Color.White, new Region(0, 0, 0, 0), false);
 
             Label? objects = Menu.GetLabel("Objects");
             if (objects != null)
@@ -2288,10 +2898,9 @@ namespace Despicaville.Scenes
                 objects.Alignment_Horizontal = Alignment.Left;
             }
 
-            Menu.AddPicture(Handler.GetID(), "ObjectWindow", white, new Region(0, 0, 0, 0), Color.White, true);
-            Menu.AddPicture(Handler.GetID(), "ObjectWindow_ArrowDown", arrowIcon_Down, new Region(0, 0, 0, 0), Color.White, true);
-            Menu.AddPicture(Handler.GetID(), "ObjectWindow_ArrowUp", arrowIcon_Up, new Region(0, 0, 0, 0), Color.White, false);
+            Menu.AddPicture(Handler.GetID(), "ObjectWindow", white, new Region(0, 0, 0, 0), Color.White, false);
 
+            //Map
             Menu.AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "MapFile", "Map File: New", Color.White, new Region(0, 0, 0, 0), true);
 
             Label? mapFile = Menu.GetLabel("MapFile");
@@ -2302,6 +2911,9 @@ namespace Despicaville.Scenes
 
             Menu.AddPicture(Handler.GetID(), "MapWindow", frame_Full, new Region(0, 0, 0, 0), Color.White, true);
 
+            //Misc
+            Menu.AddPicture(Handler.GetID(), "Arrow_Down", arrowIcon_Down, new Region(0, 0, 0, 0), Color.White, false);
+            Menu.AddPicture(Handler.GetID(), "Arrow_Up", arrowIcon_Up, new Region(0, 0, 0, 0), Color.White, false);
             Menu.AddPicture(Handler.GetID(), "Highlight", grid_Hover, new Region(0, 0, 0, 0), Color.Lime, false);
             Menu.AddPicture(Handler.GetID(), "Selected", selection, new Region(0, 0, 0, 0), Color.Lime, false);
             Menu.AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "", Color.White, frame, new Region(0, 0, 0, 0), false);
@@ -2396,76 +3008,6 @@ namespace Despicaville.Scenes
                 mapFacing_Button.Region = new Region(Main.Game.MenuSize_X * 29, 0, Main.Game.MenuSize_X * 3, buttonHeight);
             }
 
-            float Y = Main.Game.MenuSize_Y;
-            int windowHeight = (int)(((Main.Game.ScreenHeight - Main.Game.MenuSize_Y) / 2) - Main.Game.MenuSize_Y);
-            for (int i = 0; i < windowHeight; i++)
-            {
-                if (windowHeight % 10 != 0)
-                {
-                    windowHeight--;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            int tileWidth = windowHeight / 10;
-
-            Label? tiles = Menu?.GetLabel("Tiles");
-            if (tiles != null)
-            {
-                tiles.Region = new Region(0, Y, Main.Game.MenuSize_X * 4, buttonHeight);
-            }
-
-            Picture? tileWindow = Menu?.GetPicture("TileWindow");
-            if (tileWindow != null)
-            {
-                tileWindow.Region = new Region(0, Y + buttonHeight, windowHeight, windowHeight);
-            }
-
-            Picture? tileWindow_ArrowUp = Menu?.GetPicture("TileWindow_ArrowUp");
-            if (tileWindow_ArrowUp != null &&
-                tileWindow?.Region != null)
-            {
-                tileWindow_ArrowUp.Region = new Region(tileWindow.Region.X + tileWindow.Region.Width, tileWindow.Region.Y, tileWidth, tileWidth);
-            }
-
-            Picture? tileWindow_ArrowDown = Menu?.GetPicture("TileWindow_ArrowDown");
-            if (tileWindow_ArrowDown != null &&
-                tileWindow?.Region != null)
-            {
-                tileWindow_ArrowDown.Region = new Region(tileWindow.Region.X + tileWindow.Region.Width, tileWindow.Region.Y + tileWindow.Region.Height - tileWidth, tileWidth, tileWidth);
-            }
-
-            Y = Main.Game.MenuSize_Y + windowHeight + (buttonHeight * 2);
-
-            Label? objects = Menu?.GetLabel("Objects");
-            if (objects != null)
-            {
-                objects.Region = new Region(0, Y, Main.Game.MenuSize_X * 4, buttonHeight);
-            }
-
-            Picture? objectWindow = Menu?.GetPicture("ObjectWindow");
-            if (objectWindow != null)
-            {
-                objectWindow.Region = new Region(0, Y + buttonHeight, windowHeight, windowHeight);
-            }
-
-            Picture? objectWindow_ArrowUp = Menu?.GetPicture("ObjectWindow_ArrowUp");
-            if (objectWindow_ArrowUp != null &&
-                objectWindow?.Region != null)
-            {
-                objectWindow_ArrowUp.Region = new Region(objectWindow.Region.X + objectWindow.Region.Width, objectWindow.Region.Y, tileWidth, tileWidth);
-            }
-
-            Picture? objectWindow_ArrowDown = Menu?.GetPicture("ObjectWindow_ArrowDown");
-            if (objectWindow_ArrowDown != null &&
-                objectWindow?.Region != null)
-            {
-                objectWindow_ArrowDown.Region = new Region(objectWindow.Region.X + objectWindow.Region.Width, objectWindow.Region.Y + objectWindow.Region.Height - tileWidth, tileWidth, tileWidth);
-            }
-
             Label? mapFile = Menu?.GetLabel("MapFile");
             if (mapFile != null)
             {
@@ -2490,6 +3032,49 @@ namespace Despicaville.Scenes
             {
                 mapWindow.Region = new Region(Main.Game.MenuSize_X * 10, Main.Game.MenuSize_Y + buttonHeight, mapHeight, mapHeight);
             }
+
+            Label? autoTiles = Menu?.GetLabel("AutoTiles");
+            if (autoTiles != null)
+            {
+                autoTiles.Region = new Region(0, Main.Game.MenuSize_Y, Main.Game.MenuSize_X * 4, buttonHeight);
+            }
+
+            float margin = Main.Game.MenuSize_X / 10;
+            float windowWidth = (Main.Game.MenuSize_X * 8) + (margin * 11);
+            float tileWidth = (windowWidth - (margin * 11)) / 10;
+
+            Picture? autoTileWindow = Menu?.GetPicture("AutoTileWindow");
+            if (autoTileWindow != null)
+            {
+                autoTileWindow.Region = new Region(Main.Game.MenuSize_X / 4, Main.Game.MenuSize_Y + buttonHeight, windowWidth, tileWidth + (margin * 2));
+            }
+
+            Label? tiles = Menu?.GetLabel("Tiles");
+            if (tiles != null)
+            {
+                tiles.Region = new Region(0, Main.Game.MenuSize_Y + (buttonHeight * 4), Main.Game.MenuSize_X * 4, buttonHeight);
+            }
+
+            Picture? tileWindow = Menu?.GetPicture("TileWindow");
+            if (tileWindow != null)
+            {
+                tileWindow.Region = new Region(Main.Game.MenuSize_X / 4, Main.Game.MenuSize_Y + (buttonHeight * 5), windowWidth, (tileWidth * Tiles_Height) + (margin * (Tiles_Height + 1)));
+            }
+
+            Label? objects = Menu?.GetLabel("Objects");
+            if (objects != null)
+            {
+                objects.Region = new Region(0, Main.Game.MenuSize_Y, Main.Game.MenuSize_X * 4, buttonHeight);
+            }
+
+            Picture? objectWindow = Menu?.GetPicture("ObjectWindow");
+            if (objectWindow != null)
+            {
+                objectWindow.Region = new Region(Main.Game.MenuSize_X / 4, Main.Game.MenuSize_Y + buttonHeight, windowWidth, (tileWidth * 18) + (margin * 19));
+            }
+
+            ResizeTileGrid();
+            ResizeMap();
         }
 
         #endregion
