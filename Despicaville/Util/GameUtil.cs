@@ -653,8 +653,8 @@ namespace Despicaville.Util
             string datestamp = months + "/" + days + "/" + TimeManager.Now.TotalYears.ToString();
             string timestamp = hours + ":" + minutes + ":" + seconds + am_pm;
 
-            List<string> messages = new List<string>();
-            int max_length = 75;
+            List<string> messages = [];
+            int max_length = 98;
 
             string full_message = datestamp + " " + timestamp + ": " + message;
             if (full_message.Length > max_length)
@@ -740,6 +740,12 @@ namespace Despicaville.Util
 
             if (Main.Game.GameStarted)
             {
+                Picture? background = menu.GetPicture("Background");
+                if (background != null)
+                {
+                    background.Visible = true;
+                }
+
                 Button? back = menu.GetButton("Back");
                 if (back != null)
                 {
@@ -772,6 +778,12 @@ namespace Despicaville.Util
             }
             else
             {
+                Picture? background = menu.GetPicture("Background");
+                if (background != null)
+                {
+                    background.Visible = false;
+                }
+
                 Button? back = menu.GetButton("Back");
                 if (back != null)
                 {

@@ -506,7 +506,8 @@ namespace Despicaville.SubTasks
 
         public override void Action_End()
         {
-            if (Owner_Character?.Location == null)
+            if (Owner_Character?.Location == null ||
+                Handler.Player == null)
             {
                 return;
             }
@@ -545,7 +546,11 @@ namespace Despicaville.SubTasks
             }
             
             WorldUtil.SetCurrentMap(Owner_Character);
-            CharacterUtil.UpdateSight(Owner_Character);
+
+            if (Owner_Character.Type == "Player")
+            {
+                CharacterUtil.UpdateSight(Handler.Player);
+            }
 
             Owner_Character.Moved = 0;
             Owner_Character.Moving = false;
@@ -575,80 +580,90 @@ namespace Despicaville.SubTasks
 
             if (Owner_Character.Path.Count > 0)
             {
-                ALocation first_path = Owner_Character.Path[0];
-                if (first_path.X == Owner_Character.Location.X &&
-                    first_path.Y == Owner_Character.Location.Y)
-                {
-                    Owner_Character.Path.Remove(first_path);
-                    if (Owner_Character.Path.Count > 0)
-                    {
-                        first_path = Owner_Character.Path[0];
-                    }
-                }
-                Location destination = new(first_path.X, first_path.Y, 0);
+                ContinuePathing();
+            }
+        }
 
-                bool reached_destination = false;
+        private void ContinuePathing()
+        {
+            if (Owner_Character?.Location == null)
+            {
+                return;
+            }
+
+            ALocation first_path = Owner_Character.Path[0];
+            if (first_path.X == Owner_Character.Location.X &&
+                first_path.Y == Owner_Character.Location.Y)
+            {
+                Owner_Character.Path.Remove(first_path);
                 if (Owner_Character.Path.Count > 0)
                 {
-                    ALocation last_path = Owner_Character.Path[Owner_Character.Path.Count - 1];
-                    if (last_path.X == Owner_Character.Location.X &&
-                        last_path.Y == Owner_Character.Location.Y)
+                    first_path = Owner_Character.Path[0];
+                }
+            }
+            Location destination = new(first_path.X, first_path.Y, 0);
+
+            bool reached_destination = false;
+            if (Owner_Character.Path.Count > 0)
+            {
+                ALocation last_path = Owner_Character.Path[Owner_Character.Path.Count - 1];
+                if (last_path.X == Owner_Character.Location.X &&
+                    last_path.Y == Owner_Character.Location.Y)
+                {
+                    reached_destination = true;
+                    Owner_Character.Path.Remove(last_path);
+                }
+            }
+            else
+            {
+                reached_destination = true;
+            }
+
+            if (!reached_destination &&
+                TimeManager.Now != null)
+            {
+                JobTask? majorTask = Owner_Character.Job.Get_CurrentTask();
+
+                Direction direction = WorldUtil.GetDirection(Owner_Character.Location, destination);
+                if (Owner_Character.Direction == direction)
+                {
+                    if (direction == Direction.North)
                     {
-                        reached_destination = true;
-                        Owner_Character.Path.Remove(last_path);
+                        Owner_Character.Destination = new Location(Owner_Character.Location.X, Owner_Character.Location.Y - 1, Owner_Character.Location.Z);
                     }
+                    else if (direction == Direction.East)
+                    {
+                        Owner_Character.Destination = new Location(Owner_Character.Location.X + 1, Owner_Character.Location.Y, Owner_Character.Location.Z);
+                    }
+                    else if (direction == Direction.South)
+                    {
+                        Owner_Character.Destination = new Location(Owner_Character.Location.X, Owner_Character.Location.Y + 1, Owner_Character.Location.Z);
+                    }
+                    else if (direction == Direction.West)
+                    {
+                        Owner_Character.Destination = new Location(Owner_Character.Location.X - 1, Owner_Character.Location.Y, Owner_Character.Location.Z);
+                    }
+
+                    majorTask?.SubTasks.Add(new Move
+                    {
+                        Name = Name,
+                        Owner_Character = Owner_Character,
+                        StartTime = new TimeHandler(TimeManager.Now),
+                        Location = Owner_Character.Destination,
+                        Direction = direction
+                    });
                 }
                 else
                 {
-                    reached_destination = true;
-                }
-
-                if (!reached_destination &&
-                    TimeManager.Now != null)
-                {
-                    JobTask? majorTask = Owner_Character.Job.Get_CurrentTask();
-
-                    Direction direction = WorldUtil.GetDirection(Owner_Character.Location, destination);
-                    if (Owner_Character.Direction == direction)
+                    majorTask?.SubTasks.Add(new Turn
                     {
-                        if (direction == Direction.North)
-                        {
-                            Owner_Character.Destination = new Location(Owner_Character.Location.X, Owner_Character.Location.Y - 1, Owner_Character.Location.Z);
-                        }
-                        else if (direction == Direction.East)
-                        {
-                            Owner_Character.Destination = new Location(Owner_Character.Location.X + 1, Owner_Character.Location.Y, Owner_Character.Location.Z);
-                        }
-                        else if (direction == Direction.South)
-                        {
-                            Owner_Character.Destination = new Location(Owner_Character.Location.X, Owner_Character.Location.Y + 1, Owner_Character.Location.Z);
-                        }
-                        else if (direction == Direction.West)
-                        {
-                            Owner_Character.Destination = new Location(Owner_Character.Location.X - 1, Owner_Character.Location.Y, Owner_Character.Location.Z);
-                        }
-
-                        majorTask?.SubTasks.Add(new Move
-                        {
-                            Name = Name,
-                            Owner_Character = Owner_Character,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            Location = Owner_Character.Destination,
-                            Direction = direction
-                        });
-                    }
-                    else
-                    {
-                        majorTask?.SubTasks.Add(new Turn
-                        {
-                            Name = "Turn",
-                            Owner_Character = Owner_Character,
-                            StartTime = new TimeHandler(TimeManager.Now),
-                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(Owner_Character))),
-                            Location = Owner_Character.Destination,
-                            Direction = direction
-                        });
-                    }
+                        Name = "Turn",
+                        Owner_Character = Owner_Character,
+                        StartTime = new TimeHandler(TimeManager.Now),
+                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(Owner_Character))),
+                        Location = Owner_Character.Destination,
+                        Direction = direction
+                    });
                 }
             }
         }

@@ -466,15 +466,18 @@ namespace Despicaville.Scenes
         {
             if (Main.Game == null ||
                 World == null ||
-                Handler.Player == null)
+                Handler.Player == null ||
+                TimeManager.Now == null ||
+                InputManager.Mouse == null)
             {
                 return;
             }
 
             bool mouse_in_view = false;
+            bool turning = false;
 
             Menu? ui = MenuManager.GetMenu("UI");
-            Picture? world_view = ui?.GetPicture("Panel_Upper_Center");
+            Picture? world_view = ui?.GetPicture("view_panel");
             if (world_view?.Region != null &&
                 InputManager.MouseWithin(world_view.Region.ToRectangle))
             {
@@ -663,152 +666,145 @@ namespace Despicaville.Scenes
 
                 #region Move
 
-                if (TimeManager.Now != null)
+                if (InputManager.KeyDown("Up"))
                 {
-                    if (InputManager.KeyDown("Up"))
+                    if (Handler.Player.Running)
                     {
-                        if (Handler.Player.Running)
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
-                            Handler.Player.Job.Tasks.Add(new Move
-                            {
-                                Name = "Run",
-                                Owner_Character = Handler.Player,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                Direction = Direction.North
-                            });
-                        }
-                        else if (Handler.Player.Crouching)
-                        {
-                            Handler.Player.Job.Tasks.Add(new Move
-                            {
-                                Name = "Sneak",
-                                Owner_Character = Handler.Player,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                Direction = Direction.North
-                            });
-                        }
-                        else
-                        {
-                            Handler.Player.Job.Tasks.Add(new Move
-                            {
-                                Name = "Walk",
-                                Owner_Character = Handler.Player,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                Direction = Direction.North
-                            });
-                        }
+                            Name = "Run",
+                            Owner_Character = Handler.Player,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.North
+                        });
                     }
-                    else if (InputManager.KeyDown("Right"))
+                    else if (Handler.Player.Crouching)
                     {
-                        if (Handler.Player.Running)
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
-                            Handler.Player.Job.Tasks.Add(new Move
-                            {
-                                Name = "Run",
-                                Owner_Character = Handler.Player,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                Direction = Direction.East
-                            });
-                        }
-                        else if (Handler.Player.Crouching)
-                        {
-                            Handler.Player.Job.Tasks.Add(new Move
-                            {
-                                Name = "Sneak",
-                                Owner_Character = Handler.Player,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                Direction = Direction.East
-                            });
-                        }
-                        else
-                        {
-                            Handler.Player.Job.Tasks.Add(new Move
-                            {
-                                Name = "Walk",
-                                Owner_Character = Handler.Player,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                Direction = Direction.East
-                            });
-                        }
+                            Name = "Sneak",
+                            Owner_Character = Handler.Player,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.North
+                        });
                     }
-                    else if (InputManager.KeyDown("Down"))
+                    else
                     {
-                        if (Handler.Player.Running)
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
-                            Handler.Player.Job.Tasks.Add(new Move
-                            {
-                                Name = "Run",
-                                Owner_Character = Handler.Player,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                Direction = Direction.South
-                            });
-                        }
-                        else if (Handler.Player.Crouching)
-                        {
-                            Handler.Player.Job.Tasks.Add(new Move
-                            {
-                                Name = "Sneak",
-                                Owner_Character = Handler.Player,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                Direction = Direction.South
-                            });
-                        }
-                        else
-                        {
-                            Handler.Player.Job.Tasks.Add(new Move
-                            {
-                                Name = "Walk",
-                                Owner_Character = Handler.Player,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                Direction = Direction.South
-                            });
-                        }
+                            Name = "Walk",
+                            Owner_Character = Handler.Player,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.North
+                        });
                     }
-                    else if (InputManager.KeyDown("Left"))
+                }
+                else if (InputManager.KeyDown("Right"))
+                {
+                    if (Handler.Player.Running)
                     {
-                        if (Handler.Player.Running)
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
-                            Handler.Player.Job.Tasks.Add(new Move
-                            {
-                                Name = "Run",
-                                Owner_Character = Handler.Player,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                Direction = Direction.West
-                            });
-                        }
-                        else if (Handler.Player.Crouching)
+                            Name = "Run",
+                            Owner_Character = Handler.Player,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.East
+                        });
+                    }
+                    else if (Handler.Player.Crouching)
+                    {
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
-                            Handler.Player.Job.Tasks.Add(new Move
-                            {
-                                Name = "Sneak",
-                                Owner_Character = Handler.Player,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                Direction = Direction.West
-                            });
-                        }
-                        else
+                            Name = "Sneak",
+                            Owner_Character = Handler.Player,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.East
+                        });
+                    }
+                    else
+                    {
+                        Handler.Player.Job.Tasks.Add(new Move
                         {
-                            Handler.Player.Job.Tasks.Add(new Move
-                            {
-                                Name = "Walk",
-                                Owner_Character = Handler.Player,
-                                StartTime = new TimeHandler(TimeManager.Now),
-                                Direction = Direction.West
-                            });
-                        }
+                            Name = "Walk",
+                            Owner_Character = Handler.Player,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.East
+                        });
+                    }
+                }
+                else if (InputManager.KeyDown("Down"))
+                {
+                    if (Handler.Player.Running)
+                    {
+                        Handler.Player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Run",
+                            Owner_Character = Handler.Player,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.South
+                        });
+                    }
+                    else if (Handler.Player.Crouching)
+                    {
+                        Handler.Player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Sneak",
+                            Owner_Character = Handler.Player,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.South
+                        });
+                    }
+                    else
+                    {
+                        Handler.Player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Walk",
+                            Owner_Character = Handler.Player,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.South
+                        });
+                    }
+                }
+                else if (InputManager.KeyDown("Left"))
+                {
+                    if (Handler.Player.Running)
+                    {
+                        Handler.Player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Run",
+                            Owner_Character = Handler.Player,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.West
+                        });
+                    }
+                    else if (Handler.Player.Crouching)
+                    {
+                        Handler.Player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Sneak",
+                            Owner_Character = Handler.Player,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.West
+                        });
+                    }
+                    else
+                    {
+                        Handler.Player.Job.Tasks.Add(new Move
+                        {
+                            Name = "Walk",
+                            Owner_Character = Handler.Player,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            Direction = Direction.West
+                        });
                     }
                 }
 
                 #endregion
 
-                if (mouse_in_view &&
-                    TimeManager.Now != null &&
-                    InputManager.Mouse != null)
+                if (mouse_in_view)
                 {
                     if (InputManager.Mouse.LB_Pressed)
                     {
-                        bool turning = false;
-
                         #region Turn
 
                         if (Handler.Player.Region != null)
@@ -869,77 +865,22 @@ namespace Despicaville.Scenes
                         }
 
                         #endregion
+                    }
+                }
 
-                        if (!turning)
+                if (InputManager.Mouse.LB_Pressed)
+                {
+                    if (!turning)
+                    {
+                        if (Handler.Combat)
                         {
-                            if (Handler.Combat)
+                            #region Attack
+
+                            Location location = new();
+
+                            if (CombatUtil.CanAttack_Ranged(Handler.Player))
                             {
-                                #region Attack
-
-                                Location location = new();
-
-                                if (CombatUtil.CanAttack_Ranged(Handler.Player))
-                                {
-                                    List<Tile> visible = Handler.VisibleTiles[Handler.Player.ID];
-
-                                    int count = visible.Count;
-                                    for (int i = 0; i < count; i++)
-                                    {
-                                        Tile tile = visible[i];
-                                        if (tile.Visible &&
-                                            tile.Location != null &&
-                                            tile.Region != null &&
-                                            InputManager.MouseWithin(tile.Region.ToRectangle))
-                                        {
-                                            location = new Location(tile.Location.X, tile.Location.Y, 1);
-                                            break;
-                                        }
-                                    }
-                                }
-                                else if (Handler.Player.Location != null)
-                                {
-                                    if (Handler.Player.Direction == Direction.North)
-                                    {
-                                        location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y - 1, 1);
-                                    }
-                                    else if (Handler.Player.Direction == Direction.East)
-                                    {
-                                        location = new Location(Handler.Player.Location.X + 1, Handler.Player.Location.Y, 1);
-                                    }
-                                    else if (Handler.Player.Direction == Direction.South)
-                                    {
-                                        location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y + 1, 1);
-                                    }
-                                    else if (Handler.Player.Direction == Direction.West)
-                                    {
-                                        location = new Location(Handler.Player.Location.X - 1, Handler.Player.Location.Y, 1);
-                                    }
-                                }
-
-                                Dictionary<string, string> AttackingWith = CombatUtil.AttackChoice(Handler.Player);
-                                string action = AttackingWith.ElementAt(0).Value;
-
-                                int attackTime = CombatUtil.AttackTime(Handler.Player, action);
-                                Handler.Player.Job.Tasks.Add(new Attack
-                                {
-                                    Name = "Attack",
-                                    Owner_Character = Handler.Player,
-                                    Location = location,
-                                    Direction = Handler.Player.Direction,
-                                    StartTime = new TimeHandler(TimeManager.Now),
-                                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(attackTime)),
-                                    TaskBar = CharacterUtil.GenTaskbar(Handler.Player, attackTime)
-                                });
-
-                                #endregion
-                            }
-                            else
-                            {
-                                #region Interact
-
-                                Location? location = null;
-                                Character? target = null;
-                                List <Tile> visible = Handler.VisibleTiles[Handler.Player.ID];
+                                List<Tile> visible = Handler.VisibleTiles[Handler.Player.ID];
 
                                 int count = visible.Count;
                                 for (int i = 0; i < count; i++)
@@ -950,114 +891,13 @@ namespace Despicaville.Scenes
                                         tile.Region != null &&
                                         InputManager.MouseWithin(tile.Region.ToRectangle))
                                     {
-                                        target = WorldUtil.GetCharacter(tile.Location);
-                                        if (target == null)
-                                        {
-                                            location = tile.Location;
-                                        }
-
+                                        location = new Location(tile.Location.X, tile.Location.Y, 1);
                                         break;
                                     }
                                 }
-                                
-                                if (target != null)
-                                {
-                                    WorldUtil.GenDescription(target);
-                                }
-                                else if (location != null)
-                                {
-                                    Tile? interaction_tile = null;
-
-                                    Map map = World.Maps[0];
-
-                                    Layer? top_tiles = map.GetLayer("TopTiles");
-                                    Tile? top_tile = top_tiles?.GetTile(location.ToVector2);
-                                    if (top_tile?.Texture != null)
-                                    {
-                                        interaction_tile = top_tile;
-                                    }
-
-                                    if (interaction_tile == null)
-                                    {
-                                        Tile? middle_tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, new Location(location.X, location.Y, 0));
-                                        if (middle_tile?.Texture != null)
-                                        {
-                                            interaction_tile = middle_tile;
-                                        }
-                                    }
-
-                                    if (interaction_tile == null)
-                                    {
-                                        Layer? bottom_tiles = map.GetLayer("BottomTiles");
-                                        Tile? bottom_tile = bottom_tiles?.GetTile(location.ToVector2);
-                                        if (bottom_tile != null)
-                                        {
-                                            interaction_tile = bottom_tile;
-                                        }
-                                    }
-
-                                    if (interaction_tile != null)
-                                    {
-                                        if (Handler.Player.Location != null &&
-                                            WorldUtil.NextTo(location, Handler.Player.Location))
-                                        {
-                                            Tasker.Interact(interaction_tile);
-                                        }
-                                        else
-                                        {
-                                            WorldUtil.GenDescription(interaction_tile);
-                                        }
-                                    }
-                                }
-
-                                #endregion
                             }
-                        }
-                    }
-                    else if (Handler.Combat &&
-                             InputManager.Mouse.RB_Pressed)
-                    {
-                        #region Get Ranged Target
-
-                        Character? target = null;
-
-                        if (CombatUtil.CanAttack_Ranged(Handler.Player))
-                        {
-                            List<Tile> visible = Handler.VisibleTiles[Handler.Player.ID];
-
-                            int count = visible.Count;
-                            for (int i = 0; i < count; i++)
+                            else if (Handler.Player.Location != null)
                             {
-                                Tile tile = visible[i];
-                                if (tile.Visible &&
-                                    tile.Location != null)
-                                {
-                                    target = WorldUtil.GetCharacter(tile.Location);
-                                    break;
-                                }
-                            }
-                        }
-
-                        #endregion
-
-                        if (Handler.Player.Location != null)
-                        {
-                            if (target?.Location != null &&
-                                !WorldUtil.NextTo(target.Location, Handler.Player.Location))
-                            {
-                                #region Aimed Attack
-
-                                Handler.Interaction_Character = target;
-                                MenuManager.GetMenu("Combat")?.Open();
-
-                                #endregion
-                            }
-                            else
-                            {
-                                #region Push
-
-                                Location? location = null;
-
                                 if (Handler.Player.Direction == Direction.North)
                                 {
                                     location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y - 1, 1);
@@ -1074,21 +914,180 @@ namespace Despicaville.Scenes
                                 {
                                     location = new Location(Handler.Player.Location.X - 1, Handler.Player.Location.Y, 1);
                                 }
+                            }
 
-                                if (location != null)
+                            Dictionary<string, string> AttackingWith = CombatUtil.AttackChoice(Handler.Player);
+                            string action = AttackingWith.ElementAt(0).Value;
+
+                            int attackTime = CombatUtil.AttackTime(Handler.Player, action);
+                            Handler.Player.Job.Tasks.Add(new Attack
+                            {
+                                Name = "Attack",
+                                Owner_Character = Handler.Player,
+                                Location = location,
+                                Direction = Handler.Player.Direction,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(attackTime)),
+                                TaskBar = CharacterUtil.GenTaskbar(Handler.Player, attackTime)
+                            });
+
+                            #endregion
+                        }
+                        else
+                        {
+                            #region Interact
+
+                            Location? location = null;
+                            Character? target = null;
+                            List<Tile> visible = Handler.VisibleTiles[Handler.Player.ID];
+
+                            int count = visible.Count;
+                            for (int i = 0; i < count; i++)
+                            {
+                                Tile tile = visible[i];
+                                if (tile.Visible &&
+                                    tile.Location != null &&
+                                    tile.Region != null &&
+                                    InputManager.MouseWithin(tile.Region.ToRectangle))
                                 {
-                                    Handler.Player.Job.Tasks.Add(new Push
+                                    target = WorldUtil.GetCharacter(tile.Location);
+                                    if (target == null)
                                     {
-                                        Name = "Push",
-                                        Owner_Character = Handler.Player,
-                                        StartTime = new TimeHandler(TimeManager.Now),
-                                        Location = location,
-                                        Direction = Handler.Player.Direction
-                                    });
+                                        location = tile.Location;
+                                    }
+
+                                    break;
+                                }
+                            }
+
+                            if (target != null)
+                            {
+                                WorldUtil.GenDescription(target);
+                            }
+                            else if (location != null)
+                            {
+                                Tile? interaction_tile = null;
+
+                                Map map = World.Maps[0];
+
+                                Layer? top_tiles = map.GetLayer("TopTiles");
+                                Tile? top_tile = top_tiles?.GetTile(location.ToVector2);
+                                if (top_tile?.Texture != null)
+                                {
+                                    interaction_tile = top_tile;
                                 }
 
-                                #endregion
+                                if (interaction_tile == null)
+                                {
+                                    Tile? middle_tile = WorldUtil.GetFurniture(Handler.MiddleFurniture, new Location(location.X, location.Y, 0));
+                                    if (middle_tile?.Texture != null)
+                                    {
+                                        interaction_tile = middle_tile;
+                                    }
+                                }
+
+                                if (interaction_tile == null)
+                                {
+                                    Layer? bottom_tiles = map.GetLayer("BottomTiles");
+                                    Tile? bottom_tile = bottom_tiles?.GetTile(location.ToVector2);
+                                    if (bottom_tile != null)
+                                    {
+                                        interaction_tile = bottom_tile;
+                                    }
+                                }
+
+                                if (interaction_tile != null)
+                                {
+                                    if (Handler.Player.Location != null &&
+                                        WorldUtil.NextTo(location, Handler.Player.Location))
+                                    {
+                                        Tasker.Interact(interaction_tile);
+                                    }
+                                    else
+                                    {
+                                        WorldUtil.GenDescription(interaction_tile);
+                                    }
+                                }
                             }
+
+                            #endregion
+                        }
+                    }
+                }
+                else if (Handler.Combat &&
+                         InputManager.Mouse.RB_Pressed)
+                {
+                    #region Get Ranged Target
+
+                    Character? target = null;
+
+                    if (CombatUtil.CanAttack_Ranged(Handler.Player))
+                    {
+                        List<Tile> visible = Handler.VisibleTiles[Handler.Player.ID];
+
+                        int count = visible.Count;
+                        for (int i = 0; i < count; i++)
+                        {
+                            Tile tile = visible[i];
+                            if (tile.Visible &&
+                                tile.Location != null)
+                            {
+                                target = WorldUtil.GetCharacter(tile.Location);
+                                break;
+                            }
+                        }
+                    }
+
+                    #endregion
+
+                    if (Handler.Player.Location != null)
+                    {
+                        if (target?.Location != null &&
+                            !WorldUtil.NextTo(target.Location, Handler.Player.Location))
+                        {
+                            #region Aimed Attack
+
+                            Handler.Interaction_Character = target;
+                            MenuManager.GetMenu("Combat")?.Open();
+
+                            #endregion
+                        }
+                        else
+                        {
+                            #region Push
+
+                            Location? location = null;
+
+                            if (Handler.Player.Direction == Direction.North)
+                            {
+                                location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y - 1, 1);
+                            }
+                            else if (Handler.Player.Direction == Direction.East)
+                            {
+                                location = new Location(Handler.Player.Location.X + 1, Handler.Player.Location.Y, 1);
+                            }
+                            else if (Handler.Player.Direction == Direction.South)
+                            {
+                                location = new Location(Handler.Player.Location.X, Handler.Player.Location.Y + 1, 1);
+                            }
+                            else if (Handler.Player.Direction == Direction.West)
+                            {
+                                location = new Location(Handler.Player.Location.X - 1, Handler.Player.Location.Y, 1);
+                            }
+
+                            if (location != null)
+                            {
+                                Handler.Player.Job.Tasks.Add(new Push
+                                {
+                                    Name = "Push",
+                                    Owner_Character = Handler.Player,
+                                    StartTime = new TimeHandler(TimeManager.Now),
+                                    Location = location,
+                                    Direction = Handler.Player.Direction
+                                });
+                            }
+
+                            #endregion
                         }
                     }
                 }

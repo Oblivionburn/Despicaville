@@ -914,8 +914,6 @@ namespace Despicaville
                             EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(20)),
                             TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 20000)
                         });
-
-                        GameUtil.AddMessage("You started quietly searching the " + WorldUtil.GetTile_Name(tile) + ".");
                     }
                     else if (InputManager.KeyDown("Run"))
                     {
@@ -928,8 +926,6 @@ namespace Despicaville
                             EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(5)),
                             TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 5000)
                         });
-
-                        GameUtil.AddMessage("You started quickly searching the " + WorldUtil.GetTile_Name(tile) + ".");
                     }
                     else
                     {
@@ -942,8 +938,6 @@ namespace Despicaville
                             EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromSeconds(10)),
                             TaskBar = CharacterUtil.GenTaskbar(Handler.Player, 10000)
                         });
-
-                        GameUtil.AddMessage("You started searching the " + WorldUtil.GetTile_Name(tile) + ".");
                     }
                 }
                 else

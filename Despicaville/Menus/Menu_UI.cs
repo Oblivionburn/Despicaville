@@ -39,6 +39,7 @@ namespace Despicaville.Menus
             {
                 UpdateTime();
                 UpdateStats();
+                UpdateControlsDisplay();
 
                 if (!TimeManager.Paused)
                 {
@@ -335,12 +336,68 @@ namespace Despicaville.Menus
             }
         }
 
+        private void UpdateControlsDisplay()
+        {
+            Label? control_interact = GetLabel("Control_Interact");
+            if (control_interact != null)
+            {
+                if (Handler.Combat)
+                {
+                    control_interact.Text = "Attack: LeftMouse";
+                }
+                else
+                {
+                    control_interact.Text = "Interact: LeftMouse";
+                }
+            }
+
+            Label? control_crouch = GetLabel("Control_Crouch");
+            if (control_crouch != null)
+            {
+                control_crouch.Text = "Crouch: " + InputManager.GetMappedKey("Crouch").ToString();
+            }
+
+            Label? control_run = GetLabel("Control_Run");
+            if (control_run != null)
+            {
+                control_run.Text = "Run: " + InputManager.GetMappedKey("Run").ToString();
+            }
+
+            Label? control_pull = GetLabel("Control_Pull");
+            if (control_pull != null)
+            {
+                if (Handler.Combat)
+                {
+                    control_pull.Text = "Push: RightMouse";
+                }
+                else
+                {
+                    control_pull.Text = "Pull: RightMouse";
+                }
+            }
+
+            Label? control_combat = GetLabel("Control_Combat");
+            if (control_combat != null)
+            {
+                if (Handler.Combat)
+                {
+                    control_combat.Text = "Combat Off: " + InputManager.GetMappedKey("Combat").ToString();
+                }
+                else
+                {
+                    control_combat.Text = "Combat On: " + InputManager.GetMappedKey("Combat").ToString();
+                }
+            }
+        }
+
         public override void Load(ContentManager content)
         {
             Clear();
 
+            SpriteFont controlFont = AssetManager.Fonts["ControlFont"];
+            Texture2D? black = Handler.GetTexture("Black");
+
             Texture2D? frame = Handler.GetTexture("Frame");
-            Texture2D? frame_Large = Handler.GetTexture("Frame_Large");
             Texture2D? frame_Wide = Handler.GetTexture("Frame_Wide");
 
             Texture2D? progressBase = Handler.GetTexture("ProgressBase");
@@ -358,45 +415,106 @@ namespace Despicaville.Menus
             Texture2D? button_Stats = Handler.GetTexture("Button_Stats");
             Texture2D? button_Stats_Hover = Handler.GetTexture("Button_Stats_Hover");
 
-            AddPicture(Handler.GetID(), "Panel_Upper_Left", frame_Large, new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Panel_Upper_Right", frame_Large, new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Panel_Upper_Center", frame_Wide, new Region(0, 0, 0, 0), Color.White * 0f, false);
-            AddPicture(Handler.GetID(), "Panel_Lower_Left", frame_Large, new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Panel_Lower_Right", frame_Large, new Region(0, 0, 0, 0), Color.White, false);
-            AddPicture(Handler.GetID(), "Panel_Lower_Center", frame_Wide, new Region(0, 0, 0, 0), Color.White * 0.6f, true);
+            AddPicture(Handler.GetID(), "message_panel", frame_Wide, new Region(0, 0, 0, 0), Color.White * 0.6f, true);
+            AddPicture(Handler.GetID(), "view_panel", frame_Wide, new Region(0, 0, 0, 0), Color.White, false);
 
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Time", "", Color.White, frame_Wide, new Region(0, 0, 0, 0), Color.White * 0f, true);
+            AddLabel(controlFont, Handler.GetID(), "Time", "", Color.White, frame_Wide, new Region(0, 0, 0, 0), Color.White * 0f, true);
+
+            AddLabel(new LabelOptions
+            {
+                font = controlFont,
+                id = Handler.GetID(),
+                name = "Control_Crouch",
+                texture = black,
+                draw_color = Color.White * 0.25f,
+                text_color = Color.White,
+                alignment_horizontal = Alignment.Left,
+                opacity = 1f,
+                visible = true
+            });
+
+            AddLabel(new LabelOptions
+            {
+                font = controlFont,
+                id = Handler.GetID(),
+                name = "Control_Run",
+                texture = black,
+                draw_color = Color.White * 0.25f,
+                text_color = Color.White,
+                alignment_horizontal = Alignment.Left,
+                opacity = 1f,
+                visible = true
+            });
+
+            AddLabel(new LabelOptions
+            {
+                font = controlFont,
+                id = Handler.GetID(),
+                name = "Control_Interact",
+                texture = black,
+                draw_color = Color.White * 0.25f,
+                text_color = Color.White,
+                alignment_horizontal = Alignment.Left,
+                opacity = 1f,
+                visible = true
+            });
+
+            AddLabel(new LabelOptions
+            {
+                font = controlFont,
+                id = Handler.GetID(),
+                name = "Control_Pull",
+                texture = black,
+                draw_color = Color.White * 0.25f,
+                text_color = Color.White,
+                alignment_horizontal = Alignment.Left,
+                opacity = 1f,
+                visible = true
+            });
+
+            AddLabel(new LabelOptions
+            {
+                font = controlFont,
+                id = Handler.GetID(),
+                name = "Control_Combat",
+                texture = black,
+                draw_color = Color.White * 0.25f,
+                text_color = Color.White,
+                alignment_horizontal = Alignment.Left,
+                opacity = 1f,
+                visible = true
+            });
 
             AddProgressBar(Handler.GetID(), "Hunger", 100, 0, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(0, 100, 0), true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Hunger", "Hunger: 0%", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(controlFont, Handler.GetID(), "Hunger", "Hunger: 0%", Color.White, new Region(0, 0, 0, 0), true);
 
             AddProgressBar(Handler.GetID(), "Thirst", 100, 0, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(0, 0, 100), true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Thirst", "Thirst: 0%", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(controlFont, Handler.GetID(), "Thirst", "Thirst: 0%", Color.White, new Region(0, 0, 0, 0), true);
 
             AddProgressBar(Handler.GetID(), "Bladder", 100, 0, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(100, 100, 0), true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Bladder", "Bladder: 0%", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(controlFont, Handler.GetID(), "Bladder", "Bladder: 0%", Color.White, new Region(0, 0, 0, 0), true);
 
             AddProgressBar(Handler.GetID(), "Grime", 100, 0, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(50, 40, 30), true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Grime", "Grime: 0%", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(controlFont, Handler.GetID(), "Grime", "Grime: 0%", Color.White, new Region(0, 0, 0, 0), true);
 
             AddProgressBar(Handler.GetID(), "Pain", 100, 0, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), Color.Red, true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Pain", "Pain: 0%", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(controlFont, Handler.GetID(), "Pain", "Pain: 0%", Color.White, new Region(0, 0, 0, 0), true);
 
             AddProgressBar(Handler.GetID(), "Paranoia", 100, 0, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(60, 0, 100), true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Paranoia", "Paranoia: 0%", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(controlFont, Handler.GetID(), "Paranoia", "Paranoia: 0%", Color.White, new Region(0, 0, 0, 0), true);
 
             AddLabel(new LabelOptions
             {
-                font = AssetManager.Fonts["ControlFont"],
+                font = controlFont,
                 id = Handler.GetID(),
                 name = "Crouching",
-                text = "Quiet | Crouch",
+                text = "Crouching",
                 text_color = Color.White,
                 opacity = 0.6f,
                 visible = true
@@ -404,10 +522,10 @@ namespace Despicaville.Menus
 
             AddLabel(new LabelOptions
             {
-                font = AssetManager.Fonts["ControlFont"],
+                font = controlFont,
                 id = Handler.GetID(),
                 name = "Running",
-                text = "Loud | Run",
+                text = "Running",
                 text_color = Color.White,
                 opacity = 0.6f,
                 visible = true
@@ -415,7 +533,7 @@ namespace Despicaville.Menus
 
             AddLabel(new LabelOptions
             {
-                font = AssetManager.Fonts["ControlFont"],
+                font = controlFont,
                 id = Handler.GetID(),
                 name = "Pulling",
                 text = "Pulling",
@@ -426,7 +544,7 @@ namespace Despicaville.Menus
 
             AddLabel(new LabelOptions
             {
-                font = AssetManager.Fonts["ControlFont"],
+                font = controlFont,
                 id = Handler.GetID(),
                 name = "Combat",
                 text = "Combat",
@@ -437,19 +555,19 @@ namespace Despicaville.Menus
 
             AddProgressBar(Handler.GetID(), "Blood", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(100, 0, 0), true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Blood", "Blood: 100%", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(controlFont, Handler.GetID(), "Blood", "Blood: 100%", Color.White, new Region(0, 0, 0, 0), true);
 
             AddProgressBar(Handler.GetID(), "Consciousness", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(128, 64, 0), true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Consciousness", "Consciousness: 100%", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(controlFont, Handler.GetID(), "Consciousness", "Consciousness: 100%", Color.White, new Region(0, 0, 0, 0), true);
 
             AddProgressBar(Handler.GetID(), "Stamina", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(0, 64, 128), true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Stamina", "Stamina: 100%", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(controlFont, Handler.GetID(), "Stamina", "Stamina: 100%", Color.White, new Region(0, 0, 0, 0), true);
 
             AddProgressBar(Handler.GetID(), "Comfort", 100, 100, 1, progressBase, progressBar,
                 new Region(0, 0, 0, 0), new Color(64, 128, 0), true);
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Comfort", "Comfort: 100%", Color.White, new Region(0, 0, 0, 0), true);
+            AddLabel(controlFont, Handler.GetID(), "Comfort", "Comfort: 100%", Color.White, new Region(0, 0, 0, 0), true);
 
             AddButton(Handler.GetID(), "Main", button_Menu, button_Menu_Hover, null,
                 new Region(0, 0, 0, 0), Color.White, true);
@@ -487,11 +605,11 @@ namespace Despicaville.Menus
                 stats.HoverText = "Stats";
             }
 
-            AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Examine", "", Color.White, frame, new Region(0, 0, 0, 0), false);
+            AddLabel(controlFont, Handler.GetID(), "Examine", "", Color.White, frame, new Region(0, 0, 0, 0), false);
 
             for (int i = 0; i < Handler.MessageMax; i++)
             {
-                AddLabel(AssetManager.Fonts["ControlFont"], Handler.GetID(), "Message" + i.ToString(), "", Color.Red, new Region(0, 0, 0, 0), true);
+                AddLabel(controlFont, Handler.GetID(), "Message" + i.ToString(), "", Color.Red, new Region(0, 0, 0, 0), true);
 
                 Label? label = GetLabel("Message" + i.ToString());
                 if (label != null)
@@ -522,62 +640,10 @@ namespace Despicaville.Menus
                 examine.Region = new Region(0, 0, 0, 0);
             }
 
-            //Hidden Panels
-            int panel_width = (int)(Main.Game.MenuSize_X * 5);
-            int upper_panel_height = (int)(Main.Game.MenuSize_Y * 12);
-            int lower_panel_height = (int)(Main.Game.MenuSize_Y * 3);
-
-            Picture? panel_Upper_Left = GetPicture("Panel_Upper_Left");
-            if (panel_Upper_Left != null)
-            {
-                panel_Upper_Left.Region = new Region(0, 0, panel_width, upper_panel_height);
-            }
-
-            Picture? panel_Lower_Left = GetPicture("Panel_Lower_Left");
-            if (panel_Lower_Left != null)
-            {
-                panel_Lower_Left.Region = new Region(0, upper_panel_height, panel_width, lower_panel_height);
-            }
-
-            Picture? panel_Upper_Right = GetPicture("Panel_Upper_Right");
-            if (panel_Upper_Right != null)
-            {
-                panel_Upper_Right.Region = new Region(Main.Game.ScreenWidth - panel_width, 0, panel_width, upper_panel_height);
-            }
-
-            Picture? panel_Lower_Right = GetPicture("Panel_Lower_Right");
-            if (panel_Lower_Right != null)
-            {
-                panel_Lower_Right.Region = new Region(Main.Game.ScreenWidth - panel_width, upper_panel_height, panel_width, lower_panel_height);
-            }
-
-            Picture? panel_Upper_Center = GetPicture("Panel_Upper_Center");
-            if (panel_Upper_Center != null)
-            {
-                panel_Upper_Center.Region = new Region(panel_width, 0, Main.Game.ScreenWidth - (panel_width * 2), upper_panel_height);
-            }
-
-            //Message Panel
-            int Y = Main.Game.ScreenHeight - lower_panel_height;
-
-            Picture? panel_Lower_Center = GetPicture("Panel_Lower_Center");
-            if (panel_Lower_Center != null)
-            {
-                panel_Lower_Center.Region = new Region(panel_width, Y, Main.Game.ScreenWidth - (panel_width * 2), lower_panel_height);
-            }
-
-            int message_height = lower_panel_height / Handler.MessageMax;
-            for (int i = 0; i < Handler.MessageMax; i++)
-            {
-                Label? message = GetLabel("Message" + i.ToString());
-                if (message != null)
-                {
-                    message.Region = new Region(panel_width, Y, Main.Game.ScreenWidth - (panel_width * 2), message_height);
-                    message.Scale = (float)lower_panel_height / 212;
-                }
-                
-                Y += message_height;
-            }
+            float panel_width = Main.Game.MenuSize_X * 5;
+            float panel_width_half = panel_width / 2;
+            float panel_height = Main.Game.MenuSize_Y * 3;
+            float center_width = Main.Game.ScreenWidth - (panel_width * 2);
 
             //Upper Left
             Button? main = GetButton("Main");
@@ -606,9 +672,11 @@ namespace Despicaville.Menus
             }
 
             //Upper Right
-            int x = Main.Game.ScreenWidth - panel_width;
-            int y = (int)Main.Game.MenuSize_Y * 2;
-            int height = (int)((Main.Game.MenuSize_Y / 4) * 2);
+            #region Stats
+
+            float x = Main.Game.ScreenWidth - panel_width;
+            float y = Main.Game.MenuSize_Y * 2;
+            float height = (Main.Game.MenuSize_Y / 4) * 2;
 
             ProgressBar? hunger_bar = GetProgressBar("Hunger");
             if (hunger_bar != null)
@@ -682,30 +750,6 @@ namespace Despicaville.Menus
                 paranoia_label.Region = new Region(x, y + (height * 5), panel_width, height);
             }
 
-            Label? crouching = GetLabel("Crouching");
-            if (crouching != null)
-            {
-                crouching.Region = new Region(x, y + (height * 6), panel_width, height);
-            }
-
-            Label? running = GetLabel("Running");
-            if (running != null)
-            {
-                running.Region = new Region(x, y + (height * 7), panel_width, height);
-            }
-
-            Label? pulling = GetLabel("Pulling");
-            if (pulling != null)
-            {
-                pulling.Region = new Region(x, y + (height * 8), panel_width, height);
-            }
-
-            Label? combat = GetLabel("Combat");
-            if (combat != null)
-            {
-                combat.Region = new Region(x, y + (height * 9), panel_width, height);
-            }
-
             ProgressBar? blood_bar = GetProgressBar("Blood");
             if (blood_bar != null)
             {
@@ -752,6 +796,104 @@ namespace Despicaville.Menus
             if (comfort_label != null)
             {
                 comfort_label.Region = new Region(x, y + (height * 13), panel_width, height);
+            }
+
+            #endregion
+
+            Label? crouching = GetLabel("Crouching");
+            if (crouching != null)
+            {
+                crouching.Region = new Region(x, y + (height * 6), panel_width, height);
+            }
+
+            Label? running = GetLabel("Running");
+            if (running != null)
+            {
+                running.Region = new Region(x, y + (height * 7), panel_width, height);
+            }
+
+            Label? pulling = GetLabel("Pulling");
+            if (pulling != null)
+            {
+                pulling.Region = new Region(x, y + (height * 8), panel_width, height);
+            }
+
+            Label? combat = GetLabel("Combat");
+            if (combat != null)
+            {
+                combat.Region = new Region(x, y + (height * 9), panel_width, height);
+            }
+
+            //Center
+            Picture? view_panel = GetPicture("view_panel");
+            if (view_panel != null)
+            {
+                view_panel.Region = new Region(panel_width, 0, Main.Game.ScreenWidth - (panel_width * 2), Main.Game.ScreenHeight - panel_height);
+            }
+
+            //Bottom Left
+            #region Controls
+
+            float X = panel_width / 10;
+            float Y = Main.Game.ScreenHeight - (height * 6);
+
+            Label? control_combat = GetLabel("Control_Combat");
+            if (control_combat != null)
+            {
+                control_combat.Region = new Region(X, Y, panel_width, height);
+            }
+
+            Y += height;
+            Label? control_interact = GetLabel("Control_Interact");
+            if (control_interact != null)
+            {
+                control_interact.Region = new Region(X, Y, panel_width, height);
+            }
+
+            Y += height;
+            Label? control_pull = GetLabel("Control_Pull");
+            if (control_pull != null)
+            {
+                control_pull.Region = new Region(X, Y, panel_width, height);
+            }
+
+            Y += height;
+            Label? control_crouch = GetLabel("Control_Crouch");
+            if (control_crouch != null)
+            {
+                control_crouch.Region = new Region(X, Y, panel_width, height);
+            }
+
+            Y += height;
+            Label? control_run = GetLabel("Control_Run");
+            if (control_run != null)
+            {
+                control_run.Region = new Region(X, Y, panel_width, height);
+            }
+            
+            #endregion
+
+            //Bottom Center
+            Y = Main.Game.ScreenHeight - panel_height;
+            X = panel_width + panel_width_half;
+
+            Picture? message_panel = GetPicture("message_panel");
+            if (message_panel != null)
+            {
+                message_panel.Region = new Region(X, Y, center_width - panel_width, panel_height);
+
+                float message_height = panel_height / Handler.MessageMax;
+                for (int i = 0; i < Handler.MessageMax; i++)
+                {
+                    Label? message = GetLabel("Message" + i.ToString());
+                    if (message != null)
+                    {
+                        message.Region = new Region(message_panel.Region.X, Y, message_panel.Region.Width, message_height);
+                        message.Scale = (float)panel_height / 212;
+                    }
+
+                    Y += message_height;
+                }
             }
         }
 

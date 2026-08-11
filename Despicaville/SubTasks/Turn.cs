@@ -8,7 +8,8 @@ namespace Despicaville.SubTasks
     {
         public override void Action_End()
         {
-            if (Owner_Character == null)
+            if (Owner_Character == null ||
+                Handler.Player == null)
             {
                 return;
             }
@@ -34,7 +35,11 @@ namespace Despicaville.SubTasks
             }
 
             CharacterUtil.UpdateGear(Owner_Character);
-            CharacterUtil.UpdateSight(Owner_Character);
+
+            if (Owner_Character.Type == "Player")
+            {
+                CharacterUtil.UpdateSight(Handler.Player);
+            }
 
             if (Owner_Character.Target_ID > 0)
             {

@@ -40,6 +40,7 @@ namespace Despicaville
         public static bool Action;
 
         public static bool Menu_Health;
+        public static bool Menu_Inventory;
         public static bool WorldMap_Visible;
         public static bool Combat;
 
@@ -134,21 +135,28 @@ namespace Despicaville
                 LoadUtil.ParseINI(config);
             }
 
-            InventoryManager.Inventories = new List<Inventory>
-            {
+            InventoryManager.Inventories =
+            [
                 new Inventory
                 {
                     ID = GetID(),
                     Name = "Assets"
                 }
-            };
+            ];
 
             AssetManager.Directories.Add("Mods", Path.Combine(Environment.CurrentDirectory, "Mods"));
         }
 
         public static void Load_Init()
         {
+            if (Main.Game == null ||
+                Main.Game.GraphicsManager == null)
+            {
+                return;
+            }
+
             AssetManager.LoadFonts();
+            AssetManager.LoadShaders(Main.Game.GraphicsManager.GraphicsDevice);
 
             //Textures
             DirectoryInfo textures_dir = new(AssetManager.Directories["Textures"]);

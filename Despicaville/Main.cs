@@ -13,8 +13,10 @@ using OP_Engine.Inventories;
 using OP_Engine.Time;
 using OP_Engine.Rendering;
 using OP_Engine.Weathers;
+using OP_Engine.Utility;
 using Despicaville.Scenes;
 using Despicaville.Menus;
+using Despicaville.Util;
 
 namespace Despicaville
 {
@@ -22,10 +24,13 @@ namespace Despicaville
     {
         #region Variables
 
-        public static OP_Game? Game;
+        public static D_Game? Game;
 
         public static BlendState AmbientBlendState = new();
         public static LightingRenderer? LightingRenderer;
+
+        public static Renderer? BufferRenderer;
+        public static Renderer? FinalRenderer;
 
         public static bool LostFocus;
         public static string? Version;
@@ -41,7 +46,7 @@ namespace Despicaville
         {
             try
             {
-                Game = new OP_Game
+                Game = new D_Game
                 {
                     Form = (Form?)Control.FromHandle(Window.Handle),
                     Zoom = 2
@@ -94,8 +99,16 @@ namespace Despicaville
                         RenderingManager.AddLightingRenderer.RenderTarget = RenderingManager.LightingRenderer.RenderTarget;
                     }
 
-                    TimeTracker.Init();
                     Handler.Init(this);
+
+                    BufferRenderer = new Renderer(Handler.GetID(), "Buffer");
+                    BufferRenderer.Init(Game.GraphicsManager, Game.Resolution);
+
+                    FinalRenderer = new Renderer(Handler.GetID(), "Final");
+                    FinalRenderer.Init(Game.GraphicsManager, Game.Resolution);
+
+                    ShaderUtil.Init();
+                    TimeTracker.Init();
 
                     if (!Game.GraphicsManager.IsFullScreen &&
                         Game.Form != null)
@@ -186,15 +199,98 @@ namespace Despicaville
 
         protected override void Draw(GameTime gameTime)
         {
-            Game?.Draw();
-
-            if (Game?.Window != null)
+            if (Game == null ||
+                Game.Window == null ||
+                Game.SpriteBatch == null ||
+                Game.GraphicsManager == null ||
+                RenderingManager.LightingRenderer == null ||
+                RenderingManager.Lighting == null ||
+                RenderingManager.AddLightingRenderer == null ||
+                BufferRenderer?.RenderTarget == null ||
+                FinalRenderer?.RenderTarget == null)
             {
-                if (Game.Window.ClientBounds.Width > 0 &&
-                    Game.Window.ClientBounds.Height > 0)
+                return;
+            }
+
+            //Don't bother drawing if the window is minimized
+            if (Game.Window.ClientBounds.Width > 0 &&
+                Game.Window.ClientBounds.Height > 0)
+            {
+                //Set ambient light in case the color changed
+                RenderingManager.LightingRenderer.GraphicsClearColor = RenderingManager.Lighting.DrawColor;
+
+                //Render lighting
+                RenderingManager.LightingRenderer.Draw(Game.SpriteBatch, Game.Resolution);
+
+                //=================================
+                // Draw world to Buffer
+                //---------------------------------
+                Game.GraphicsManager.GraphicsDevice.SetRenderTarget(BufferRenderer.RenderTarget);
+                Game.GraphicsManager.GraphicsDevice.Clear(Color.Black);
+
+                //Render world
+                Game.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied);
+                SceneManager.Draw_WorldsOnly(Game.SpriteBatch, Game.Resolution, Color.White);
+                Game.SpriteBatch.End();
+
+                //Add lighting to world
+                RenderingManager.AddLightingRenderer.Draw(Game.SpriteBatch, Game.Resolution);
+
+                Game.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied);
+
+                //Alt method with no lighting applied
+                SceneManager.Draw_WorldsOnly(Game.SpriteBatch, Game.Resolution);
+
+                Game.SpriteBatch.End();
+                //---------------------------------
+                // End of drawing to Buffer
+                //=================================
+
+                //Apply shaders
+                if (ShaderUtil.RenderTarget_Blurred != null &&
+                    TimeManager.Paused)
                 {
-                    base.Draw(gameTime);
+                    if (ShaderUtil.RenderTarget_Blurred.Width != Game.Resolution.X ||
+                        ShaderUtil.RenderTarget_Blurred.Height != Game.Resolution.Y)
+                    {
+                        ShaderUtil.RenderTarget_Blurred = new RenderTarget2D(Game.GraphicsManager.GraphicsDevice, Game.Resolution.X, Game.Resolution.Y);
+                    }
+
+                    Game.GraphicsManager.GraphicsDevice.SetRenderTarget(ShaderUtil.RenderTarget_Blurred);
+                    Game.GraphicsManager.GraphicsDevice.Clear(Color.Transparent);
+
+                    ShaderUtil.Apply_GaussianBlur(Game.SpriteBatch, 5, BufferRenderer.RenderTarget, new Region(0, 0, Game.Resolution.X, Game.Resolution.Y), false);
+                    Game.GraphicsManager.GraphicsDevice.SetRenderTarget(BufferRenderer.RenderTarget);
+
+                    ShaderUtil.Apply_GaussianBlur(Game.SpriteBatch, 5, ShaderUtil.RenderTarget_Blurred, new Region(0, 0, Game.Resolution.X, Game.Resolution.Y), true);
                 }
+
+                //Draw Buffer to Final RenderTarget
+                Game.GraphicsManager.GraphicsDevice.SetRenderTarget(FinalRenderer.RenderTarget);
+                Game.GraphicsManager.GraphicsDevice.Clear(Color.Black);
+
+                Game.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque);
+                Game.SpriteBatch.Draw(BufferRenderer.RenderTarget, new Rectangle(0, 0, Game.Resolution.X, Game.Resolution.Y), Color.White);
+                Game.SpriteBatch.End();
+
+                //Draw Final RenderTarget to screen
+                Game.GraphicsManager.GraphicsDevice.SetRenderTarget(null);
+                Game.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque);
+                Game.SpriteBatch.Draw(FinalRenderer.RenderTarget, new Rectangle(0, 0, Game.Resolution.X, Game.Resolution.Y), Color.White);
+                Game.SpriteBatch.End();
+
+                //=================================
+                // Draw menus
+                //---------------------------------
+                Game.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied);
+
+                //Render scene specific menus
+                SceneManager.Draw_MenusOnly(Game.SpriteBatch);
+
+                //Render standalone menus
+                MenuManager.Draw(Game.SpriteBatch);
+
+                Game.SpriteBatch.End();
             }
         }
 

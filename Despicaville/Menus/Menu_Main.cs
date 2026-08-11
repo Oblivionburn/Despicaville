@@ -209,6 +209,7 @@ namespace Despicaville.Menus
         {
             Clear();
 
+            Texture2D? background = Handler.GetTexture("Black");
             Texture2D? frame = Handler.GetTexture("Frame");
 
             Texture2D? button_Back = Handler.GetTexture("Button_Back");
@@ -230,6 +231,8 @@ namespace Despicaville.Menus
 
             Texture2D? button_Exit = Handler.GetTexture("Button_Exit");
             Texture2D? button_Exit_Hover = Handler.GetTexture("Button_Exit_Hover");
+
+            AddPicture(Handler.GetID(), "Background", background, new Region(0, 0, 0, 0), Color.White * 0.25f, false);
 
             AddButton(Handler.GetID(), "Back", button_Back, button_Back_Hover, button_Back_Disabled,
                 new Region(0, 0, 0, 0), Color.White, false);
@@ -304,6 +307,12 @@ namespace Despicaville.Menus
                 return;
             }
 
+            Picture? background = GetPicture("Background");
+            if (background != null)
+            {
+                background.Region = new Region(0, 0, Main.Game.ScreenWidth, Main.Game.ScreenHeight);
+            }
+
             float Y = (Main.Game.ScreenHeight / 2) - (Main.Game.MenuSize_Y / 2);
             float X = (Main.Game.ScreenWidth / 2) - (Main.Game.MenuSize_X / 2);
 
@@ -312,7 +321,6 @@ namespace Despicaville.Menus
             {
                 back.Region = new Region(X, Y, Main.Game.MenuSize_X, Main.Game.MenuSize_Y);
             }
-            
 
             Button? play = GetButton("Play");
             if (play != null)

@@ -37,16 +37,16 @@ namespace Despicaville.SubTasks
                 return;
             }
 
+            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+            Tile? bottom_tile = bottom_tiles?.GetTile(tile.Location.ToVector2);
+            if (bottom_tile?.Region == null)
+            {
+                return;
+            }
+
             int x_diff = (int)(Handler.Player.Location.X - Location.X) * -1;
             int y_diff = (int)(Handler.Player.Location.Y - Location.Y) * -1;
             AssetManager.PlaySound_Random_In3D("DoorClose", new Vector3(x_diff, y_diff, 1), 1, 20);
-
-            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
-            Tile? bottom_tile = bottom_tiles?.GetTile(tile.Location.ToVector2);
-            if (bottom_tile?.Region != null)
-            {
-                tile.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
-            }
 
             if (Owner_Character.Direction == Direction.North)
             {
@@ -69,10 +69,10 @@ namespace Despicaville.SubTasks
                 tile.Name = "Door_NorthSouth_Closed";
             }
 
+            tile.Region = new Region(bottom_tile.Region.X, bottom_tile.Region.Y, bottom_tile.Region.Width, bottom_tile.Region.Height);
             tile.BlocksMovement = true;
-            CharacterUtil.UpdateSight(Owner_Character);
 
-            if (Owner_Character.Type != "Player")
+            if (bottom_tile.InSight)
             {
                 CharacterUtil.UpdateSight(Handler.Player);
             }

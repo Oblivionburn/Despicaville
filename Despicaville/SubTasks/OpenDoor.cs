@@ -27,7 +27,8 @@ namespace Despicaville.SubTasks
 
             Layer? middle_tiles = map?.GetLayer("MiddleTiles");
             Tile? tile = middle_tiles?.GetTile(Location.ToVector2);
-            if (tile?.Region == null)
+            if (tile?.Region == null ||
+                tile.Location == null)
             {
                 return;
             }
@@ -67,9 +68,11 @@ namespace Despicaville.SubTasks
             }
 
             tile.BlocksMovement = false;
-            CharacterUtil.UpdateSight(Owner_Character);
 
-            if (Owner_Character.Type != "Player")
+            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+            Tile? bottom_tile = bottom_tiles?.GetTile(tile.Location.ToVector2);
+            if (bottom_tile != null &&
+                bottom_tile.InSight)
             {
                 CharacterUtil.UpdateSight(Handler.Player);
             }

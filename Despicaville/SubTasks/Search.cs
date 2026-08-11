@@ -34,43 +34,9 @@ namespace Despicaville.SubTasks
             {
                 if (tile.Inventory?.Items.Count > 0)
                 {
-                    TimeManager.Paused = true;
-
                     Handler.Trading = true;
                     Handler.Trading_InventoryID.Add(tile.Inventory.ID);
-
-                    Menu? menu = MenuManager.GetMenu("Inventory");
-                    if (menu != null)
-                    {
-                        menu.Load();
-                        menu.Active = true;
-                        menu.Visible = true;
-                    }
-                }
-                else if (Name != null)
-                {
-                    int loudness = 2;
-                    if (Name.Contains("Quiet"))
-                    {
-                        loudness = 1;
-                    }
-                    else if (Name.Contains("Loud"))
-                    {
-                        loudness = 3;
-                    }
-
-                    if (loudness == 1)
-                    {
-                        GameUtil.AddMessage("You quietly searched the " + WorldUtil.GetTile_Name(tile) + ", but found nothing.");
-                    }
-                    else if (loudness == 2)
-                    {
-                        GameUtil.AddMessage("You searched the " + WorldUtil.GetTile_Name(tile) + ", but found nothing.");
-                    }
-                    else if (loudness == 3)
-                    {
-                        GameUtil.AddMessage("You loudly searched the " + WorldUtil.GetTile_Name(tile) + ", but found nothing.");
-                    }
+                    MenuManager.GetMenu("Inventory")?.Open();
                 }
             }
         }

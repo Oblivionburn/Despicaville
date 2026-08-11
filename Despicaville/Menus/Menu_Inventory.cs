@@ -1257,9 +1257,27 @@ namespace Despicaville.Menus
         public override void Open()
         {
             TimeManager.Paused = true;
+
             Load();
+
             Visible = true;
             Active = true;
+
+            Menu? menu_health = MenuManager.GetMenu("Health");
+            if (menu_health != null)
+            {
+                menu_health.Active = false;
+                menu_health.Visible = false;
+            }
+
+            Menu? menu_ui = MenuManager.GetMenu("UI");
+            if (menu_ui != null)
+            {
+                menu_ui.Active = false;
+                menu_ui.Visible = false;
+            }
+
+            Handler.Menu_Inventory = true;
         }
 
         public override void Close()
@@ -1292,11 +1310,31 @@ namespace Despicaville.Menus
                 Handler.Trading_InventoryID.Clear();
             }
 
+            Menu? ui = MenuManager.GetMenu("UI");
+            if (ui != null)
+            {
+                ui.Visible = true;
+                ui.Active = true;
+            }
+
+            if (Handler.Menu_Health)
+            {
+                Menu? menu_health = MenuManager.GetMenu("Health");
+                if (menu_health != null)
+                {
+                    menu_health.Active = true;
+                    menu_health.Visible = true;
+                }
+            }
+
             InputManager.Keyboard?.Flush();
             InputManager.Mouse?.Flush();
-            TimeManager.Paused = false;
+
             Visible = false;
             Active = false;
+            Handler.Menu_Inventory = false;
+
+            TimeManager.Paused = false;
         }
 
         private void LoadEquipped()
@@ -2006,6 +2044,7 @@ namespace Despicaville.Menus
         {
             Clear();
 
+            Texture2D? background = Handler.GetTexture("Black");
             Texture2D? frame = Handler.GetTexture("Frame");
             Texture2D? grid_Hover = Handler.GetTexture("Grid_Hover");
             Texture2D? highlight = Handler.GetTexture("Highlight");
@@ -2025,6 +2064,8 @@ namespace Despicaville.Menus
             Texture2D? slot_Weapon_Right = Handler.GetTexture("Slot_Weapon_Right");
             Texture2D? slot_Shoes = Handler.GetTexture("Slot_Shoes");
             Texture2D? slot_Weapon_Left = Handler.GetTexture("Slot_Weapon_Left");
+
+            AddPicture(Handler.GetID(), "Background", background, new Region(0, 0, 0, 0), Color.White * 0.25f, true);
 
             AddButton(Handler.GetID(), "Close", button_Back, button_Back_Hover, button_Back_Disabled,
                 new Region(0, 0, 0, 0), Color.White, true);
@@ -2090,6 +2131,12 @@ namespace Despicaville.Menus
 
             if (Pictures.Count > 0)
             {
+                Picture? background = GetPicture("Background");
+                if (background != null)
+                {
+                    background.Region = new Region(0, 0, Main.Game.ScreenWidth, Main.Game.ScreenHeight);
+                }
+
                 Label? name = GetLabel("Name");
                 if (name != null)
                 {
