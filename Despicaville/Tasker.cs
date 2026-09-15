@@ -66,6 +66,13 @@ namespace Despicaville
                 return;
             }
 
+            if (character.Stats.Bladder >= 30 ||
+                character.Stats.Thirst >= 30 ||
+                character.Stats.Hunger >= 30)
+            {
+                return;
+            }
+
             Appointment? appointment = character.Job.GetAppointment(TimeManager.Now);
             if (appointment?.Name == null)
             {
@@ -141,16 +148,70 @@ namespace Despicaville
                 }
             }
 
-            JobTask? findEntertainment = character.Job.GetTask("FindEntertainment");
-            if (findEntertainment == null)
+            int choice = new CryptoRandom().Next(0, 3);
+            switch (choice)
             {
-                character.Job.Tasks.Add(new FindEntertainment
-                {
-                    Name = "FindEntertainment",
-                    Owner_Character = character,
-                    Priority = 10,
-                    StartTime = new TimeHandler(TimeManager.Now)
-                });
+                case 0:
+                    JobTask? findEntertainment = character.Job.GetTask("FindEntertainment");
+                    if (findEntertainment == null)
+                    {
+                        character.Job.Tasks.Add(new FindEntertainment
+                        {
+                            Name = "FindEntertainment",
+                            Owner_Character = character,
+                            Priority = 10,
+                            StartTime = new TimeHandler(TimeManager.Now)
+                        });
+                    }
+                    break;
+
+                case 1:
+                    bool seated = Seated(character);
+                    if (seated)
+                    {
+                        JobTask? wait = character.Job.GetTask("Wait");
+                        if (wait == null)
+                        {
+                            character.Job.Tasks.Add(new Wait
+                            {
+                                Name = "Wait",
+                                Owner_Character = character,
+                                Priority = 101,
+                                StartTime = new TimeHandler(TimeManager.Now),
+                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMinutes(10))
+                            });
+                        }
+                    }
+                    else
+                    {
+                        JobTask? findComfort = character.Job.GetTask("FindComfort");
+                        if (findComfort == null)
+                        {
+                            character.Job.Tasks.Add(new FindComfort
+                            {
+                                Name = "FindComfort",
+                                Owner_Character = character,
+                                Priority = 10,
+                                StartTime = new TimeHandler(TimeManager.Now)
+                            });
+                        }
+                    }
+                    break;
+
+                case 2:
+                    JobTask? justWait = character.Job.GetTask("Wait");
+                    if (justWait == null)
+                    {
+                        character.Job.Tasks.Add(new Wait
+                        {
+                            Name = "Wait",
+                            Owner_Character = character,
+                            Priority = 101,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMinutes(10))
+                        });
+                    }
+                    break;
             }
         }
 
@@ -473,20 +534,15 @@ namespace Despicaville
                 return false;
             }
 
-            List<Tile> comfortSpots = WorldUtil.GetComfortSpots(character);
-            if (comfortSpots.Count > 0)
+            List<Tile> furniture_nearby = WorldUtil.GetFurniture_Nearby(character, character.Location, 2);
+            if (furniture_nearby.Count > 0)
             {
-                Tile? comfortSpot = WorldUtil.GetClosestTile(comfortSpots, character);
-                if (comfortSpot?.Location != null)
+                Tile? furniture = WorldUtil.GetFurniture(furniture_nearby, character.Location);
+                if (furniture != null &&
+                    furniture.CanMove &&
+                    !furniture.BlocksMovement)
                 {
-                    if (character.Location.X == comfortSpot.Location.X &&
-                        character.Location.Y == comfortSpot.Location.Y)
-                    {
-                        if (character.Direction == comfortSpot.Direction)
-                        {
-                            return true;
-                        }
-                    }
+                    return true;
                 }
             }
 

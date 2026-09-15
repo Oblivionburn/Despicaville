@@ -28,7 +28,7 @@ namespace Despicaville.MajorTasks
             List<Tile> fridges = WorldUtil.GetFurniture_Owned(Owner_Character, "Fridge");
             if (fridges.Count > 0)
             {
-                fridge = WorldUtil.GetClosestTile(fridges, Owner_Character);
+                fridge = WorldUtil.GetClosestTile(fridges, Owner_Character.Location);
 
                 if (fridge?.Inventory != null)
                 {
@@ -52,7 +52,7 @@ namespace Despicaville.MajorTasks
                 List<Tile> sinks = WorldUtil.GetFurniture_Owned(Owner_Character, "Sink");
                 if (sinks.Count > 0)
                 {
-                    sink = WorldUtil.GetClosestTile(sinks, Owner_Character);
+                    sink = WorldUtil.GetClosestTile(sinks, Owner_Character.Location);
                 }
             }
         }

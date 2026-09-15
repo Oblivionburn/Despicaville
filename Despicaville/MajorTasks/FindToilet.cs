@@ -14,7 +14,7 @@ namespace Despicaville.MajorTasks
     {
         public override void Action_Start()
         {
-            if (Owner_Character == null)
+            if (Owner_Character?.Location == null)
             {
                 return;
             }
@@ -23,7 +23,7 @@ namespace Despicaville.MajorTasks
             List<Tile> toilets = WorldUtil.GetFurniture_Unused(Handler.MiddleFurniture, "Toilet");
             if (toilets.Count > 0)
             {
-                Tile? toilet = WorldUtil.GetClosestTile(toilets, Owner_Character);
+                Tile? toilet = WorldUtil.GetClosestTile(toilets, Owner_Character.Location);
                 if (toilet?.Location != null)
                 {
                     Location = toilet.Location;

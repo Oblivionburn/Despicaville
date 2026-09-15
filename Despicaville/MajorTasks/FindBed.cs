@@ -148,7 +148,7 @@ namespace Despicaville.MajorTasks
             }
             else if (bottom_tiles != null)
             {
-                int? distance = WorldUtil.GetDistance(Owner_Character.Location, Location) * 8;
+                int distance = WorldUtil.GetDistance(Owner_Character.Location, Location) * 8;
                 List<ALocation> path = Pathing.GetPath(bottom_tiles, middle_tiles, Owner_Character, Location, distance, false);
 
                 if (path.Count > 0)

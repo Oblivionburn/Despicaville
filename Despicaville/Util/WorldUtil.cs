@@ -56,14 +56,7 @@ namespace Despicaville.Util
                 return false;
             }
 
-            //Check middle tiles
-            Layer? middle_tiles = map.GetLayer("MiddleTiles");
-            if (middle_tiles == null)
-            {
-                return false;
-            }
-
-            List<Tile> furniture = GetFurniture_Nearby(middle_tiles, destination, 3);
+            List<Tile> furniture = GetFurniture_Nearby(character, destination, 3);
 
             Tile? middle_tile = GetFurniture(furniture, destination);
             if (middle_tile != null &&
@@ -85,7 +78,7 @@ namespace Despicaville.Util
             }
 
             //Check other characters
-            Character? other = GetCharacter(destination);
+            Character? other = GetCharacter(destination, false);
             if (other != null)
             {
                 if (Handler.Pull_Character != null)
@@ -210,7 +203,7 @@ namespace Despicaville.Util
                                 }
                             }
 
-                            other = GetCharacter(new Location(X, Y, 0));
+                            other = GetCharacter(new Location(X, Y, 0), false);
                             if (other != null &&
                                 other.ID != character.ID)
                             {
@@ -316,27 +309,12 @@ namespace Despicaville.Util
             return Direction.Nowhere;
         }
 
-        public static int? GetDistance(Location? origin, Location? location)
+        public static int GetDistance(Location origin, Location location)
         {
-            if (origin == null ||
-                location == null)
-            {
-                return null;
-            }
-
-            int x_diff = (int)origin.X - (int)location.X;
-            if (x_diff < 0)
-            {
-                x_diff *= -1;
-            }
-
-            int y_diff = (int)origin.Y - (int)location.Y;
-            if (y_diff < 0)
-            {
-                y_diff *= -1;
-            }
-
-            return x_diff + y_diff;
+            float x_diff = origin.X - location.X;
+            float y_diff = origin.Y - location.Y;
+            int dist = (int)(x_diff + y_diff);
+            return Math.Abs(dist);
         }
 
         public static void UpdateWorld(World world)
@@ -657,71 +635,30 @@ namespace Despicaville.Util
             tile.Location = new Location(newLocation.X, newLocation.Y, 0);
         }
 
-        public static Tile? GetClosestTile(List<Tile> tiles, Character character)
-        {
-            if (character.Location == null)
-            {
-                return null;
-            }
-
-            Tile[] tilesArray = tiles.ToArray();
-            int count = tilesArray.Length;
-
-            if (count > 0)
-            {
-                if (count > 1)
-                {
-                    Tile closest = tilesArray[0];
-                    int? nearest = GetDistance(character.Location, closest.Location);
-
-                    for (int i = 1; i < count; i++)
-                    {
-                        Tile tile = tilesArray[i];
-
-                        int? distance = GetDistance(character.Location, tile.Location);
-                        if (distance < nearest)
-                        {
-                            nearest = distance;
-                            closest = tile;
-                        }
-                    }
-
-                    return closest;
-                }
-                else
-                {
-                    return tilesArray[0];
-                }
-            }
-
-            return null;
-        }
-
         public static Tile? GetClosestTile(List<Tile> tiles, Location location)
         {
-            Tile[] tilesArray = tiles.ToArray();
-            int count = tilesArray.Length;
+            int count = tiles.Count;
 
             if (count > 0)
             {
                 if (count > 1)
                 {
-                    Tile tile = tilesArray[0];
+                    Tile tile = tiles[0];
                     if (tile.Location == null)
                     {
                         return null;
                     }
 
-                    int? distance = GetDistance(location, new Location(tile.Location.X, tile.Location.Y));
+                    int distance = GetDistance(location, tile.Location);
                     for (int i = 1; i < count; i++)
                     {
-                        Tile new_tile = tilesArray[i];
+                        Tile new_tile = tiles[i];
                         if (new_tile.Location == null)
                         {
-                            return null;
+                            continue;
                         }
 
-                        int? new_distance = GetDistance(location, new Location(new_tile.Location.X, new_tile.Location.Y));
+                        int new_distance = GetDistance(location, new_tile.Location);
                         if (new_distance < distance)
                         {
                             distance = new_distance;
@@ -733,7 +670,7 @@ namespace Despicaville.Util
                 }
                 else
                 {
-                    return tilesArray[0];
+                    return tiles[0];
                 }
             }
 
@@ -809,23 +746,51 @@ namespace Despicaville.Util
             return result;
         }
 
-        public static Character? GetCharacter(Location location)
+        public static Character? GetCharacter(Location location, bool simplified)
         {
             Map? map = GetMap();
             Layer? bottom_tiles = map?.GetLayer("BottomTiles");
 
             Tile? tile = bottom_tiles?.GetTile(location.ToVector2);
-            if (tile?.Region != null)
+            if (tile == null ||
+                tile.Region == null ||
+                tile.Location == null)
             {
-                Army army = CharacterManager.Armies[0];
-                Squad citizens = army.Squads[1];
+                return null;
+            }
 
-                Character? character = GetCharacter(citizens.Characters, tile);
-                if (character != null)
+            Army army = CharacterManager.Armies[0];
+            Squad citizens = army.Squads[1];
+
+            Character? character;
+
+            if (simplified)
+            {
+                character = GetCharacter_Simple(citizens.Characters, tile);
+            }
+            else
+            {
+                character = GetCharacter(citizens.Characters, tile);
+            }
+
+            if (character != null)
+            {
+                return character;
+            }
+
+            if (simplified)
+            {
+                if (Handler.Player?.Location != null)
                 {
-                    return character;
+                    if (Handler.Player.Location.X == tile.Location.X &&
+                        Handler.Player.Location.Y == tile.Location.Y)
+                    {
+                        return Handler.Player;
+                    }
                 }
-
+            }
+            else
+            {
                 if (Handler.Player?.Region != null)
                 {
                     float center_x = Handler.Player.Region.X + (Handler.Player.Region.Width / 2);
@@ -842,7 +807,7 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static Character? GetCharacter(List<Character> characters, Location location)
+        public static Character? GetCharacter(List<Character> characters, Location location, bool simplified)
         {
             Map? map = GetMap();
             Layer? bottom_tiles = map?.GetLayer("BottomTiles");
@@ -850,7 +815,17 @@ namespace Despicaville.Util
             Tile? tile = bottom_tiles?.GetTile(location.ToVector2);
             if (tile != null)
             {
-                Character? character = GetCharacter(characters, tile);
+                Character? character;
+
+                if (simplified)
+                {
+                    character = GetCharacter_Simple(characters, tile);
+                }
+                else
+                {
+                    character = GetCharacter(characters, tile);
+                }
+                
                 if (character != null)
                 {
                     return character;
@@ -881,6 +856,40 @@ namespace Despicaville.Util
                     {
                         return character;
                     }
+                }
+            }
+
+            return null;
+        }
+
+        public static Character? GetCharacter_Simple(List<Character> characters, Tile tile)
+        {
+            if (tile.Location == null)
+            {
+                return null;
+            }
+
+            Location tile_location = tile.Location;
+            float tile_x = tile_location.X;
+            float tile_y = tile_location.Y;
+
+            int count = characters.Count;
+            for (int i = 0; i < count; i++)
+            {
+                Character character = characters[i];
+                if (character.Location == null)
+                {
+                    continue;
+                }
+
+                Location location = character.Location;
+                float char_x = location.X;
+                float char_y = location.Y;
+
+                if (char_x == tile_x &&
+                    char_y == tile_y)
+                {
+                    return character;
                 }
             }
 
@@ -1091,18 +1100,30 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static List<Tile> GetFurniture_Nearby(Layer middle_tiles, Location location, int distance)
+        public static List<Tile> GetFurniture_Nearby(Character character, Location location, int distance)
         {
             List<Tile> furniture = [];
 
-            int min_y = (int)location.Y - distance;
-            int max_y = (int)location.Y + distance;
-            int min_x = (int)location.X - distance;
-            int max_x = (int)location.X + distance;
-
-            for (int y = min_y; y < max_y; y++)
+            Layer? middle_tiles = character.Map?.GetLayer("MiddleTiles");
+            if (middle_tiles == null)
             {
-                for (int x = min_x; x < max_x; x++)
+                return furniture;
+            }
+
+            int block_x = (int)(location.X / 20) * 20;
+            int block_y = (int)(location.Y / 20) * 20;
+
+            float loc_x = location.X - block_x;
+            float loc_y = location.Y - block_y;
+
+            float min_y = loc_y - distance;
+            float max_y = loc_y + distance;
+            float min_x = loc_x - distance;
+            float max_x = loc_x + distance;
+
+            for (float y = min_y; y < max_y; y++)
+            {
+                for (float x = min_x; x < max_x; x++)
                 {
                     Vector2 loc = new(x, y);
 
@@ -1127,8 +1148,7 @@ namespace Despicaville.Util
             for (int i = 0; i < count; i++)
             {
                 Tile tile = furniture[i];
-                if (tile.Name != null &&
-                    tile.Name.Contains(name))
+                if (tile.Name == name)
                 {
                     tiles.Add(tile);
                 }
@@ -1305,19 +1325,30 @@ namespace Despicaville.Util
         {
             List<Tile> furniture = [];
 
-            int world_x = map_coords.X * 20;
-            int world_y = map_coords.Y * 20;
+            float world_x_min = map_coords.X * 20;
+            float world_y_min = map_coords.Y * 20;
+            float world_x_max = world_x_min + 20;
+            float world_y_max = world_y_min + 20;
 
-            foreach (Tile tile in layer.Tiles)
+            int count = layer.Tiles.Count;
+            for (int i = 0; i < count; i++)
             {
-                if (tile.Texture != null &&
-                    tile.Location != null)
+                Tile tile = layer.Tiles[i];
+
+                if (tile.Texture == null)
                 {
-                    if (tile.Location.X >= world_x && tile.Location.X < world_x + 20 &&
-                        tile.Location.Y >= world_y && tile.Location.Y < world_y + 20)
-                    {
-                        furniture.Add(tile);
-                    }
+                    continue;
+                }
+
+                if (tile.Location == null)
+                {
+                    continue;
+                }
+
+                if (tile.Location.X >= world_x_min && tile.Location.X < world_x_max &&
+                    tile.Location.Y >= world_y_min && tile.Location.Y < world_y_max)
+                {
+                    furniture.Add(tile);
                 }
             }
 
@@ -1415,7 +1446,8 @@ namespace Despicaville.Util
         public static Tile? GetNearestExit_ToFurniture(Character character, Layer middle_tiles, Tile furniture)
         {
             Map? room = GetRoom(character);
-            if (room?.Location == null)
+            if (room?.Location == null ||
+                furniture.Location == null)
             {
                 return null;
             }
@@ -1432,7 +1464,7 @@ namespace Despicaville.Util
                         continue;
                     }
 
-                    int? distance = GetDistance(new Location(nearest_exit.Location.X, nearest_exit.Location.Y, 0), furniture.Location);
+                    int distance = GetDistance(new Location(nearest_exit.Location.X, nearest_exit.Location.Y, 0), furniture.Location);
 
                     int tileCount = layer.Tiles.Count;
                     for (int t = 0; t < tileCount; t++)
@@ -1443,7 +1475,7 @@ namespace Despicaville.Util
                             continue;
                         }
 
-                        int? new_distance = GetDistance(new Location(exit.Location.X, exit.Location.Y, 0), furniture.Location);
+                        int new_distance = GetDistance(new Location(exit.Location.X, exit.Location.Y, 0), furniture.Location);
                         if (new_distance < distance)
                         {
                             nearest_exit = exit;
@@ -1474,45 +1506,15 @@ namespace Despicaville.Util
         {
             List<Tile> result = [];
 
-            if (character.Map == null)
-            {
-                SetCurrentMap(character);
-            }
-
-            if (character.Map?.Location == null)
-            {
-                return result;
-            }
-
-            Map? map = GetMap();
-            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
-            if (bottom_tiles == null)
-            {
-                return result;
-            }
-
-            Layer? middle_tiles = character.Map.GetLayer("MiddleTiles");
-            if (middle_tiles == null)
-            {
-                return result;
-            }
-
-            Point map_coords = new((int)character.Map.Location.X, (int)character.Map.Location.Y);
-            List<Tile> list = GetFurniture_All(middle_tiles, map_coords);
-            int count = list.Count;
+            List<Tile> furniture_owned = Handler.OwnedFurniture[character.ID];
+            int count = furniture_owned.Count;
 
             for (int i = 0; i < count; i++)
             {
-                Tile furniture = list[i];
-                if (furniture.Name == null)
-                {
-                    continue;
-                }
+                Tile furniture = furniture_owned[i];
 
-                if (!furniture.Name.Contains("Chair") &&
-                    !furniture.Name.Contains("Couch") &&
-                    !furniture.Name.Contains("Loveseat") &&
-                    !furniture.Name.Contains("Bench"))
+                if (!furniture.CanMove ||
+                    furniture.BlocksMovement)
                 {
                     continue;
                 }
@@ -1533,19 +1535,15 @@ namespace Despicaville.Util
 
                         Location location = new(X, Y);
 
-                        Character? existing = GetCharacter(location);
+                        Character? existing = GetCharacter(location, true);
                         if (existing == null ||
                             existing.ID == character.ID)
                         {
-                            Tile? tile = bottom_tiles.GetTile(location.ToVector2);
-                            if (tile != null)
+                            result.Add(new Tile
                             {
-                                result.Add(new Tile
-                                {
-                                    Location = tile.Location,
-                                    Direction = furniture.Direction
-                                });
-                            }
+                                Location = location,
+                                Direction = furniture.Direction
+                            });
                         }
                     }
                 }
@@ -2384,7 +2382,7 @@ namespace Despicaville.Util
                             bed = tile;
                             newHome = home;
 
-                            Character? character = GetCharacter(bed_location);
+                            Character? character = GetCharacter(bed_location, true);
                             if (character != null)
                             {
                                 replacement = character;

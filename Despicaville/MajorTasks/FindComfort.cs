@@ -14,7 +14,7 @@ namespace Despicaville.MajorTasks
     {
         public override void Action_Start()
         {
-            if (Owner_Character == null)
+            if (Owner_Character?.Location == null)
             {
                 return;
             }
@@ -22,7 +22,7 @@ namespace Despicaville.MajorTasks
             List<Tile> comfortSpots = WorldUtil.GetComfortSpots(Owner_Character);
             if (comfortSpots.Count > 0)
             {
-                Tile? comfortSpot = WorldUtil.GetClosestTile(comfortSpots, Owner_Character);
+                Tile? comfortSpot = WorldUtil.GetClosestTile(comfortSpots, Owner_Character.Location);
                 if (comfortSpot?.Location != null)
                 {
                     Location = comfortSpot.Location;

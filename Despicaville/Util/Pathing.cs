@@ -503,51 +503,15 @@ namespace Despicaville.Util
                 for (int i = 0; i < count; i++)
                 {
                     Tile exit = exits.Tiles[i];
-                    if (exit.Location == null)
+                    if (exit.Map == null ||
+                        exit.Location == null)
                     {
                         continue;
                     }
 
-                    //Is the current exit tile overlapping some other room's exit tile?
-                    Layer? other_exits = next_room.GetLayer("Exits");
-                    if (other_exits != null)
+                    if (exit.Map.ID == next_room.ID)
                     {
-                        int exitCount = other_exits.Tiles.Count;
-                        for (int e = 0; e < exitCount; e++)
-                        {
-                            Tile other_exit = other_exits.Tiles[e];
-                            if (other_exit.Location == null)
-                            {
-                                continue;
-                            }
-
-                            if (exit.Location.X == other_exit.Location.X &&
-                                exit.Location.Y == other_exit.Location.Y)
-                            {
-                                result.Add(other_exit.Location);
-                            }
-                        }
-                    }
-
-                    //Is the current exit tile overlapping some other room's tile?
-                    Layer? tiles = next_room.GetLayer("Tiles");
-                    if (tiles != null)
-                    {
-                        int tileCount = tiles.Tiles.Count;
-                        for (int e = 0; e < tileCount; e++)
-                        {
-                            Tile tile = tiles.Tiles[e];
-                            if (tile.Location == null)
-                            {
-                                continue;
-                            }
-
-                            if (exit.Location.X == tile.Location.X &&
-                                exit.Location.Y == tile.Location.Y)
-                            {
-                                result.Add(tile.Location);
-                            }
-                        }
+                        result.Add(exit.Location);
                     }
                 }
             }
@@ -1336,14 +1300,11 @@ namespace Despicaville.Util
             return false;
         }
 
-        private static bool Walkable(Layer? bottom_tiles, Layer? middle_tiles, ALocation? location)
+        private static bool Walkable(Layer bottom_tiles, Layer middle_tiles, ALocation ALocation)
         {
-            if (location == null)
-            {
-                return false;
-            }
+            Vector2 loc = new (ALocation.X, ALocation.Y);
 
-            Tile? bottom_tile = bottom_tiles?.GetTile(new Vector2(location.X, location.Y));
+            Tile? bottom_tile = bottom_tiles.GetTile(loc);
             if (bottom_tile == null)
             {
                 return false;
@@ -1354,19 +1315,18 @@ namespace Despicaville.Util
                 return false;
             }
 
-            Tile? middle_tile = middle_tiles?.GetTile(new Vector2(location.X, location.Y));
-            if (middle_tile != null)
+            Tile? middle_tile = middle_tiles.GetTile(loc);
+            if (middle_tile != null &&
+                middle_tile.Name != null)
             {
                 if (middle_tile.BlocksMovement)
                 {
-                    if (middle_tile.Name != null &&
-                        !middle_tile.Name.Contains("Door"))
+                    if (!middle_tile.Name.Contains("Door"))
                     {
                         return false;
                     }
                 }
-                else if (middle_tile.Name != null &&
-                         middle_tile.Name.Contains("Window"))
+                else if (middle_tile.Name.Contains("Window"))
                 {
                     return false;
                 }
@@ -1374,7 +1334,8 @@ namespace Despicaville.Util
 
             if (nearby_characters.Count > 0)
             {
-                Character? other = WorldUtil.GetCharacter(nearby_characters, new Location(location.X, location.Y));
+                Location location = new(ALocation.X, ALocation.Y);
+                Character? other = WorldUtil.GetCharacter(nearby_characters, location, true);
                 if (other != null)
                 {
                     return false;
@@ -1444,7 +1405,7 @@ namespace Despicaville.Util
 
             if (nearby_characters.Count > 0)
             {
-                Character? other = WorldUtil.GetCharacter(nearby_characters, new Location(location.X, location.Y));
+                Character? other = WorldUtil.GetCharacter(nearby_characters, new Location(location.X, location.Y), true);
                 if (other != null)
                 {
                     return false;

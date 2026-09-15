@@ -123,8 +123,8 @@ namespace Despicaville.Util
         {
             if (Main.Game == null ||
                 Main.Game.GraphicsManager == null ||
-                Main.BufferRenderer == null ||
-                Main.FinalRenderer == null ||
+                Main.Game.RenderingManager?.BufferRenderer == null ||
+                Main.Game.RenderingManager?.FinalRenderer == null ||
                 BloomExtract == null ||
                 BloomCombine == null ||
                 RenderTarget_BrightAreas == null ||
@@ -184,9 +184,9 @@ namespace Despicaville.Util
 
             //Pass 4: draw RenderTarget_BrightAreas and BufferRenderer into FinalRenderer, using a shader that combines them to
             //produce the final bloomed result
-            Main.Game.GraphicsManager.GraphicsDevice.SetRenderTarget(Main.FinalRenderer.RenderTarget);
+            Main.Game.GraphicsManager.GraphicsDevice.SetRenderTarget(Main.Game.RenderingManager.FinalRenderer.RenderTarget);
 
-            BloomCombine.Parameters["base_target"].SetValue(Main.BufferRenderer.RenderTarget);
+            BloomCombine.Parameters["base_target"].SetValue(Main.Game.RenderingManager.BufferRenderer.RenderTarget);
             BloomCombine.Parameters["bloom_target"].SetValue(RenderTarget_BrightAreas);
 
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, BloomCombine);

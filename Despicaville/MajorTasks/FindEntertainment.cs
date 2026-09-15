@@ -26,13 +26,25 @@ namespace Despicaville.MajorTasks
             List<Tile> list = WorldUtil.GetFurniture_Owned(Owner_Character, "TV");
             if (list.Count > 0)
             {
-                tv = WorldUtil.GetClosestTile(list, Owner_Character);
+                tv = WorldUtil.GetClosestTile(list, Owner_Character.Location);
+            }
+
+            //Is there somewhere to sit near the TV?
+            List<Tile> comfortSpots = WorldUtil.GetComfortSpots(Owner_Character);
+            if (comfortSpots.Count > 0)
+            {
+                Tile? comfortSpot = WorldUtil.GetClosestTile(comfortSpots, Owner_Character.Location);
+                if (comfortSpot?.Location != null)
+                {
+                    Location = comfortSpot.Location;
+                }
             }
         }
 
         public override void Action()
         {
             if (TimeManager.Now == null ||
+                Location == null ||
                 Owner_Character?.Location == null ||
                 tv?.Location == null)
             {
@@ -59,53 +71,44 @@ namespace Despicaville.MajorTasks
             //Is the TV on?
             if (tv.IsLightSource)
             {
-                //Is there somewhere to sit near the TV?
-                List<Tile> comfortSpots = WorldUtil.GetComfortSpots(Owner_Character);
-                if (comfortSpots.Count > 0)
+                if (Owner_Character.Location.X == Location.X &&
+                    Owner_Character.Location.Y == Location.Y)
                 {
-                    Tile? nearbySpot = WorldUtil.GetClosestTile(comfortSpots, tv.Location);
-                    if (nearbySpot?.Location != null)
+                    Direction direction = WorldUtil.GetDirection(Owner_Character.Location, tv.Location);
+                    if (Owner_Character.Direction != direction)
                     {
-                        if (Owner_Character.Location.X == nearbySpot.Location.X &&
-                            Owner_Character.Location.Y == nearbySpot.Location.Y)
+                        SubTasks.Add(new Turn
                         {
-                            Direction direction = WorldUtil.GetDirection(Owner_Character.Location, tv.Location);
-                            if (Owner_Character.Direction != direction)
-                            {
-                                SubTasks.Add(new Turn
-                                {
-                                    Name = "Turn",
-                                    Owner_Character = Owner_Character,
-                                    StartTime = new TimeHandler(TimeManager.Now),
-                                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(Owner_Character))),
-                                    Direction = direction
-                                });
-                            }
-                            else
-                            {
-                                SubTasks.Add(new Wait
-                                {
-                                    Name = "Wait",
-                                    Owner_Character = Owner_Character,
-                                    StartTime = new TimeHandler(TimeManager.Now),
-                                    EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMinutes(1))
-                                });
-
-                                EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMinutes(1));
-                            }
-                        }
-                        else
+                            Name = "Turn",
+                            Owner_Character = Owner_Character,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMilliseconds(CharacterUtil.GetTurnTime(Owner_Character))),
+                            Direction = direction
+                        });
+                    }
+                    else
+                    {
+                        SubTasks.Add(new Wait
                         {
-                            Map? map = WorldUtil.GetMap();
-                            Layer? bottom_tiles = map?.GetLayer("BottomTiles");
-                            Layer? middle_tiles = map?.GetLayer("MiddleTiles");
+                            Name = "Wait",
+                            Owner_Character = Owner_Character,
+                            StartTime = new TimeHandler(TimeManager.Now),
+                            EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMinutes(10))
+                        });
 
-                            if (bottom_tiles != null &&
-                                middle_tiles != null)
-                            {
-                                PathTo(nearbySpot.Location, false);
-                            }
-                        }
+                        EndTime = new TimeHandler(TimeManager.Now, TimeSpan.FromMinutes(10));
+                    }
+                }
+                else
+                {
+                    Map? map = WorldUtil.GetMap();
+                    Layer? bottom_tiles = map?.GetLayer("BottomTiles");
+                    Layer? middle_tiles = map?.GetLayer("MiddleTiles");
+
+                    if (bottom_tiles != null &&
+                        middle_tiles != null)
+                    {
+                        PathTo(Location, false);
                     }
                 }
             }

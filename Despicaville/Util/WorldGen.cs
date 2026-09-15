@@ -1469,6 +1469,7 @@ namespace Despicaville.Util
 
             AddRoofTiles(bottom_tiles, middle_tiles, room_tiles, roof_tiles);
             AddRooms();
+            AddRoomConnections();
 
             Scene? gameplay = SceneManager.GetScene("Gameplay");
             if (gameplay != null)
@@ -2091,11 +2092,16 @@ namespace Despicaville.Util
                                         Tile tile = new()
                                         {
                                             Name = blockTile.Name,
-                                            Location = new Location(blockTile.Location.X + world_x, blockTile.Location.Y + world_y, 0),
-                                            Layer = layer,
-                                            Map = room,
-                                            World = world
+                                            Location = new Location(blockTile.Location.X + world_x, blockTile.Location.Y + world_y, 0)
                                         };
+
+                                        if (layer.Name == "Tiles")
+                                        {
+                                            tile.Layer = layer;
+                                            tile.Map = room;
+                                            tile.World = world;
+                                        }
+
                                         layer.Tiles.Add(tile);
                                     }
                                 }
@@ -2112,6 +2118,101 @@ namespace Despicaville.Util
                         }
 
                         break;
+                    }
+                }
+            }
+        }
+
+        private static void AddRoomConnections()
+        {
+            foreach (Map worldTile in Worldmap)
+            {
+                List<Map> rooms = Rooms[worldTile.ID];
+                int roomCount = rooms.Count;
+
+                for (int r = 0; r < roomCount; r++)
+                {
+                    Map room = rooms[r];
+
+                    Layer? exits = room.GetLayer("Exits");
+                    if (exits != null)
+                    {
+                        int count = exits.Tiles.Count;
+                        for (int i = 0; i < count; i++)
+                        {
+                            Tile exit = exits.Tiles[i];
+                            if (exit.Location == null)
+                            {
+                                continue;
+                            }
+
+                            bool found_room = false;
+
+                            for (int o = 0; o < roomCount; o++)
+                            {
+                                Map other_room = rooms[o];
+                                if (other_room.ID == room.ID)
+                                {
+                                    continue;
+                                }
+
+                                //Is the current exit tile overlapping some other room's exit tile?
+                                Layer? other_exits = other_room.GetLayer("Exits");
+                                if (other_exits != null)
+                                {
+                                    int exitCount = other_exits.Tiles.Count;
+                                    for (int e = 0; e < exitCount; e++)
+                                    {
+                                        Tile other_exit = other_exits.Tiles[e];
+                                        if (other_exit.Location == null)
+                                        {
+                                            continue;
+                                        }
+
+                                        if (exit.Location.X == other_exit.Location.X &&
+                                            exit.Location.Y == other_exit.Location.Y)
+                                        {
+                                            found_room = true;
+                                            exit.Map = other_room;
+                                            break;
+                                        }
+                                    }
+
+                                    if (found_room)
+                                    {
+                                        break;
+                                    }
+                                }
+
+                                //Is the current exit tile overlapping some other room's tile?
+                                Layer? tiles = other_room.GetLayer("Tiles");
+                                if (tiles != null)
+                                {
+                                    int tileCount = tiles.Tiles.Count;
+                                    for (int e = 0; e < tileCount; e++)
+                                    {
+                                        Tile tile = tiles.Tiles[e];
+                                        if (tile.Location == null)
+                                        {
+                                            continue;
+                                        }
+
+                                        if (exit.Location.X == tile.Location.X &&
+                                            exit.Location.Y == tile.Location.Y)
+                                        {
+                                            found_room = true;
+                                            exit.Map = other_room;
+                                            break;
+                                        }
+                                    }
+
+                                    if (found_room)
+                                    {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

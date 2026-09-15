@@ -557,7 +557,7 @@ namespace Despicaville.Scenes
                             Squad? citizens = army?.GetSquad("Citizens");
                             if (citizens != null)
                             {
-                                Character? character = WorldUtil.GetCharacter(citizens.Characters, location);
+                                Character? character = WorldUtil.GetCharacter(citizens.Characters, location, false);
                                 if (character != null)
                                 {
                                     Map map = World.Maps[0];
@@ -950,7 +950,7 @@ namespace Despicaville.Scenes
                                     tile.Region != null &&
                                     InputManager.MouseWithin(tile.Region.ToRectangle))
                                 {
-                                    target = WorldUtil.GetCharacter(tile.Location);
+                                    target = WorldUtil.GetCharacter(tile.Location, false);
                                     if (target == null)
                                     {
                                         location = tile.Location;
@@ -1032,7 +1032,7 @@ namespace Despicaville.Scenes
                             if (tile.Visible &&
                                 tile.Location != null)
                             {
-                                target = WorldUtil.GetCharacter(tile.Location);
+                                target = WorldUtil.GetCharacter(tile.Location, false);
                                 break;
                             }
                         }

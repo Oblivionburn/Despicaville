@@ -41,7 +41,7 @@ namespace Despicaville.SubTasks
             isBlocked = false;
             fall = false;
 
-            character = WorldUtil.GetCharacter(Location);
+            character = WorldUtil.GetCharacter(Location, false);
             if (character == null)
             {
                 tile = WorldUtil.GetFurniture_Movable(Handler.MiddleFurniture, Location);
@@ -97,7 +97,7 @@ namespace Despicaville.SubTasks
 
                     if (blockingTile == null)
                     {
-                        Character? blockingCharacter = WorldUtil.GetCharacter(destination);
+                        Character? blockingCharacter = WorldUtil.GetCharacter(destination, false);
                         if (blockingCharacter != null)
                         {
                             isBlocked = true;
@@ -166,7 +166,7 @@ namespace Despicaville.SubTasks
 
                             if (!isBlocked)
                             {
-                                Character? blockingCharacter = WorldUtil.GetCharacter(location);
+                                Character? blockingCharacter = WorldUtil.GetCharacter(location, false);
                                 if (blockingCharacter != null)
                                 {
                                     if (tile.BlocksMovement)
@@ -435,7 +435,7 @@ namespace Despicaville.SubTasks
                 {
                     WorldUtil.Push_Tile(tile, newLocation);
 
-                    Character? blockingCharacter = WorldUtil.GetCharacter(tile.Location);
+                    Character? blockingCharacter = WorldUtil.GetCharacter(tile.Location, false);
                     if (blockingCharacter?.Location != null)
                     {
                         blockingCharacter.ResetAnimation();

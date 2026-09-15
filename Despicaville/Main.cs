@@ -13,7 +13,6 @@ using OP_Engine.Inventories;
 using OP_Engine.Time;
 using OP_Engine.Rendering;
 using OP_Engine.Weathers;
-using OP_Engine.Utility;
 using Despicaville.Scenes;
 using Despicaville.Menus;
 using Despicaville.Util;
@@ -24,13 +23,7 @@ namespace Despicaville
     {
         #region Variables
 
-        public static D_Game? Game;
-
-        public static BlendState AmbientBlendState = new();
-        public static LightingRenderer? LightingRenderer;
-
-        public static Renderer? BufferRenderer;
-        public static Renderer? FinalRenderer;
+        public static OP_Game? Game;
 
         public static bool LostFocus;
         public static string? Version;
@@ -46,12 +39,13 @@ namespace Despicaville
         {
             try
             {
-                Game = new D_Game
+                Game = new OP_Game
                 {
                     Form = (Form?)Control.FromHandle(Window.Handle),
                     Zoom = 2
                 };
                 Game.Init(this, Window);
+                Game.RenderingManager = new D_RenderingManager(this);
             }
             catch (Exception e)
             {
@@ -78,43 +72,39 @@ namespace Despicaville
 
                 LoadComponents();
 
-                if (Game != null &&
-                    Game.GraphicsManager != null)
+                if (Game == null ||
+                    Game.GraphicsManager == null ||
+                    Game.RenderingManager == null)
                 {
-                    Game.SpriteBatch = new SpriteBatch(Game.GraphicsManager.GraphicsDevice);
+                    return;
+                }
 
-                    RenderingManager.InitDefaults(Game.GraphicsManager, Game.Resolution);
+                Game.SpriteBatch = new SpriteBatch(Game.GraphicsManager.GraphicsDevice);
 
-                    if (RenderingManager.AddLightingRenderer != null)
+                Game.RenderingManager.InitDefaults(Game.GraphicsManager, Game.Resolution);
+
+                if (Game.RenderingManager.AddLightingRenderer != null)
+                {
+                    Game.RenderingManager.LightingRenderer = new LightingRenderer
                     {
-                        RenderingManager.LightingRenderer = new LightingRenderer
-                        {
-                            Name = "Lighting",
-                            SetRenderTarget_BeforeDraw = true,
-                            ClearGraphics_BeforeDraw = true,
-                            ClearRenderTarget_AfterDraw = true,
-                            BlendState = BlendState.Additive
-                        };
-                        RenderingManager.LightingRenderer.Init(Game.GraphicsManager, Game.Resolution);
-                        RenderingManager.AddLightingRenderer.RenderTarget = RenderingManager.LightingRenderer.RenderTarget;
-                    }
+                        Name = "Lighting",
+                        SetRenderTarget_BeforeDraw = true,
+                        ClearGraphics_BeforeDraw = true,
+                        ClearRenderTarget_AfterDraw = true,
+                        BlendState = BlendState.Additive
+                    };
+                    Game.RenderingManager.LightingRenderer.Init(Game.GraphicsManager, Game.Resolution);
+                    Game.RenderingManager.AddLightingRenderer.RenderTarget = Game.RenderingManager.LightingRenderer.RenderTarget;
+                }
 
-                    Handler.Init(this);
+                Handler.Init(this);
+                ShaderUtil.Init();
+                TimeTracker.Init();
 
-                    BufferRenderer = new Renderer(Handler.GetID(), "Buffer");
-                    BufferRenderer.Init(Game.GraphicsManager, Game.Resolution);
-
-                    FinalRenderer = new Renderer(Handler.GetID(), "Final");
-                    FinalRenderer.Init(Game.GraphicsManager, Game.Resolution);
-
-                    ShaderUtil.Init();
-                    TimeTracker.Init();
-
-                    if (!Game.GraphicsManager.IsFullScreen &&
-                        Game.Form != null)
-                    {
-                        Game.Form.WindowState = FormWindowState.Maximized;
-                    }
+                if (!Game.GraphicsManager.IsFullScreen &&
+                    Game.Form != null)
+                {
+                    Game.Form.WindowState = FormWindowState.Maximized;
                 }
 
                 LoadScenes();
@@ -140,56 +130,59 @@ namespace Despicaville
 
         protected override void Update(GameTime gameTime)
         {
+            if (Game == null ||
+                Game.Form == null ||
+                Game.RenderingManager == null ||
+                Window == null)
+            {
+                return;
+            }
+
             try
             {
-                if (Game != null)
+                if (Game.Quit)
                 {
-                    if (Window != null)
-                    {
-                        if (Window.ClientBounds.Width > 0 &&
-                            Window.ClientBounds.Height > 0 &&
-                            Game.Form != null)
-                        {
-                            if (!Game.Form.Focused)
-                            {
-                                if (Game.GameStarted &&
-                                    !LostFocus &&
-                                    !TimeManager.Paused)
-                                {
-                                    LostFocus = true;
-                                    MenuManager.GetMenu("Main")?.Open();
-                                }
-
-                                SoundManager.Paused = true;
-                            }
-                            else if (Game.Form.Focused)
-                            {
-                                LostFocus = false;
-                                SoundManager.Paused = false;
-
-                                InputManager.Update();
-                                MenuManager.Update(Game.Game, Content);
-                                SceneManager.Update(Game.Game, Content);
-                                RenderingManager.Update();
-                                WeatherManager.Update(Game.Resolution, Color.White);
-                            }
-                        }
-                        else if (!LostFocus)
-                        {
-                            LostFocus = true;
-                            MenuManager.GetMenu("Main")?.Open();
-                            SoundManager.Paused = true;
-                        }
-
-                        SoundManager.Update();
-                    }
-
-                    if (Game.Quit)
-                    {
-                        SoundManager.StopAll();
-                        Game.Game?.Exit();
-                    }
+                    SoundManager.StopAll();
+                    Game.Game?.Exit();
+                    return;
                 }
+
+                if (Window.ClientBounds.Width == 0 ||
+                    Window.ClientBounds.Height == 0)
+                {
+                    if (!LostFocus)
+                    {
+                        LostFocus = true;
+                        MenuManager.GetMenu("Main")?.Open();
+                        SoundManager.Paused = true;
+                    }
+
+                    return;
+                }
+
+                if (!Game.Form.Focused)
+                {
+                    if (Game.GameStarted &&
+                        !LostFocus &&
+                        !TimeManager.Paused)
+                    {
+                        LostFocus = true;
+                        MenuManager.GetMenu("Main")?.Open();
+                    }
+
+                    SoundManager.Paused = true;
+                    return;
+                }
+
+                LostFocus = false;
+                SoundManager.Paused = false;
+
+                InputManager.Update();
+                MenuManager.Update(Game.Game, Content);
+                SceneManager.Update(Game.Game, Content);
+                Game.RenderingManager.Update();
+                WeatherManager.Update(Game.Resolution, Color.White);
+                SoundManager.Update();
             }
             catch (Exception e)
             {
@@ -200,98 +193,12 @@ namespace Despicaville
         protected override void Draw(GameTime gameTime)
         {
             if (Game == null ||
-                Game.Window == null ||
-                Game.SpriteBatch == null ||
-                Game.GraphicsManager == null ||
-                RenderingManager.LightingRenderer == null ||
-                RenderingManager.Lighting == null ||
-                RenderingManager.AddLightingRenderer == null ||
-                BufferRenderer?.RenderTarget == null ||
-                FinalRenderer?.RenderTarget == null)
+                Game.RenderingManager == null)
             {
                 return;
             }
 
-            //Don't bother drawing if the window is minimized
-            if (Game.Window.ClientBounds.Width > 0 &&
-                Game.Window.ClientBounds.Height > 0)
-            {
-                //Set ambient light in case the color changed
-                RenderingManager.LightingRenderer.GraphicsClearColor = RenderingManager.Lighting.DrawColor;
-
-                //Render lighting
-                RenderingManager.LightingRenderer.Draw(Game.SpriteBatch, Game.Resolution);
-
-                //=================================
-                // Draw world to Buffer
-                //---------------------------------
-                Game.GraphicsManager.GraphicsDevice.SetRenderTarget(BufferRenderer.RenderTarget);
-                Game.GraphicsManager.GraphicsDevice.Clear(Color.Black);
-
-                //Render world
-                Game.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied);
-                SceneManager.Draw_WorldsOnly(Game.SpriteBatch, Game.Resolution, Color.White);
-                Game.SpriteBatch.End();
-
-                //Add lighting to world
-                RenderingManager.AddLightingRenderer.Draw(Game.SpriteBatch, Game.Resolution);
-
-                Game.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied);
-
-                //Alt method with no lighting applied
-                SceneManager.Draw_WorldsOnly(Game.SpriteBatch, Game.Resolution);
-
-                Game.SpriteBatch.End();
-                //---------------------------------
-                // End of drawing to Buffer
-                //=================================
-
-                //Apply shaders
-                if (ShaderUtil.RenderTarget_Blurred != null &&
-                    TimeManager.Paused)
-                {
-                    if (ShaderUtil.RenderTarget_Blurred.Width != Game.Resolution.X ||
-                        ShaderUtil.RenderTarget_Blurred.Height != Game.Resolution.Y)
-                    {
-                        ShaderUtil.RenderTarget_Blurred = new RenderTarget2D(Game.GraphicsManager.GraphicsDevice, Game.Resolution.X, Game.Resolution.Y);
-                    }
-
-                    Game.GraphicsManager.GraphicsDevice.SetRenderTarget(ShaderUtil.RenderTarget_Blurred);
-                    Game.GraphicsManager.GraphicsDevice.Clear(Color.Transparent);
-
-                    ShaderUtil.Apply_GaussianBlur(Game.SpriteBatch, 5, BufferRenderer.RenderTarget, new Region(0, 0, Game.Resolution.X, Game.Resolution.Y), false);
-                    Game.GraphicsManager.GraphicsDevice.SetRenderTarget(BufferRenderer.RenderTarget);
-
-                    ShaderUtil.Apply_GaussianBlur(Game.SpriteBatch, 5, ShaderUtil.RenderTarget_Blurred, new Region(0, 0, Game.Resolution.X, Game.Resolution.Y), true);
-                }
-
-                //Draw Buffer to Final RenderTarget
-                Game.GraphicsManager.GraphicsDevice.SetRenderTarget(FinalRenderer.RenderTarget);
-                Game.GraphicsManager.GraphicsDevice.Clear(Color.Black);
-
-                Game.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque);
-                Game.SpriteBatch.Draw(BufferRenderer.RenderTarget, new Rectangle(0, 0, Game.Resolution.X, Game.Resolution.Y), Color.White);
-                Game.SpriteBatch.End();
-
-                //Draw Final RenderTarget to screen
-                Game.GraphicsManager.GraphicsDevice.SetRenderTarget(null);
-                Game.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque);
-                Game.SpriteBatch.Draw(FinalRenderer.RenderTarget, new Rectangle(0, 0, Game.Resolution.X, Game.Resolution.Y), Color.White);
-                Game.SpriteBatch.End();
-
-                //=================================
-                // Draw menus
-                //---------------------------------
-                Game.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied);
-
-                //Render scene specific menus
-                SceneManager.Draw_MenusOnly(Game.SpriteBatch);
-
-                //Render standalone menus
-                MenuManager.Draw(Game.SpriteBatch);
-
-                Game.SpriteBatch.End();
-            }
+            Game.RenderingManager.Draw(Window, Game.GraphicsManager, Game.SpriteBatch, new Point(Game.ScreenWidth, Game.ScreenHeight));
         }
 
         private void LoadComponents()

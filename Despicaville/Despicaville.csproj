@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
-	<Version>0.5.1.3</Version>
+	<Version>0.5.1.4</Version>
     <RollForward>Major</RollForward>
     <PublishReadyToRun>false</PublishReadyToRun>
     <TieredCompilation>false</TieredCompilation>
@@ -26,6 +26,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.5" />
-    <PackageReference Include="OP_Engine" Version="1.1.1.1" />
+    <PackageReference Include="OP_Engine" Version="1.1.2.1" />
   </ItemGroup>
 </Project>

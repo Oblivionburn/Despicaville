@@ -172,7 +172,7 @@ namespace Despicaville.SubTasks
                 return;
             }
 
-            Character? target = WorldUtil.GetCharacter(Location);
+            Character? target = WorldUtil.GetCharacter(Location, false);
             if (target != null)
             {
                 if (dual_wield)
