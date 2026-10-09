@@ -66,9 +66,13 @@ namespace Despicaville
         public static Character? Interaction_Character = null;
 
         public static int light_count = 0;
-        public static int light_map_width = 0;
+        public static List<Vector2> lights = [];
+        public static List<Vector4> light_colors = [];
+        public static float light_radius = 0;
+
         public static Dictionary<Vector2, List<Tile>> light_maps = [];
-        public static List<Point> light_sources = [];
+        public static List<Tile> static_lights = [];
+        public static List<Tile> dynamic_lights = [];
 
         public static Dictionary<long, List<Tile>> VisibleTiles = [];
 

@@ -497,85 +497,21 @@ namespace Despicaville.Util
                 switch (direction)
                 {
                     case Direction.North:
-                        if (Handler.Pull_Tile.IsLightSource)
-                        {
-                            for (int l = 0; l < Handler.light_sources.Count; l++)
-                            {
-                                Point source = Handler.light_sources[l];
-                                if (source.X == Handler.Pull_Tile.Location.X &&
-                                    source.Y == Handler.Pull_Tile.Location.Y)
-                                {
-                                    source.Y--;
-
-                                    Handler.light_sources[l] = new Point(source.X, source.Y);
-                                    break;
-                                }
-                            }
-                        }
-
                         newLocation.Y--;
                         SwapTiles(middle_tiles, Handler.Pull_Tile, newLocation);
                         break;
 
                     case Direction.East:
-                        if (Handler.Pull_Tile.IsLightSource)
-                        {
-                            for (int l = 0; l < Handler.light_sources.Count; l++)
-                            {
-                                Point source = Handler.light_sources[l];
-                                if (source.X == Handler.Pull_Tile.Location.X &&
-                                    source.Y == Handler.Pull_Tile.Location.Y)
-                                {
-                                    source.X++;
-
-                                    Handler.light_sources[l] = new Point(source.X, source.Y);
-                                    break;
-                                }
-                            }
-                        }
-
                         newLocation.X++;
                         SwapTiles(middle_tiles, Handler.Pull_Tile, newLocation);
                         break;
 
                     case Direction.South:
-                        if (Handler.Pull_Tile.IsLightSource)
-                        {
-                            for (int l = 0; l < Handler.light_sources.Count; l++)
-                            {
-                                Point source = Handler.light_sources[l];
-                                if (source.X == Handler.Pull_Tile.Location.X &&
-                                    source.Y == Handler.Pull_Tile.Location.Y)
-                                {
-                                    source.Y++;
-
-                                    Handler.light_sources[l] = new Point(source.X, source.Y);
-                                    break;
-                                }
-                            }
-                        }
-
                         newLocation.Y++;
                         SwapTiles(middle_tiles, Handler.Pull_Tile, newLocation);
                         break;
 
                     case Direction.West:
-                        if (Handler.Pull_Tile.IsLightSource)
-                        {
-                            for (int l = 0; l < Handler.light_sources.Count; l++)
-                            {
-                                Point source = Handler.light_sources[l];
-                                if (source.X == Handler.Pull_Tile.Location.X &&
-                                    source.Y == Handler.Pull_Tile.Location.Y)
-                                {
-                                    source.X--;
-
-                                    Handler.light_sources[l] = new Point(source.X, source.Y);
-                                    break;
-                                }
-                            }
-                        }
-
                         newLocation.X--;
                         SwapTiles(middle_tiles, Handler.Pull_Tile, newLocation);
                         break;
@@ -590,20 +526,6 @@ namespace Despicaville.Util
             if (middle_tiles == null)
             {
                 return;
-            }
-
-            if (tile.IsLightSource)
-            {
-                for (int l = 0; l < Handler.light_sources.Count; l++)
-                {
-                    Point source = Handler.light_sources[l];
-                    if (source.X == tile.Location?.X &&
-                        source.Y == tile.Location.Y)
-                    {
-                        Handler.light_sources[l] = new Point((int)newLocation.X, (int)newLocation.Y);
-                        break;
-                    }
-                }
             }
 
             SwapTiles(middle_tiles, tile, newLocation);

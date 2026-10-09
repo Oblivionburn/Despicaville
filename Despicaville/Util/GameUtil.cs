@@ -77,7 +77,9 @@ namespace Despicaville.Util
             Handler.Messages.Clear();
             Handler.VisibleTiles.Clear();
             Handler.light_maps.Clear();
-            Handler.light_sources.Clear();
+            Handler.static_lights.Clear();
+            Handler.dynamic_lights.Clear();
+
             ResetArmy();
             ResetInventories();
 

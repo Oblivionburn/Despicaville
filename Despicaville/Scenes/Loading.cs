@@ -146,7 +146,7 @@ namespace Despicaville.Scenes
                         Handler.LoadingTask == null)
                     {
                         Handler.LoadingTokenSource = new CancellationTokenSource();
-                        Handler.LoadingTask = Task.Factory.StartNew(() => WorldGen.GenLoot(), Handler.LoadingTokenSource.Token);
+                        Handler.LoadingTask = Task.Factory.StartNew(() => InventoryUtil.GenLoot(), Handler.LoadingTokenSource.Token);
                     }
 
                     if (Handler.LoadingTask != null)

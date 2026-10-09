@@ -4,6 +4,8 @@ using Microsoft.Xna.Framework.Graphics;
 using OP_Engine.Utility;
 using OP_Engine.Controls;
 using OP_Engine.Menus;
+using OP_Engine.Rendering;
+using OP_Engine.Tiles;
 
 namespace Despicaville.Util
 {
@@ -11,16 +13,27 @@ namespace Despicaville.Util
     {
         public static Effect? BloomExtract;
         public static Effect? BloomCombine;
+        public static Effect? DynamicLighting;
+        public static RenderTarget2D? DynamicLighting_Render;
+        public static RenderTarget2D? DynamicLighting_LightMap;
         public static RenderTarget2D? RenderTarget_BrightAreas;
         public static RenderTarget2D? RenderTarget_Blurred;
 
         public static void Init()
         {
             if (Main.Game == null ||
-                Main.Game.GraphicsManager == null)
+                Main.Game.GraphicsManager == null ||
+                Main.Game.RenderingManager?.BufferRenderer == null)
             {
                 return;
             }
+
+            DynamicLighting_Render = new RenderTarget2D(Main.Game.GraphicsManager.GraphicsDevice, Main.Game.Resolution.X, Main.Game.Resolution.Y);
+
+            DynamicLighting_LightMap = new RenderTarget2D(Main.Game.GraphicsManager.GraphicsDevice, Main.Game.Resolution.X, Main.Game.Resolution.Y);
+            Main.Game.GraphicsManager.GraphicsDevice.SetRenderTarget(DynamicLighting_LightMap);
+            Main.Game.GraphicsManager.GraphicsDevice.Clear(Color.White);
+            Main.Game.GraphicsManager.GraphicsDevice.SetRenderTarget(Main.Game.RenderingManager.BufferRenderer.RenderTarget);
 
             RenderTarget_BrightAreas = new RenderTarget2D(Main.Game.GraphicsManager.GraphicsDevice, Main.Game.Resolution.X, Main.Game.Resolution.Y);
             RenderTarget_Blurred = new RenderTarget2D(Main.Game.GraphicsManager.GraphicsDevice, Main.Game.Resolution.X, Main.Game.Resolution.Y);
@@ -31,6 +44,8 @@ namespace Despicaville.Util
             BloomCombine.Parameters["BaseIntensity"].SetValue(1f);
             BloomCombine.Parameters["BloomSaturation"].SetValue(1.5f);
             BloomCombine.Parameters["BaseSaturation"].SetValue(1f);
+
+            DynamicLighting = AssetManager.Shaders["DynamicLighting"];
         }
 
         public static Vector2[] HorizontalOffsets(int radius, float textureWidth)
@@ -113,10 +128,9 @@ namespace Despicaville.Util
                 GaussianBlur.Parameters["SampleOffsets"].SetValue(HorizontalOffsets(radius, texture.Width));
             }
 
-            Main.Game.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, GaussianBlur);
+            spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, GaussianBlur);
             spriteBatch.Draw(texture, region.ToRectangle, Color.White);
-
-            Main.Game.SpriteBatch.End();
+            spriteBatch.End();
         }
 
         public static void Apply_Bloom(SpriteBatch spriteBatch, Menu menu)
@@ -192,6 +206,173 @@ namespace Despicaville.Util
             spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Opaque, null, null, null, BloomCombine);
             spriteBatch.Draw(RenderTarget_BrightAreas, new Rectangle(0, 0, Main.Game.Resolution.X, Main.Game.Resolution.Y), Color.White);
             spriteBatch.End();
+        }
+
+        public static void Apply_DynamicLighting(RenderTarget2D renderTarget)
+        {
+            if (Main.Game == null ||
+                Main.Game.SpriteBatch == null ||
+                Main.Game.GraphicsManager == null ||
+                DynamicLighting == null ||
+                DynamicLighting_LightMap == null ||
+                DynamicLighting_Render == null ||
+                Main.Game.RenderingManager == null ||
+                Main.Game.RenderingManager.BufferRenderer == null ||
+                RenderingManager.Lighting == null)
+            {
+                return;
+            }
+
+            Texture2D? black = Handler.GetTexture("Black");
+            if (black == null)
+            {
+                return;
+            }
+
+            Handler.light_radius = (Main.light_tile_distance * Main.Game.TileSize_X) + (Main.Game.TileSize_X / 2);
+            DynamicLighting.Parameters["light_radius"].SetValue(Handler.light_radius);
+
+            DynamicLighting.Parameters["resolution"].SetValue(new Vector2(Main.Game.ScreenWidth, Main.Game.ScreenHeight));
+            DynamicLighting.Parameters["render_target"].SetValue(renderTarget);
+
+            if (DynamicLighting_LightMap.Width != Main.Game.Resolution.X ||
+                DynamicLighting_LightMap.Height != Main.Game.Resolution.Y)
+            {
+                DynamicLighting_LightMap = new RenderTarget2D(Main.Game.GraphicsManager.GraphicsDevice, Main.Game.Resolution.X, Main.Game.Resolution.Y);
+            }
+
+            Main.Game.GraphicsManager.GraphicsDevice.SetRenderTarget(DynamicLighting_LightMap);
+            Main.Game.GraphicsManager.GraphicsDevice.Clear(Color.White);
+
+            Main.Game.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied);
+
+            Map? map = WorldUtil.GetMap();
+            if (map != null)
+            {
+                Layer? bottom_tiles = map.GetLayer("BottomTiles");
+                Layer? middle_tiles = map.GetLayer("MiddleTiles");
+
+                if (bottom_tiles != null &&
+                    middle_tiles != null)
+                {
+                    float min_x = 0 - Main.Game.TileSize_X;
+                    float max_x = Main.Game.ScreenWidth + Main.Game.TileSize_X;
+                    float min_y = 0 - Main.Game.TileSize_Y;
+                    float max_y = Main.Game.ScreenHeight + Main.Game.TileSize_Y;
+
+                    int bottom_count = bottom_tiles.Tiles.Count;
+                    for (int i = 0; i < bottom_count; i++)
+                    {
+                        Tile bottom_tile = bottom_tiles.Tiles[i];
+                        if (bottom_tile.Region == null ||
+                            bottom_tile.Location == null)
+                        {
+                            continue;
+                        }
+
+                        if (bottom_tile.Region.X < min_x || bottom_tile.Region.X > max_x ||
+                            bottom_tile.Region.Y < min_y || bottom_tile.Region.Y > max_y)
+                        {
+                            continue;
+                        }
+
+                        if (bottom_tile.BlocksMovement)
+                        {
+                            Main.Game.SpriteBatch.Draw(black, bottom_tile.Region.ToRectangle, Color.White);
+                        }
+
+                        Tile? middle_tile = middle_tiles.GetTile(bottom_tile.Location.ToVector2);
+                        if (middle_tile?.Region != null)
+                        {
+                            if (middle_tile.BlocksMovement &&
+                                middle_tile.BlocksSight)
+                            {
+                                Main.Game.SpriteBatch.Draw(black, bottom_tile.Region.ToRectangle, Color.White);
+                            }
+                        }
+                    }
+                }
+            }
+
+            Main.Game.SpriteBatch.End();
+
+            DynamicLighting.Parameters["light_map"].SetValue(DynamicLighting_LightMap);
+
+            float Lighting_R = Utility.ConvertValueToRange(RenderingManager.Lighting.DrawColor.R, 0, 255, 0, 1);
+            float Lighting_G = Utility.ConvertValueToRange(RenderingManager.Lighting.DrawColor.G, 0, 255, 0, 1);
+            float Lighting_B = Utility.ConvertValueToRange(RenderingManager.Lighting.DrawColor.B, 0, 255, 0, 1);
+            float Lighting_A = Utility.ConvertValueToRange(RenderingManager.Lighting.DrawColor.A, 0, 255, 0, 1);
+            Vector4 lighting = new(Lighting_R, Lighting_G, Lighting_B, Lighting_A);
+            DynamicLighting.Parameters["ambient_light"].SetValue(lighting);
+
+            Handler.light_count = 0;
+            Handler.lights.Clear();
+            Handler.light_colors.Clear();
+
+            int light_source_count = Handler.dynamic_lights.Count;
+            for (int l = 0; l < light_source_count; l++)
+            {
+                Tile dynamic_light = Handler.dynamic_lights[l];
+
+                if (dynamic_light.Region == null ||
+                    !dynamic_light.IsLightSource)
+                {
+                    continue;
+                }
+
+                float light_width = Main.light_tile_distance * Main.Game.TileSize.X;
+                float light_height = Main.light_tile_distance * Main.Game.TileSize.Y;
+
+                float min_x = 0 - light_width;
+                float max_x = Main.Game.ScreenWidth + light_width;
+                float min_y = 0 - light_height;
+                float max_y = Main.Game.ScreenHeight + light_height;
+
+                if (dynamic_light.Region.X < min_x || dynamic_light.Region.X > max_x ||
+                    dynamic_light.Region.Y < min_y || dynamic_light.Region.Y > max_y)
+                {
+                    continue;
+                }
+
+                Handler.light_count++;
+
+                float half_width = Main.Game.TileSize.X / 2;
+                float half_height = Main.Game.TileSize.Y / 2;
+
+                Vector2 region_center_point = new(dynamic_light.Region.X + half_width, dynamic_light.Region.Y + half_height);
+                Handler.lights.Add(region_center_point);
+
+                float r = Utility.ConvertValueToRange(dynamic_light.LightColor.R, 0, 255, 0, 1);
+                float g = Utility.ConvertValueToRange(dynamic_light.LightColor.G, 0, 255, 0, 1);
+                float b = Utility.ConvertValueToRange(dynamic_light.LightColor.B, 0, 255, 0, 1);
+                float a = Utility.ConvertValueToRange(dynamic_light.LightColor.A, 0, 255, 0, 1);
+                Handler.light_colors.Add(new(r, g, b, a));
+            }
+
+            if (DynamicLighting_Render.Width != Main.Game.Resolution.X ||
+                DynamicLighting_Render.Height != Main.Game.Resolution.Y)
+            {
+                DynamicLighting_Render = new RenderTarget2D(Main.Game.GraphicsManager.GraphicsDevice, Main.Game.Resolution.X, Main.Game.Resolution.Y);
+            }
+
+            if (Handler.light_count > 0)
+            {
+                DynamicLighting.Parameters["light_count"].SetValue(Handler.light_count);
+                DynamicLighting.Parameters["lights"].SetValue(Handler.lights.ToArray());
+                DynamicLighting.Parameters["light_colors"].SetValue(Handler.light_colors.ToArray());
+            }
+
+            Main.Game.GraphicsManager.GraphicsDevice.SetRenderTarget(DynamicLighting_Render);
+            Main.Game.GraphicsManager.GraphicsDevice.Clear(Color.Transparent);
+
+            Main.Game.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied, null, null, null, DynamicLighting);
+            Main.Game.SpriteBatch.Draw(renderTarget, new Rectangle(0, 0, Main.Game.Resolution.X, Main.Game.Resolution.Y), Color.White);
+            Main.Game.SpriteBatch.End();
+
+            Main.Game.GraphicsManager.GraphicsDevice.SetRenderTarget(renderTarget);
+            Main.Game.SpriteBatch.Begin(SpriteSortMode.Immediate, BlendState.NonPremultiplied);
+            Main.Game.SpriteBatch.Draw(DynamicLighting_Render, new Rectangle(0, 0, Main.Game.Resolution.X, Main.Game.Resolution.Y), Color.White);
+            Main.Game.SpriteBatch.End();
         }
     }
 }

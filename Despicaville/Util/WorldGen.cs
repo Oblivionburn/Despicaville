@@ -10,6 +10,8 @@ using OP_Engine.Inventories;
 using OP_Engine.Characters;
 using OP_Engine.Enums;
 using OP_Engine.Jobs;
+using Microsoft.Xna.Framework.Graphics;
+using OP_Engine.Controls;
 
 namespace Despicaville.Util
 {
@@ -1424,8 +1426,7 @@ namespace Despicaville.Util
             Handler.MiddleFurniture.Clear();
             Handler.TopFurniture.Clear();
             Handler.OwnedFurniture.Clear();
-            Handler.light_sources.Clear();
-
+            
             Handler.Loading_Percent = 0;
             Handler.Loading_Message = "Generating new town...";
 
@@ -1470,6 +1471,7 @@ namespace Despicaville.Util
             AddRoofTiles(bottom_tiles, middle_tiles, room_tiles, roof_tiles);
             AddRooms();
             AddRoomConnections();
+            ConnectParkingToRoads(bottom_tiles, middle_tiles);
 
             Scene? gameplay = SceneManager.GetScene("Gameplay");
             if (gameplay != null)
@@ -1816,7 +1818,7 @@ namespace Despicaville.Util
                 new_tile.IsLightSource = existing.IsLightSource;
                 if (new_tile.IsLightSource)
                 {
-                    Handler.light_sources.Add(new Point((int)new_tile.Location.X, (int)new_tile.Location.Y));
+                    Handler.dynamic_lights.Add(new_tile);
                 }
 
                 new_tile.LightColor = existing.LightColor;
@@ -1942,6 +1944,8 @@ namespace Despicaville.Util
             }
         }
 
+        #endregion
+
         private static void AddRoofTiles(Layer bottom_tiles, Layer middle_tiles, Layer room_tiles, Layer roof_tiles)
         {
             if (Main.Game == null)
@@ -2032,6 +2036,173 @@ namespace Despicaville.Util
                             {
                                 roof_tile.Image = new Rectangle(0, 0, roof_tile.Texture.Width, roof_tile.Texture.Height);
                                 roof_tile.Visible = true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private static void ConnectParkingToRoads(Layer bottom_tiles, Layer middle_tiles)
+        {
+            Texture2D? parking_texture = Handler.GetTexture("Parking");
+            if (parking_texture == null)
+            {
+                return;
+            }
+
+            foreach (Map worldMap in Worldmap)
+            {
+                if (worldMap.Location == null ||
+                    worldMap.Type != "Map_Commercial")
+                {
+                    continue;
+                }
+
+                float min_x = (worldMap.Location.X * 20);
+                float max_x = (worldMap.Location.X * 20) + 20;
+                float min_y = (worldMap.Location.Y * 20);
+                float max_y = (worldMap.Location.Y * 20) + 20;
+
+                Layer? block_bottom_tiles = worldMap.GetLayer("BottomTiles");
+                if (block_bottom_tiles != null)
+                {
+                    //North Edge
+                    for (float x = min_x; x < max_x; x++)
+                    {
+                        Tile? bottom_tile = bottom_tiles.GetTile(new Vector2(x, min_y));
+                        if (bottom_tile?.Location != null)
+                        {
+                            if (bottom_tile.Name == "Parking")
+                            {
+                                for (float y = bottom_tile.Location.Y - 1; y >= bottom_tile.Location.Y - 3; y--)
+                                {
+                                    //Replace sidewalk with parking
+                                    Tile? connector = bottom_tiles.GetTile(new Vector2(x, y));
+                                    if (connector != null)
+                                    {
+                                        connector.Name = "Parking";
+                                        connector.Texture = parking_texture;
+                                        connector.Image = new Rectangle(0, 0, parking_texture.Width, parking_texture.Height);
+                                    }
+
+                                    //Remove street lamp if exists
+                                    Tile? middle_tile = middle_tiles.GetTile(new Vector2(x, y));
+                                    if (middle_tile?.Texture != null &&
+                                        middle_tile.Name == "Street Light")
+                                    {
+                                        middle_tile.Name = null;
+                                        middle_tile.Texture = null;
+                                        middle_tile.IsLightSource = false;
+                                        middle_tile.BlocksMovement = false;
+                                        middle_tile.Visible = false;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    //East Edge
+                    for (float y = min_y; y < max_y; y++)
+                    {
+                        Tile? bottom_tile = bottom_tiles.GetTile(new Vector2(max_x, y));
+                        if (bottom_tile?.Location != null)
+                        {
+                            if (bottom_tile.Name == "Parking")
+                            {
+                                for (float x = bottom_tile.Location.X + 1; x <= bottom_tile.Location.X + 3; x++)
+                                {
+                                    //Replace sidewalk with parking
+                                    Tile? connector = bottom_tiles.GetTile(new Vector2(x, y));
+                                    if (connector != null)
+                                    {
+                                        connector.Name = "Parking";
+                                        connector.Texture = parking_texture;
+                                        connector.Image = new Rectangle(0, 0, parking_texture.Width, parking_texture.Height);
+                                    }
+
+                                    //Remove street lamp if exists
+                                    Tile? middle_tile = middle_tiles.GetTile(new Vector2(x, y));
+                                    if (middle_tile?.Texture != null &&
+                                        middle_tile.Name == "Street Light")
+                                    {
+                                        middle_tile.Name = null;
+                                        middle_tile.Texture = null;
+                                        middle_tile.IsLightSource = false;
+                                        middle_tile.BlocksMovement = false;
+                                        middle_tile.Visible = false;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    //South Edge
+                    for (float x = min_x; x < max_x; x++)
+                    {
+                        Tile? bottom_tile = bottom_tiles.GetTile(new Vector2(x, max_y));
+                        if (bottom_tile?.Location != null)
+                        {
+                            if (bottom_tile.Name == "Parking")
+                            {
+                                for (float y = bottom_tile.Location.Y + 1; y <= bottom_tile.Location.Y + 3; y++)
+                                {
+                                    //Replace sidewalk with parking
+                                    Tile? connector = bottom_tiles.GetTile(new Vector2(x, y));
+                                    if (connector != null)
+                                    {
+                                        connector.Name = "Parking";
+                                        connector.Texture = parking_texture;
+                                        connector.Image = new Rectangle(0, 0, parking_texture.Width, parking_texture.Height);
+                                    }
+
+                                    //Remove street lamp if exists
+                                    Tile? middle_tile = middle_tiles.GetTile(new Vector2(x, y));
+                                    if (middle_tile?.Texture != null &&
+                                        middle_tile.Name == "Street Light")
+                                    {
+                                        middle_tile.Name = null;
+                                        middle_tile.Texture = null;
+                                        middle_tile.IsLightSource = false;
+                                        middle_tile.BlocksMovement = false;
+                                        middle_tile.Visible = false;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    //West Edge
+                    for (float y = min_y; y < max_y; y++)
+                    {
+                        Tile? bottom_tile = bottom_tiles.GetTile(new Vector2(min_x, y));
+                        if (bottom_tile?.Location != null)
+                        {
+                            if (bottom_tile.Name == "Parking")
+                            {
+                                for (float x = bottom_tile.Location.X - 1; x >= bottom_tile.Location.X - 3; x--)
+                                {
+                                    //Replace sidewalk with parking
+                                    Tile? connector = bottom_tiles.GetTile(new Vector2(x, y));
+                                    if (connector != null)
+                                    {
+                                        connector.Name = "Parking";
+                                        connector.Texture = parking_texture;
+                                        connector.Image = new Rectangle(0, 0, parking_texture.Width, parking_texture.Height);
+                                    }
+
+                                    //Remove street lamp if exists
+                                    Tile? middle_tile = middle_tiles.GetTile(new Vector2(x, y));
+                                    if (middle_tile?.Texture != null &&
+                                        middle_tile.Name == "Street Light")
+                                    {
+                                        middle_tile.Name = null;
+                                        middle_tile.Texture = null;
+                                        middle_tile.IsLightSource = false;
+                                        middle_tile.BlocksMovement = false;
+                                        middle_tile.Visible = false;
+                                    }
+                                }
                             }
                         }
                     }
@@ -2218,6 +2389,63 @@ namespace Despicaville.Util
             }
         }
 
+        private static void AddCharacter(Tile bed)
+        {
+            if (Main.Game == null ||
+                bed.Location == null ||
+                bed.Region == null)
+            {
+                return;
+            }
+
+            Squad? citizens = CharacterManager.GetArmy("Characters")?.GetSquad("Citizens");
+            if (citizens?.Characters.Count < Handler.MaxPop)
+            {
+                Character? character = CharacterUtil.GenCharacter(last_name);
+                if (character != null)
+                {
+                    character.Direction = bed.Direction;
+
+                    if (bed.Direction == Direction.North)
+                    {
+                        character.FaceNorth();
+                    }
+                    else if (bed.Direction == Direction.East)
+                    {
+                        character.FaceEast();
+                    }
+                    else if (bed.Direction == Direction.South)
+                    {
+                        character.FaceSouth();
+                    }
+                    else if (bed.Direction == Direction.West)
+                    {
+                        character.FaceWest();
+                    }
+
+                    if (bed.Direction == Direction.North)
+                    {
+                        character.Location = new Location(bed.Location.X, bed.Location.Y + 1);
+                        character.Region = new Region(bed.Region.X, bed.Region.Y + Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
+                    }
+                    else if (bed.Direction == Direction.West)
+                    {
+                        character.Location = new Location(bed.Location.X + 1, bed.Location.Y);
+                        character.Region = new Region(bed.Region.X + Main.Game.TileSize.X, bed.Region.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
+                    }
+                    else
+                    {
+                        character.Location = new Location(bed.Location.X, bed.Location.Y);
+                        character.Region = new Region(bed.Region.X, bed.Region.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
+                    }
+
+                    CharacterUtil.UpdateGear(character);
+
+                    citizens.Characters.Add(character);
+                }
+            }
+        }
+
         private static void AssignOwners(Layer layer)
         {
             Army? army = CharacterManager.GetArmy("Characters");
@@ -2337,65 +2565,6 @@ namespace Despicaville.Util
                             }
                         }
                     }
-                }
-            }
-        }
-
-        #endregion
-
-        private static void AddCharacter(Tile bed)
-        {
-            if (Main.Game == null ||
-                bed.Location == null ||
-                bed.Region == null)
-            {
-                return;
-            }
-
-            Squad? citizens = CharacterManager.GetArmy("Characters")?.GetSquad("Citizens");
-            if (citizens?.Characters.Count < Handler.MaxPop)
-            {
-                Character? character = CharacterUtil.GenCharacter(last_name);
-                if (character != null)
-                {
-                    character.Direction = bed.Direction;
-
-                    if (bed.Direction == Direction.North)
-                    {
-                        character.FaceNorth();
-                    }
-                    else if (bed.Direction == Direction.East)
-                    {
-                        character.FaceEast();
-                    }
-                    else if (bed.Direction == Direction.South)
-                    {
-                        character.FaceSouth();
-                    }
-                    else if (bed.Direction == Direction.West)
-                    {
-                        character.FaceWest();
-                    }
-
-                    if (bed.Direction == Direction.North)
-                    {
-                        character.Location = new Location(bed.Location.X, bed.Location.Y + 1);
-                        character.Region = new Region(bed.Region.X, bed.Region.Y + Main.Game.TileSize.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
-                    }
-                    else if (bed.Direction == Direction.West)
-                    {
-                        character.Location = new Location(bed.Location.X + 1, bed.Location.Y);
-                        character.Region = new Region(bed.Region.X + Main.Game.TileSize.X, bed.Region.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
-                    }
-                    else
-                    {
-                        character.Location = new Location(bed.Location.X, bed.Location.Y);
-                        character.Region = new Region(bed.Region.X, bed.Region.Y, Main.Game.TileSize.X, Main.Game.TileSize.Y);
-                    }
-
-                    CharacterUtil.UpdateGear(character);
-
-                    citizens.Characters.Add(character);
                 }
             }
         }
@@ -2534,76 +2703,6 @@ namespace Despicaville.Util
                 }
 
                 OpenJobs.Remove(openJob);
-            }
-        }
-
-        public static void GenLoot()
-        {
-            Handler.Loading_Percent = 0;
-            Handler.Loading_Message = "Generating loot...";
-
-            Map? map = WorldUtil.GetMap();
-
-            Layer? room_tiles = map?.GetLayer("RoomTiles");
-            if (room_tiles != null)
-            {
-                Layer? middle_tiles = map?.GetLayer("MiddleTiles");
-                if (middle_tiles != null)
-                {
-                    foreach (Tile middle_tile in middle_tiles.Tiles)
-                    {
-                        current++;
-                        Handler.Loading_Percent = (current * 100) / total;
-
-                        if (middle_tile.Location != null &&
-                            middle_tile.Texture != null)
-                        {
-                            Tile? room_tile = room_tiles.GetTile(middle_tile.Location.ToVector2);
-                            if (room_tile != null)
-                            {
-                                if (!string.IsNullOrEmpty(room_tile.Name))
-                                {
-                                    string? category = InventoryUtil.GetCategory_FromTile(room_tile);
-                                    if (!string.IsNullOrEmpty(category) &&
-                                        category != "Outdoors")
-                                    {
-                                        if (middle_tile.Inventory?.Name != null)
-                                        {
-                                            string container = middle_tile.Inventory.Name;
-                                            if (!string.IsNullOrEmpty(container))
-                                            {
-                                                List<Item> loot = InventoryUtil.GenLoot(category, container, (int)middle_tile.Inventory.Max_Value);
-                                                foreach (Item item in loot)
-                                                {
-                                                    if (item.Name == null)
-                                                    {
-                                                        continue;
-                                                    }
-
-                                                    middle_tile.Inventory.Items.Add(item);
-
-                                                    if (item.Type == "Container")
-                                                    {
-                                                        if (!InventoryManager.Inventories.Contains(item.Inventory))
-                                                        {
-                                                            InventoryManager.Inventories.Add(item.Inventory);
-                                                        }
-
-                                                        List<Item> item_loot = InventoryUtil.GenLoot(category, item.Name, (int)item.Inventory.Max_Value);
-                                                        foreach (Item sub_item in item_loot)
-                                                        {
-                                                            item.Inventory.Items.Add(sub_item);
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
 

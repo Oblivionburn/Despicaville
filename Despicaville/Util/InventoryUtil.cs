@@ -315,7 +315,81 @@ namespace Despicaville.Util
             return null;
         }
 
-        public static List<Item> GenLoot(string category, string container, int max_items)
+        public static void GenLoot()
+        {
+            Handler.Loading_Percent = 0;
+            Handler.Loading_Message = "Generating loot...";
+
+            int current = 0;
+
+            Map? map = WorldUtil.GetMap();
+
+            Layer? room_tiles = map?.GetLayer("RoomTiles");
+            if (room_tiles != null)
+            {
+                Layer? middle_tiles = map?.GetLayer("MiddleTiles");
+                if (middle_tiles != null)
+                {
+                    int total = middle_tiles.Tiles.Count;
+                    
+                    foreach (Tile middle_tile in middle_tiles.Tiles)
+                    {
+                        current++;
+                        Handler.Loading_Percent = (current * 100) / total;
+
+                        if (middle_tile.Location != null &&
+                            middle_tile.Texture != null)
+                        {
+                            Tile? room_tile = room_tiles.GetTile(middle_tile.Location.ToVector2);
+                            if (room_tile != null)
+                            {
+                                if (!string.IsNullOrEmpty(room_tile.Name))
+                                {
+                                    string? category = GetCategory_FromTile(room_tile);
+                                    if (!string.IsNullOrEmpty(category) &&
+                                        category != "Outdoors")
+                                    {
+                                        if (middle_tile.Inventory?.Name != null)
+                                        {
+                                            string container = middle_tile.Inventory.Name;
+                                            if (!string.IsNullOrEmpty(container))
+                                            {
+                                                List<Item> loot = GetLootItems(category, container, (int)middle_tile.Inventory.Max_Value);
+                                                foreach (Item item in loot)
+                                                {
+                                                    if (item.Name == null)
+                                                    {
+                                                        continue;
+                                                    }
+
+                                                    middle_tile.Inventory.Items.Add(item);
+
+                                                    if (item.Type == "Container")
+                                                    {
+                                                        if (!InventoryManager.Inventories.Contains(item.Inventory))
+                                                        {
+                                                            InventoryManager.Inventories.Add(item.Inventory);
+                                                        }
+
+                                                        List<Item> item_loot = GetLootItems(category, item.Name, (int)item.Inventory.Max_Value);
+                                                        foreach (Item sub_item in item_loot)
+                                                        {
+                                                            item.Inventory.Items.Add(sub_item);
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public static List<Item> GetLootItems(string category, string container, int max_items)
         {
             List<Item> items = [];
 

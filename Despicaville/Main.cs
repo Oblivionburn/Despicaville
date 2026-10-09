@@ -83,19 +83,19 @@ namespace Despicaville
 
                 Game.RenderingManager.InitDefaults(Game.GraphicsManager, Game.Resolution);
 
-                if (Game.RenderingManager.AddLightingRenderer != null)
-                {
-                    Game.RenderingManager.LightingRenderer = new LightingRenderer
-                    {
-                        Name = "Lighting",
-                        SetRenderTarget_BeforeDraw = true,
-                        ClearGraphics_BeforeDraw = true,
-                        ClearRenderTarget_AfterDraw = true,
-                        BlendState = BlendState.Additive
-                    };
-                    Game.RenderingManager.LightingRenderer.Init(Game.GraphicsManager, Game.Resolution);
-                    Game.RenderingManager.AddLightingRenderer.RenderTarget = Game.RenderingManager.LightingRenderer.RenderTarget;
-                }
+                //if (Game.RenderingManager.AddLightingRenderer != null)
+                //{
+                //    Game.RenderingManager.LightingRenderer = new LightingRenderer
+                //    {
+                //        Name = "Lighting",
+                //        SetRenderTarget_BeforeDraw = true,
+                //        ClearGraphics_BeforeDraw = true,
+                //        ClearRenderTarget_AfterDraw = true,
+                //        BlendState = BlendState.Additive
+                //    };
+                //    Game.RenderingManager.LightingRenderer.Init(Game.GraphicsManager, Game.Resolution);
+                //    Game.RenderingManager.AddLightingRenderer.RenderTarget = Game.RenderingManager.LightingRenderer.RenderTarget;
+                //}
 
                 Handler.Init(this);
                 ShaderUtil.Init();
